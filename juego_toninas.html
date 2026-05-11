@@ -386,11 +386,13 @@ function voltear(el){
       a.classList.add('matched'); b.classList.add('matched');
       matched++;
       updateUI();
+      playAcierto();
       const frases=['¡Muy bien! 🎉','¡Genial! ⭐','¡Correcto! 🐟','¡Fantástico! 🌊','¡Sí! 🐬'];
       document.getElementById('mensaje').textContent = frases[~~(Math.random()*frases.length)];
       vol=[]; lock=false;
       if(matched===nivelActual.pares){ pararTimer(); setTimeout(mostrarVictoria, 500); }
     } else {
+      playError();
       document.getElementById('mensaje').textContent = '¡Ese no es el par! Sigue buscando 🔍';
       setTimeout(()=>{
         a.classList.remove('volteada'); b.classList.remove('volteada');
@@ -402,6 +404,7 @@ function voltear(el){
 }
 
 function mostrarVictoria(){
+  playVictoria();
   const score = calcScore();
   const pct   = score / nivelActual.base;
   const stars = pct>=.80 ? '⭐⭐⭐' : pct>=.50 ? '⭐⭐' : '⭐';
@@ -434,6 +437,31 @@ function mostrarVictoria(){
   }
 
   document.getElementById('overlay').classList.add('show');
+}
+
+// ===== SONIDOS =====
+function getAC(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume(); return audioCtx;
+}
+function _mn(f,t,dur,vol,type){
+  const a=getAC(),o=a.createOscillator(),g=a.createGain();
+  o.type=type||'sine';o.frequency.value=f;o.connect(g);g.connect(a.destination);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||0.18,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.01);
+}
+function playAcierto(){
+  const a=getAC(),t=a.currentTime;
+  _mn(880,t,0.12,0.2);_mn(1108.73,t+0.1,0.18,0.17);_mn(1318.51,t+0.2,0.22,0.17);
+}
+function playError(){
+  const a=getAC(),t=a.currentTime;
+  _mn(180,t,0.28,0.28,'square');
+}
+function playVictoria(){
+  const a=getAC(),t=a.currentTime;
+  [[523.25,0],[659.25,0.15],[783.99,0.3],[1046.5,0.47],[783.99,0.65],[1046.5,0.82]]
+    .forEach(([f,dt])=>_mn(f,t+dt,0.24,0.18));
 }
 
 // ===== INICIO =====

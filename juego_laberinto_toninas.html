@@ -221,6 +221,58 @@ function placeDangerExits(count, cols, rows){
 }
 
 /* ════════════════════════════════════════════
+   AUDIO
+════════════════════════════════════════════ */
+let mazAC=null;
+function getMazAC(){
+  if(!mazAC) mazAC=new(window.AudioContext||window.webkitAudioContext)();
+  if(mazAC.state==='suspended') mazAC.resume(); return mazAC;
+}
+function _pn(f,t,dur,vol,type){
+  const a=getMazAC(),o=a.createOscillator(),g=a.createGain();
+  o.type=type||'sine';o.frequency.value=f;o.connect(g);g.connect(a.destination);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||0.18,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.01);
+}
+function playBonusSound(){
+  const a=getMazAC(),t=a.currentTime;
+  [523.25,659.25,783.99].forEach((f,i)=>_pn(f,t+i*0.08,0.18,0.18));
+}
+function playDeathSound(){
+  const a=getMazAC(),t=a.currentTime;
+  const o=a.createOscillator(),g=a.createGain();
+  o.type='sawtooth';o.frequency.setValueAtTime(380,t);
+  o.frequency.exponentialRampToValueAtTime(55,t+0.7);
+  o.connect(g);g.connect(a.destination);
+  g.gain.setValueAtTime(0.28,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.75);
+  o.start(t);o.stop(t+0.8);
+}
+
+/* ════════════════════════════════════════════
+   VALIDACIÓN DE CAMINO (BFS)
+════════════════════════════════════════════ */
+function pathExists(){
+  const cfg=NIVELES[nivelIdx];
+  const sharks=new Set(predators.map(p=>`${p.x},${p.y}`));
+  const goal=`${cfg.cols-1},${cfg.rows-1}`;
+  const D=[[0,-1,'t'],[1,0,'r'],[0,1,'b'],[-1,0,'l']];
+  const visited=new Set(['0,0']),queue=[{x:0,y:0}];
+  while(queue.length){
+    const {x,y}=queue.shift();
+    if(`${x},${y}`===goal) return true;
+    for(const [dx,dy,wall] of D){
+      const nx=x+dx,ny=y+dy;
+      if(nx<0||nx>=cfg.cols||ny<0||ny>=cfg.rows) continue;
+      if(walls[y][x][wall]) continue;
+      const k=`${nx},${ny}`;
+      if(visited.has(k)||sharks.has(k)) continue;
+      visited.add(k);queue.push({x:nx,y:ny});
+    }
+  }
+  return false;
+}
+
+/* ════════════════════════════════════════════
    TIMER & PUNTUACIÓN
 ════════════════════════════════════════════ */
 function startTimer(){ if(startTime) return; startTime=Date.now(); timerInt=setInterval(tick,200); }
@@ -264,11 +316,14 @@ function init(){
   px=0; py=0; dir='right'; pasos=0; fishBonus=0;
   ganado=false; perdido=false; startTime=null; elapsed=0;
 
-  const occupied=new Set(['0,0',`${cfg.cols-1},${cfg.rows-1}`]);
-  // buffer start
+  // Depredadores: reintentar hasta garantizar camino libre al objetivo
+  let occupied=new Set(['0,0',`${cfg.cols-1},${cfg.rows-1}`]);
   for(let y=0;y<Math.min(3,cfg.rows);y++) for(let x=0;x<Math.min(3,cfg.cols);x++) occupied.add(`${x},${y}`);
-
-  predators = placeCells(cfg.preds, cfg.cols, cfg.rows, occupied);
+  let pathOk=false,pathTries=0;
+  while(!pathOk&&pathTries<40){
+    predators=placeCells(cfg.preds,cfg.cols,cfg.rows,occupied);
+    pathOk=pathExists(); pathTries++;
+  }
   predators.forEach(p=>occupied.add(`${p.x},${p.y}`));
 
   smallFish = placeCells(cfg.fish, cfg.cols, cfg.rows, occupied).map(p=>({...p,eaten:false}));
@@ -299,53 +354,76 @@ function init(){
 ════════════════════════════════════════════ */
 function drawTonina(cx,cy,r,direction){
   ctx.save(); ctx.translate(cx,cy);
-  const a={right:0,left:Math.PI,down:Math.PI/2,up:-Math.PI/2};
-  ctx.rotate(a[direction]||0);
-  const bw=r*1.55, bh=r*0.62;
+  const A={right:0,left:Math.PI,down:Math.PI/2,up:-Math.PI/2};
+  ctx.rotate(A[direction]||0);
 
-  // flukes
-  ctx.fillStyle='#111827';
-  [[-1,-1],[-1,1]].forEach(([,sy])=>{
-    ctx.beginPath(); ctx.moveTo(-bw*.85,0);
-    ctx.bezierCurveTo(-bw*1.15,bh*.15*sy,-bw*1.4,bh*.7*sy,-bw*1.25,bh*.72*sy);
-    ctx.bezierCurveTo(-bw*1.05,bh*.72*sy,-bw*.95,bh*.18*sy,-bw*.85,0);
-    ctx.fill();
-  });
+  const L=r*1.55, H=r*0.50;
 
-  // cuerpo negro
-  ctx.beginPath(); ctx.ellipse(0,0,bw,bh,0,0,Math.PI*2);
-  ctx.fillStyle='#111827'; ctx.fill();
+  // Colas (flukes) — dibujadas antes del cuerpo
+  for(const sy of [-1,1]){
+    ctx.beginPath();
+    ctx.moveTo(-L*0.92,0);
+    ctx.bezierCurveTo(-L*1.05,H*0.55*sy,-L*1.42,H*0.98*sy,-L*1.3,H*0.65*sy);
+    ctx.bezierCurveTo(-L*1.15,H*0.35*sy,-L*0.96,H*0.14*sy,-L*0.92,0);
+    ctx.fillStyle='#0d1b2a'; ctx.fill();
+  }
 
-  // vientre blanco
-  ctx.beginPath(); ctx.ellipse(bw*.08,bh*.18,bw*.82,bh*.52,0,0,Math.PI);
-  ctx.fillStyle='#f0f4f8'; ctx.fill();
+  // Silueta del cuerpo reutilizada para relleno y clip
+  function bodyPath(){
+    ctx.beginPath();
+    ctx.moveTo(-L*0.92,0);
+    // vientre
+    ctx.bezierCurveTo(-L*0.55,H*0.92,L*0.2,H*0.96,L*0.65,H*0.46);
+    // mandíbula inferior → hocico inferior
+    ctx.bezierCurveTo(L*0.82,H*0.28,L*1.12,H*0.08,L*1.16,0);
+    // hocico superior → melón (frente redondeada)
+    ctx.bezierCurveTo(L*1.05,-H*0.2,L*0.82,-H*0.34,L*0.65,-H*0.42);
+    ctx.bezierCurveTo(L*0.45,-H*0.68,L*0.14,-H*1.02,-L*0.02,-H);
+    // lomo
+    ctx.bezierCurveTo(-L*0.42,-H*0.98,-L*0.78,-H*0.66,-L*0.92,0);
+    ctx.closePath();
+  }
 
-  // aleta pectoral
-  ctx.beginPath(); ctx.moveTo(bw*.15,bh*.55);
-  ctx.bezierCurveTo(bw*.0,bh*.95,-bw*.25,bh*.85,-bw*.1,bh*.55);
-  ctx.fillStyle='#0f172a'; ctx.fill();
+  // Cuerpo negro (lomo)
+  bodyPath(); ctx.fillStyle='#111827'; ctx.fill();
 
-  // aleta dorsal
-  ctx.beginPath(); ctx.moveTo(bw*.05,-bh*.95);
-  ctx.bezierCurveTo(bw*.25,-bh*1.35,bw*.5,-bh*1.2,bw*.45,-bh*.95);
-  ctx.bezierCurveTo(bw*.35,-bh*.98,bw*.15,-bh*.97,bw*.05,-bh*.95);
-  ctx.fillStyle='#0f172a'; ctx.fill();
+  // Vientre blanco clipeado al cuerpo
+  ctx.save();
+  bodyPath(); ctx.clip();
+  ctx.beginPath();
+  ctx.moveTo(-L*0.76,H*0.28);
+  ctx.bezierCurveTo(-L*0.4,H*1.02,L*0.22,H*1.02,L*0.65,H*0.46);
+  ctx.bezierCurveTo(L*0.82,H*0.28,L*1.12,H*0.08,L*1.16,0);
+  ctx.bezierCurveTo(L*1.0,H*0.38,L*0.52,H*0.72,L*0.08,H*0.76);
+  ctx.bezierCurveTo(-L*0.28,H*0.78,-L*0.62,H*0.6,-L*0.76,H*0.28);
+  ctx.fillStyle='#ecf0f4'; ctx.fill();
+  ctx.restore();
 
-  // mancha gris lateral
-  ctx.beginPath(); ctx.ellipse(-bw*.1,-bh*.05,bw*.55,bh*.22,-0.1,0,Math.PI*2);
-  ctx.fillStyle='rgba(148,163,184,.3)'; ctx.fill();
+  // Aleta dorsal triangular
+  ctx.beginPath();
+  ctx.moveTo(L*0.08,-H*0.96);
+  ctx.bezierCurveTo(L*0.18,-H*1.88,L*0.52,-H*1.65,L*0.46,-H*0.96);
+  ctx.bezierCurveTo(L*0.34,-H*0.97,L*0.13,-H*0.97,L*0.08,-H*0.96);
+  ctx.fillStyle='#0a1520'; ctx.fill();
 
-  // hocico
-  ctx.beginPath(); ctx.ellipse(bw*.88,-bh*.08,bw*.18,bh*.28,.15,0,Math.PI*2);
-  ctx.fillStyle='#111827'; ctx.fill();
+  // Aleta pectoral
+  ctx.beginPath();
+  ctx.moveTo(L*0.38,H*0.68);
+  ctx.bezierCurveTo(L*0.18,H*1.2,-L*0.12,H*1.08,L*0.08,H*0.7);
+  ctx.fillStyle='#0a1520'; ctx.fill();
 
-  // ojo
-  ctx.beginPath(); ctx.arc(bw*.62,-bh*.18,r*.115,0,Math.PI*2);
+  // Ojo
+  ctx.beginPath(); ctx.arc(L*0.6,-H*0.22,r*0.12,0,Math.PI*2);
   ctx.fillStyle='#f8fafc'; ctx.fill();
-  ctx.beginPath(); ctx.arc(bw*.64,-bh*.18,r*.07,0,Math.PI*2);
-  ctx.fillStyle='#020617'; ctx.fill();
-  ctx.beginPath(); ctx.arc(bw*.66,-bh*.21,r*.025,0,Math.PI*2);
+  ctx.beginPath(); ctx.arc(L*0.615,-H*0.22,r*0.07,0,Math.PI*2);
+  ctx.fillStyle='#030712'; ctx.fill();
+  ctx.beginPath(); ctx.arc(L*0.632,-H*0.25,r*0.025,0,Math.PI*2);
   ctx.fillStyle='#fff'; ctx.fill();
+
+  // Sonrisa característica del delfín
+  ctx.beginPath();
+  ctx.arc(L*0.93,H*0.04,H*0.26,0.28,Math.PI-0.28);
+  ctx.strokeStyle='#1a3a5c'; ctx.lineWidth=r*0.045; ctx.stroke();
 
   ctx.restore();
 }
@@ -561,7 +639,7 @@ function mv(dx,dy){
 
   // Pez bonus
   const bf=smallFish.find(f=>f.x===px&&f.y===py&&!f.eaten);
-  if(bf){ bf.eaten=true; fishBonus+=100; mostrarBonus(px,py,'+100'); }
+  if(bf){ bf.eaten=true; fishBonus+=100; mostrarBonus(px,py,'+100'); playBonusSound(); }
 
   updInfo(); draw();
   if(px===cfg.cols-1&&py===cfg.rows-1) ganar();
@@ -583,7 +661,7 @@ function ganar(){
 }
 
 function perder(causa){
-  perdido=true; stopTimer(); draw();
+  perdido=true; stopTimer(); playDeathSound(); draw();
   const msgs={
     predator:['🦈','¡Un tiburón te atrapó!','Esquiva a los depredadores del laberinto.'],
     exit:    ['🌊','¡Aguas peligrosas!','Esa salida llevaba a aguas llenas de depredadores.']
