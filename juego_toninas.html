@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🐬 Memorice de Toninas</title>
+<title>🐬 Memorice Marino</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -12,23 +12,50 @@ body{
   display:flex;flex-direction:column;align-items:center;
   padding:14px;gap:10px;
 }
-h1{color:#fff;font-size:1.4rem;text-align:center;
-   text-shadow:0 2px 8px rgba(0,0,0,.35);margin-top:4px;}
-.subtitulo{color:rgba(255,255,255,.8);font-size:.82rem;text-align:center;}
-.info{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
-.pill{background:rgba(255,255,255,.15);backdrop-filter:blur(6px);
-  border:1px solid rgba(255,255,255,.25);border-radius:20px;
-  padding:5px 16px;color:#fff;font-size:.85rem;font-weight:600;}
-.pill span{opacity:.7;font-weight:400;}
-#mensaje{font-size:.95rem;color:#fff;min-height:1.4rem;text-align:center;
+
+/* NIVEL SELECT */
+#pantalla-nivel{width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.titulo-main{color:#fff;font-size:1.5rem;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.35);margin-top:4px;}
+.subtitulo{color:rgba(255,255,255,.8);font-size:.83rem;text-align:center;}
+.niveles-lista{width:100%;display:flex;flex-direction:column;gap:9px;}
+.nivel-card{
+  background:rgba(255,255,255,.12);backdrop-filter:blur(8px);
+  border:1.5px solid rgba(255,255,255,.22);border-radius:16px;
+  padding:13px 18px;cursor:pointer;
+  display:flex;align-items:center;gap:14px;
+  transition:transform .15s,background .15s;
+}
+.nivel-card:hover,.nivel-card:active{transform:translateY(-2px);background:rgba(255,255,255,.2);}
+.nivel-ico{font-size:2rem;width:40px;text-align:center;}
+.nivel-info{flex:1;}
+.nivel-nombre{color:#fff;font-size:.95rem;font-weight:700;}
+.nivel-desc{color:rgba(255,255,255,.65);font-size:.75rem;margin-top:2px;}
+.nivel-est{font-size:.9rem;white-space:nowrap;}
+
+/* GAME */
+#pantalla-juego{width:100%;max-width:440px;display:none;flex-direction:column;align-items:center;gap:10px;}
+.top-bar{width:100%;display:flex;align-items:center;gap:8px;}
+.top-bar h1{color:#fff;font-size:1.05rem;text-align:center;flex:1;text-shadow:0 2px 8px rgba(0,0,0,.3);}
+.btn-icon{
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:11px;padding:6px 11px;color:#fff;font-size:.8rem;
+  cursor:pointer;font-weight:600;white-space:nowrap;
+  transition:background .15s;
+}
+.btn-icon:hover{background:rgba(255,255,255,.24);}
+
+.info{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;width:100%;}
+.pill{
+  background:rgba(255,255,255,.14);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.22);border-radius:20px;
+  padding:4px 11px;color:#fff;font-size:.8rem;font-weight:600;
+}
+.pill .lbl{opacity:.7;font-weight:400;}
+
+#mensaje{font-size:.88rem;color:#fff;min-height:1.3rem;text-align:center;
   font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.3);}
 
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:8px;width:100%;max-width:400px;
-}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;max-width:400px;}
 
 /* CARTA */
 .carta{aspect-ratio:1;perspective:700px;cursor:pointer;}
@@ -36,33 +63,19 @@ h1{color:#fff;font-size:1.4rem;text-align:center;
   width:100%;height:100%;position:relative;
   transform-style:preserve-3d;
   transition:transform .42s cubic-bezier(.4,0,.2,1);
-  border-radius:14px;
+  border-radius:13px;
 }
 .carta.volteada .carta-inner{transform:rotateY(180deg);}
-
 .cara{
-  position:absolute;inset:0;border-radius:14px;
+  position:absolute;inset:0;border-radius:13px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   backface-visibility:hidden;-webkit-backface-visibility:hidden;
   border:2px solid rgba(255,255,255,.18);
   box-shadow:0 4px 14px rgba(0,0,0,.22);
 }
-
-/* DORSO — ola de fondo */
-.dorso{
-  background:linear-gradient(135deg,#004a80,#00719e);
-  font-size:1.5rem;gap:3px;
-}
-.ola{font-size:.75rem;opacity:.4;letter-spacing:3px;color:#fff;}
-
-/* FRENTE */
-.frente{
-  transform:rotateY(180deg);
-  background:linear-gradient(135deg,#0099cc,#00c4e4);
-  font-size:2.5rem;
-}
-
-/* MATCHED */
+.dorso{background:linear-gradient(135deg,#004a80,#00719e);font-size:1.4rem;gap:3px;}
+.ola{font-size:.65rem;opacity:.4;letter-spacing:2px;color:#fff;}
+.frente{transform:rotateY(180deg);background:linear-gradient(135deg,#0099cc,#00c4e4);font-size:2.2rem;}
 .carta.matched .frente{
   background:linear-gradient(135deg,#007a5e,#00b87a)!important;
   box-shadow:0 0 0 3px #ffd700,0 4px 18px rgba(255,215,0,.35);
@@ -70,79 +83,279 @@ h1{color:#fff;font-size:1.4rem;text-align:center;
 }
 .carta.matched{animation:pop .38s ease-out;}
 @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+.grid.g10 .frente{font-size:1.9rem;}
+.grid.g12 .frente{font-size:1.6rem;}
 
-/* BOTÓN */
-#btn{padding:9px 28px;background:#ffd700;color:#003d6b;border:none;
+#btn-nueva{padding:9px 26px;background:#ffd700;color:#003d6b;border:none;
   border-radius:20px;font-size:.9rem;font-weight:700;cursor:pointer;
-  box-shadow:0 3px 14px rgba(0,0,0,.22);transition:transform .15s;}
-#btn:hover{transform:translateY(-2px);}
+  box-shadow:0 3px 12px rgba(0,0,0,.22);transition:transform .15s;}
+#btn-nueva:hover{transform:translateY(-2px);}
 
-/* WIN */
-#win{display:none;position:fixed;inset:0;background:rgba(0,30,60,.82);
-  align-items:center;justify-content:center;z-index:99;}
-#win.show{display:flex;}
-#win-box{background:#fff;border-radius:22px;padding:2rem 2.5rem;
-  text-align:center;max-width:300px;width:90%;}
-#win-box .ico{font-size:3.5rem;display:block;margin-bottom:.5rem;}
-#win-box h2{color:#003d6b;font-size:1.3rem;margin-bottom:.4rem;}
-#win-box p{color:#555;font-size:.88rem;margin-bottom:1.2rem;line-height:1.5;}
-#win-box button{padding:9px 24px;background:#005f99;color:#fff;border:none;
-  border-radius:14px;font-size:.9rem;font-weight:700;cursor:pointer;}
+/* OVERLAY */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,30,60,.85);
+  align-items:center;justify-content:center;z-index:99;padding:20px;}
+#overlay.show{display:flex;}
+.ov-box{border-radius:22px;padding:1.8rem 2.2rem;text-align:center;max-width:300px;width:100%;background:#fff;}
+.ov-ico{font-size:3.2rem;display:block;margin-bottom:.4rem;}
+.ov-box h2{font-size:1.2rem;margin-bottom:.5rem;color:#003d6b;}
+.ov-stats{font-size:.85rem;color:#555;margin-bottom:1.1rem;line-height:1.9;}
+.ov-stats b{color:#003d6b;}
+.ov-btns{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;}
+.ov-btns button{padding:8px 18px;border:none;border-radius:13px;font-size:.87rem;font-weight:700;cursor:pointer;}
+.btn-prim{background:#005f99;color:#fff;}
+.btn-sec{background:#e5e7eb;color:#374151;}
 </style>
 </head>
 <body>
 
-<h1>🐬 Memorice de Toninas</h1>
-<p class="subtitulo">¡Encuentra los 8 pares del mundo marino!</p>
-
-<div class="info">
-  <div class="pill"><span>Pares: </span><span id="pares">0 / 8</span></div>
-  <div class="pill"><span>Intentos: </span><span id="intentos">0</span></div>
+<!-- PANTALLA NIVEL -->
+<div id="pantalla-nivel">
+  <h1 class="titulo-main">🐬 Memorice Marino</h1>
+  <p class="subtitulo">Elige tu familia marina y pon a prueba tu memoria</p>
+  <div class="niveles-lista" id="niveles-lista"></div>
 </div>
 
-<div id="mensaje">¡Voltea las cartas y encuentra los pares! 🌊</div>
+<!-- PANTALLA JUEGO -->
+<div id="pantalla-juego">
+  <div class="top-bar">
+    <button class="btn-icon" onclick="volverNiveles()">◀ Niveles</button>
+    <h1 id="titulo-nivel">🐬 Memorice</h1>
+    <button class="btn-icon" id="btn-musica" onclick="toggleMusica()">🔇 Música</button>
+  </div>
+  <div class="info">
+    <div class="pill">⏱ <span id="timer">0:00</span></div>
+    <div class="pill">★ <span id="score">0</span></div>
+    <div class="pill"><span class="lbl">Pares: </span><span id="pares">0/?</span></div>
+    <div class="pill"><span class="lbl">Intentos: </span><span id="intentos">0</span></div>
+  </div>
+  <div id="mensaje">¡Voltea las cartas y encuentra los pares! 🌊</div>
+  <div class="grid" id="grid"></div>
+  <button id="btn-nueva" onclick="initJuego()">🔄 Nueva partida</button>
+</div>
 
-<div class="grid" id="grid"></div>
-
-<button id="btn" onclick="init()">🔄 Nueva partida</button>
-
-<div id="win">
-  <div id="win-box">
-    <span class="ico" id="win-ico">🏆</span>
-    <h2>¡Lo lograste! 🐬</h2>
-    <p id="win-msg"></p>
-    <button onclick="document.getElementById('win').classList.remove('show');init()">
-      Jugar de nuevo
-    </button>
+<!-- OVERLAY VICTORIA -->
+<div id="overlay">
+  <div class="ov-box">
+    <span class="ov-ico" id="ov-ico">🏆</span>
+    <h2 id="ov-titulo">¡Lo lograste!</h2>
+    <div class="ov-stats" id="ov-stats"></div>
+    <div class="ov-btns" id="ov-btns"></div>
   </div>
 </div>
 
 <script>
-const EMOJIS = ['🐬','🐟','🌊','🦑','🦐','🐙','🦀','🌿'];
+// ===== NIVELES =====
+const NIVELES = [
+  {
+    id:1, ico:'🐬', nombre:'Delfines', est:'⭐',
+    desc:'8 pares · Delfines y sus vecinos del océano',
+    pares:8, base:800,
+    emojis:['🐬','🐟','🌊','🦑','🦐','🐙','🦀','🌿'],
+  },
+  {
+    id:2, ico:'🐋', nombre:'Ballenas y Cetáceos', est:'⭐⭐',
+    desc:'8 pares · Ballenas, orcas y sus parientes',
+    pares:8, base:1100,
+    emojis:['🐋','🐳','🐬','🦭','🦦','🦈','🐚','🌊'],
+  },
+  {
+    id:3, ico:'🐟', nombre:'Peces del Océano', est:'⭐⭐⭐',
+    desc:'10 pares · La gran diversidad de peces marinos',
+    pares:10, base:1500,
+    emojis:['🐟','🐠','🐡','🦈','🐙','🦑','🦀','🦞','🦐','🦪'],
+  },
+  {
+    id:4, ico:'🦭', nombre:'Mamíferos Marinos', est:'🔥🔥',
+    desc:'10 pares · Focas, nutrias, pingüinos y más',
+    pares:10, base:1800,
+    emojis:['🦭','🦦','🐋','🐳','🐬','🐧','🐢','🌊','🦈','🐚'],
+  },
+  {
+    id:5, ico:'🪸', nombre:'Flora y Fauna Marina', est:'💀💀💀',
+    desc:'12 pares · Corales, algas y toda la vida del océano',
+    pares:12, base:2500,
+    emojis:['🌿','🪸','🐚','🌊','🦑','🐙','🦀','🦞','🦐','🦪','🐠','🐡'],
+  },
+];
 
+// ===== MÚSICA 8-BIT (Web Audio API) =====
+let audioCtx = null, musicOn = false, musicTimer = null, loopStart = 0;
+
+const BPM   = 155;
+const S16   = 60 / BPM / 4;   // duración de una semicorchea en segundos
+const C4    = 261.63;
+
+// 4 compases × 32 semicorcheas = 128 semicorcheas en total
+// [semitonos_desde_C4, duración_en_semicorcheas]
+const MELODY = [
+  // Compás 1 – ascenso cromático
+  [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],
+  [8,2],[9,2],[10,2],[11,2],[12,4],[7,2],[5,2],
+  // Compás 2 – descenso cromático
+  [12,2],[11,2],[10,2],[9,2],[8,2],[7,2],[6,2],[5,2],
+  [4,2],[3,2],[2,2],[1,2],[0,4],[4,2],[7,2],
+  // Compás 3 – saltos juguetones
+  [0,2],[4,2],[7,2],[12,2],[11,2],[9,2],[7,2],[5,2],
+  [4,2],[5,2],[7,2],[9,2],[11,2],[12,2],[9,2],[7,2],
+  // Compás 4 – final
+  [12,2],[10,2],[8,2],[7,2],[5,2],[4,2],[2,2],[0,2],
+  [0,4],[4,4],[7,4],[12,4],
+];
+
+// Bajo: 128 semicorcheas en C3/G3/A3
+const BASS = [
+  [-12,8],[-5,8],[-12,8],[-5,8],
+  [-12,8],[-5,8],[-12,8],[-5,8],
+  [-12,8],[-3,8],[-12,8],[-5,8],
+  [-12,8],[-5,8],[-12,16],
+];
+
+const LOOP_DUR = MELODY.reduce((s,[,d])=>s+d*S16, 0);
+
+function hz(semi){ return C4 * Math.pow(2, semi/12); }
+
+function playNote(freq, t, dur, vol=0.12, type='square'){
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const g   = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  osc.connect(g); g.connect(audioCtx.destination);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.01);
+  g.gain.setValueAtTime(vol, t + dur - 0.02);
+  g.gain.linearRampToValueAtTime(0, t + dur);
+  osc.start(t); osc.stop(t + dur + 0.01);
+}
+
+function scheduleLoop(start){
+  let t = start;
+  for(const [s,d] of MELODY){
+    const dur = d * S16;
+    playNote(hz(s), t, dur * 0.80, 0.13, 'square');
+    t += dur;
+  }
+  let tb = start;
+  for(const [s,d] of BASS){
+    const dur = d * S16;
+    playNote(hz(s), tb, dur * 0.88, 0.07, 'triangle');
+    tb += dur;
+  }
+}
+
+function musicLoop(){
+  if(!musicOn) return;
+  if(loopStart - audioCtx.currentTime < 0.35){
+    scheduleLoop(loopStart);
+    loopStart += LOOP_DUR;
+  }
+  musicTimer = setTimeout(musicLoop, 100);
+}
+
+function startMusica(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  musicOn = true;
+  loopStart = audioCtx.currentTime + 0.05;
+  scheduleLoop(loopStart);
+  loopStart += LOOP_DUR;
+  if(musicTimer) clearTimeout(musicTimer);
+  musicTimer = setTimeout(musicLoop, 100);
+  document.getElementById('btn-musica').textContent = '🔊 Música';
+}
+
+function stopMusica(){
+  musicOn = false;
+  if(musicTimer) clearTimeout(musicTimer);
+  document.getElementById('btn-musica').textContent = '🔇 Música';
+}
+
+function toggleMusica(){
+  if(musicOn) stopMusica(); else startMusica();
+}
+
+// ===== ESTADO =====
+let nivelActual = null;
 let vol=[], matched=0, intentos=0, lock=false;
+let timerSec=0, timerOn=false, timerInterval=null;
 
-function shuffle(a){ return [...a].sort(()=>Math.random()-.5); }
+function fmt(s){ return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; }
 
-function init(){
+function calcScore(){
+  if(!nivelActual) return 0;
+  const tp = Math.max(0, timerSec - 15) * 2;
+  const ap = Math.max(0, intentos - nivelActual.pares) * 20;
+  return Math.max(0, nivelActual.base - tp - ap);
+}
+
+function updateUI(){
+  document.getElementById('timer').textContent    = fmt(timerSec);
+  document.getElementById('score').textContent    = calcScore();
+  document.getElementById('intentos').textContent = intentos;
+  document.getElementById('pares').textContent    = `${matched}/${nivelActual ? nivelActual.pares : '?'}`;
+}
+
+// ===== PANTALLA NIVEL =====
+function renderNiveles(){
+  const lista = document.getElementById('niveles-lista');
+  lista.innerHTML = '';
+  NIVELES.forEach(niv=>{
+    const el = document.createElement('div');
+    el.className = 'nivel-card';
+    el.innerHTML = `
+      <div class="nivel-ico">${niv.ico}</div>
+      <div class="nivel-info">
+        <div class="nivel-nombre">Nivel ${niv.id}: ${niv.nombre}</div>
+        <div class="nivel-desc">${niv.desc}</div>
+      </div>
+      <div class="nivel-est">${niv.est}</div>`;
+    el.addEventListener('click', ()=>iniciarNivel(niv.id));
+    lista.appendChild(el);
+  });
+}
+
+function volverNiveles(){
+  pararTimer();
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('pantalla-juego').style.display = 'none';
+  document.getElementById('pantalla-nivel').style.display = 'flex';
+}
+
+function iniciarNivel(id){
+  nivelActual = NIVELES.find(n=>n.id===id);
+  document.getElementById('pantalla-nivel').style.display = 'none';
+  document.getElementById('pantalla-juego').style.display = 'flex';
+  initJuego();
+  startMusica();
+}
+
+// ===== JUEGO =====
+function pararTimer(){
+  if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+  timerOn = false;
+}
+
+function initJuego(){
   vol=[]; matched=0; intentos=0; lock=false;
-  document.getElementById('pares').textContent    = '0 / 8';
-  document.getElementById('intentos').textContent = '0';
-  document.getElementById('mensaje').textContent  = '¡Voltea las cartas y encuentra los pares! 🌊';
-  document.getElementById('win').classList.remove('show');
+  timerSec=0; timerOn=false;
+  pararTimer();
+  const niv = nivelActual;
+  document.getElementById('titulo-nivel').textContent = `${niv.ico} ${niv.nombre}`;
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('mensaje').textContent = '¡Voltea las cartas y encuentra los pares! 🌊';
+  updateUI();
 
   const grid = document.getElementById('grid');
+  grid.className = 'grid'+(niv.pares===10?' g10':niv.pares===12?' g12':'');
   grid.innerHTML = '';
-  shuffle([...EMOJIS,...EMOJIS]).forEach(emoji=>{
+
+  shuffle([...niv.emojis,...niv.emojis]).forEach(emoji=>{
     const el = document.createElement('div');
     el.className = 'carta';
     el.dataset.val = emoji;
     el.innerHTML = `
       <div class="carta-inner">
-        <div class="cara dorso">
-          <span>🐬</span>
-          <span class="ola">〜〜〜〜</span>
-        </div>
+        <div class="cara dorso"><span>🐬</span><span class="ola">〜〜〜</span></div>
         <div class="cara frente">${emoji}</div>
       </div>`;
     el.addEventListener('click', ()=>voltear(el));
@@ -150,42 +363,81 @@ function init(){
   });
 }
 
+function shuffle(a){ return [...a].sort(()=>Math.random()-.5); }
+
 function voltear(el){
-  if(lock || el.classList.contains('volteada') || el.classList.contains('matched')) return;
+  if(lock||el.classList.contains('volteada')||el.classList.contains('matched')) return;
+
+  if(!timerOn){
+    timerOn = true;
+    timerInterval = setInterval(()=>{ timerSec++; updateUI(); }, 1000);
+  }
+
   el.classList.add('volteada');
   vol.push(el);
+
   if(vol.length===2){
     intentos++;
-    document.getElementById('intentos').textContent = intentos;
-    lock=true;
-    const [a,b]=vol;
+    updateUI();
+    lock = true;
+    const [a,b] = vol;
+
     if(a.dataset.val===b.dataset.val){
       a.classList.add('matched'); b.classList.add('matched');
       matched++;
-      document.getElementById('pares').textContent = `${matched} / 8`;
+      updateUI();
       const frases=['¡Muy bien! 🎉','¡Genial! ⭐','¡Correcto! 🐟','¡Fantástico! 🌊','¡Sí! 🐬'];
-      document.getElementById('mensaje').textContent = frases[Math.floor(Math.random()*frases.length)];
+      document.getElementById('mensaje').textContent = frases[~~(Math.random()*frases.length)];
       vol=[]; lock=false;
-      if(matched===8){
-        const ico = intentos<=10?'🏆':intentos<=14?'🥈':'🥉';
-        const stars= intentos<=10?'⭐⭐⭐':intentos<=14?'⭐⭐':'⭐';
-        document.getElementById('win-ico').textContent=ico;
-        document.getElementById('win-msg').textContent=
-          `${stars} Completaste los 8 pares en ${intentos} intentos. ¡Eres un experto en el mundo marino!`;
-        setTimeout(()=>document.getElementById('win').classList.add('show'),500);
-      }
+      if(matched===nivelActual.pares){ pararTimer(); setTimeout(mostrarVictoria, 500); }
     } else {
-      document.getElementById('mensaje').textContent = 'Ese no es el par... ¡sigue buscando! 🔍';
+      document.getElementById('mensaje').textContent = '¡Ese no es el par! Sigue buscando 🔍';
       setTimeout(()=>{
         a.classList.remove('volteada'); b.classList.remove('volteada');
         vol=[]; lock=false;
-        document.getElementById('mensaje').textContent='¡Voltea las cartas y encuentra los pares! 🌊';
-      },1000);
+        document.getElementById('mensaje').textContent = '¡Voltea las cartas y encuentra los pares! 🌊';
+      }, 1000);
     }
   }
 }
 
-init();
+function mostrarVictoria(){
+  const score = calcScore();
+  const pct   = score / nivelActual.base;
+  const stars = pct>=.80 ? '⭐⭐⭐' : pct>=.50 ? '⭐⭐' : '⭐';
+  const ico   = pct>=.80 ? '🏆'    : pct>=.50 ? '🥈'   : '🥉';
+  const sigNiv = NIVELES.find(n=>n.id===nivelActual.id+1);
+
+  document.getElementById('ov-ico').textContent    = ico;
+  document.getElementById('ov-titulo').textContent = '¡Lo lograste! 🐬';
+  document.getElementById('ov-stats').innerHTML    =
+    `${stars}<br><b>Tiempo:</b> ${fmt(timerSec)}<br><b>Intentos:</b> ${intentos}<br><b>Puntaje:</b> ${score} pts`;
+
+  const btns = document.getElementById('ov-btns');
+  btns.innerHTML = '';
+
+  const r = document.createElement('button');
+  r.className='btn-sec'; r.textContent='🔄 Repetir';
+  r.onclick=()=>{ document.getElementById('overlay').classList.remove('show'); initJuego(); };
+  btns.appendChild(r);
+
+  if(sigNiv){
+    const n = document.createElement('button');
+    n.className='btn-prim'; n.textContent=`Nivel ${sigNiv.id} ${sigNiv.ico} ▶`;
+    n.onclick=()=>{ nivelActual=sigNiv; document.getElementById('overlay').classList.remove('show'); initJuego(); };
+    btns.appendChild(n);
+  } else {
+    const v = document.createElement('button');
+    v.className='btn-prim'; v.textContent='🌊 Volver';
+    v.onclick=volverNiveles;
+    btns.appendChild(v);
+  }
+
+  document.getElementById('overlay').classList.add('show');
+}
+
+// ===== INICIO =====
+renderNiveles();
 </script>
 </body>
 </html>
