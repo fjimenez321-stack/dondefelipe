@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>El Rincón de Felipe | Profe Felipe</title>
+<title>El Mundo de Felipe | Profe Felipe</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwYTFhMmUiLz4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNjOWE4NGMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxyZWN0IHg9IjE2IiB5PSIxMyIgd2lkdGg9IjMyIiBoZWlnaHQ9IjM4IiByeD0iMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxMyIgcj0iNSIgZmlsbD0iIzBhMWEyZSIvPgogICAgPGNpcmNsZSBjeD0iNDgiIGN5PSIxMyIgcj0iNSIgZmlsbD0iIzBhMWEyZSIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSI1MSIgcj0iNSIgZmlsbD0iIzBhMWEyZSIvPgogICAgPGNpcmNsZSBjeD0iNDgiIGN5PSI1MSIgcj0iNSIgZmlsbD0iIzBhMWEyZSIvPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iMjMiIHgyPSI0MSIgeTI9IjIzIiBzdHJva2Utd2lkdGg9IjIuNCIvPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iMjkiIHgyPSI0MSIgeTI9IjI5IiBzdHJva2Utd2lkdGg9IjIuNCIvPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iMzUiIHgyPSI0MSIgeTI9IjM1IiBzdHJva2Utd2lkdGg9IjIuNCIvPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iNDEiIHgyPSIzNSIgeTI9IjQxIiBzdHJva2Utd2lkdGg9IjIuNCIvPgogIDwvZz4KPC9zdmc+Cg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -264,6 +264,89 @@ nav {
 .nav-brand:hover { color: #fff; text-shadow: 0 0 16px rgba(232,200,112,.6); }
 .nav-brand:hover i { filter: drop-shadow(0 0 10px rgba(232,200,112,.8)); }
 .nav-brand:active { transform: scale(0.97); }
+
+/* Botón "Volver al inicio" (casita) */
+.home-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(201,168,76,.08);
+  border: 1.5px solid rgba(201,168,76,.32);
+  color: var(--gold);
+  font-size: 0.95rem;
+  cursor: pointer; text-decoration: none;
+  margin-left: 6px; flex-shrink: 0;
+  transition: background-color 0.3s cubic-bezier(.4,0,.2,1), color 0.3s cubic-bezier(.4,0,.2,1),
+              border-color 0.3s cubic-bezier(.4,0,.2,1), transform 0.35s cubic-bezier(.34,1.56,.64,1),
+              box-shadow 0.3s ease;
+}
+.home-btn:hover {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #1a0e00;
+  border-color: var(--gold);
+  transform: scale(1.12) rotate(-8deg);
+  box-shadow: 0 6px 18px rgba(201,168,76,.4);
+}
+.home-btn:active { transform: scale(0.94) rotate(0deg); }
+
+/* ═══════════════════════════════════════════════
+   🧭 GUÍA DE BIENVENIDA (cómo usar el sitio)
+═══════════════════════════════════════════════ */
+.intro-guide {
+  display: flex; align-items: flex-start; gap: 18px;
+  background: linear-gradient(135deg, rgba(201,168,76,.1), rgba(201,168,76,.02));
+  border: 1px solid rgba(201,168,76,.28);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--r-md);
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 26px rgba(0,0,0,.06), 0 0 0 1px rgba(201,168,76,.04);
+  animation: cardIn 0.6s var(--ease-out) both;
+}
+.intro-guide-icon {
+  flex-shrink: 0;
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 30% 30%, var(--gold-light), var(--gold-dark));
+  color: #2a1a00;
+  font-size: 1.35rem;
+  box-shadow: 0 6px 18px rgba(201,168,76,.35);
+}
+.intro-guide-text h3 {
+  font-family: var(--ff-title); font-size: 0.92rem; letter-spacing: 0.5px;
+  color: var(--bronze-rich); margin: 0 0 8px;
+}
+.intro-guide-text p {
+  font-size: 0.9rem; line-height: 1.65; color: var(--text-soft); margin: 0 0 14px;
+}
+.intro-guide-text p strong { color: var(--text); font-weight: 700; }
+
+.intro-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.intro-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-radius: 22px;
+  background: rgba(255,255,255,.55);
+  border: 1.5px solid rgba(201,168,76,.3);
+  color: var(--bronze-rich);
+  font-family: var(--ff-body); font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; user-select: none; text-decoration: none;
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), background-color 0.3s ease,
+              border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.intro-chip i { color: var(--gold-dark); }
+.intro-chip:hover {
+  transform: translateY(-3px);
+  background: var(--gold);
+  color: #1a0e00;
+  border-color: var(--gold);
+  box-shadow: 0 8px 20px rgba(201,168,76,.35);
+}
+.intro-chip:hover i { color: #1a0e00; }
+.intro-chip:active { transform: translateY(-1px); }
+
+@media (max-width: 560px) {
+  .intro-guide { flex-direction: column; align-items: center; text-align: center; }
+  .intro-chips { justify-content: center; }
+}
 
 /* Hamburguesa */
 .hamburger {
@@ -1358,6 +1441,9 @@ body { overscroll-behavior-y: none; }
     <a href="#" class="nav-brand" onclick="go('home');return false;" aria-label="Inicio">
       <i class="fa-solid fa-water"></i>
     </a>
+    <a href="#" class="home-btn" onclick="go('home');return false;" title="Volver al inicio" aria-label="Volver al inicio">
+      <i class="fa-solid fa-house"></i>
+    </a>
 
     <button class="hamburger" id="ham" onclick="toggleNav()">
       <span></span><span></span><span></span>
@@ -1429,7 +1515,7 @@ body { overscroll-behavior-y: none; }
       Un pequeño homenaje a los viajes que transforman · <em>Into the Wild</em>
     </p>
   </div>
-  EL RINCÓN DE FELIPE © <span id="yr"></span> · PROF. FELIPE JIMÉNEZ
+  EL MUNDO DE FELIPE © <span id="yr"></span> · PROF. FELIPE JIMÉNEZ
 </footer>
 
 <script>
@@ -1487,12 +1573,26 @@ function rHome(stage){
   stage.innerHTML = `
     <div class="fade-in">
       <div class="tablet-header">
-        <h1 class="shimmer">EL RINCÓN DE FELIPE</h1>
+        <h1 class="shimmer">EL MUNDO DE FELIPE</h1>
         <p class="page-sub">🐙 Ciencia, Deporte y Jardín Submarino · 2026</p>
       </div>
 
+      <!-- 🧭 GUÍA DE BIENVENIDA -->
+      <div class="intro-guide">
+        <div class="intro-guide-icon"><i class="fa-solid fa-compass"></i></div>
+        <div class="intro-guide-text">
+          <h3>¿Cómo usar este sitio?</h3>
+          <p>Aquí encontrarás todo lo necesario para tus clases: revisa los <strong>recursos de estudio organizados por curso</strong>, explora el <strong>mundo virtual</strong> para aprender de forma inmersiva, y usa las <strong>herramientas</strong> pedagógicas de apoyo. Todo accesible desde el menú superior o directamente desde esta página.</p>
+          <div class="intro-chips">
+            <a href="#cursos-section" class="intro-chip" onclick="document.getElementById('cursos-section').scrollIntoView({behavior:'smooth'}); return false;"><i class="fa-solid fa-graduation-cap"></i> Recursos por Curso</a>
+            <a href="a-frame/mundo.html" target="_blank" rel="noopener" class="intro-chip"><i class="fa-solid fa-vr-cardboard"></i> Mundo Virtual</a>
+            <a href="#herramientas-section" class="intro-chip" onclick="document.getElementById('herramientas-section').scrollIntoView({behavior:'smooth'}); return false;"><i class="fa-solid fa-wrench"></i> Herramientas</a>
+          </div>
+        </div>
+      </div>
+
       <!-- 📚 CURSOS -->
-      <h2 class="sh">📚 CURSOS</h2>
+      <h2 class="sh" id="cursos-section">📚 CURSOS</h2>
       <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:2rem;">
 
         <div class="card tool-desc-card course-box" onclick="go('6basico')" style="border-top:3px solid #2d6a9f;">
@@ -1558,7 +1658,7 @@ function rHome(stage){
       </div>
 
       <!-- 🧰 HERRAMIENTAS (enlaces directos) -->
-      <h2 class="sh">🧰 HERRAMIENTAS</h2>
+      <h2 class="sh" id="herramientas-section">🧰 HERRAMIENTAS</h2>
       <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:1rem;">
         <a href="#" class="tool-pill" onclick="window.open('herramientas/coevaluacion.html','_blank'); return false;"><i class="fa-solid fa-users-rectangle"></i> Coevaluador</a>
         <a href="#" class="tool-pill" onclick="window.open('herramientas/panelcoe.html','_blank'); return false;"><i class="fa-solid fa-table-columns"></i> Panel Coevaluación</a>
