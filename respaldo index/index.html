@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>El Rincón de Felipe | Profe Felipe</title>
+<title>El Mundo de Felipe | Profe Felipe</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwYTFhMmUiLz4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNjOWE4NGMiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDxyZWN0IHg9IjE2IiB5PSIxMyIgd2lkdGg9IjMyIiBoZWlnaHQ9IjM4IiByeD0iMiIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxMyIgcj0iNSIgZmlsbD0iIzBhMWEyZSIvPgogICAgPGNpcmNsZSBjeD0iNDgiIGN5PSIxMyIgcj0iNSIgZmlsbD0iIzBhMWEyZSIvPgogICAgPGNpcmNsZSBjeD0iMTYiIGN5PSI1MSIgcj0iNSIgZmlsbD0iIzBhMWEyZSIvPgogICAgPGNpcmNsZSBjeD0iNDgiIGN5PSI1MSIgcj0iNSIgZmlsbD0iIzBhMWEyZSIvPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iMjMiIHgyPSI0MSIgeTI9IjIzIiBzdHJva2Utd2lkdGg9IjIuNCIvPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iMjkiIHgyPSI0MSIgeTI9IjI5IiBzdHJva2Utd2lkdGg9IjIuNCIvPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iMzUiIHgyPSI0MSIgeTI9IjM1IiBzdHJva2Utd2lkdGg9IjIuNCIvPgogICAgPGxpbmUgeDE9IjIzIiB5MT0iNDEiIHgyPSIzNSIgeTI9IjQxIiBzdHJva2Utd2lkdGg9IjIuNCIvPgogIDwvZz4KPC9zdmc+Cg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -265,6 +265,89 @@ nav {
 .nav-brand:hover i { filter: drop-shadow(0 0 10px rgba(232,200,112,.8)); }
 .nav-brand:active { transform: scale(0.97); }
 
+/* Botón "Volver al inicio" (casita) */
+.home-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(201,168,76,.08);
+  border: 1.5px solid rgba(201,168,76,.32);
+  color: var(--gold);
+  font-size: 0.95rem;
+  cursor: pointer; text-decoration: none;
+  margin-left: 6px; flex-shrink: 0;
+  transition: background-color 0.3s cubic-bezier(.4,0,.2,1), color 0.3s cubic-bezier(.4,0,.2,1),
+              border-color 0.3s cubic-bezier(.4,0,.2,1), transform 0.35s cubic-bezier(.34,1.56,.64,1),
+              box-shadow 0.3s ease;
+}
+.home-btn:hover {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #1a0e00;
+  border-color: var(--gold);
+  transform: scale(1.12) rotate(-8deg);
+  box-shadow: 0 6px 18px rgba(201,168,76,.4);
+}
+.home-btn:active { transform: scale(0.94) rotate(0deg); }
+
+/* ═══════════════════════════════════════════════
+   🧭 GUÍA DE BIENVENIDA (cómo usar el sitio)
+═══════════════════════════════════════════════ */
+.intro-guide {
+  display: flex; align-items: flex-start; gap: 18px;
+  background: linear-gradient(135deg, rgba(201,168,76,.1), rgba(201,168,76,.02));
+  border: 1px solid rgba(201,168,76,.28);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--r-md);
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 26px rgba(0,0,0,.06), 0 0 0 1px rgba(201,168,76,.04);
+  animation: cardIn 0.6s var(--ease-out) both;
+}
+.intro-guide-icon {
+  flex-shrink: 0;
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 30% 30%, var(--gold-light), var(--gold-dark));
+  color: #2a1a00;
+  font-size: 1.35rem;
+  box-shadow: 0 6px 18px rgba(201,168,76,.35);
+}
+.intro-guide-text h3 {
+  font-family: var(--ff-title); font-size: 0.92rem; letter-spacing: 0.5px;
+  color: var(--bronze-rich); margin: 0 0 8px;
+}
+.intro-guide-text p {
+  font-size: 0.9rem; line-height: 1.65; color: var(--text-soft); margin: 0 0 14px;
+}
+.intro-guide-text p strong { color: var(--text); font-weight: 700; }
+
+.intro-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.intro-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-radius: 22px;
+  background: rgba(255,255,255,.55);
+  border: 1.5px solid rgba(201,168,76,.3);
+  color: var(--bronze-rich);
+  font-family: var(--ff-body); font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; user-select: none; text-decoration: none;
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), background-color 0.3s ease,
+              border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.intro-chip i { color: var(--gold-dark); }
+.intro-chip:hover {
+  transform: translateY(-3px);
+  background: var(--gold);
+  color: #1a0e00;
+  border-color: var(--gold);
+  box-shadow: 0 8px 20px rgba(201,168,76,.35);
+}
+.intro-chip:hover i { color: #1a0e00; }
+.intro-chip:active { transform: translateY(-1px); }
+
+@media (max-width: 560px) {
+  .intro-guide { flex-direction: column; align-items: center; text-align: center; }
+  .intro-chips { justify-content: center; }
+}
+
 /* Hamburguesa */
 .hamburger {
   display: none; flex-direction: column; justify-content: center; gap: 5px;
@@ -494,6 +577,36 @@ h2.sh::before { content: '⬧'; color: var(--gold); font-size: 0.75rem; opacity:
 }
 .tool-desc-card:active { transform: translateY(-1px); }
 
+/* Pastillas compactas de herramientas (portada, sección final) */
+.tool-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: 24px;
+  border: 1.5px solid rgba(201,168,76,.32);
+  background: transparent; color: var(--text-soft);
+  font-family: var(--ff-body); font-size: 0.8rem; font-weight: 500;
+  cursor: pointer; text-decoration: none; user-select: none;
+  transition: background-color 0.25s cubic-bezier(.4,0,.2,1), border-color 0.25s cubic-bezier(.4,0,.2,1),
+              color 0.25s cubic-bezier(.4,0,.2,1), transform 0.2s cubic-bezier(.4,0,.2,1);
+}
+.tool-pill i { color: var(--gold); font-size: 0.85rem; opacity: .85; }
+.tool-pill:hover {
+  background: rgba(201,168,76,.1);
+  border-color: var(--gold);
+  color: var(--gold-dark);
+  transform: translateY(-2px);
+}
+.tool-pill:active { transform: translateY(0); }
+
+/* Recuadros de cursos (portada) */
+.course-box {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center;
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+}
+.course-box i { font-size: 1.7rem; }
+.course-box h3 { font-size: 0.82rem; margin: 0; }
+
 /* Insignia circular de ícono + etiqueta, para tarjetas de recursos más vistosas */
 .res-icon-badge {
   width: 48px; height: 48px; border-radius: 50%;
@@ -542,6 +655,158 @@ h2.sh::before { content: '⬧'; color: var(--gold); font-size: 0.75rem; opacity:
   border: 1px solid rgba(180,83,9,.28);
   margin: 0 0 12px 8px;
 }
+
+/* ═══════════════════════════════════════════════
+   🎛️ FILTRO INTERACTIVO POR ASIGNATURA
+   (pestañas + resaltado de tarjetas al filtrar)
+═══════════════════════════════════════════════ */
+.subject-filter-bar {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin: 0 0 1.6rem;
+}
+.subject-filter-btn {
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 10px 20px; border-radius: 26px;
+  border: 2px solid rgba(201,168,76,.28);
+  background: rgba(255,255,255,.4);
+  color: var(--text-soft);
+  font-family: var(--ff-title); font-size: 0.68rem; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer; user-select: none;
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s cubic-bezier(.4,0,.2,1),
+              background-color 0.3s cubic-bezier(.4,0,.2,1), color 0.3s cubic-bezier(.4,0,.2,1),
+              border-color 0.3s cubic-bezier(.4,0,.2,1);
+}
+.subject-filter-btn i { font-size: 0.85rem; transition: transform 0.4s cubic-bezier(.34,1.56,.64,1); }
+.subject-filter-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 120%, rgba(255,255,255,.35), transparent 70%);
+  opacity: 0; transition: opacity 0.3s ease;
+}
+.subject-filter-btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 20px rgba(0,0,0,.12); }
+.subject-filter-btn:hover i { transform: rotate(-8deg) scale(1.15); }
+.subject-filter-btn:active { transform: translateY(-1px) scale(0.98); }
+
+.subject-filter-btn.active { box-shadow: 0 10px 28px var(--sfx-glow, rgba(0,0,0,.2)); }
+.subject-filter-btn.active::before { opacity: 1; }
+.subject-filter-btn.active[data-subject="todos"] {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold) 60%, var(--gold-light));
+  color: #1a0e00; border-color: var(--gold);
+  --sfx-glow: rgba(201,168,76,.45);
+}
+.subject-filter-btn.active[data-subject="biologia"] {
+  background: linear-gradient(135deg, #146c33, #2e9950 55%, #4fc975);
+  color: #f2fff5; border-color: #4fc975;
+  --sfx-glow: rgba(46,153,80,.5);
+}
+.subject-filter-btn.active[data-subject="fisica"] {
+  background: linear-gradient(135deg, #124a80, #2d7fd1 55%, #63a9ec);
+  color: #eef8ff; border-color: #63a9ec;
+  --sfx-glow: rgba(45,127,209,.5);
+}
+.subject-filter-btn.active[data-subject="tecnologia"] {
+  background: linear-gradient(135deg, #7a5410, #c9932e 55%, #e8b95c);
+  color: #fffaf0; border-color: #e8b95c;
+  --sfx-glow: rgba(201,147,46,.5);
+}
+.subject-filter-btn.active[data-subject="orientacion"] {
+  background: linear-gradient(135deg, #7a1a54, #c93a86 55%, #ec6cae);
+  color: #fff0f8; border-color: #ec6cae;
+  --sfx-glow: rgba(201,58,134,.5);
+}
+
+/* Transición base de todas las tarjetas filtrables */
+.card[data-subject] {
+  transition: transform 0.45s cubic-bezier(.34,1.56,.64,1), opacity 0.35s ease,
+              background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease,
+              max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+}
+
+/* Tarjeta oculta por el filtro */
+.card[data-subject].subject-hidden {
+  display: none;
+}
+
+/* Tarjeta resaltada: Biología → verde vívido, letras claras */
+.card[data-subject].subject-highlight-bio {
+  background: linear-gradient(155deg, #1c7a3e 0%, #0f5228 100%) !important;
+  border-color: #4fc975 !important;
+  box-shadow: 0 14px 34px rgba(20,108,51,.4), 0 0 0 1px rgba(79,201,117,.25) !important;
+  transform: translateY(-4px) scale(1.015);
+}
+.card.subject-highlight-bio h3,
+.card.subject-highlight-bio p { color: #f2fff5 !important; }
+.card.subject-highlight-bio .res-tag {
+  background: rgba(255,255,255,.22) !important; color: #f2fff5 !important;
+}
+.card.subject-highlight-bio .res-icon-badge {
+  background: radial-gradient(circle at 30% 30%, #eafff0, #a8e8bb) !important;
+  color: #0f5228 !important;
+}
+.card.subject-highlight-bio .btn-p { background: rgba(255,255,255,.16); color: #f2fff5; border-color: rgba(255,255,255,.3); }
+
+/* Tarjeta resaltada: Física → azul vívido, letras claras */
+.card[data-subject].subject-highlight-fis {
+  background: linear-gradient(155deg, #14508a 0%, #0a2e52 100%) !important;
+  border-color: #63a9ec !important;
+  box-shadow: 0 14px 34px rgba(18,74,128,.4), 0 0 0 1px rgba(99,169,236,.25) !important;
+  transform: translateY(-4px) scale(1.015);
+}
+.card.subject-highlight-fis h3,
+.card.subject-highlight-fis p { color: #eef8ff !important; }
+.card.subject-highlight-fis .res-tag {
+  background: rgba(255,255,255,.22) !important; color: #eef8ff !important;
+}
+.card.subject-highlight-fis .res-icon-badge {
+  background: radial-gradient(circle at 30% 30%, #eaf6ff, #a8d4f5) !important;
+  color: #0a2e52 !important;
+}
+.card.subject-highlight-fis .btn-p { background: rgba(255,255,255,.16); color: #eef8ff; border-color: rgba(255,255,255,.3); }
+
+/* Tarjeta resaltada: Tecnología → dorado vívido */
+.card[data-subject].subject-highlight-tec {
+  background: linear-gradient(155deg, #8a5f12 0%, #5c3d08 100%) !important;
+  border-color: #e8b95c !important;
+  box-shadow: 0 14px 34px rgba(138,95,18,.4), 0 0 0 1px rgba(232,185,92,.25) !important;
+  transform: translateY(-4px) scale(1.015);
+}
+.card.subject-highlight-tec h3,
+.card.subject-highlight-tec p { color: #fffaf0 !important; }
+.card.subject-highlight-tec .res-tag { background: rgba(255,255,255,.22) !important; color: #fffaf0 !important; }
+.card.subject-highlight-tec .res-icon-badge {
+  background: radial-gradient(circle at 30% 30%, #fff6e0, #f0d199) !important;
+  color: #5c3d08 !important;
+}
+.card.subject-highlight-tec .btn-p { background: rgba(255,255,255,.16); color: #fffaf0; border-color: rgba(255,255,255,.3); }
+
+/* Tarjeta resaltada: Orientación → magenta vívido */
+.card[data-subject].subject-highlight-ori {
+  background: linear-gradient(155deg, #8a1a5c 0%, #520e38 100%) !important;
+  border-color: #ec6cae !important;
+  box-shadow: 0 14px 34px rgba(138,26,92,.4), 0 0 0 1px rgba(236,108,174,.25) !important;
+  transform: translateY(-4px) scale(1.015);
+}
+.card.subject-highlight-ori h3,
+.card.subject-highlight-ori p { color: #fff0f8 !important; }
+.card.subject-highlight-ori .res-tag { background: rgba(255,255,255,.22) !important; color: #fff0f8 !important; }
+.card.subject-highlight-ori .res-icon-badge {
+  background: radial-gradient(circle at 30% 30%, #ffeaf5, #f5a8d4) !important;
+  color: #520e38 !important;
+}
+.card.subject-highlight-ori .btn-p { background: rgba(255,255,255,.16); color: #fff0f8; border-color: rgba(255,255,255,.3); }
+
+/* Tag de la tarjeta ahora es clickeable: invita a filtrar por esa asignatura */
+.res-tag.clickable {
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s ease, letter-spacing 0.25s ease;
+}
+.res-tag.clickable:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
+  letter-spacing: 1.8px;
+}
+.res-tag.clickable:active { transform: scale(0.96); }
 
 /* Stagger: cada tarjeta entra con leve retraso */
 .grid .card:nth-child(1) { animation-delay: 0.02s; }
@@ -1176,6 +1441,9 @@ body { overscroll-behavior-y: none; }
     <a href="#" class="nav-brand" onclick="go('home');return false;" aria-label="Inicio">
       <i class="fa-solid fa-water"></i>
     </a>
+    <a href="#" class="home-btn" onclick="go('home');return false;" title="Volver al inicio" aria-label="Volver al inicio">
+      <i class="fa-solid fa-house"></i>
+    </a>
 
     <button class="hamburger" id="ham" onclick="toggleNav()">
       <span></span><span></span><span></span>
@@ -1247,7 +1515,7 @@ body { overscroll-behavior-y: none; }
       Un pequeño homenaje a los viajes que transforman · <em>Into the Wild</em>
     </p>
   </div>
-  EL RINCÓN DE FELIPE © <span id="yr"></span> · PROF. FELIPE JIMÉNEZ
+  EL MUNDO DE FELIPE © <span id="yr"></span> · PROF. FELIPE JIMÉNEZ
 </footer>
 
 <script>
@@ -1305,126 +1573,61 @@ function rHome(stage){
   stage.innerHTML = `
     <div class="fade-in">
       <div class="tablet-header">
-        <h1 class="shimmer">EL RINCÓN DE FELIPE</h1>
+        <h1 class="shimmer">EL MUNDO DE FELIPE</h1>
         <p class="page-sub">🐙 Ciencia, Deporte y Jardín Submarino · 2026</p>
       </div>
 
-      <!-- 🧰 DESCRIPCIÓN DE HERRAMIENTAS -->
-      <h2 class="sh">🧰 HERRAMIENTAS DISPONIBLES</h2>
-
-      <!-- ── Pedagógicas ── -->
-      <p style="font-family:var(--ff-title); font-size:0.68rem; letter-spacing:.15em; color:var(--gold-light); margin:0 0 10px; text-transform:uppercase;">🎓 Pedagógicas</p>
-      <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:1.6rem;">
-
-        <div class="card tool-desc-card" onclick="window.open('herramientas/coevaluacion.html','_blank')" title="Abrir Coevaluador" style="padding:1.1rem 1.3rem; border-top:3px solid #6a4fc2; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-users-rectangle" style="color:#6a4fc2; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Coevaluador</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
+      <!-- 🧭 GUÍA DE BIENVENIDA -->
+      <div class="intro-guide">
+        <div class="intro-guide-icon"><i class="fa-solid fa-compass"></i></div>
+        <div class="intro-guide-text">
+          <h3>¿Cómo usar este sitio?</h3>
+          <p>Aquí encontrarás todo lo necesario para tus clases: revisa los <strong>recursos de estudio organizados por curso</strong>, explora el <strong>mundo virtual</strong> para aprender de forma inmersiva, y usa las <strong>herramientas</strong> pedagógicas de apoyo. Todo accesible desde el menú superior o directamente desde esta página.</p>
+          <div class="intro-chips">
+            <a href="#cursos-section" class="intro-chip" onclick="document.getElementById('cursos-section').scrollIntoView({behavior:'smooth'}); return false;"><i class="fa-solid fa-graduation-cap"></i> Recursos por Curso</a>
+            <a href="a-frame/mundo.html" target="_blank" rel="noopener" class="intro-chip"><i class="fa-solid fa-vr-cardboard"></i> Mundo Virtual</a>
+            <a href="#herramientas-section" class="intro-chip" onclick="document.getElementById('herramientas-section').scrollIntoView({behavior:'smooth'}); return false;"><i class="fa-solid fa-wrench"></i> Herramientas</a>
           </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Herramienta de evaluación entre pares para que los estudiantes se coevalúen de forma guiada.</p>
         </div>
-
-        <div class="card tool-desc-card" onclick="window.open('herramientas/panelcoe.html','_blank')" title="Abrir Panel Coevaluación" style="padding:1.1rem 1.3rem; border-top:3px solid #6a4fc2; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-table-columns" style="color:#6a4fc2; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Panel Coevaluación</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Panel del docente para revisar y consolidar los resultados del coevaluador.</p>
-        </div>
-
-        <div class="card tool-desc-card" onclick="window.open('contador-deudas-invisibles-estudiantes.html','_blank')" title="Abrir Deudas · Estudiantes" style="padding:1.1rem 1.3rem; border-top:3px solid #0e7490; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-hand-holding-heart" style="color:#0e7490; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Deudas · Estudiantes</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Contador de deudas invisibles entre estudiantes, para llevar un registro claro de compromisos pendientes.</p>
-        </div>
-
-        <div class="card tool-desc-card" onclick="window.open('contador-deudas-invisibles.html','_blank')" title="Abrir Deudas · Adultos" style="padding:1.1rem 1.3rem; border-top:3px solid #9d174d; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-scale-balanced" style="color:#9d174d; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Deudas · Adultos</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Versión del contador de deudas invisibles orientada a compromisos entre adultos de la comunidad escolar.</p>
-        </div>
-
-        <div class="card tool-desc-card" onclick="window.open('eliminatorias.html','_blank')" title="Abrir Creador de Eliminatorias" style="padding:1.1rem 1.3rem; border-top:3px solid var(--gold); animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-trophy" style="color:var(--gold-dark); font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Creador de Eliminatorias</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Genera cuadros de eliminatorias (brackets) para torneos y campeonatos deportivos del colegio.</p>
-        </div>
-
       </div>
 
-      <!-- ── Ciencias ── -->
-      <p style="font-family:var(--ff-title); font-size:0.68rem; letter-spacing:.15em; color:var(--gold-light); margin:0 0 10px; text-transform:uppercase;">🔬 Ciencias</p>
-      <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:1.6rem;">
+      <!-- 📚 CURSOS -->
+      <h2 class="sh" id="cursos-section">📚 CURSOS</h2>
+      <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:2rem;">
 
-        <div class="card tool-desc-card" onclick="window.open('arbolfilo.html','_blank')" title="Abrir Árbol Filogenético" style="padding:1.1rem 1.3rem; border-top:3px solid #2e7d52; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-sitemap" style="color:#2e7d52; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Árbol Filogenético</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Explorador interactivo del árbol filogenético de los seres vivos, pensado como apoyo visual en clases de Biología.</p>
+        <div class="card tool-desc-card course-box" onclick="go('6basico')" style="border-top:3px solid #2d6a9f;">
+          <i class="fa-solid fa-flask" style="color:#2d6a9f;"></i>
+          <h3>VI° Básico</h3>
         </div>
 
-        <div class="card tool-desc-card" onclick="window.open('rutas_metabolicas.html','_blank')" title="Abrir Rutas Metabólicas" style="padding:1.1rem 1.3rem; border-top:3px solid #b45309; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-diagram-project" style="color:#b45309; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Rutas Metabólicas</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Visor de rutas metabólicas (glicólisis, respiración celular, fotosíntesis, entre otras) para apoyar la enseñanza de Biología.</p>
+        <div class="card tool-desc-card course-box" onclick="go('7basico')" style="border-top:3px solid #3d6b4a;">
+          <i class="fa-solid fa-microscope" style="color:#3d6b4a;"></i>
+          <h3>VII° Básico</h3>
         </div>
 
-      </div>
-
-      <!-- ── Misceláneos ── -->
-      <p style="font-family:var(--ff-title); font-size:0.68rem; letter-spacing:.15em; color:var(--text-soft); margin:0 0 10px; text-transform:uppercase; opacity:.7;">🧰 Misceláneos</p>
-      <div class="grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:2rem;">
-
-        <div class="card tool-desc-card" onclick="window.open('calculadora.html','_blank')" title="Abrir Calculadora" style="padding:1.1rem 1.3rem; border-top:3px solid #2d5a8e; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-divide" style="color:#2d5a8e; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Calculadora</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Calculadora básica de uso general para operaciones rápidas en el aula.</p>
+        <div class="card tool-desc-card course-box" onclick="go('8basico')" style="border-top:3px solid #b45309;">
+          <i class="fa-solid fa-atom" style="color:#b45309;"></i>
+          <h3>VIII° Básico</h3>
         </div>
 
-        <div class="card tool-desc-card" onclick="window.open('completos.html','_blank')" title="Abrir Calc. Completos" style="padding:1.1rem 1.3rem; border-top:3px solid var(--laurel); animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-hotdog" style="color:var(--laurel); font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Calc. Completos</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Calcula el costo y precio de venta de completos y otros productos para eventos del colegio.</p>
+        <div class="card tool-desc-card course-box" onclick="go('1medio')" style="border-top:3px solid #7a1a54;">
+          <i class="fa-solid fa-dna" style="color:#7a1a54;"></i>
+          <h3>I° Medio</h3>
         </div>
 
-        <div class="card tool-desc-card" onclick="window.open('generador-qr.html','_blank')" title="Abrir Generador QR" style="padding:1.1rem 1.3rem; border-top:3px solid #6d3bb5; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-qrcode" style="color:#6d3bb5; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Generador QR</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Crea códigos QR personalizados para compartir enlaces, materiales o actividades con los estudiantes.</p>
+        <div class="card tool-desc-card course-box" onclick="go('2medio')" style="border-top:3px solid #6a4fc2;">
+          <i class="fa-solid fa-bolt" style="color:#6a4fc2;"></i>
+          <h3>II° Medio</h3>
         </div>
 
-        <div class="card tool-desc-card" onclick="window.open('coreografias.html','_blank')" title="Abrir Diseñador de Coreografías" style="padding:1.1rem 1.3rem; border-top:3px solid #b45309; animation:none;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <i class="fa-solid fa-music" style="color:#b45309; font-size:1.1rem;"></i>
-            <h3 style="font-size:0.85rem; margin:0;">Diseñador de Coreografías</h3>
-            <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; font-size:0.7rem; color:var(--text-soft); opacity:.5;"></i>
-          </div>
-          <p style="font-size:0.82rem; color:var(--text-soft); margin:0;">Herramienta para planificar y organizar coreografías, útil en actos, presentaciones y actividades del colegio.</p>
+        <div class="card tool-desc-card course-box" onclick="go('3medio')" style="border-top:3px solid #0e7490;">
+          <i class="fa-solid fa-gears" style="color:#0e7490;"></i>
+          <h3>III° Medio</h3>
+        </div>
+
+        <div class="card tool-desc-card course-box" onclick="go('4medio')" style="border-top:3px solid var(--laurel);">
+          <i class="fa-solid fa-meteor" style="color:var(--laurel);"></i>
+          <h3>IV° Medio</h3>
         </div>
 
       </div>
@@ -1452,6 +1655,22 @@ function rHome(stage){
             title="Galleta de la Fortuna — Sabiduría del Mundo">
           </iframe>
         </div>
+      </div>
+
+      <!-- 🧰 HERRAMIENTAS (enlaces directos) -->
+      <h2 class="sh" id="herramientas-section">🧰 HERRAMIENTAS</h2>
+      <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:1rem;">
+        <a href="#" class="tool-pill" onclick="window.open('herramientas/coevaluacion.html','_blank'); return false;"><i class="fa-solid fa-users-rectangle"></i> Coevaluador</a>
+        <a href="#" class="tool-pill" onclick="window.open('herramientas/panelcoe.html','_blank'); return false;"><i class="fa-solid fa-table-columns"></i> Panel Coevaluación</a>
+        <a href="#" class="tool-pill" onclick="window.open('contador-deudas-invisibles-estudiantes.html','_blank'); return false;"><i class="fa-solid fa-hand-holding-heart"></i> Deudas · Estudiantes</a>
+        <a href="#" class="tool-pill" onclick="window.open('contador-deudas-invisibles.html','_blank'); return false;"><i class="fa-solid fa-scale-balanced"></i> Deudas · Adultos</a>
+        <a href="#" class="tool-pill" onclick="window.open('eliminatorias.html','_blank'); return false;"><i class="fa-solid fa-trophy"></i> Creador de Eliminatorias</a>
+        <a href="#" class="tool-pill" onclick="window.open('arbolfilo.html','_blank'); return false;"><i class="fa-solid fa-sitemap"></i> Árbol Filogenético</a>
+        <a href="#" class="tool-pill" onclick="window.open('rutas_metabolicas.html','_blank'); return false;"><i class="fa-solid fa-diagram-project"></i> Rutas Metabólicas</a>
+        <a href="#" class="tool-pill" onclick="window.open('calculadora.html','_blank'); return false;"><i class="fa-solid fa-divide"></i> Calculadora</a>
+        <a href="#" class="tool-pill" onclick="window.open('completos.html','_blank'); return false;"><i class="fa-solid fa-hotdog"></i> Calc. Completos</a>
+        <a href="#" class="tool-pill" onclick="window.open('generador-qr.html','_blank'); return false;"><i class="fa-solid fa-qrcode"></i> Generador QR</a>
+        <a href="#" class="tool-pill" onclick="window.open('coreografias.html','_blank'); return false;"><i class="fa-solid fa-music"></i> Diseñador de Coreografías</a>
       </div>
 
     </div>`;
@@ -1611,56 +1830,65 @@ function r8basico(s){
       </div>
 
       <h2 class="sh">RECURSOS DE ESTUDIO</h2>
-      <div class="dual-col">
 
-        <!-- ── Columna 1: Física ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-atom"></i> FÍSICA</p>
-          <div class="grid">
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/calorytem.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-temperature-half"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>CALOR Y TEMPERATURA</h3>
-              <p>Recurso interactivo sobre calor y temperatura: diferencias conceptuales, transferencia de calor y equilibrio térmico.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/circuitos.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-bolt"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>CIRCUITOS ELÉCTRICOS</h3>
-              <p>Recurso interactivo sobre circuitos eléctricos: corriente, voltaje, resistencia y conexiones en serie y en paralelo.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-          </div>
+      <div id="res-8basico">
+        <div class="subject-filter-bar">
+          <button class="subject-filter-btn active" data-subject="todos" onclick="filterBySubject('res-8basico','todos')"><i class="fa-solid fa-layer-group"></i> Todos</button>
+          <button class="subject-filter-btn" data-subject="fisica" onclick="filterBySubject('res-8basico','fisica')"><i class="fa-solid fa-atom"></i> Física</button>
+          <button class="subject-filter-btn" data-subject="biologia" onclick="filterBySubject('res-8basico','biologia')"><i class="fa-solid fa-dna"></i> Biología</button>
         </div>
 
-        <!-- ── Columna 2: Biología ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-dna"></i> BIOLOGÍA</p>
-          <div class="grid">
+        <div class="dual-col">
 
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/celula2.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-circle-nodes"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>CÉLULA II</h3>
-              <p>Segunda parte del recurso interactivo sobre la célula: profundiza en sus estructuras internas y funciones específicas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          <!-- ── Columna 1: Física ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-atom"></i> FÍSICA</p>
+            <div class="grid">
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/calorytem.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-temperature-half"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-8basico','fisica')">Física</span>
+                <h3>CALOR Y TEMPERATURA</h3>
+                <p>Recurso interactivo sobre calor y temperatura: diferencias conceptuales, transferencia de calor y equilibrio térmico.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/circuitos.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-bolt"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-8basico','fisica')">Física</span>
+                <h3>CIRCUITOS ELÉCTRICOS</h3>
+                <p>Recurso interactivo sobre circuitos eléctricos: corriente, voltaje, resistencia y conexiones en serie y en paralelo.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
             </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/historiacelula.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-microscope"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>HISTORIA DE LA CÉLULA</h3>
-              <p>Recurso interactivo sobre el descubrimiento de la célula y la construcción de la teoría celular a lo largo de la historia de la ciencia.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
           </div>
-        </div>
 
+          <!-- ── Columna 2: Biología ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-dna"></i> BIOLOGÍA</p>
+            <div class="grid">
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/celula2.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-circle-nodes"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-8basico','biologia')">Biología</span>
+                <h3>CÉLULA II</h3>
+                <p>Segunda parte del recurso interactivo sobre la célula: profundiza en sus estructuras internas y funciones específicas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/historiacelula.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-microscope"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-8basico','biologia')">Biología</span>
+                <h3>HISTORIA DE LA CÉLULA</h3>
+                <p>Recurso interactivo sobre el descubrimiento de la célula y la construcción de la teoría celular a lo largo de la historia de la ciencia.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>`;
 }
@@ -1687,82 +1915,92 @@ function r3(s){
       </div>
 
       <h2 class="sh">RECURSOS DE ESTUDIO</h2>
-      <div class="dual-col">
 
-        <!-- ── Columna 1: Ciencias para la Ciudadanía ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-people-roof"></i> CIENCIAS PARA LA CIUDADANÍA</p>
-          <div class="grid">
-
-            <div class="card c-gold" style="cursor:pointer;" onclick="window.open('biologia/acv.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-industry"></i></div>
-              <span class="res-tag">Tecnología</span>
-              <h3>ACV · ANÁLISIS DE CICLO DE VIDA</h3>
-              <p>Recurso interactivo sobre el análisis de ciclo de vida (ACV) de un producto: extracción de materias primas, fabricación, uso y disposición final, y su impacto ambiental en cada etapa.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-gold" style="cursor:pointer;" onclick="window.open('ciudadania/empresa1.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-hand-holding-seedling"></i></div>
-              <span class="res-tag">Tecnología</span>
-              <h3>CREACIÓN DE UNA EMPRESA SOSTENIBLE</h3>
-              <p>Recurso interactivo que analiza la creación de una empresa sostenible a partir de problemas del entorno, integrando criterios ambientales, sociales y económicos.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-          </div>
+      <div id="res-3medio">
+        <div class="subject-filter-bar">
+          <button class="subject-filter-btn active" data-subject="todos" onclick="filterBySubject('res-3medio','todos')"><i class="fa-solid fa-layer-group"></i> Todos</button>
+          <button class="subject-filter-btn" data-subject="fisica" onclick="filterBySubject('res-3medio','fisica')"><i class="fa-solid fa-atom"></i> Física</button>
+          <button class="subject-filter-btn" data-subject="biologia" onclick="filterBySubject('res-3medio','biologia')"><i class="fa-solid fa-dna"></i> Biología</button>
+          <button class="subject-filter-btn" data-subject="tecnologia" onclick="filterBySubject('res-3medio','tecnologia')"><i class="fa-solid fa-gears"></i> Tecnología</button>
         </div>
 
-        <!-- ── Columna 2: Biología de los Ecosistemas ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-leaf"></i> BIOLOGÍA DE LOS ECOSISTEMAS</p>
-          <div class="grid">
+        <div class="dual-col">
 
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('a-frame/mundo.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-tree"></i></div>
-              <span class="res-tag">Biología</span>
-              <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: lunes 27 de julio</span>
-              <h3>MUNDO VIRTUAL: BOSQUE NATIVO</h3>
-              <p>Instrucciones: dirígete al mundo virtual "Bosque Nativo", explóralo con atención y realiza en tu cuaderno las actividades que se indican dentro de la experiencia.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-vr-cardboard"></i> Explorar Mundo</button>
+          <!-- ── Columna 1: Ciencias para la Ciudadanía ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-people-roof"></i> CIENCIAS PARA LA CIUDADANÍA</p>
+            <div class="grid">
+
+              <div class="card c-gold" data-subject="tecnologia" style="cursor:pointer;" onclick="window.open('biologia/acv.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-industry"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-3medio','tecnologia')">Tecnología</span>
+                <h3>ACV · ANÁLISIS DE CICLO DE VIDA</h3>
+                <p>Recurso interactivo sobre el análisis de ciclo de vida (ACV) de un producto: extracción de materias primas, fabricación, uso y disposición final, y su impacto ambiental en cada etapa.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-gold" data-subject="tecnologia" style="cursor:pointer;" onclick="window.open('ciudadania/empresa1.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-hand-holding-seedling"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-3medio','tecnologia')">Tecnología</span>
+                <h3>CREACIÓN DE UNA EMPRESA SOSTENIBLE</h3>
+                <p>Recurso interactivo que analiza la creación de una empresa sostenible a partir de problemas del entorno, integrando criterios ambientales, sociales y económicos.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
             </div>
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/ccclimatico.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-cloud-sun-rain"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>CAMBIO CLIMÁTICO</h3>
-              <p>Recurso interactivo sobre el cambio climático: causas, evidencias y consecuencias del calentamiento global.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/ciclos.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-recycle"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>CICLOS BIOGEOQUÍMICOS</h3>
-              <p>Recurso interactivo sobre los ciclos de la materia en la naturaleza: agua, carbono, nitrógeno y su rol en los ecosistemas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/resiliencia2.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-leaf"></i></div>
-              <span class="res-tag">Biología</span>
-              <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: jueves 30 de julio</span>
-              <h3>RESILIENCIA II</h3>
-              <p>Segunda parte del recurso interactivo sobre resiliencia: estudios de caso de ecosistemas que se han recuperado tras una perturbación.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/resiliencia.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-seedling"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>RESILIENCIA</h3>
-              <p>Recurso interactivo sobre la resiliencia de los ecosistemas: capacidad de recuperación frente a perturbaciones y alteraciones ambientales.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
           </div>
-        </div>
 
+          <!-- ── Columna 2: Biología de los Ecosistemas ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-leaf"></i> BIOLOGÍA DE LOS ECOSISTEMAS</p>
+            <div class="grid">
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('a-frame/mundo.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-tree"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-3medio','biologia')">Biología</span>
+                <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: lunes 27 de julio</span>
+                <h3>MUNDO VIRTUAL: BOSQUE NATIVO</h3>
+                <p>Instrucciones: dirígete al mundo virtual "Bosque Nativo", explóralo con atención y realiza en tu cuaderno las actividades que se indican dentro de la experiencia.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-vr-cardboard"></i> Explorar Mundo</button>
+              </div>
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/ccclimatico.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-cloud-sun-rain"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-3medio','fisica')">Física</span>
+                <h3>CAMBIO CLIMÁTICO</h3>
+                <p>Recurso interactivo sobre el cambio climático: causas, evidencias y consecuencias del calentamiento global.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/ciclos.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-recycle"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-3medio','biologia')">Biología</span>
+                <h3>CICLOS BIOGEOQUÍMICOS</h3>
+                <p>Recurso interactivo sobre los ciclos de la materia en la naturaleza: agua, carbono, nitrógeno y su rol en los ecosistemas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/resiliencia2.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-leaf"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-3medio','biologia')">Biología</span>
+                <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: jueves 30 de julio</span>
+                <h3>RESILIENCIA II</h3>
+                <p>Segunda parte del recurso interactivo sobre resiliencia: estudios de caso de ecosistemas que se han recuperado tras una perturbación.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/resiliencia.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-seedling"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-3medio','biologia')">Biología</span>
+                <h3>RESILIENCIA</h3>
+                <p>Recurso interactivo sobre la resiliencia de los ecosistemas: capacidad de recuperación frente a perturbaciones y alteraciones ambientales.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>`;
 }
@@ -1775,81 +2013,90 @@ function r4(s){
       </div>
 
       <h2 class="sh">RECURSOS DE ESTUDIO</h2>
-      <div class="dual-col">
 
-        <!-- ── Columna 1: Ciencias de la Salud ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-dna"></i> CIENCIAS DE LA SALUD</p>
-          <div class="grid">
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('simulador_adn_v2.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-dna"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>SIMULADOR DE ADN</h3>
-              <p>Juego interactivo para explorar la replicación y transcripción del ADN de forma dinámica.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-gamepad"></i> Jugar</button>
-            </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/replicacion.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-clone"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>REPLICACIÓN</h3>
-              <p>Recurso interactivo sobre la replicación del ADN: enzimas involucradas, mecanismo semiconservativo y su rol en la división celular.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/cromatina.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-atom"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>CROMATINA</h3>
-              <p>Recurso interactivo sobre la organización de la cromatina: niveles de empaquetamiento del ADN dentro del núcleo celular.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/ruta.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-route"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>RUTA DEL ARN</h3>
-              <p>Recurso interactivo sobre la ruta del ARN: transcripción, procesamiento y traducción en la síntesis de proteínas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/dogma.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-diagram-project"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>DOGMA CENTRAL</h3>
-              <p>Recurso interactivo sobre el dogma central de la biología molecular: el flujo de información desde el ADN al ARN y a las proteínas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-          </div>
+      <div id="res-4medio">
+        <div class="subject-filter-bar">
+          <button class="subject-filter-btn active" data-subject="todos" onclick="filterBySubject('res-4medio','todos')"><i class="fa-solid fa-layer-group"></i> Todos</button>
+          <button class="subject-filter-btn" data-subject="fisica" onclick="filterBySubject('res-4medio','fisica')"><i class="fa-solid fa-atom"></i> Física</button>
+          <button class="subject-filter-btn" data-subject="biologia" onclick="filterBySubject('res-4medio','biologia')"><i class="fa-solid fa-dna"></i> Biología</button>
         </div>
 
-        <!-- ── Columna 2: Física ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-meteor"></i> FÍSICA</p>
-          <div class="grid">
+        <div class="dual-col">
 
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/geohelio.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-globe"></i></div>
-              <span class="res-tag">Física</span>
-              <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: lunes 27 de julio</span>
-              <h3>MODELO GEOCÉNTRICO Y HELIOCÉNTRICO</h3>
-              <p>Recurso interactivo que compara el modelo geocéntrico y el heliocéntrico: su evolución histórica y evidencia astronómica.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          <!-- ── Columna 1: Ciencias de la Salud ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-dna"></i> CIENCIAS DE LA SALUD</p>
+            <div class="grid">
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('simulador_adn_v2.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-dna"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-4medio','biologia')">Biología</span>
+                <h3>SIMULADOR DE ADN</h3>
+                <p>Juego interactivo para explorar la replicación y transcripción del ADN de forma dinámica.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-gamepad"></i> Jugar</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/replicacion.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-clone"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-4medio','biologia')">Biología</span>
+                <h3>REPLICACIÓN</h3>
+                <p>Recurso interactivo sobre la replicación del ADN: enzimas involucradas, mecanismo semiconservativo y su rol en la división celular.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/cromatina.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-atom"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-4medio','biologia')">Biología</span>
+                <h3>CROMATINA</h3>
+                <p>Recurso interactivo sobre la organización de la cromatina: niveles de empaquetamiento del ADN dentro del núcleo celular.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/ruta.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-route"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-4medio','biologia')">Biología</span>
+                <h3>RUTA DEL ARN</h3>
+                <p>Recurso interactivo sobre la ruta del ARN: transcripción, procesamiento y traducción en la síntesis de proteínas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/dogma.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-diagram-project"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-4medio','biologia')">Biología</span>
+                <h3>DOGMA CENTRAL</h3>
+                <p>Recurso interactivo sobre el dogma central de la biología molecular: el flujo de información desde el ADN al ARN y a las proteínas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
             </div>
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('juegos/odisea.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-meteor"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>ODISEA</h3>
-              <p>Juego interactivo sobre el sistema solar: planetas, órbitas y estructura de nuestro vecindario cósmico.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-gamepad"></i> Jugar</button>
-            </div>
-
           </div>
-        </div>
 
+          <!-- ── Columna 2: Física ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-meteor"></i> FÍSICA</p>
+            <div class="grid">
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/geohelio.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-globe"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-4medio','fisica')">Física</span>
+                <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: lunes 27 de julio</span>
+                <h3>MODELO GEOCÉNTRICO Y HELIOCÉNTRICO</h3>
+                <p>Recurso interactivo que compara el modelo geocéntrico y el heliocéntrico: su evolución histórica y evidencia astronómica.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('juegos/odisea.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-meteor"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-4medio','fisica')">Física</span>
+                <h3>ODISEA</h3>
+                <p>Juego interactivo sobre el sistema solar: planetas, órbitas y estructura de nuestro vecindario cósmico.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-gamepad"></i> Jugar</button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>`;
 }
@@ -1862,56 +2109,65 @@ function r6(s){
       </div>
 
       <h2 class="sh">RECURSOS DE ESTUDIO</h2>
-      <div class="dual-col">
 
-        <!-- ── Columna 1: Ciencias Naturales ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-flask"></i> CIENCIAS NATURALES</p>
-          <div class="grid">
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/energiavalle.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-wind"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>ENERGÍA EN EL VALLE</h3>
-              <p>Recurso interactivo sobre las fuentes de energía presentes en un valle: viento, agua y sol, y su aprovechamiento en el entorno local.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/energia2.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-battery-full"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>ENERGÍA II</h3>
-              <p>Segunda parte del recurso interactivo sobre energía: conservación, degradación y eficiencia energética.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/energia.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-bolt-lightning"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>ENERGÍA</h3>
-              <p>Recurso interactivo sobre la energía: tipos, transformaciones y su presencia en fenómenos cotidianos.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-          </div>
+      <div id="res-6basico">
+        <div class="subject-filter-bar">
+          <button class="subject-filter-btn active" data-subject="todos" onclick="filterBySubject('res-6basico','todos')"><i class="fa-solid fa-layer-group"></i> Todos</button>
+          <button class="subject-filter-btn" data-subject="fisica" onclick="filterBySubject('res-6basico','fisica')"><i class="fa-solid fa-flask"></i> Ciencias Naturales</button>
+          <button class="subject-filter-btn" data-subject="orientacion" onclick="filterBySubject('res-6basico','orientacion')"><i class="fa-solid fa-compass"></i> Orientación</button>
         </div>
 
-        <!-- ── Columna 2: Orientación ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-compass"></i> ORIENTACIÓN</p>
-          <div class="grid">
+        <div class="dual-col">
 
-            <div class="card c-fem" style="cursor:pointer;" onclick="window.open('orientacion/cambios.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-seedling"></i></div>
-              <span class="res-tag">Orientación</span>
-              <h3>LOS CAMBIOS DE LA PUBERTAD</h3>
-              <p>Recurso interactivo sobre los cambios físicos, emocionales y sociales propios de la pubertad.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          <!-- ── Columna 1: Ciencias Naturales ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-flask"></i> CIENCIAS NATURALES</p>
+            <div class="grid">
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/energiavalle.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-wind"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-6basico','fisica')">Física</span>
+                <h3>ENERGÍA EN EL VALLE</h3>
+                <p>Recurso interactivo sobre las fuentes de energía presentes en un valle: viento, agua y sol, y su aprovechamiento en el entorno local.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/energia2.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-battery-full"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-6basico','fisica')">Física</span>
+                <h3>ENERGÍA II</h3>
+                <p>Segunda parte del recurso interactivo sobre energía: conservación, degradación y eficiencia energética.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/energia.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-bolt-lightning"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-6basico','fisica')">Física</span>
+                <h3>ENERGÍA</h3>
+                <p>Recurso interactivo sobre la energía: tipos, transformaciones y su presencia en fenómenos cotidianos.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
             </div>
-
           </div>
-        </div>
 
+          <!-- ── Columna 2: Orientación ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-compass"></i> ORIENTACIÓN</p>
+            <div class="grid">
+
+              <div class="card c-fem" data-subject="orientacion" style="cursor:pointer;" onclick="window.open('orientacion/cambios.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-seedling"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-6basico','orientacion')">Orientación</span>
+                <h3>LOS CAMBIOS DE LA PUBERTAD</h3>
+                <p>Recurso interactivo sobre los cambios físicos, emocionales y sociales propios de la pubertad.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>`;
 }
@@ -1924,73 +2180,90 @@ function r7(s){
       </div>
 
       <h2 class="sh">RECURSOS DE ESTUDIO</h2>
-      <div class="dual-col">
 
-        <!-- ── Columna 1: Física ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-atom"></i> FÍSICA</p>
-          <div class="grid">
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/ciclorocas.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-gem"></i></div>
-              <span class="res-tag">Física</span>
-              <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: lunes 27 de julio</span>
-              <h3>CICLO DE LAS ROCAS</h3>
-              <p>Recurso interactivo sobre el ciclo de las rocas: procesos de formación y transformación entre rocas ígneas, sedimentarias y metamórficas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/volcanes.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-volcano"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>VOLCANES</h3>
-              <p>Recurso interactivo sobre volcanes: estructura, tipos de erupciones y su relación con los bordes de placas tectónicas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/tectonica2.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-mountain-sun"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>TECTÓNICA DE PLACAS II</h3>
-              <p>Segunda parte del recurso interactivo sobre tectónica de placas: profundiza en la actividad sísmica y volcánica asociada a los bordes de placas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-            <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/tectonicaseptimo.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-mountain"></i></div>
-              <span class="res-tag">Física</span>
-              <h3>TECTÓNICA DE PLACAS</h3>
-              <p>Recurso interactivo sobre la tectónica de placas: tipos de bordes, movimiento de placas y su relación con sismos y volcanes.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
-          </div>
+      <div id="res-7basico">
+        <div class="subject-filter-bar">
+          <button class="subject-filter-btn active" data-subject="todos" onclick="filterBySubject('res-7basico','todos')"><i class="fa-solid fa-layer-group"></i> Todos</button>
+          <button class="subject-filter-btn" data-subject="fisica" onclick="filterBySubject('res-7basico','fisica')"><i class="fa-solid fa-atom"></i> Física</button>
+          <button class="subject-filter-btn" data-subject="biologia" onclick="filterBySubject('res-7basico','biologia')"><i class="fa-solid fa-dna"></i> Biología</button>
         </div>
 
-        <!-- ── Columna 2: Biología ── -->
-        <div>
-          <p class="col-header"><i class="fa-solid fa-dna"></i> BIOLOGÍA</p>
-          <div class="grid">
+        <div class="dual-col">
 
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/microbios2.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-virus"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>MICROBIOS II</h3>
-              <p>Segunda parte del recurso interactivo sobre microorganismos: profundiza en su clasificación y su impacto en la salud y los ecosistemas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          <!-- ── Columna 1: Física ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-atom"></i> FÍSICA</p>
+            <div class="grid">
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/ciclorocas.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-gem"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-7basico','fisica')">Física</span>
+                <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: lunes 27 de julio</span>
+                <h3>CICLO DE LAS ROCAS</h3>
+                <p>Recurso interactivo sobre el ciclo de las rocas: procesos de formación y transformación entre rocas ígneas, sedimentarias y metamórficas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/volcanes.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-volcano"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-7basico','fisica')">Física</span>
+                <h3>VOLCANES</h3>
+                <p>Recurso interactivo sobre volcanes: estructura, tipos de erupciones y su relación con los bordes de placas tectónicas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/tectonica2.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-mountain-sun"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-7basico','fisica')">Física</span>
+                <h3>TECTÓNICA DE PLACAS II</h3>
+                <p>Segunda parte del recurso interactivo sobre tectónica de placas: profundiza en la actividad sísmica y volcánica asociada a los bordes de placas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/tectonicaseptimo.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-mountain"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-7basico','fisica')">Física</span>
+                <h3>TECTÓNICA DE PLACAS</h3>
+                <p>Recurso interactivo sobre la tectónica de placas: tipos de bordes, movimiento de placas y su relación con sismos y volcanes.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
             </div>
-
-            <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/microbios.html','_blank')">
-              <div class="res-icon-badge"><i class="fa-solid fa-bacteria"></i></div>
-              <span class="res-tag">Biología</span>
-              <h3>MICROBIOS</h3>
-              <p>Recurso interactivo sobre microorganismos: bacterias, virus y otros microbios, su estructura y su rol en los ecosistemas.</p>
-              <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-            </div>
-
           </div>
-        </div>
 
+          <!-- ── Columna 2: Biología ── -->
+          <div>
+            <p class="col-header"><i class="fa-solid fa-dna"></i> BIOLOGÍA</p>
+            <div class="grid">
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/microbios3.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-disease"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-7basico','biologia')">Biología</span>
+                <h3>MICROBIOS III</h3>
+                <p>Tercera parte del recurso interactivo sobre microorganismos: profundiza en su reproducción y en la prevención de enfermedades infecciosas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/microbios2.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-virus"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-7basico','biologia')">Biología</span>
+                <h3>MICROBIOS II</h3>
+                <p>Segunda parte del recurso interactivo sobre microorganismos: profundiza en su clasificación y su impacto en la salud y los ecosistemas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+              <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/microbios.html','_blank')">
+                <div class="res-icon-badge"><i class="fa-solid fa-bacteria"></i></div>
+                <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-7basico','biologia')">Biología</span>
+                <h3>MICROBIOS</h3>
+                <p>Recurso interactivo sobre microorganismos: bacterias, virus y otros microbios, su estructura y su rol en los ecosistemas.</p>
+                <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>`;
 }
@@ -2044,49 +2317,58 @@ function r1medio(s){
       </div>
 
       <h2 class="sh">RECURSOS DE ESTUDIO</h2>
-      <div class="grid">
 
-        <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/ondasls.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-wave-square"></i></div>
-          <span class="res-tag">Física</span>
-          <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: miércoles 29 de julio</span>
-          <h3>ONDAS, LUZ Y SONIDO</h3>
-          <p>Recurso compilado sobre los conceptos de onda, sonido y luz: características, propagación y fenómenos comunes entre ellos.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+      <div id="res-1medio">
+        <div class="subject-filter-bar">
+          <button class="subject-filter-btn active" data-subject="todos" onclick="filterBySubject('res-1medio','todos')"><i class="fa-solid fa-layer-group"></i> Todos</button>
+          <button class="subject-filter-btn" data-subject="fisica" onclick="filterBySubject('res-1medio','fisica')"><i class="fa-solid fa-atom"></i> Física</button>
+          <button class="subject-filter-btn" data-subject="biologia" onclick="filterBySubject('res-1medio','biologia')"><i class="fa-solid fa-dna"></i> Biología</button>
         </div>
 
-        <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/propluz.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-lightbulb"></i></div>
-          <span class="res-tag">Física</span>
-          <h3>PROPAGACIÓN DE LA LUZ</h3>
-          <p>Recurso interactivo sobre la propagación de la luz: rayos, sombras y fenómenos ópticos básicos.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-        </div>
+        <div class="grid">
 
-        <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/propiedadluz2.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-rainbow"></i></div>
-          <span class="res-tag">Física</span>
-          <h3>PROPIEDADES DE LA LUZ II</h3>
-          <p>Segunda parte del recurso interactivo sobre la luz: reflexión, refracción y descomposición en el espectro visible.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-        </div>
+          <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/ondasls.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-wave-square"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-1medio','fisica')">Física</span>
+            <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: miércoles 29 de julio</span>
+            <h3>ONDAS, LUZ Y SONIDO</h3>
+            <p>Recurso compilado sobre los conceptos de onda, sonido y luz: características, propagación y fenómenos comunes entre ellos.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
 
-        <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/ciclos.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-recycle"></i></div>
-          <span class="res-tag">Biología</span>
-          <h3>CICLOS BIOGEOQUÍMICOS</h3>
-          <p>Recurso interactivo sobre los ciclos de la materia en la naturaleza: agua, carbono, nitrógeno y su rol en los ecosistemas.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-        </div>
+          <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/propluz.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-lightbulb"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-1medio','fisica')">Física</span>
+            <h3>PROPAGACIÓN DE LA LUZ</h3>
+            <p>Recurso interactivo sobre la propagación de la luz: rayos, sombras y fenómenos ópticos básicos.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
 
-        <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/ciclosdos.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-arrows-rotate"></i></div>
-          <span class="res-tag">Biología</span>
-          <h3>CICLOS BIOGEOQUÍMICOS II</h3>
-          <p>Segunda parte del recurso interactivo sobre los ciclos de la materia: profundiza en el ciclo del fósforo y del azufre y su interacción con los ecosistemas.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-        </div>
+          <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/propiedadluz2.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-rainbow"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-1medio','fisica')">Física</span>
+            <h3>PROPIEDADES DE LA LUZ II</h3>
+            <p>Segunda parte del recurso interactivo sobre la luz: reflexión, refracción y descomposición en el espectro visible.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
 
+          <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/ciclos.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-recycle"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-1medio','biologia')">Biología</span>
+            <h3>CICLOS BIOGEOQUÍMICOS</h3>
+            <p>Recurso interactivo sobre los ciclos de la materia en la naturaleza: agua, carbono, nitrógeno y su rol en los ecosistemas.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
+
+          <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/ciclosdos.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-1medio','biologia')">Biología</span>
+            <h3>CICLOS BIOGEOQUÍMICOS II</h3>
+            <p>Segunda parte del recurso interactivo sobre los ciclos de la materia: profundiza en el ciclo del fósforo y del azufre y su interacción con los ecosistemas.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
+
+        </div>
       </div>
     </div>`;
 }
@@ -2100,41 +2382,50 @@ function r2medio(s){
       </div>
 
       <h2 class="sh">RECURSOS DE ESTUDIO</h2>
-      <div class="grid">
 
-        <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/dcl.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-arrows-up-down-left-right"></i></div>
-          <span class="res-tag">Física</span>
-          <h3>DIAGRAMA DE CUERPO LIBRE</h3>
-          <p>Recurso interactivo para construir y analizar diagramas de cuerpo libre: identificación de fuerzas actuando sobre un objeto y su representación vectorial.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+      <div id="res-2medio">
+        <div class="subject-filter-bar">
+          <button class="subject-filter-btn active" data-subject="todos" onclick="filterBySubject('res-2medio','todos')"><i class="fa-solid fa-layer-group"></i> Todos</button>
+          <button class="subject-filter-btn" data-subject="fisica" onclick="filterBySubject('res-2medio','fisica')"><i class="fa-solid fa-atom"></i> Física</button>
+          <button class="subject-filter-btn" data-subject="biologia" onclick="filterBySubject('res-2medio','biologia')"><i class="fa-solid fa-dna"></i> Biología</button>
         </div>
 
-        <div class="card c-sea" style="cursor:pointer;" onclick="window.open('fisica/terceraley.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
-          <span class="res-tag">Física</span>
-          <h3>TERCERA LEY DE NEWTON</h3>
-          <p>Recurso interactivo sobre la tercera ley de Newton: acción y reacción, y su aplicación en situaciones cotidianas.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-        </div>
+        <div class="grid">
 
-        <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/genetica3.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-dna"></i></div>
-          <span class="res-tag">Biología</span>
-          <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: miércoles 29 de julio</span>
-          <h3>GENÉTICA III</h3>
-          <p>Tercera parte del recurso interactivo de genética: profundiza en cruzamientos dihíbridos y excepciones a las leyes de Mendel.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-        </div>
+          <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/dcl.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-arrows-up-down-left-right"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-2medio','fisica')">Física</span>
+            <h3>DIAGRAMA DE CUERPO LIBRE</h3>
+            <p>Recurso interactivo para construir y analizar diagramas de cuerpo libre: identificación de fuerzas actuando sobre un objeto y su representación vectorial.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
 
-        <div class="card c-laurel" style="cursor:pointer;" onclick="window.open('biologia/genetica2.html','_blank')">
-          <div class="res-icon-badge"><i class="fa-solid fa-dna"></i></div>
-          <span class="res-tag">Biología</span>
-          <h3>GENÉTICA II</h3>
-          <p>Segunda parte del recurso interactivo de genética: herencia, cruzamientos y patrones de transmisión de características.</p>
-          <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
-        </div>
+          <div class="card c-sea" data-subject="fisica" style="cursor:pointer;" onclick="window.open('fisica/terceraley.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-2medio','fisica')">Física</span>
+            <h3>TERCERA LEY DE NEWTON</h3>
+            <p>Recurso interactivo sobre la tercera ley de Newton: acción y reacción, y su aplicación en situaciones cotidianas.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
 
+          <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/genetica3.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-dna"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-2medio','biologia')">Biología</span>
+            <span class="res-date-badge"><i class="fa-solid fa-calendar-day"></i> Clase: miércoles 29 de julio</span>
+            <h3>GENÉTICA III</h3>
+            <p>Tercera parte del recurso interactivo de genética: profundiza en cruzamientos dihíbridos y excepciones a las leyes de Mendel.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
+
+          <div class="card c-laurel" data-subject="biologia" style="cursor:pointer;" onclick="window.open('biologia/genetica2.html','_blank')">
+            <div class="res-icon-badge"><i class="fa-solid fa-dna"></i></div>
+            <span class="res-tag clickable" onclick="event.stopPropagation(); filterBySubject('res-2medio','biologia')">Biología</span>
+            <h3>GENÉTICA II</h3>
+            <p>Segunda parte del recurso interactivo de genética: herencia, cruzamientos y patrones de transmisión de características.</p>
+            <button class="btn-p" style="margin-top:12px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso</button>
+          </div>
+
+        </div>
       </div>
     </div>`;
 }
@@ -2266,6 +2557,43 @@ const TOOLS = {
   arbolfilo:     { src: 'arbolfilo.html',     color: '#2e7d52',       text: '#fff',    min: 720 },
   rutas:         { src: 'rutas_metabolicas.html', color: '#b45309',   text: '#fff',    min: 720 }
 };
+
+/* ═══════════════════════════════════════════════
+   🎛️ Filtro interactivo de recursos por asignatura
+═══════════════════════════════════════════════ */
+const SUBJECT_META = {
+  todos:       { cls: null },
+  biologia:    { cls: 'subject-highlight-bio' },
+  fisica:      { cls: 'subject-highlight-fis' },
+  tecnologia:  { cls: 'subject-highlight-tec' },
+  orientacion: { cls: 'subject-highlight-ori' }
+};
+
+function filterBySubject(sectionId, subject){
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  // Sincroniza el estado activo de los botones de la barra de filtro
+  section.querySelectorAll('.subject-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-subject') === subject);
+  });
+
+  const allClasses = Object.values(SUBJECT_META).map(m => m.cls).filter(Boolean);
+
+  section.querySelectorAll('.card[data-subject]').forEach(card => {
+    card.classList.remove('subject-hidden', ...allClasses);
+    const cs = card.getAttribute('data-subject');
+
+    if (subject === 'todos') return; // se muestran todas, sin resaltar
+
+    if (cs === subject) {
+      const meta = SUBJECT_META[subject];
+      if (meta && meta.cls) card.classList.add(meta.cls);
+    } else {
+      card.classList.add('subject-hidden');
+    }
+  });
+}
 
 function switchTool(tool){
   const cfg = TOOLS[tool];
