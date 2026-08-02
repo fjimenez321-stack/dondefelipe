@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Odisea Cósmica · De Mercurio a la Nube de Oort</title>
+<style>
+  :root{
+    --papiro:#e7d6ac; --papiro-sombra:#d8c495; --tinta:#3a2a16; --tinta-suave:#6a5334;
+    --oro:#c8a24b; --lacre:#8f2f22;
+    --void:#05060e; --void2:#0a0d1c; --fosforo:#4de0e8; --ambar:#f2a93b;
+    --peligro:#ff4d57; --nave:#7cff6b; --oro-cristal:#ffd76b; --vel:#5bd6ff; --pow:#ff9a3b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#000;overflow:hidden;font-family:"Courier New",monospace;color:#fff}
+  #app{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 30%, #0a1030 0%, #05060e 60%, #000 100%);}
+  #stage{position:relative;width:min(96vw, calc(96vh*0.62));height:min(96vh, calc(96vw/0.62));
+    max-width:760px;background:var(--void);border:3px solid var(--oro);border-radius:10px;overflow:hidden;
+    box-shadow:0 0 40px rgba(200,162,75,.25), inset 0 0 60px rgba(0,0,0,.6);
+    touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;touch-action:none}
+  .crt::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:6;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.16) 3px, rgba(0,0,0,0) 4px);mix-blend-mode:multiply;}
+  .crt::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:7;
+    background:radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0,0,0,.45) 100%);}
+  .screen{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;align-items:center;justify-content:center;padding:5% 7%;text-align:center;}
+  .screen.on{display:flex}
+
+  /* Pergamino */
+  .papiro{position:relative;width:100%;max-height:100%;overflow-y:auto;
+    background:radial-gradient(circle at 20% 15%, rgba(0,0,0,.05), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(0,0,0,.06), transparent 45%),
+      linear-gradient(180deg,var(--papiro),var(--papiro-sombra));
+    color:var(--tinta);border-radius:6px;padding:26px 24px 30px;
+    box-shadow:0 10px 40px rgba(0,0,0,.6), inset 0 0 60px rgba(120,90,40,.25);font-family:Georgia,"Times New Roman",serif;}
+  .papiro::before,.papiro::after{content:"";position:absolute;left:0;right:0;height:22px;background:linear-gradient(180deg,rgba(90,60,20,.35),transparent);}
+  .papiro::before{top:0;border-radius:6px 6px 0 0}
+  .papiro::after{bottom:0;transform:scaleY(-1);border-radius:0 0 6px 6px}
+  .sello{width:56px;height:56px;margin:0 auto 6px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #b8483a, var(--lacre));
+    box-shadow:0 3px 8px rgba(0,0,0,.4), inset 0 0 10px rgba(0,0,0,.4);
+    display:flex;align-items:center;justify-content:center;color:#f0d9a0;font-size:24px;font-family:Georgia,serif;font-style:italic;}
+  .papiro h1{font-size:clamp(20px,5vw,30px);letter-spacing:.5px;margin-bottom:4px;line-height:1.15;}
+  .papiro .sub{font-style:italic;color:var(--tinta-suave);margin-bottom:14px;font-size:clamp(12px,3vw,15px)}
+  .papiro p{font-size:clamp(13px,3.3vw,16px);line-height:1.55;margin:0 auto 12px;max-width:54ch;text-align:justify}
+  .papiro p .firma{display:block;text-align:right;font-style:italic;margin-top:8px;}
+  .divisor{width:60%;height:1px;margin:14px auto;background:linear-gradient(90deg,transparent,var(--oro),transparent)}
+
+  .btn{font-family:"Courier New",monospace;font-weight:bold;letter-spacing:1px;text-transform:uppercase;cursor:pointer;user-select:none;
+    background:var(--oro);color:#2a1e0c;border:none;padding:12px 22px;border-radius:4px;font-size:clamp(13px,3.4vw,16px);
+    box-shadow:0 4px 0 #8f6f22;transition:transform .05s, box-shadow .05s;margin-top:8px;}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 #8f6f22}
+  .btn.mini{padding:8px 14px;font-size:12px;box-shadow:0 3px 0 #8f6f22}
+  .btn.ghost{background:transparent;color:var(--fosforo);border:2px solid var(--fosforo);box-shadow:none}
+
+  .crt-title{font-family:"Courier New",monospace;color:var(--fosforo);text-shadow:0 0 12px rgba(77,224,232,.6)}
+  .crt-title h1{font-size:clamp(22px,6vw,40px);letter-spacing:2px;line-height:1.1;margin-bottom:6px}
+  .crt-title h1 .a{color:var(--ambar);text-shadow:0 0 12px rgba(242,169,59,.6)}
+  .crt-title .tag{color:#cfe;letter-spacing:1px;margin-bottom:12px;font-size:clamp(11px,3vw,15px);opacity:.9}
+
+  /* Nombre */
+  #nombre .box{width:100%;max-width:460px;background:var(--void2);border:2px solid var(--oro);border-radius:12px;padding:26px 22px;box-shadow:0 0 40px rgba(200,162,75,.25)}
+  #nombre h2{color:var(--oro-cristal);font-family:"Courier New",monospace;font-size:clamp(16px,4.4vw,22px);margin-bottom:6px;letter-spacing:1px}
+  #nombre p{color:#bcd;font-size:13px;margin-bottom:16px}
+  #nombre input{width:100%;padding:12px 14px;margin-bottom:10px;border-radius:6px;border:1px solid #33406e;background:#0f1430;color:#eaf;font-family:"Courier New",monospace;font-size:15px;text-align:center}
+  #nombre input:focus{outline:none;border-color:var(--fosforo)}
+
+  /* Pregunta */
+  #q-screen{background:rgba(3,4,10,.92);z-index:20}
+  .q-card{width:100%;max-width:560px;background:var(--void2);border:2px solid var(--oro-cristal);border-radius:10px;padding:22px 20px;box-shadow:0 0 40px rgba(255,215,107,.25);}
+  .q-card .marca{color:var(--oro-cristal);font-weight:bold;letter-spacing:2px;font-size:12px;margin-bottom:8px;text-transform:uppercase}
+  .q-card h2{color:#fff;font-size:clamp(15px,3.8vw,19px);line-height:1.35;margin-bottom:16px;font-family:"Courier New",monospace}
+  .opciones{display:grid;gap:10px}
+  .opcion{text-align:left;background:#12162b;color:#dfe6ff;border:1px solid #2a3358;padding:12px 14px;border-radius:6px;cursor:pointer;font-size:clamp(13px,3.3vw,15px);font-family:"Courier New",monospace;transition:.12s;}
+  .opcion:hover{border-color:var(--fosforo);background:#182046}
+  .opcion.correcta{background:#123d22;border-color:var(--nave);color:#c7ffbc}
+  .opcion.incorrecta{background:#3d1218;border-color:var(--peligro);color:#ffc7cc}
+  .opcion .k{display:inline-block;width:22px;color:var(--oro-cristal);font-weight:bold}
+  .q-feedback{margin-top:14px;font-size:clamp(12px,3.1vw,14px);line-height:1.5;color:#bcd;min-height:1em;font-family:"Courier New",monospace}
+
+  /* Podio entre misiones */
+  .podio-box{width:100%;max-width:420px;margin:6px auto 14px;background:rgba(10,13,28,.85);border:1px solid var(--oro);border-radius:10px;padding:12px 14px;text-align:left}
+  .podio-box h3{color:var(--oro-cristal);font-family:"Courier New",monospace;font-size:13px;letter-spacing:1px;text-align:center;margin-bottom:8px;text-transform:uppercase}
+  .podio-row{display:flex;justify-content:space-between;gap:8px;font-family:"Courier New",monospace;font-size:13px;padding:5px 6px;border-radius:4px}
+  .podio-row .nm{color:#dfe6ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .podio-row .sc{color:var(--fosforo);font-weight:bold}
+  .podio-row.me{background:rgba(200,162,75,.16);border:1px dashed var(--oro)}
+  .podio-row .med{width:20px;display:inline-block}
+  .podio-empty{color:#89a;font-size:12px;text-align:center;font-family:"Courier New",monospace}
+
+  #hud{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;
+    padding:8px 12px;font-family:"Courier New",monospace;font-weight:bold;color:var(--fosforo);font-size:clamp(11px,2.8vw,14px);letter-spacing:1px;text-shadow:0 0 8px rgba(77,224,232,.5);pointer-events:none;}
+  #hud .vidas{color:var(--peligro);letter-spacing:2px;text-shadow:0 0 8px rgba(255,77,87,.6)}
+  #hud .mision{color:var(--ambar);text-shadow:0 0 8px rgba(242,169,59,.5)}
+  #buffs{position:absolute;top:30px;left:12px;z-index:5;font-family:"Courier New",monospace;font-size:11px;font-weight:bold;pointer-events:none}
+  #buffs span{display:inline-block;margin-right:8px;padding:2px 6px;border-radius:4px}
+  .b-vel{background:rgba(91,214,255,.18);color:var(--vel);border:1px solid var(--vel)}
+  .b-pow{background:rgba(255,154,59,.18);color:var(--pow);border:1px solid var(--pow)}
+
+  #banner{position:absolute;top:42%;left:0;right:0;text-align:center;z-index:9;font-family:"Courier New",monospace;font-weight:bold;
+    font-size:clamp(16px,5vw,26px);letter-spacing:2px;opacity:0;transition:opacity .25s;pointer-events:none;text-shadow:0 0 16px currentColor}
+  #banner.show{opacity:1;animation:pip .5s steps(2) infinite}
+  @keyframes pip{50%{opacity:.55}}
+
+  #touch{position:absolute;inset:0;z-index:8;display:none;touch-action:none}
+  #touch.on{display:block}
+  .pad-move{position:absolute;left:16px;bottom:16px;display:flex;gap:12px}
+  .pad-btn{width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:"Courier New",monospace;font-size:26px;color:#dff;pointer-events:none;user-select:none;-webkit-user-select:none;
+    background:rgba(20,30,55,.40);border:2px solid rgba(120,200,220,.55);box-shadow:0 2px 12px rgba(0,0,0,.4);
+    transition:transform .05s, background .05s;touch-action:none}
+  .pad-btn.pressed{background:rgba(77,224,232,.4);border-color:var(--fosforo);transform:scale(.92)}
+  .pad-btn.fire{position:absolute;right:18px;bottom:18px;width:92px;height:92px;font-size:12px;font-weight:bold;
+    flex-direction:column;gap:2px;color:#ffd0a0;background:rgba(70,32,20,.42);border-color:rgba(255,150,90,.6)}
+  .pad-btn.fire b{font-size:24px;line-height:1}
+  .pad-btn.fire.pressed{background:rgba(255,120,60,.42);border-color:var(--pow)}
+  .hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;color:#567;font-size:11px;z-index:5;font-family:"Courier New",monospace;pointer-events:none}
+  ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--oro);border-radius:4px}
+
+  /* Menú de sagas */
+  .menu-wrap{width:100%;max-height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:6px}
+  .menu-title{font-family:"Courier New",monospace;color:var(--fosforo);text-shadow:0 0 14px rgba(77,224,232,.6);
+    font-size:clamp(18px,5vw,30px);letter-spacing:2px;text-align:center;line-height:1.1;margin-bottom:4px}
+  .menu-tag{color:var(--oro-cristal);font-family:"Courier New",monospace;letter-spacing:2px;font-size:clamp(11px,3vw,14px);
+    text-transform:uppercase;margin-bottom:16px}
+  .saga-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;width:100%;max-width:520px}
+  .saga-card{cursor:pointer;text-align:center;color:#eaf1ff;font-family:"Courier New",monospace;
+    background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(0,0,0,.25));
+    border:2px solid var(--acc);border-radius:12px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;
+    box-shadow:0 0 18px -6px var(--acc);transition:transform .08s, box-shadow .08s}
+  .saga-card:active{transform:scale(.96)}
+  .saga-card:hover{box-shadow:0 0 26px -4px var(--acc)}
+  .saga-card .ic{font-size:30px;line-height:1}
+  .saga-card .ti{font-weight:bold;font-size:clamp(13px,3.4vw,15px);color:var(--acc)}
+  .saga-card .su{font-size:11px;color:#aebbd6;line-height:1.2}
+
+  /* HUD monedas / escudo */
+  .b-coin{background:rgba(255,215,107,.18);color:var(--oro-cristal);border:1px solid var(--oro-cristal)}
+  .b-shield{background:rgba(91,214,255,.18);color:var(--vel);border:1px solid var(--vel)}
+
+  /* Taller de mejoras */
+  .tienda-wrap{width:100%;max-height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:8px}
+  .tienda-title{font-family:"Courier New",monospace;color:var(--oro-cristal);text-shadow:0 0 12px rgba(255,215,107,.5);font-size:clamp(18px,5vw,26px);letter-spacing:1px;margin-bottom:2px}
+  .tienda-coins{font-family:"Courier New",monospace;color:#eaf1ff;font-size:clamp(13px,3.4vw,16px);margin-bottom:12px}
+  .tienda-coins span{color:var(--oro-cristal);font-weight:bold;font-size:1.2em}
+  .shop-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;width:100%;max-width:540px;margin-bottom:14px}
+  .shop-card{background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(0,0,0,.25));border:1px solid #33406e;border-radius:10px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;font-family:"Courier New",monospace}
+  .shop-card.maxed{border-color:var(--nave);opacity:.85}
+  .shop-card .si{font-size:26px;line-height:1}
+  .shop-card .sn{font-weight:bold;color:#fff;font-size:14px}
+  .shop-card .sd{font-size:11px;color:#aebbd6;line-height:1.25;min-height:2.4em}
+  .shop-card .slv{font-size:11px;color:var(--fosforo);letter-spacing:1px}
+  .shop-buy{margin-top:4px;cursor:pointer;font-family:"Courier New",monospace;font-weight:bold;border:none;border-radius:5px;padding:7px 12px;font-size:13px;background:var(--oro);color:#2a1e0c;box-shadow:0 3px 0 #8f6f22}
+  .shop-buy:active{transform:translateY(2px);box-shadow:0 1px 0 #8f6f22}
+  .shop-buy.off{background:#2a3358;color:#7a86a8;box-shadow:none;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage" class="crt">
+    <canvas id="game"></canvas>
+
+    <div id="hud" style="display:none">
+      <div class="mision" id="hud-mision">MISIÓN 1</div>
+      <div class="puntos" id="hud-puntos">PTS 0</div>
+      <div class="vidas" id="hud-vidas">♥ ♥ ♥</div>
+    </div>
+    <div id="buffs"></div>
+    <div id="banner"></div>
+
+    <div id="touch">
+      <div class="pad-move">
+        <div class="pad-btn" id="t-left">◀</div>
+        <div class="pad-btn" id="t-right">▶</div>
+      </div>
+      <div class="pad-btn fire" id="t-fire"><b>▲</b>FUEGO</div>
+    </div>
+
+    <!-- MENÚ DE SAGAS -->
+    <div class="screen on" id="menu">
+      <div class="menu-wrap">
+        <h1 class="menu-title">ODISEA DEL CONOCIMIENTO</h1>
+        <p class="menu-tag">Elige tu viaje</p>
+        <div id="saga-cards" class="saga-cards"></div>
+      </div>
+    </div>
+
+    <!-- NOMBRE -->
+    <div class="screen" id="nombre">
+      <div class="box">
+        <h2>¿Quién eres, explorador?</h2>
+        <p>Tu nombre quedará inscrito en el podio de navegantes.</p>
+        <input id="in-nombre" maxlength="18" placeholder="Tu nombre" autocomplete="off">
+        <input id="in-curso" maxlength="10" placeholder="Curso (opcional, ej: 4°M A)" autocomplete="off">
+        <button class="btn" id="btn-nombre">Continuar ▸</button>
+      </div>
+    </div>
+
+    <!-- INTRO DE SAGA (papiro del narrador) -->
+    <div class="screen" id="intro">
+      <div class="papiro">
+        <div class="sello" id="intro-sello">G</div>
+        <h1 id="intro-titulo">Título</h1>
+        <div class="sub" id="intro-sub">de …</div>
+        <p id="intro-texto"></p>
+        <p style="text-align:right"><span class="firma" id="intro-firma"></span></p>
+        <div class="divisor"></div>
+        <button class="btn" id="btn-intro">Emprender el viaje ▸</button>
+      </div>
+    </div>
+
+    <!-- BRIEFING -->
+    <div class="screen" id="briefing">
+      <div class="papiro">
+        <div class="sello" id="brief-sello">1</div>
+        <h1 id="brief-titulo">Misión 1 · Mercurio</h1>
+        <div class="sub" id="brief-sub">Bitácora de Galileo</div>
+        <p id="brief-texto"></p>
+        <div class="divisor"></div>
+        <p style="text-align:center;font-family:'Courier New',monospace;font-size:12px;color:var(--tinta-suave)" id="brief-boss"></p>
+        <p style="text-align:center;font-family:'Courier New',monospace;font-size:12px;color:var(--tinta-suave)">◂ ▸ mover · ESPACIO disparar · recoge ⚡ velocidad y ✦ poder</p>
+        <button class="btn" id="btn-lanzar">Iniciar misión ▸</button>
+      </div>
+    </div>
+
+    <!-- TALLER DE MEJORAS -->
+    <div class="screen" id="tienda">
+      <div class="tienda-wrap">
+        <h1 class="tienda-title">🛒 Taller de mejoras</h1>
+        <div class="tienda-coins">Monedas: <span id="shop-coins">0</span> 🪙</div>
+        <div id="shop-items" class="shop-items"></div>
+        <button class="btn" id="btn-tienda">Continuar ▸</button>
+      </div>
+    </div>
+
+    <!-- MISIÓN CUMPLIDA + PODIO -->
+    <div class="screen" id="levelup">
+      <div class="crt-title">
+        <h1>MISIÓN <span class="a">CUMPLIDA</span></h1>
+        <div class="tag" id="lu-planeta">Mercurio explorado</div>
+      </div>
+      <div class="podio-box">
+        <h3>★ Mejores exploradores ★</h3>
+        <div id="lu-podio"></div>
+      </div>
+      <p class="tag" id="lu-dato" style="max-width:44ch;color:#9fb;font-family:'Courier New',monospace;font-size:12px"></p>
+      <button class="btn" id="btn-siguiente">Siguiente destino ▸</button>
+    </div>
+
+    <!-- PREGUNTA -->
+    <div class="screen" id="q-screen">
+      <div class="q-card">
+        <div class="marca">✦ Prueba de conocimiento · vida extra</div>
+        <h2 id="q-text">Pregunta</h2>
+        <div class="opciones" id="q-opciones"></div>
+        <div class="q-feedback" id="q-feedback"></div>
+      </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="screen" id="gameover">
+      <div class="crt-title">
+        <h1 style="color:var(--peligro);text-shadow:0 0 14px rgba(255,77,87,.6)">FIN DEL VIAJE</h1>
+        <div class="tag" id="go-msg"></div>
+        <div class="tag" id="go-score" style="color:var(--fosforo)"></div>
+      </div>
+      <div class="podio-box"><h3>★ Podio ★</h3><div id="go-podio"></div></div>
+      <div>
+        <button class="btn mini" id="btn-copiar-go">📋 Copiar fila</button>
+        <button class="btn mini" id="btn-menu-go">⌂ Menú</button>
+        <button class="btn" id="btn-reintentar">Reintentar ▸</button>
+      </div>
+    </div>
+
+    <!-- VICTORIA -->
+    <div class="screen" id="victoria">
+      <div class="papiro">
+        <div class="sello">★</div>
+        <h1 id="vic-titulo">¡Saga completada!</h1>
+        <div class="sub" id="vic-sub"></div>
+        <p id="vic-texto"></p>
+        <div class="tag" id="vic-score" style="color:var(--lacre);font-family:'Courier New',monospace;font-weight:bold"></div>
+        <div style="text-align:center">
+          <button class="btn mini" id="btn-copiar-vic">📋 Copiar fila</button>
+          <button class="btn" id="btn-otravez">Menú ▸</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint" id="hint" style="display:none">◂ ▸ mover · ESPACIO disparar · (móvil) desliza el dedo, dispara solo</div>
+  </div>
+</div>
+  <script src="js/config.js"></script>
+  <script src="js/sagas.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/graphics.js"></script>
+  <script src="js/engine.js"></script>
+</body>
+</html>
