@@ -68,7 +68,7 @@ OC.Graphics = (function () {
       for (let i = 0; i < 5; i++) { const bx = (i + 1) * W / 6; cx.beginPath(); cx.moveTo(bx, groundY + 6); cx.lineTo(bx + 8, H - 24); cx.lineTo(bx - 6, H - 10); cx.stroke(); }
       cx.globalAlpha = 1;
       cx.fillStyle = 'rgba(255,150,60,0.06)'; cx.fillRect(0, 0, W, H);
-    } else if (world.scene === 'litosfera' || world.scene === 'astenosfera' || world.scene === 'manto') {
+    } else if (world.scene === 'litosfera' || world.scene === 'astenosfera' || world.scene === 'manto' || world.scene === 'nucleo_ext' || world.scene === 'nucleo_int') {
       subsuelo(world, groundY);
     } else if (world.scene === 'galaxia') {
       nebula(world, stars);
@@ -92,9 +92,11 @@ OC.Graphics = (function () {
 
   // Subsuelo (Centro de la Tierra): estratos de roca + magma en profundidad
   function subsuelo(world, gy) {
-    const magma = world.scene === 'manto' || world.scene === 'astenosfera';
+    const magma = world.scene === 'manto' || world.scene === 'astenosfera' || world.scene === 'nucleo_ext' || world.scene === 'nucleo_int';
     const g = cx.createLinearGradient(0, 0, 0, H);
-    if (world.scene === 'manto') { g.addColorStop(0, '#5a1810'); g.addColorStop(0.55, '#8a1c10'); g.addColorStop(1, '#ff5a2a'); }
+    if (world.scene === 'nucleo_int') { g.addColorStop(0, '#7a2010'); g.addColorStop(0.5, '#e04a1a'); g.addColorStop(1, '#fff0c0'); }
+    else if (world.scene === 'nucleo_ext') { g.addColorStop(0, '#6a1810'); g.addColorStop(0.5, '#b83010'); g.addColorStop(1, '#ff7a2a'); }
+    else if (world.scene === 'manto') { g.addColorStop(0, '#5a1810'); g.addColorStop(0.55, '#8a1c10'); g.addColorStop(1, '#ff5a2a'); }
     else if (world.scene === 'astenosfera') { g.addColorStop(0, '#3a1c12'); g.addColorStop(0.6, '#7a331a'); g.addColorStop(1, '#d9702e'); }
     else { g.addColorStop(0, '#2a2018'); g.addColorStop(0.7, '#3a2c1e'); g.addColorStop(1, '#4a3826'); }
     cx.fillStyle = g; cx.fillRect(0, 0, W, H);
@@ -136,8 +138,11 @@ OC.Graphics = (function () {
   // Ecosistema (Ecosistemas): cielo + suelo natural según el mundo
   function natura(world, gy) {
     let cielo1 = '#bfe6ff', cielo2 = '#7fbfe0', suelo = world.color;
-    if (world.scene === 'ecosistema' && world.nombre.indexOf('Desierto') === 0) { cielo1 = '#ffe0a0'; cielo2 = '#e0a860'; }
-    if (world.nombre.indexOf('Humedal') === 0) { cielo1 = '#cfe8f0'; cielo2 = '#9fc8d8'; }
+    const n = world.nombre;
+    if (n.indexOf('Desierto') === 0) { cielo1 = '#ffe0a0'; cielo2 = '#e0a860'; }
+    else if (n.indexOf('Humedal') === 0) { cielo1 = '#cfe8f0'; cielo2 = '#9fc8d8'; }
+    else if (n.indexOf('Océano') === 0) { cielo1 = '#a8d4ec'; cielo2 = '#5f97c0'; }
+    else if (n.indexOf('Altiplano') === 0) { cielo1 = '#8fc4ff'; cielo2 = '#5a86c8'; }
     const g = cx.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, cielo1); g.addColorStop(1, cielo2);
     cx.fillStyle = g; cx.fillRect(0, 0, W, gy);
     // sol

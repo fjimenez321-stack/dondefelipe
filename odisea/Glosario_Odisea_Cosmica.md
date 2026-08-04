@@ -269,3 +269,21 @@ Ninguna es urgente —el juego funciona— pero adoptarlas haría el código má
 **Meta-progresión (dentro de la partida).** La idea de que el jugador se fortalece a lo largo de la campaña, no solo dentro de un nivel. Aquí es *por saga*: las mejoras acompañan todo el viaje y se reinician en la siguiente saga.
 
 **Bucle de recompensa (reward loop).** El ciclo motivador *jugar → ganar monedas → mejorar → jugar mejor*. Es lo que engancha y, en clase, premia seguir respondiendo bien.
+
+---
+
+## 12. Dificultad y ritmo — *nuevo*
+
+**Curva de dificultad (difficulty curve).** Cómo crece el desafío a lo largo del juego. Buscamos que suba **de forma gradual**, sin saltos bruscos, para que el jugador aprenda mientras avanza.
+
+**Escalado por nivel (per-level scaling).** Varias variables aumentan con el número de nivel (`state.level`): velocidad de caída de los enemigos, frecuencia de aparición, densidad (probabilidad de enemigos dobles) y vida de los jefes. Están en fórmulas de `config.js`.
+
+**Meta del nivel.** Cantidad de amenazas que hay que destruir **antes** de que aparezca el jefe. Sube de nivel en nivel (p. ej. 12 → 15 → 18 → 22 → 26), alargando y endureciendo cada misión.
+
+**Densidad de enemigos.** Cuántos aparecen a la vez. Crece con el nivel mediante la probabilidad de "spawn doble" (`doubleChance + nivel × doubleChancePerLevel`).
+
+**Ritmo (pacing).** El equilibrio entre momentos intensos y respiros. El taller entre niveles y las preguntas para ganar vidas son pausas que regulan el ritmo.
+
+**Progresión gradual vs. pico.** Un buen diseño evita **picos** (un nivel de golpe imposible) y prefiere una **progresión** suave. Extender las sagas a más niveles reparte el aumento de dificultad y lo hace más justo.
+
+> En esta versión: la saga Sistema Solar tiene 10 niveles; las otras cuatro se extendieron a **5 niveles** cada una, con `meta`, ritmo de aparición y vida de jefes en aumento progresivo.

@@ -47,6 +47,8 @@ Saga
  │               look:'birrete'|'calvo'|'guardian',
  │               shot:'bolt'|'nota' }
  └─ preguntas: [ {q, o:[…], c, e}, … ]           ← banco de la disciplina
+
+Largo de cada saga: Sistema Solar 10 niveles; las demás 5 niveles, con dificultad creciente (meta, ritmo de spawn y vida de jefes suben por nivel).
 ```
 
 ## 3. Flujo de pantallas (máquina de estados)

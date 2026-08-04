@@ -324,7 +324,7 @@ OC.Engine = (function () {
     if (!state.boss) {
       state.spawnT += dt;
       const rate = Math.max(C.spawn.baseMin, p.baseSpawn - state.level * C.spawn.perLevelReduce);
-      if (state.spawnT > rate) { state.spawnT = 0; spawnEnemy(); if (Math.random() < C.spawn.doubleChance) setTimeout(spawnEnemy, C.spawn.doubleDelay); }
+      if (state.spawnT > rate) { state.spawnT = 0; spawnEnemy(); if (Math.random() < C.spawn.doubleChance + state.level * C.spawn.doubleChancePerLevel) setTimeout(spawnEnemy, C.spawn.doubleDelay); }
       if (state.storm > 0) { state.storm -= dt; if (Math.random() < C.events.stormSpawnChance) spawnEnemy(false); }
       state.eventT += dt;
       if (state.eventT > state.nextEvent) { state.eventT = 0; state.nextEvent = C.events.nextMin + Math.random() * C.events.nextRand; triggerEvent(); }
