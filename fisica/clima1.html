@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NERV·CIENCIAS // U2·S5 · Clima</title>
+<style>
+:root{
+  --bg:#e9e7df; --bg2:#f3f1ea; --panel:#ffffff; --panel2:#f7f5ef; --field:#f2f0e8;
+  --orange:#e35d10; --amber:#bd7900; --cyan:#0b8fa0; --cyan-d:#0a7d8c;
+  --red:#cf2f28; --green:#4f9c12; --violet:#6a48b0;
+  --ink:#242632; --muted:#6c7079; --line:rgba(106,72,176,.30); --grid:rgba(106,72,176,.055);
+  --mono:"Consolas","Courier New",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);overflow:hidden;-webkit-font-smoothing:antialiased;letter-spacing:.2px}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.7;
+  background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/46px 46px,
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/46px 46px,
+    repeating-linear-gradient(0deg,rgba(0,0,0,.018) 0 2px,transparent 2px 4px)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#hud{position:fixed;top:0;left:0;right:0;height:52px;z-index:40;display:flex;align-items:center;gap:14px;padding:0 16px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(243,241,234,.82));border-bottom:2px solid var(--orange);backdrop-filter:blur(4px)}
+.hud-tag{font-size:11px;color:var(--violet);letter-spacing:2px;white-space:nowrap;font-weight:bold}
+.hud-tag b{color:var(--orange)}
+#missionBar{flex:1;height:10px;background:#e3e0d6;border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:60px}
+#missionFill{height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--orange));transition:width .5s}
+.xp-box{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.xp-box .lab{font-size:10px;color:var(--muted);letter-spacing:1px}
+#xpVal{font-size:20px;color:var(--amber);font-weight:bold;text-shadow:0 0 10px rgba(189,121,0,.25);min-width:44px;text-align:right}
+#rankTag{font-size:10px;color:var(--violet);border:1px solid var(--violet);padding:2px 6px;border-radius:3px;white-space:nowrap;font-weight:bold}
+#badges{display:flex;gap:4px}
+.badge{width:22px;height:22px;border:1px solid #cdc7de;border-radius:4px;display:grid;place-items:center;font-size:12px;filter:grayscale(1) opacity(.3);transition:.4s;background:#fbfaf6}
+.badge.on{filter:none;border-color:var(--amber);box-shadow:0 0 8px rgba(189,121,0,.4);animation:pop .5s}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
+#hudOp{font-size:10px;color:var(--violet);letter-spacing:1px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hudOp b{color:var(--amber)}
+#muteBtn{background:#fff;border:1px solid var(--line);color:var(--ink);width:34px;height:30px;border-radius:5px;font-size:15px;cursor:pointer;transition:.2s}
+#muteBtn:hover{border-color:var(--orange)}
+#muteBtn.off{color:var(--muted);border-color:#cdc7de}
+@media(max-width:820px){.labword{display:none}}
+#deck{position:fixed;inset:52px 0 60px 0;overflow:hidden}
+.slide{position:absolute;inset:0;padding:26px clamp(16px,4vw,60px);display:none;flex-direction:column;justify-content:center;gap:14px;overflow-y:auto;animation:slidein .5s ease}
+.slide.active{display:flex}
+@keyframes slidein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.eyebrow{font-size:12px;letter-spacing:4px;color:var(--orange);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:bold}
+.eyebrow .n{color:#fff;background:var(--orange);padding:1px 8px;border-radius:3px;font-weight:bold}
+.eyebrow .ph{color:var(--violet);border:1px solid var(--violet);padding:1px 8px;border-radius:3px;font-size:11px}
+h1{font-size:clamp(26px,5.4vw,58px);line-height:1.04;letter-spacing:.5px;color:#1c1d28}
+h2{font-size:clamp(20px,3.6vw,38px);line-height:1.1;color:#1c1d28}
+h3{font-size:clamp(15px,2vw,20px);color:var(--violet)}
+.sub{color:#4a4e58;font-size:clamp(12px,1.6vw,15px);line-height:1.5;max-width:900px}
+.accent{color:var(--orange);font-weight:bold} .cy{color:var(--cyan)} .og{color:var(--orange)} .vi{color:var(--violet)}
+mark{background:rgba(106,72,176,.14);color:var(--violet);padding:0 4px;border-radius:3px;font-weight:bold}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;position:relative;box-shadow:0 2px 10px rgba(60,50,90,.06)}
+.panel::after{content:"";position:absolute;top:-1px;right:-1px;width:16px;height:16px;border-top:2px solid var(--orange);border-right:2px solid var(--orange);opacity:.7}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
+@media(max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+.tap{cursor:pointer;user-select:none;transition:transform .15s,box-shadow .25s,border-color .2s}
+.tap:hover{transform:translateY(-3px);border-color:var(--orange);box-shadow:0 8px 22px rgba(227,93,16,.14)}
+.tap:active{transform:translateY(0)}
+.tap.done{border-color:var(--green);box-shadow:0 0 0 1px rgba(79,156,18,.35) inset}
+.reveal-hidden{color:var(--muted);font-style:italic}
+.hint{font-size:11px;color:var(--cyan);letter-spacing:1px}
+.icon{font-size:26px}.kpi{font-size:clamp(22px,4vw,40px);color:var(--orange);font-weight:bold}.small{font-size:12px;color:var(--muted)}
+button,.btn{font-family:var(--mono);cursor:pointer}
+.btn{background:#fff;border:1.5px solid var(--orange);color:var(--orange);padding:10px 18px;border-radius:5px;font-size:14px;letter-spacing:1px;transition:.2s;text-decoration:none;display:inline-block;font-weight:bold}
+.btn:hover{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(227,93,16,.3)}
+.btn.cy{border-color:var(--cyan);color:var(--cyan)}.btn.cy:hover{background:var(--cyan);color:#fff}
+.btn.vi{border-color:var(--violet);color:var(--violet)}.btn.vi:hover{background:var(--violet);color:#fff}
+.btn.gr{border-color:var(--green);color:var(--green)}.btn.gr:hover{background:var(--green);color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,.tap:focus-visible,.opt:focus-visible{outline:2px solid var(--violet);outline-offset:3px}
+.hero{align-items:flex-start;text-align:left}
+.hero-flex{display:flex;gap:34px;align-items:center;width:100%;flex-wrap:wrap}
+.hero-txt{flex:1;min-width:280px}
+.qr-panel{width:250px;flex-shrink:0;text-align:center}
+.qr-card{background:#fff;padding:12px;border-radius:8px;border:2px solid var(--violet);box-shadow:0 4px 16px rgba(106,72,176,.18)}
+.qr-card img{width:100%;display:block;image-rendering:pixelated}
+.qr-lab{font-size:11px;color:var(--violet);letter-spacing:2px;margin-top:8px;font-weight:bold}
+.qr-url{font-size:10px;color:var(--muted);word-break:break-all;margin-top:4px}
+@media(max-width:820px){.qr-panel{display:none!important}}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{font-size:11px;border:1px solid var(--line);padding:3px 9px;border-radius:20px;color:var(--muted);letter-spacing:1px;background:#fff}
+.namebox{margin-top:16px;max-width:460px}
+.namebox label{font-size:11px;letter-spacing:2px;color:var(--violet);display:block;margin-bottom:6px;font-weight:bold}
+.namebox input{width:100%;background:#fff;border:1.5px solid var(--orange);color:var(--ink);font-family:var(--mono);padding:12px 14px;border-radius:5px;font-size:15px;letter-spacing:1px}
+.namebox input:focus{outline:none;border-color:var(--violet);box-shadow:0 0 12px rgba(106,72,176,.2)}
+.route{display:flex;gap:6px;flex-wrap:wrap}
+.step{flex:1;min-width:96px;border:1px solid var(--line);border-radius:5px;padding:8px;text-align:center;font-size:11px;background:#fff}
+.step b{display:block;color:var(--violet);font-size:13px;margin-bottom:2px}.step span{color:var(--muted)}
+.hypo{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center}
+.hypo .tag{color:var(--orange);font-weight:bold;font-size:13px;letter-spacing:1px}
+.hypo input{width:100%;background:var(--field);border:1px solid var(--line);color:var(--ink);font-family:var(--mono);padding:8px 10px;border-radius:4px;font-size:13px}
+.hypo input:focus{outline:none;border-color:var(--violet);background:#fff}
+.poll{display:flex;gap:10px;flex-wrap:wrap}
+.opt{flex:1;min-width:120px;background:var(--field);border:1px solid var(--line);color:var(--ink);padding:12px;border-radius:5px;font-size:13px;text-align:left;position:relative;overflow:hidden;transition:.2s}
+.opt:hover{border-color:var(--orange)}
+.opt .barfill{position:absolute;inset:0;background:rgba(106,72,176,.14);width:0;transition:width .6s;z-index:0}
+.opt .pct{position:absolute;right:10px;top:10px;color:var(--violet);font-size:12px;z-index:2;opacity:0;font-weight:bold}
+.opt span.t{position:relative;z-index:2}.opt.voted .pct{opacity:1}
+.cuaderno{background:repeating-linear-gradient(180deg,#fff 0 27px,rgba(11,143,160,.07) 27px 28px);border:1px solid var(--cyan-d);border-left:4px solid var(--cyan);border-radius:5px;padding:16px 18px;position:relative;box-shadow:0 2px 10px rgba(60,50,90,.06)}
+.cuaderno::before{content:"✍️ EN TU CUADERNO";position:absolute;top:-11px;left:14px;background:var(--bg);color:var(--cyan);font-size:11px;letter-spacing:2px;padding:0 8px;font-weight:bold}
+.check{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.check li{display:flex;align-items:flex-start;gap:10px;font-size:13px;cursor:pointer;color:var(--ink);transition:.15s}
+.check li .bx{width:18px;height:18px;border:1px solid var(--orange);border-radius:4px;flex-shrink:0;display:grid;place-items:center;font-size:12px;color:var(--green);margin-top:1px;background:#fff}
+.check li.on{color:var(--muted);text-decoration:line-through}
+.check li.on .bx{background:rgba(79,156,18,.15);border-color:var(--green)}
+.check li:hover{color:var(--orange)}
+.cuad-note{font-size:12px;color:var(--muted);margin-top:10px;font-style:italic}
+.videoframe{position:relative;width:100%;max-width:820px;margin:0 auto;aspect-ratio:16/9;border:2px solid var(--violet);border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(106,72,176,.18)}
+.videoframe iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.sem{display:flex;gap:14px;flex-wrap:wrap}
+.light{flex:1;min-width:150px;border:1px solid var(--line);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:.2s;background:#fff}
+.light .ball{width:34px;height:34px;border-radius:50%;margin:0 auto 8px;opacity:.3;transition:.3s}
+.light:hover{transform:translateY(-3px)}.light.sel{border-width:2px}
+.r .ball{background:var(--red)} .r.sel{border-color:var(--red);box-shadow:0 0 16px rgba(207,47,40,.25)} .r.sel .ball{opacity:1}
+.y .ball{background:var(--amber)} .y.sel{border-color:var(--amber);box-shadow:0 0 16px rgba(189,121,0,.25)} .y.sel .ball{opacity:1}
+.g .ball{background:var(--green)} .g.sel{border-color:var(--green);box-shadow:0 0 16px rgba(79,156,18,.25)} .g.sel .ball{opacity:1}
+.note{background:var(--panel2);border-left:3px solid var(--cyan);padding:12px 14px;border-radius:0 5px 5px 0;font-size:13px;color:#3a3e48}
+textarea.bit{width:100%;background:var(--field);border:1px solid var(--line);color:var(--ink);font-family:var(--mono);padding:10px;border-radius:5px;font-size:13px;resize:vertical;min-height:70px}
+textarea.bit:focus{outline:none;border-color:var(--violet);background:#fff}
+.game-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.game-pill{font-size:11px;letter-spacing:2px;color:#fff;background:var(--violet);padding:2px 10px;border-radius:20px;font-weight:bold}
+.qbox .q{font-size:clamp(15px,2.4vw,22px);margin:6px 0 12px;color:#1c1d28}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:640px){.answers{grid-template-columns:1fr}}
+.ans{background:var(--field);border:1px solid var(--line);color:var(--ink);padding:14px;border-radius:6px;font-size:14px;text-align:left;transition:.15s}
+.ans:hover{border-color:var(--orange);background:#fff}
+.ans.ok{border-color:var(--green);background:rgba(79,156,18,.15);color:#3c7a0a}
+.ans.no{border-color:var(--red);background:rgba(207,47,40,.12);color:var(--red)}
+.ans.sel{border-color:var(--violet);background:rgba(106,72,176,.12);color:var(--violet)}
+.ans:disabled{cursor:default}
+.qmeta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px}
+.feedback{min-height:20px;font-size:13px;margin-top:10px}
+.scenario{background:var(--field);border:1px solid var(--line);border-radius:6px;padding:16px;font-size:clamp(14px,2.2vw,18px);text-align:center;min-height:70px;display:grid;place-items:center;color:#1c1d28}
+.clf-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+@media(max-width:640px){.clf-btns{grid-template-columns:1fr}}
+.match-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:640px){.match-cols{gap:10px}}
+.mcol{display:flex;flex-direction:column;gap:8px}
+.mcard{background:var(--field);border:1px solid var(--line);color:var(--ink);padding:12px;border-radius:6px;font-size:13px;text-align:left;transition:.15s}
+.mcard:hover{border-color:var(--orange);background:#fff}
+.mcard.sel{border-color:var(--violet);box-shadow:0 0 10px rgba(106,72,176,.25)}
+.mcard.matched{border-color:var(--green);background:rgba(79,156,18,.12);color:#3c7a0a;cursor:default;opacity:.7}
+.simopts{display:flex;flex-direction:column;gap:8px}
+.verdict{border-radius:8px;padding:16px 18px;margin-top:14px;border:1px solid var(--line);animation:slidein .4s;background:#fff}
+.verdict h3{font-size:clamp(20px,4vw,30px);margin-bottom:6px;color:#1c1d28}
+.v-ok{border-color:var(--green);background:rgba(79,156,18,.08)} .v-ok h3{color:var(--green)}
+.v-mid{border-color:var(--amber);background:rgba(189,121,0,.08)} .v-mid h3{color:var(--amber)}
+.v-bad{border-color:var(--red);background:rgba(207,47,40,.08)} .v-bad h3{color:var(--red)}
+.rolls{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.roll{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:4px 10px;color:var(--cyan);background:#fff}.roll b{color:var(--amber)}
+.calc{font-size:12px;color:var(--muted);margin-top:6px;letter-spacing:.5px}
+.sci{font-size:13px;color:#3a3e48;margin-top:8px;line-height:1.5}
+.joke{font-size:13px;color:var(--orange);margin-top:8px;font-style:italic}
+/* mapa climático de Chile */
+.map-wrap{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
+.map-svg{width:200px;flex-shrink:0}
+.map-svg svg{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 12px rgba(60,50,90,.15))}
+.zone{cursor:pointer;transition:.2s}
+.zone:hover{filter:brightness(1.08)}
+.zone.done rect{stroke:#fff;stroke-width:2}
+.map-info{flex:1;min-width:240px}
+.mc-lab{font-family:var(--mono);font-size:11px;font-weight:bold;fill:#fff;text-anchor:middle}
+.mc-city{font-family:var(--mono);font-size:9px;fill:#fff;text-anchor:start}
+.map-readout{background:var(--panel2);border-left:3px solid var(--violet);border-radius:0 5px 5px 0;padding:12px 14px;font-size:13px;min-height:70px;color:#3a3e48}
+.map-readout b{color:var(--violet)}
+.send-box{border:1px dashed var(--green);border-radius:8px;padding:14px 16px;background:rgba(79,156,18,.06)}
+.final{align-items:center;text-align:center}
+.rankbig{font-size:clamp(26px,5vw,50px);color:var(--orange);text-shadow:0 0 20px rgba(227,93,16,.2)}
+.badgewall{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.bw{width:64px;height:64px;border:1px solid #cdc7de;border-radius:10px;display:grid;place-items:center;font-size:26px;filter:grayscale(1) opacity(.3);background:#fff}
+.bw.on{filter:none;border-color:var(--amber);box-shadow:0 0 14px rgba(189,121,0,.35)}
+#nav{position:fixed;bottom:0;left:0;right:0;height:60px;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:linear-gradient(0deg,rgba(255,255,255,.96),rgba(243,241,234,.7));border-top:2px solid var(--orange)}
+.dots{display:flex;gap:5px;flex-wrap:wrap;max-width:60%;justify-content:center}
+.dot{width:9px;height:9px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;padding:0;transition:.2s}
+.dot.on{background:var(--orange);border-color:var(--orange);box-shadow:0 0 6px rgba(227,93,16,.5)}
+.dot.section{border-color:var(--violet);border-width:2px}
+.navbtn{background:#fff;border:1px solid var(--line);color:var(--ink);width:44px;height:38px;border-radius:5px;font-size:18px;transition:.2s}
+.navbtn:hover{border-color:var(--orange);color:var(--orange)}
+.slideno{font-size:11px;color:var(--muted);letter-spacing:1px}
+#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%) translateY(-16px);z-index:70;background:#fff;border:1.5px solid var(--orange);color:var(--ink);padding:8px 16px;border-radius:6px;font-size:13px;opacity:0;pointer-events:none;transition:.35s;box-shadow:0 6px 24px rgba(60,50,90,.18);max-width:90vw;text-align:center;font-weight:bold}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.xpfloat{position:fixed;z-index:75;color:var(--amber);font-weight:bold;font-size:18px;pointer-events:none;text-shadow:0 0 8px rgba(255,255,255,.9);animation:xpf 1s ease forwards}
+@keyframes xpf{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-46px)}}
+.tick{color:var(--green)}.blink{animation:bl 1.1s steps(2) infinite}@keyframes bl{50%{opacity:.4}}
+.corner{position:absolute;bottom:8px;right:14px;font-size:10px;color:var(--muted);letter-spacing:2px}
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div class="hud-tag">ネルフ NERV·CIENCIAS <b>//</b> U2·S5</div>
+  <div id="missionBar"><div id="missionFill"></div></div>
+  <div id="badges" title="Insignias">
+    <div class="badge" data-b="hipotesis">🧪</div>
+    <div class="badge" data-b="tiempoclima">🌤️</div>
+    <div class="badge" data-b="zonas">🗺️</div>
+    <div class="badge" data-b="dinamica">🌀</div>
+    <div class="badge" data-b="trivia">🎯</div>
+    <div class="badge" data-b="meteorologo">🛰️</div>
+    <div class="badge" data-b="maestro">🏆</div>
+  </div>
+  <div class="xp-box">
+    <span class="lab">🪙 <span class="labword">FELIPESOS</span></span><span id="xpVal">0</span>
+    <span id="rankTag">RECLUTA</span>
+  </div>
+  <span id="hudOp"></span>
+  <button id="muteBtn" title="Activar/silenciar sonido" onclick="toggleMute()">🔊</button>
+</div>
+
+<div id="deck">
+
+  <!-- 0 PORTADA -->
+  <section class="slide active hero" data-title="Portada">
+    <div class="hero-flex">
+      <div class="hero-txt">
+        <div class="eyebrow"><span class="n">UNIDAD 02 · SESIÓN 05</span> CIENCIAS DE LA TIERRA <span class="ph">OA 12</span></div>
+        <h1>EL <span class="og">CLIMA</span><br>DINÁMICO 🌦️</h1>
+        <p class="sub" style="margin-top:10px">Chile es uno de los países con más <span class="vi">diversidad climática</span> del planeta: del desierto más árido a los hielos australes. Hoy descubrirás qué mueve el clima y por qué no es lo mismo que el tiempo atmosférico.</p>
+        <div class="meta"><span class="chip">PROF. FELIPE JIMÉNEZ</span><span class="chip">7° BÁSICO</span><span class="chip">COLEGIO SAN AGUSTÍN · VILLA ALEMANA</span></div>
+        <div class="namebox">
+          <label>▸ REGISTRO DE OPERADOR/A</label>
+          <input id="nameInput" maxlength="40" placeholder="Escribe tu nombre (o el del equipo)..." onkeydown="if(event.key==='Enter')startMission()">
+        </div>
+        <div style="margin-top:18px" class="row">
+          <button class="btn" onclick="startMission()">▶ INICIAR MISIÓN</button>
+          <span class="hint blink" style="align-self:center">// gana felipesos en cada interacción</span>
+        </div>
+      </div>
+      <div class="qr-panel">
+        <div class="qr-card"><img alt="Código QR de acceso" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=6&data=https%3A%2F%2Ffjimenez321-stack.github.io%2Fdondefelipe%2F" onerror="this.parentNode.innerHTML='<div style=color:%23111;font-size:12px;padding:20px>Abre el enlace:<br>fjimenez321-stack.github.io/dondefelipe</div>'"></div>
+        <div class="qr-lab">▚ ESCANEA CON TU CELULAR</div>
+        <div class="qr-url">https://fjimenez321-stack.github.io/dondefelipe/</div>
+      </div>
+    </div>
+    <div class="corner">SISTEMA MAGI · ONLINE</div>
+  </section>
+
+  <!-- 1 BRIEFING -->
+  <section class="slide" data-title="Briefing / OA">
+    <div class="eyebrow"><span class="n">BRIEFING</span> OBJETIVO DE LA MISIÓN</div>
+    <h2>¿Qué vamos a lograr?</h2>
+    <div class="panel">
+      <h3>▸ OA 12</h3>
+      <p class="sub" style="margin-top:6px">Demostrar, con modelos, que el <mark>clima</mark> —local y global— es <span class="og">dinámico</span> y se produce por la interacción de muchas variables: <span class="vi">temperatura, presión y humedad</span>, la circulación de la atmósfera y del agua, la posición geográfica y los movimientos de la Tierra.</p>
+    </div>
+    <h3>▸ Ruta de indagación</h3>
+    <div class="route">
+      <div class="step"><b>1 OBSERVAR</b><span>Detectar el fenómeno</span></div>
+      <div class="step"><b>2 EXPLORAR</b><span>Preguntar y probar</span></div>
+      <div class="step"><b>3 INVESTIGAR</b><span>Buscar evidencia</span></div>
+      <div class="step"><b>4 PREDECIR</b><span>Formular predicciones</span></div>
+      <div class="step"><b>5 CONCLUIR</b><span>Explicar con modelo</span></div>
+      <div class="step"><b>6 COMUNICAR</b><span>Compartir hallazgo</span></div>
+    </div>
+    <div class="panel tap" onclick="award(this,10,'reglas','Reglas aceptadas · +10 felipesos')">
+      <h3>▸ Reglas del juego <span class="hint">(toca para aceptar)</span></h3>
+      <p class="sub" style="margin-top:4px">Cada tarjeta, respuesta correcta y reto suma <span class="accent">felipesos</span>. Hay <span class="og">6 insignias</span> escondidas y al final desbloqueas tu rango. <span class="reveal-hidden">✔ Aceptado — ¡a leer el cielo!</span></p>
+    </div>
+  </section>
+
+  <!-- 2 INICIO -->
+  <section class="slide" data-title="Inicio · Observar">
+    <div class="eyebrow"><span class="n">INICIO</span> <span class="ph">OBSERVAR</span> 15 min</div>
+    <h2>El gran debate 🗣️</h2>
+    <p class="sub">Un compañero dice: <i>"el <b>tiempo</b> de esta década cambió"</i>. Otra responde: <i>"lo correcto es decir que el <b>clima</b> está cambiando"</i>. ¿Quién tiene razón?</p>
+    <div class="panel">
+      <h3>▸ Vota tu idea previa</h3>
+      <p class="small" style="margin:4px 0 10px">¿Cuál es la diferencia entre tiempo y clima?</p>
+      <div class="poll" id="poll1">
+        <button class="opt" onclick="vote(this,'poll1','A · Son lo mismo')"><span class="t">A · Son exactamente lo mismo</span><span class="pct"></span><i class="barfill"></i></button>
+        <button class="opt" onclick="vote(this,'poll1','B · Tiempo=hoy, Clima=promedio de años')"><span class="t">B · Tiempo = hoy · Clima = promedio de muchos años</span><span class="pct"></span><i class="barfill"></i></button>
+        <button class="opt" onclick="vote(this,'poll1','C · El clima cambia cada día')"><span class="t">C · El clima cambia cada día</span><span class="pct"></span><i class="barfill"></i></button>
+        <button class="opt" onclick="vote(this,'poll1','D · No sé')"><span class="t">D · No estoy seguro/a</span><span class="pct"></span><i class="barfill"></i></button>
+      </div>
+      <p class="hint" style="margin-top:8px">// no hay respuesta mala: es tu hipótesis inicial</p>
+    </div>
+    <div class="panel">
+      <h3>▸ Formula tu hipótesis</h3>
+      <div class="hypo" style="margin-top:8px">
+        <span class="tag">SI</span><input id="hSi" placeholder="observo el estado del cielo un solo día..." />
+        <span class="tag">ENTONCES</span><input id="hEntonces" placeholder="entonces estoy describiendo el tiempo, no el clima..." />
+        <span class="tag">PORQUE</span><input id="hPorque" placeholder="porque el clima necesita muchos años de datos..." />
+      </div>
+      <button class="btn vi" style="margin-top:12px" onclick="award(this,15,'hipotesis','¡Hipótesis registrada! +15 felipesos','hipotesis')">✔ REGISTRAR EN BITÁCORA</button>
+    </div>
+  </section>
+
+  <!-- 3 VIDEO -->
+  <section class="slide" data-title="🎬 Video">
+    <div class="eyebrow"><span class="n">RECURSO</span> <span class="ph">EXPLORAR</span></div>
+    <h2>Miremos juntos 🎬</h2>
+    <p class="sub">Observa el video y anota en tu cuaderno <span class="accent">2 diferencias</span> entre tiempo y clima, y <span class="accent">2 factores</span> que influyen en el clima.</p>
+    <div class="videoframe">
+      <iframe src="https://www.youtube-nocookie.com/embed/ru60skflVag?rel=0" title="Recurso: clima y tiempo atmosférico" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    </div>
+    <div class="row" style="justify-content:center">
+      <a class="btn cy" href="https://www.youtube.com/watch?v=ru60skflVag" target="_blank" rel="noopener">▸ ABRIR EN YOUTUBE</a>
+      <button class="btn" onclick="award(this,10,'video','¡Video visto! +10 felipesos')">✔ YA LO VIMOS</button>
+    </div>
+  </section>
+
+  <!-- 4 TIEMPO VS CLIMA -->
+  <section class="slide" data-title="Tiempo vs Clima">
+    <div class="eyebrow"><span class="n">DESARROLLO</span> <span class="ph">EXPLORAR</span></div>
+    <h2>Tiempo ≠ Clima 🌤️</h2>
+    <p class="sub">Toca cada tarjeta para desbloquear la idea clave.</p>
+    <div class="grid3">
+      <div class="panel tap" onclick="award(this,8,'tc1','+8 felipesos')">
+        <div class="icon">🌦️</div><h3 style="margin-top:4px">TIEMPO ATMOSFÉRICO</h3>
+        <p class="sub reveal-hidden" style="margin-top:4px">El estado de la atmósfera <b>aquí y ahora</b> (hoy): temperatura, lluvia, viento. Cambia día a día. ✔</p>
+      </div>
+      <div class="panel tap" onclick="award(this,8,'tc2','+8 felipesos')">
+        <div class="icon">📊</div><h3 style="margin-top:4px">CLIMA</h3>
+        <p class="sub reveal-hidden" style="margin-top:4px">El <b>promedio del tiempo</b> en una región durante muchos años (mínimo ~30). Es estable y característico. ✔</p>
+      </div>
+      <div class="panel tap" onclick="award(this,8,'tc3','+8 felipesos','tiempoclima')">
+        <div class="icon">🌍</div><h3 style="margin-top:4px">ATMÓSFERA</h3>
+        <p class="sub reveal-hidden" style="margin-top:4px">La capa de gases que rodea la Tierra. En la <b>tropósfera</b> (la más baja) ocurren casi todos los fenómenos del clima. ✔</p>
+      </div>
+    </div>
+    <div class="note">🔑 Variables atmosféricas del clima: <b>temperatura, presión, humedad y viento</b>. Se miden con termómetro, barómetro, higrómetro y anemómetro.</div>
+  </section>
+
+  <!-- 5 CUADERNO 1 -->
+  <section class="slide" data-title="✍️ Cuaderno · Cuadro">
+    <div class="eyebrow"><span class="n">ACTIVIDAD</span> <span class="ph">ORGANIZAR</span></div>
+    <h2>Cuadro comparativo ✍️</h2>
+    <p class="sub">En tu cuaderno haz un <mark>cuadro de dos columnas</mark> (Tiempo atmosférico / Clima). Completa y toca cada ítem al terminar.</p>
+    <div class="cuaderno">
+      <p class="small">Tu cuadro debe comparar:</p>
+      <ul class="check" id="chkCuadro">
+        <li onclick="checkItem(this)"><span class="bx">✔</span> <b>Definición</b> de cada uno</li>
+        <li onclick="checkItem(this)"><span class="bx">✔</span> <b>Duración</b> (un día vs. muchos años)</li>
+        <li onclick="checkItem(this)"><span class="bx">✔</span> <b>Ejemplo</b> de una frase de tiempo y una de clima</li>
+        <li onclick="checkItem(this)"><span class="bx">✔</span> Qué <b>ciencia</b> estudia cada uno (meteorología / climatología)</li>
+        <li onclick="checkItem(this)"><span class="bx">✔</span> Un <b>instrumento</b> de medición para cada variable</li>
+      </ul>
+      <p class="cuad-note">Consejo: "Mañana lloverá" = tiempo. "En el sur de Chile llueve casi todo el año" = clima.</p>
+    </div>
+    <p class="hint" style="text-align:center" id="chkCuadroProg">// ítems logrados: 0 / 5 · completa los 5 para +15 felipesos</p>
+  </section>
+
+  <!-- 6 FACTORES -->
+  <section class="slide" data-title="Factores del clima">
+    <div class="eyebrow"><span class="n">DESARROLLO</span> <span class="ph">EXPLORAR</span></div>
+    <h2>¿Qué determina el clima?</h2>
+    <p class="sub">El clima de un lugar depende de varios factores geográficos. Toca cada uno.</p>
+    <div class="grid2">
+      <div class="panel tap" onclick="award(this,6,'f1','+6 felipesos')"><h3>🧭 Latitud</h3><p class="sub reveal-hidden" style="margin-top:4px">Cerca del ecuador llega más radiación solar (más calor); hacia los polos, menos. ✔</p></div>
+      <div class="panel tap" onclick="award(this,6,'f2','+6 felipesos')"><h3>⛰️ Altitud</h3><p class="sub reveal-hidden" style="margin-top:4px">A mayor altura, más frío: la temperatura baja ~6 °C por cada 1000 m. ✔</p></div>
+      <div class="panel tap" onclick="award(this,6,'f3','+6 felipesos')"><h3>🌊 Cercanía al mar y corrientes</h3><p class="sub reveal-hidden" style="margin-top:4px">El mar suaviza la temperatura. La fría <b>corriente de Humboldt</b> enfría la costa de Chile. ✔</p></div>
+      <div class="panel tap" onclick="award(this,6,'f4','+6 felipesos')"><h3>🔄 Movimientos de la Tierra</h3><p class="sub reveal-hidden" style="margin-top:4px">La inclinación del eje y la traslación producen las estaciones; la rotación, los vientos. ✔</p></div>
+    </div>
+    <div class="note">🇨🇱 Chile combina todos estos factores en un territorio muy largo: por eso pasa del desierto al hielo en un mismo país.</div>
+  </section>
+
+  <!-- 7 MAPA CLIMÁTICO DE CHILE -->
+  <section class="slide" data-title="🗺️ Climas de Chile">
+    <div class="eyebrow"><span class="n">INVESTIGAR</span> <span class="ph">MODELAR · Chile</span></div>
+    <h2>Los climas de Chile 🗺️</h2>
+    <p class="sub">Toca cada zona del mapa para descubrir su clima. Explora las 4 para la insignia 🗺️.</p>
+    <div class="map-wrap">
+      <div class="map-svg">
+        <svg viewBox="0 0 120 400" role="img" aria-label="Mapa climático de Chile">
+          <g class="zone" data-zone="norte" onclick="climateZone(this,'norte')">
+            <rect x="34" y="8" width="46" height="96" rx="4" fill="#e0a63a"/>
+            <text class="mc-lab" x="57" y="52">NORTE</text><text class="mc-lab" x="57" y="66">árido</text>
+            <circle cx="40" cy="24" r="2.5" fill="#fff"/><text class="mc-city" x="45" y="27">Arica</text>
+          </g>
+          <g class="zone" data-zone="centro" onclick="climateZone(this,'centro')">
+            <rect x="38" y="106" width="50" height="88" rx="4" fill="#7bb03a"/>
+            <text class="mc-lab" x="63" y="146">CENTRO</text><text class="mc-lab" x="63" y="160">mediterráneo</text>
+            <circle cx="44" cy="150" r="2.5" fill="#fff"/><text class="mc-city" x="49" y="153">Santiago</text>
+          </g>
+          <g class="zone" data-zone="sur" onclick="climateZone(this,'sur')">
+            <rect x="40" y="196" width="46" height="92" rx="4" fill="#2f9c8a"/>
+            <text class="mc-lab" x="63" y="238">SUR</text><text class="mc-lab" x="63" y="252">templado lluvioso</text>
+            <circle cx="46" cy="236" r="2.5" fill="#fff"/><text class="mc-city" x="51" y="239">Valdivia</text>
+          </g>
+          <g class="zone" data-zone="austral" onclick="climateZone(this,'austral')">
+            <rect x="38" y="290" width="44" height="102" rx="4" fill="#7aa9d0"/>
+            <text class="mc-lab" x="60" y="336">AUSTRAL</text><text class="mc-lab" x="60" y="350">frío / polar</text>
+            <circle cx="44" cy="372" r="2.5" fill="#fff"/><text class="mc-city" x="49" y="375">P. Arenas</text>
+          </g>
+        </svg>
+      </div>
+      <div class="map-info">
+        <div class="map-readout" id="mapReadout">👆 Toca una zona del mapa para ver su clima, temperatura y precipitaciones.</div>
+        <p class="hint" style="margin-top:10px" id="mapProg">// zonas exploradas: 0 / 4</p>
+        <div class="note" style="margin-top:10px">💡 Chile clasifica sus climas con criterios como <b>Köppen</b>: temperatura, amplitud térmica y precipitaciones.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 DINÁMICA -->
+  <section class="slide" data-title="Clima dinámico">
+    <div class="eyebrow"><span class="n">ANALIZAR</span> <span class="ph">Sistema dinámico</span></div>
+    <h2>El clima se mueve 🌀</h2>
+    <p class="sub">El clima no es fijo: cambia por fenómenos naturales y por la acción humana. Toca cada tarjeta.</p>
+    <div class="grid3">
+      <div class="panel tap" onclick="award(this,7,'d1','+7 felipesos')"><h3>🌊 Corriente de Humboldt</h3><p class="sub reveal-hidden" style="margin-top:4px">Agua fría que sube desde el sur; enfría la costa y llena el mar chileno de vida (pesca). ✔</p></div>
+      <div class="panel tap" onclick="award(this,7,'d2','+7 felipesos')"><h3>🌡️ El Niño / La Niña</h3><p class="sub reveal-hidden" style="margin-top:4px">El Niño calienta el Pacífico y trae más lluvias; La Niña lo enfría y trae sequía. ✔</p></div>
+      <div class="panel tap" onclick="award(this,7,'d3','+7 felipesos','dinamica')"><h3>♻️ Cambio climático</h3><p class="sub reveal-hidden" style="margin-top:4px">Según la ONU, la actividad humana (gases de efecto invernadero) está calentando el planeta y alterando los climas. ✔</p></div>
+    </div>
+    <div class="note">🛰️ En Chile, la <b>Dirección Meteorológica</b> registra estos datos. Con ellos se estudia la megasequía del centro del país de los últimos años.</div>
+  </section>
+
+  <!-- 9 CIERRE + ENVIAR -->
+  <section class="slide" data-title="Cierre">
+    <div class="eyebrow"><span class="n">CIERRE</span> <span class="ph">CONCLUIR</span> 10 min</div>
+    <h2>Semáforo + envío 🚦</h2>
+    <div class="sem" id="sem1">
+      <div class="light g" onclick="semaforo(this,'sem1')"><div class="ball"></div><b>VERDE</b><p class="small">Distingo clima de tiempo y sus factores</p></div>
+      <div class="light y" onclick="semaforo(this,'sem1')"><div class="ball"></div><b>AMARILLO</b><p class="small">Tengo algunas dudas</p></div>
+      <div class="light r" onclick="semaforo(this,'sem1')"><div class="ball"></div><b>ROJO</b><p class="small">Necesito repasar</p></div>
+    </div>
+    <div class="panel">
+      <h3>▸ Ticket de salida</h3>
+      <p class="sub" style="margin:6px 0">Con tus palabras: <span class="accent">¿por qué en un mismo país (Chile) hay climas tan distintos?</span></p>
+      <textarea class="bit" id="exitText" placeholder="Escribe aquí tu respuesta..."></textarea>
+    </div>
+    <div class="panel">
+      <h3>▸ Bitácora · Conclusión</h3>
+      <p class="sub" style="margin:6px 0">Completa: <span class="accent">"El clima es dinámico porque..."</span></p>
+      <textarea class="bit" id="bitText" placeholder="...depende de muchas variables que interactúan y cambian."></textarea>
+    </div>
+    <div class="send-box">
+      <h3 style="color:var(--green)">▸ Enviar respuestas al profesor</h3>
+      <p class="small" style="margin:6px 0 10px">Al enviar, tu nombre, hipótesis, ticket, bitácora y felipesos quedan registrados. Revisa antes de enviar.</p>
+      <button class="btn gr" id="sendBtn" onclick="sendResponses(this)">▸ ENVIAR RESPUESTAS</button>
+      <span class="hint" id="sendHint"></span>
+    </div>
+  </section>
+
+  <!-- 10 JUEGOS INTRO -->
+  <section class="slide final" data-title="▶ Juegos">
+    <div class="eyebrow" style="justify-content:center"><span class="n">ZONA DE JUEGOS</span> ゲーム</div>
+    <h1>PRUEBA DE <span class="og">CAMPO</span> 🎮</h1>
+    <p class="sub" style="max-width:640px">Cuatro desafíos sobre el clima. Cada juego suma felipesos hacia tu rango final. ¡Que empiece la competencia!</p>
+    <div class="row" style="justify-content:center;margin-top:6px">
+      <div class="chip">🎯 TRIVIA MAGI</div>
+      <div class="chip">⚡ CLASIFICA EL CLIMA</div>
+      <div class="chip">🧠 PAREO CLIMÁTICO</div>
+      <div class="chip">🌦️ ESTACIÓN METEOROLÓGICA</div>
+    </div>
+    <button class="btn" style="margin-top:18px" onclick="next()">▶ JUGAR</button>
+  </section>
+
+  <!-- 11 TRIVIA -->
+  <section class="slide" data-title="🎯 Trivia">
+    <div class="game-head"><span class="game-pill">JUEGO 01</span><h2>🎯 Trivia MAGI</h2></div>
+    <div class="panel qbox" id="trivia">
+      <div class="qmeta"><span id="trIdx">Pregunta 1 / 5</span><span id="trScore">Aciertos: 0 · Racha: 0</span></div>
+      <div class="q" id="trQ">—</div>
+      <div class="answers" id="trAns"></div>
+      <div class="feedback" id="trFb"></div>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button class="btn cy" id="trNext" style="display:none" onclick="trNext()">SIGUIENTE ▸</button>
+      <button class="btn" id="trRestart" style="display:none" onclick="trStart()">↻ JUGAR DE NUEVO</button>
+    </div>
+  </section>
+
+  <!-- 12 CLASIFICADOR -->
+  <section class="slide" data-title="⚡ Clasificador">
+    <div class="game-head"><span class="game-pill">JUEGO 02</span><h2>⚡ Clasifica el clima de Chile</h2></div>
+    <p class="sub">Lee el caso y decide a qué zona climática corresponde.</p>
+    <div class="panel">
+      <div class="qmeta"><span id="clfIdx">Caso 1 / 5</span><span id="clfScore">Aciertos: 0</span></div>
+      <div class="scenario" id="clfScn">—</div>
+      <div class="clf-btns">
+        <button class="ans" onclick="clfPick('norte',this)">🏜️ NORTE ÁRIDO</button>
+        <button class="ans" onclick="clfPick('centro',this)">🌿 CENTRO MEDITERRÁNEO</button>
+        <button class="ans" onclick="clfPick('sur',this)">🌧️ SUR / AUSTRAL</button>
+      </div>
+      <div class="feedback" id="clfFb"></div>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button class="btn cy" id="clfNext" style="display:none" onclick="clfNextCase()">SIGUIENTE ▸</button>
+      <button class="btn" id="clfRestart" style="display:none" onclick="clfStart()">↻ JUGAR DE NUEVO</button>
+    </div>
+  </section>
+
+  <!-- 13 PAREO -->
+  <section class="slide" data-title="🧠 Pareo">
+    <div class="game-head"><span class="game-pill">JUEGO 03</span><h2>🧠 Pareo climático</h2></div>
+    <p class="sub">Toca un concepto y luego su definición para unirlos. Encuentra los 5 pares.</p>
+    <div class="qmeta"><span id="mScore">Pares: 0 / 5</span><span id="mErr">Intentos fallidos: 0</span></div>
+    <div class="match-cols"><div class="mcol" id="mLeft"></div><div class="mcol" id="mRight"></div></div>
+    <div class="feedback" id="mFb" style="text-align:center"></div>
+    <div class="row" style="justify-content:center"><button class="btn" id="mRestart" style="display:none" onclick="mStart()">↻ JUGAR DE NUEVO</button></div>
+  </section>
+
+  <!-- 14 ESTACIÓN METEOROLÓGICA -->
+  <section class="slide" data-title="🌦️ Estación">
+    <div class="game-head"><span class="game-pill">JUEGO 04</span><h2>🌦️ Estación meteorológica</h2></div>
+    <p class="sub">Eres meteorólogo/a. Elige la ubicación, <mark>predice el clima</mark> y comprueba. El sistema mezcla al azar un fenómeno (El Niño / La Niña).</p>
+    <div class="grid3">
+      <div class="panel">
+        <h3>▸ 1 · Zona (latitud)</h3>
+        <div class="simopts">
+          <button class="ans" onclick="fbPick('zona',this,'norte')">Norte</button>
+          <button class="ans" onclick="fbPick('zona',this,'centro')">Centro</button>
+          <button class="ans" onclick="fbPick('zona',this,'sur')">Sur / Austral</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>▸ 2 · Relieve</h3>
+        <div class="simopts">
+          <button class="ans" onclick="fbPick('rel',this,'costa')">🌊 Costa</button>
+          <button class="ans" onclick="fbPick('rel',this,'valle')">🏘️ Valle</button>
+          <button class="ans" onclick="fbPick('rel',this,'cordillera')">⛰️ Cordillera</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>▸ 3 · Tu predicción</h3>
+        <div class="simopts">
+          <button class="ans" onclick="fbPick('pred',this,'arido')">🏜️ Árido / seco</button>
+          <button class="ans" onclick="fbPick('pred',this,'templado')">🌿 Templado</button>
+          <button class="ans" onclick="fbPick('pred',this,'lluvioso')">🌧️ Lluvioso / frío</button>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button class="btn" onclick="fbRun(this)">🎲 MEDIR Y COMPROBAR</button>
+      <button class="btn cy" id="fbAgain" style="display:none" onclick="fbReset()">↻ OTRA MEDICIÓN</button>
+    </div>
+    <div id="fbResult"></div>
+  </section>
+
+  <!-- 15 FINAL -->
+  <section class="slide final" data-title="🏆 Rango final">
+    <div class="eyebrow" style="justify-content:center"><span class="n">FIN DE MISIÓN</span> ミッション完了</div>
+    <h2>Tu resultado</h2>
+    <div class="rankbig" id="finalRank">—</div>
+    <p class="kpi" id="finalXP">0 felipesos</p>
+    <p class="sub" id="finalMsg" style="max-width:600px"></p>
+    <div class="badgewall" id="finalBadges">
+      <div class="bw" data-b="hipotesis">🧪</div>
+      <div class="bw" data-b="tiempoclima">🌤️</div>
+      <div class="bw" data-b="zonas">🗺️</div>
+      <div class="bw" data-b="dinamica">🌀</div>
+      <div class="bw" data-b="trivia">🎯</div>
+      <div class="bw" data-b="meteorologo">🛰️</div>
+      <div class="bw" data-b="maestro">🏆</div>
+    </div>
+    <button class="btn gr" id="sendBtn2" onclick="sendResponses(this)">▸ ENVIAR RESPUESTAS AL PROFESOR</button>
+    <button class="btn" style="margin-top:8px" onclick="go(0)">↻ REINICIAR MISIÓN</button>
+  </section>
+
+</div>
+
+<div id="nav">
+  <button class="navbtn" onclick="prev()" aria-label="Anterior">◀</button>
+  <div class="dots" id="dots"></div>
+  <div style="display:flex;align-items:center;gap:10px"><span class="slideno" id="slideno">01</span><button class="navbtn" onclick="next()" aria-label="Siguiente">▶</button></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN · GUARDADO DE RESPUESTAS EN GOOGLE SHEETS
+   ============================================================ */
+const ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbz_zunZRYRcptlQK4Zkac4Mf_Y-Tps4rtm_8I7o42NLOp9OTzOw3_Ka52mN4eEaqMsiFA/exec";
+const SESION = "Sesión 5 · Clima";
+
+/* ============ STATE ============ */
+let xp=0, cur=0;
+const claimed=new Set(); const badges=new Set();
+const slides=[...document.querySelectorAll('.slide')];
+const sectionStarts=[2,10];
+let operator="";
+const trDone=new Set(), clfDone=new Set(), mDone=new Set();
+let mBonusDone=false; let sent=false;
+
+/* ============ SOUND ============ */
+let AC=null, muted=false;
+function ensureAudio(){ if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){AC=null;}} if(AC&&AC.state==='suspended')AC.resume(); }
+function tone(freq,dur,type,vol,when){ if(!AC||muted)return; const t0=AC.currentTime+(when||0);const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(freq,t0);g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(vol||0.18,t0+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);o.connect(g).connect(AC.destination);o.start(t0);o.stop(t0+dur+0.02); }
+function sfx(kind){ ensureAudio(); if(!AC||muted)return; switch(kind){
+  case 'click':tone(430,0.06,'square',0.09);break;
+  case 'xp':tone(680,0.09,'triangle',0.14);tone(1010,0.10,'triangle',0.12,0.06);break;
+  case 'correct':tone(523,0.10,'sine',0.17);tone(784,0.14,'sine',0.17,0.09);tone(1046,0.16,'sine',0.14,0.19);break;
+  case 'wrong':tone(200,0.18,'sawtooth',0.13);tone(150,0.22,'sawtooth',0.11,0.05);break;
+  case 'badge':[523,659,784,1046].forEach((f,i)=>tone(f,0.16,'triangle',0.15,i*0.08));break;
+  case 'start':tone(330,0.12,'sine',0.15);tone(494,0.12,'sine',0.15,0.10);tone(660,0.20,'sine',0.15,0.20);break;
+  case 'select':tone(580,0.05,'sine',0.09);break;
+} }
+function toggleMute(){ muted=!muted; const b=document.getElementById('muteBtn'); b.textContent=muted?'🔇':'🔊'; b.classList.toggle('off',muted); if(!muted){ensureAudio();sfx('click');} }
+document.addEventListener('click',e=>{ const el=e.target.closest('.tap,.opt,.ans,.mcard,.light,.btn,.navbtn,.dot,.check li,.zone'); if(el){ensureAudio();sfx('click');} },true);
+
+/* ============ NOMBRE ============ */
+function startMission(){ const v=(document.getElementById('nameInput').value||'').trim(); operator=v; document.getElementById('hudOp').innerHTML=operator?('OP: <b>'+operator.replace(/</g,'&lt;')+'</b>'):''; ensureAudio(); sfx('start'); if(operator)toast('¡Bienvenido/a, '+operator+'! Misión iniciada 🌦️'); next(); }
+
+/* ============ NAV ============ */
+function buildDots(){ const d=document.getElementById('dots'); slides.forEach((s,i)=>{ const b=document.createElement('button'); b.className='dot'+(sectionStarts.includes(i)?' section':''); b.title=s.dataset.title||('Slide '+(i+1)); b.onclick=()=>go(i); d.appendChild(b); }); }
+function render(){ slides.forEach((s,i)=>s.classList.toggle('active',i===cur)); document.querySelectorAll('#dots .dot').forEach((d,i)=>d.classList.toggle('on',i===cur)); document.getElementById('slideno').textContent=String(cur+1).padStart(2,'0'); document.getElementById('missionFill').style.width=((cur)/(slides.length-1)*100)+'%'; const act=slides[cur]; if(act)act.scrollTop=0; if(cur===slides.length-1)renderFinal(); }
+function go(i){cur=Math.max(0,Math.min(slides.length-1,i));render();}
+function next(){go(cur+1);} function prev(){go(cur-1);}
+document.addEventListener('keydown',e=>{ if(e.key==='ArrowRight'||e.key==='PageDown')next(); if(e.key==='ArrowLeft'||e.key==='PageUp')prev(); });
+let tx=0,ty=0;
+document.getElementById('deck').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+document.getElementById('deck').addEventListener('touchend',e=>{ const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty; if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();} },{passive:true});
+
+/* ============ FELIPESOS / BADGES ============ */
+function ranks(x){ if(x>=400)return 'COMANDANTE MAGI'; if(x>=280)return 'CLIMATÓLOGO/A DE ÉLITE'; if(x>=170)return 'EXPLORADOR/A DE CAMPO'; if(x>=80)return 'CADETE GEOCIENTÍFICO'; return 'RECLUTA'; }
+function updateXP(){ document.getElementById('xpVal').textContent=xp; document.getElementById('rankTag').textContent=ranks(xp); }
+function xpFloat(el,amt){ const r=(el&&el.getBoundingClientRect)?el.getBoundingClientRect():{left:innerWidth/2,top:120,width:0}; const f=document.createElement('div'); f.className='xpfloat'; f.textContent='+'+amt+' 🪙'; f.style.left=(r.left+r.width/2)+'px'; f.style.top=(r.top-6)+'px'; document.body.appendChild(f); setTimeout(()=>f.remove(),1000); }
+function toast(msg){ const t=document.getElementById('toast'); t.innerHTML=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+function addXP(amt,el,silent){ xp+=amt; updateXP(); if(el&&amt)xpFloat(el,amt); if(!silent&&amt)sfx('xp'); }
+function grantBadge(id){ if(!id||badges.has(id))return; badges.add(id); const b=document.querySelector('#badges .badge[data-b="'+id+'"]'); if(b)b.classList.add('on'); sfx('badge'); toast('🏅 ¡Insignia desbloqueada!'); if(badges.size>=5)grantBadge('maestro'); }
+function award(el,amt,key,msg,badge){ if(claimed.has(key))return; claimed.add(key); addXP(amt,el); el.classList.add('done'); const hid=el.querySelector('.reveal-hidden'); if(hid)hid.classList.remove('reveal-hidden'); if(msg)toast(msg); if(badge)grantBadge(badge); }
+
+/* ============ INTERACTIONS ============ */
+window.pollChoice='';
+function vote(btn,pollId,choice){ const poll=document.getElementById(pollId); if(poll.dataset.voted)return; poll.dataset.voted='1'; window.pollChoice=choice||btn.textContent.trim(); const opts=[...poll.querySelectorAll('.opt')]; const base=[10,64,12,14]; opts.forEach((o,i)=>{o.classList.add('voted');o.querySelector('.barfill').style.width=base[i]+'%';o.querySelector('.pct').textContent=base[i]+'%';}); btn.style.borderColor='var(--violet)'; addXP(8,btn); toast('Voto registrado · +8 felipesos'); }
+function semaforo(el,id){ const wrap=document.getElementById(id); wrap.querySelectorAll('.light').forEach(l=>l.classList.remove('sel')); el.classList.add('sel'); if(!wrap.dataset.done){wrap.dataset.done='1'; addXP(6,el); toast('Autoevaluación registrada · +6 felipesos');} }
+function checkItem(li){ if(li.classList.contains('on'))return; li.classList.add('on'); addXP(3,li); const ul=li.parentNode; const total=ul.children.length,done=ul.querySelectorAll('li.on').length; const prog=document.getElementById('chkCuadroProg'); if(prog)prog.textContent='// ítems logrados: '+done+' / '+total+(done>=total?' ✔ ¡completo!':' · completa los '+total+' para +15 felipesos'); if(done>=total&&!ul.dataset.done){ul.dataset.done='1';addXP(15,li);sfx('correct');toast('✍️ ¡Actividad completa! +15 felipesos');} }
+
+/* ============ MAPA CLIMÁTICO ============ */
+const CLIMAS={
+ norte:'<b>Norte · árido (desértico)</b><br>El desierto de Atacama es el más seco del mundo: casi no llueve. Cielos despejados, gran amplitud térmica (calor de día, frío de noche). Ej.: Arica, Antofagasta.',
+ centro:'<b>Centro · mediterráneo</b><br>Veranos secos y cálidos, inviernos lluviosos y templados. Ideal para viñas y agricultura. Ej.: Santiago, Valparaíso, Villa Alemana.',
+ sur:'<b>Sur · templado lluvioso</b><br>Llueve gran parte del año; bosques y ríos abundantes. Temperaturas frescas. Ej.: Valdivia, Puerto Montt.',
+ austral:'<b>Austral · frío / polar</b><br>Frío casi todo el año, vientos fuertes, glaciares y hielos. Ej.: Punta Arenas, Torres del Paine.'
+};
+const climateVisited=new Set();
+function climateZone(g,zone){
+  document.getElementById('mapReadout').innerHTML=CLIMAS[zone];
+  g.classList.add('done');
+  if(!climateVisited.has(zone)){ climateVisited.add(zone); addXP(6,g); 
+    document.getElementById('mapProg').textContent='// zonas exploradas: '+climateVisited.size+' / 4';
+    if(climateVisited.size>=4){ toast('🗺️ ¡Recorriste Chile! +6 felipesos'); grantBadge('zonas'); } else toast('Zona explorada · +6 felipesos'); }
+}
+
+/* ============ GAME 1 · TRIVIA ============ */
+const TRIVIA=[
+ {q:"¿Cuál es la diferencia entre tiempo y clima?",a:["Son sinónimos","Tiempo = ahora; Clima = promedio de muchos años","Clima = ahora; Tiempo = años","Ninguna"],c:1},
+ {q:"A mayor altitud, la temperatura...",a:["Sube","Baja","No cambia","Se duplica"],c:1},
+ {q:"La corriente de Humboldt en la costa de Chile es...",a:["Cálida","Fría","Tibia","Inexistente"],c:1},
+ {q:"El clima del Norte de Chile (Atacama) es...",a:["Lluvioso","Árido / desértico","Polar","Tropical húmedo"],c:1},
+ {q:"El fenómeno de El Niño suele traer al centro de Chile...",a:["Más lluvias","Sequía extrema","Nieve","Ningún cambio"],c:0}
+];
+let trI=0,trHits=0,trStreak=0;
+function trStart(){trI=0;trHits=0;trStreak=0;document.getElementById('trRestart').style.display='none';loadTr();}
+function loadTr(){ const t=TRIVIA[trI]; document.getElementById('trIdx').textContent='Pregunta '+(trI+1)+' / '+TRIVIA.length; document.getElementById('trScore').textContent='Aciertos: '+trHits+' · Racha: '+trStreak; document.getElementById('trQ').textContent=(trI+1)+' · '+t.q; document.getElementById('trFb').textContent=''; document.getElementById('trNext').style.display='none'; const wrap=document.getElementById('trAns');wrap.innerHTML=''; t.a.forEach((txt,i)=>{const b=document.createElement('button');b.className='ans';b.textContent=txt;b.onclick=()=>trPick(i,b);wrap.appendChild(b);}); }
+function trPick(i,btn){ const t=TRIVIA[trI];const wrap=document.getElementById('trAns');[...wrap.children].forEach(b=>b.disabled=true);
+  if(i===t.c){btn.classList.add('ok');trHits++;trStreak++;const bonus=trStreak>=3?10:0;let g=0;if(!trDone.has(trI)){trDone.add(trI);g=15+bonus;addXP(g,btn,true);}sfx('correct');document.getElementById('trFb').innerHTML='<span class="tick">✔ ¡Correcto!'+(g?' +'+g+' felipesos'+(bonus?' (bonus racha 🔥)':''):' (ya cobrado)')+'</span>';}
+  else{btn.classList.add('no');trStreak=0;sfx('wrong');[...wrap.children][t.c].classList.add('ok');document.getElementById('trFb').innerHTML='<span style="color:var(--red)">✘ La correcta está en verde.</span>';}
+  document.getElementById('trScore').textContent='Aciertos: '+trHits+' · Racha: '+trStreak;
+  if(trI<TRIVIA.length-1)document.getElementById('trNext').style.display='inline-block'; else trFinish();
+}
+function trNext(){trI++;loadTr();}
+function trFinish(){document.getElementById('trFb').innerHTML+='<br><span class="cy">FIN · '+trHits+'/'+TRIVIA.length+' aciertos.</span>';document.getElementById('trRestart').style.display='inline-block';if(trHits>=4)grantBadge('trivia');}
+
+/* ============ GAME 2 · CLASIFICADOR ============ */
+const CASES=[
+ {t:"Casi nunca llueve, cielos despejados y grandes diferencias de temperatura entre el día y la noche.",c:'norte'},
+ {t:"Veranos secos y calurosos, inviernos con lluvias; buen clima para las viñas.",c:'centro'},
+ {t:"Llueve gran parte del año, con bosques húmedos y ríos caudalosos.",c:'sur'},
+ {t:"Frío casi permanente, vientos muy fuertes y presencia de glaciares.",c:'sur'},
+ {t:"El desierto más seco del mundo: pueden pasar años sin una gota de lluvia.",c:'norte'}
+];
+const CNAME={norte:'NORTE ÁRIDO',centro:'CENTRO MEDITERRÁNEO',sur:'SUR / AUSTRAL'};
+let clfI=0,clfHits=0;
+function clfStart(){clfI=0;clfHits=0;document.getElementById('clfRestart').style.display='none';loadClf();}
+function loadClf(){const cse=CASES[clfI];document.getElementById('clfIdx').textContent='Caso '+(clfI+1)+' / '+CASES.length;document.getElementById('clfScore').textContent='Aciertos: '+clfHits;document.getElementById('clfScn').textContent=cse.t;document.getElementById('clfFb').textContent='';document.getElementById('clfNext').style.display='none';document.querySelectorAll('.clf-btns .ans').forEach(b=>{b.disabled=false;b.classList.remove('ok','no');});}
+function clfPick(choice,btn){const cse=CASES[clfI];document.querySelectorAll('.clf-btns .ans').forEach(b=>b.disabled=true);
+  if(choice===cse.c){btn.classList.add('ok');clfHits++;let g=0;if(!clfDone.has(clfI)){clfDone.add(clfI);g=12;addXP(12,btn,true);}sfx('correct');document.getElementById('clfFb').innerHTML='<span class="tick">✔ ¡Correcto! Es '+CNAME[cse.c]+'.'+(g?' +12 felipesos':' (ya cobrado)')+'</span>';}
+  else{btn.classList.add('no');sfx('wrong');document.getElementById('clfFb').innerHTML='<span style="color:var(--red)">✘ Era '+CNAME[cse.c]+'. (sin felipesos)</span>';}
+  document.getElementById('clfScore').textContent='Aciertos: '+clfHits;
+  if(clfI<CASES.length-1)document.getElementById('clfNext').style.display='inline-block';
+  else{document.getElementById('clfRestart').style.display='inline-block';document.getElementById('clfFb').innerHTML+=' <span class="cy">· FIN: '+clfHits+'/'+CASES.length+'</span>';}
+}
+function clfNextCase(){clfI++;loadClf();}
+
+/* ============ GAME 3 · PAREO ============ */
+const PAIRS=[
+ {k:"Tiempo atmosférico",v:"Estado de la atmósfera aquí y ahora"},
+ {k:"Clima",v:"Promedio del tiempo durante muchos años"},
+ {k:"Latitud",v:"Distancia al ecuador: influye en la radiación solar"},
+ {k:"Corriente de Humboldt",v:"Agua fría que enfría la costa de Chile"},
+ {k:"El Niño",v:"Calienta el Pacífico y trae más lluvias"}
+];
+let mSel=null,mMatched=0,mErr=0;
+function shuffle(a){return a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);}
+function mStart(){mSel=null;mMatched=0;mErr=0;document.getElementById('mScore').textContent='Pares: 0 / '+PAIRS.length;document.getElementById('mErr').textContent='Intentos fallidos: 0';document.getElementById('mFb').textContent='';document.getElementById('mRestart').style.display='none';const L=document.getElementById('mLeft'),R=document.getElementById('mRight');L.innerHTML='';R.innerHTML='';PAIRS.forEach((p,i)=>{const l=document.createElement('button');l.className='mcard';l.textContent=p.k;l.dataset.id=i;l.dataset.side='k';l.onclick=()=>mPick(l);L.appendChild(l);});shuffle(PAIRS.map((p,i)=>({...p,i}))).forEach(p=>{const r=document.createElement('button');r.className='mcard';r.textContent=p.v;r.dataset.id=p.i;r.dataset.side='v';r.onclick=()=>mPick(r);R.appendChild(r);});}
+function mPick(card){ if(card.classList.contains('matched'))return; if(!mSel){mSel=card;card.classList.add('sel');return;} if(mSel===card){card.classList.remove('sel');mSel=null;return;} if(mSel.dataset.side===card.dataset.side){mSel.classList.remove('sel');mSel=card;card.classList.add('sel');return;}
+  if(mSel.dataset.id===card.dataset.id){ mSel.classList.remove('sel');mSel.classList.add('matched');card.classList.add('matched'); mMatched++; const pid=card.dataset.id; let mg=0; if(!mDone.has(pid)){mDone.add(pid);mg=10;addXP(10,card,true);} sfx('correct'); document.getElementById('mScore').textContent='Pares: '+mMatched+' / '+PAIRS.length; document.getElementById('mFb').innerHTML='<span class="tick">✔ ¡Par correcto!'+(mg?' +10 felipesos':' (ya cobrado)')+'</span>';
+    if(mMatched>=PAIRS.length){ if(!mBonusDone){mBonusDone=true;addXP(20,card,true);document.getElementById('mFb').innerHTML='<span class="cy">🏆 ¡Todos los pares! Bono +20 felipesos</span>';} else document.getElementById('mFb').innerHTML='<span class="cy">🏆 ¡Completado de nuevo! (felipesos ya cobrados)</span>'; document.getElementById('mRestart').style.display='inline-block'; grantBadge('maestro'); } }
+  else{ const a=mSel,b=card;a.classList.add('no');b.classList.add('no');sfx('wrong');mErr++;document.getElementById('mErr').textContent='Intentos fallidos: '+mErr;document.getElementById('mFb').innerHTML='<span style="color:var(--red)">✘ No coinciden, intenta otra vez.</span>';setTimeout(()=>{a.classList.remove('sel','no');b.classList.remove('sel','no');},650); }
+  mSel=null;
+}
+
+/* ============ GAME 4 · ESTACIÓN METEOROLÓGICA ============ */
+let fbSel={zona:null,rel:null,pred:null}; let fbRanOnce=false, fbWinDone=false;
+function fbPick(k,btn,val){ const grp=btn.parentNode; grp.querySelectorAll('.ans').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); fbSel[k]=val; sfx('select'); }
+function fbReset(){ fbSel={zona:null,rel:null,pred:null}; document.getElementById('fbResult').innerHTML=''; document.querySelectorAll('.slide[data-title="🌦️ Estación"] .simopts .ans').forEach(b=>b.classList.remove('sel')); document.getElementById('fbAgain').style.display='none'; }
+function fbRun(btn){
+  if(!fbSel.zona||!fbSel.rel||!fbSel.pred){ toast('Elige zona, relieve y tu predicción'); sfx('wrong'); return; }
+  // clima base por zona
+  let base = fbSel.zona==='norte'?'arido':(fbSel.zona==='centro'?'templado':'lluvioso');
+  // relieve modifica
+  if(fbSel.rel==='cordillera') base = (base==='arido')?'templado':'lluvioso';
+  if(fbSel.rel==='costa' && fbSel.zona==='centro') base='templado';
+  // fenómeno al azar
+  const fen = [{n:'Año normal',m:''},{n:'El Niño (más lluvias)',m:'niño'},{n:'La Niña (más seco)',m:'niña'}][Math.floor(Math.random()*3)];
+  let actual=base;
+  if(fen.m==='niño' && actual==='arido') actual='templado';
+  if(fen.m==='niña' && actual==='lluvioso') actual='templado';
+  const NAME={arido:'ÁRIDO / SECO',templado:'TEMPLADO',lluvioso:'LLUVIOSO / FRÍO'};
+  const ok = (fbSel.pred===actual);
+  const cls = ok?'v-ok':'v-mid';
+  const ciudad = fbSel.zona==='norte'?'Arica/Antofagasta':(fbSel.zona==='centro'?'Santiago/Valparaíso':'Valdivia/Punta Arenas');
+  let html='<div class="verdict '+cls+'">';
+  html+='<h3>'+(ok?'✔ ¡Predicción correcta!':'≈ Casi: el clima real es '+NAME[actual])+'</h3>';
+  html+='<div class="rolls"><span class="roll">🎲 '+fen.n+'</span><span class="roll">Zona ejemplo: <b>'+ciudad+'</b></span></div>';
+  html+='<p class="sci"><b>Resultado:</b> clima <b>'+NAME[actual]+'</b>. La latitud fija la base, el relieve/altitud la ajusta y un fenómeno como El Niño/La Niña la altera temporalmente.</p>';
+  const jokes=['🌂 Alguien salió sin paraguas justo hoy.','🧥 La abuela tenía razón: "abrígate".','📻 La radio ya lo había anunciado.','🛰️ El satélite asiente con orgullo.','🌡️ El termómetro pide vacaciones.'];
+  html+='<p class="joke">'+jokes[Math.floor(Math.random()*jokes.length)]+'</p></div>';
+  document.getElementById('fbResult').innerHTML=html;
+  document.getElementById('fbAgain').style.display='inline-block';
+  sfx(ok?'correct':'wrong');
+  if(!fbRanOnce){ fbRanOnce=true; addXP(10,btn,true); toast('¡Primera medición! +10 felipesos'); }
+  if(ok && !fbWinDone){ fbWinDone=true; addXP(15,btn,true); toast('🛰️ ¡Meteorólogo/a! +15 felipesos'); grantBadge('meteorologo'); }
+}
+
+/* ============ ENVÍO DE RESPUESTAS ============ */
+function val(id){ const el=document.getElementById(id); return el?(el.value||'').trim():''; }
+function buildPayload(){ return { fecha:new Date().toISOString(), sesion:SESION, nombre:operator||'(sin nombre)', hipotesis_si:val('hSi'), hipotesis_entonces:val('hEntonces'), hipotesis_porque:val('hPorque'), voto:window.pollChoice||'', ticket_salida:val('exitText'), bitacora:val('bitText'), felipesos:xp, rango:ranks(xp), insignias:[...badges].join(', '), trivia:trHits, clasificador:clfHits, pareo:mDone.size }; }
+async function sendResponses(btn){
+  if(!ENDPOINT_URL || ENDPOINT_URL.indexOf('PEGA_AQUI')>=0){ toast('⚠️ Falta configurar la URL del Apps Script'); sfx('wrong'); return; }
+  if(sent){ toast('Tus respuestas ya fueron enviadas ✔'); return; }
+  const label=btn.textContent; btn.disabled=true; btn.textContent='ENVIANDO...';
+  try{
+    await fetch(ENDPOINT_URL,{ method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(buildPayload()) });
+    sent=true; sfx('badge'); toast('✅ ¡Respuestas enviadas al profesor!');
+    document.querySelectorAll('#sendBtn,#sendBtn2').forEach(b=>{ b.textContent='✔ ENVIADO'; b.disabled=true; });
+    const h=document.getElementById('sendHint'); if(h)h.textContent='✔ Registrado. ¡Gracias!';
+  }catch(e){ btn.disabled=false; btn.textContent=label; sfx('wrong'); toast('❌ No se pudo enviar. Revisa la conexión o la URL.'); }
+}
+
+/* ============ FINAL ============ */
+function renderFinal(){
+  document.getElementById('finalXP').textContent=xp+' felipesos';
+  document.getElementById('finalRank').textContent=(operator?operator+' — ':'')+ranks(xp);
+  const msgs={'RECLUTA':'Buen comienzo. Vuelve a recorrer la sesión y abre más tarjetas para subir de rango.','CADETE GEOCIENTÍFICO':'Vas bien encaminado/a. Ya distingues tiempo de clima.','EXPLORADOR/A DE CAMPO':'¡Sólido! Entiendes los factores del clima y los climas de Chile.','CLIMATÓLOGO/A DE ÉLITE':'Excelente dominio del clima como sistema dinámico.','COMANDANTE MAGI':'¡Máximo rango! Explicas el clima como todo un/a científico/a. 🏆'};
+  document.getElementById('finalMsg').textContent=msgs[ranks(xp)]||'';
+  document.querySelectorAll('#finalBadges .bw').forEach(b=>b.classList.toggle('on',badges.has(b.dataset.b)));
+}
+
+/* ============ INIT ============ */
+buildDots(); updateXP(); render(); trStart(); clfStart(); mStart();
+</script>
+</body>
+</html>
