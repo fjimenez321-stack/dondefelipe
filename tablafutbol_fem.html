@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Liga Damas San Agustín</title>
 <style>
 body {
@@ -19,19 +19,59 @@ td{border-bottom:1px solid rgba(255,255,255,.12)}
 .team{text-align:left;font-weight:bold}
 .pts{background:#ff4d94;color:#fff;font-weight:bold;border-radius:6px}
 .gold{color:#ffd700;font-weight:bold}
+
+@media (max-width:768px){
+ body{
+   padding:12px;
+   background-position:center top;
+   background-size:cover;
+   align-items:flex-start;
+ }
+ .container{
+   width:100%;
+   max-width:100%;
+   padding:12px;
+   border-radius:14px;
+ }
+ h1{
+   font-size:1.2rem;
+   margin:6px 0 12px;
+ }
+ table{
+   font-size:.72rem;
+   table-layout:fixed;
+ }
+ th,td{
+   padding:6px 2px;
+   font-size:.68rem;
+   word-break:keep-all;
+ }
+ .team{
+   text-align:left;
+   font-size:.72rem;
+   width:30%;
+ }
+}
+@media (min-width:769px){
+ .container{max-width:900px;}
+ table{font-size:.95rem;}
+ th,td{padding:10px;}
+}
+
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body><div class="container">
 <h1>🏆 Liga Damas San Agustín</h1>
-<table>
+<div class="table-wrap"><table>
 <tr><th>#</th><th class="team">Equipo</th><th>PJ</th><th>GF</th><th>GC</th><th>DG</th><th>PG</th><th>PE</th><th>PP</th><th>PTS</th></tr>
 <tr><td class="gold">1</td><td class="team">8° Básico</td><td>2</td><td>5</td><td>2</td><td>+3</td><td>2</td><td>0</td><td>0</td><td class="pts">6</td></tr>
 <tr><td class="gold">2</td><td class="team">4° Medio</td><td>1</td><td>3</td><td>2</td><td>+1</td><td>1</td><td>0</td><td>0</td><td class="pts">3</td></tr>
 <tr><td class="gold">3</td><td class="team">1° Medio</td><td>2</td><td>4</td><td>6</td><td>-2</td><td>1</td><td>0</td><td>1</td><td class="pts">3</td></tr>
 <tr><td>4</td><td class="team">2° Medio</td><td>2</td><td>3</td><td>4</td><td>-1</td><td>0</td><td>1</td><td>1</td><td class="pts">1</td></tr>
 <tr><td>5</td><td class="team">3° Medio</td><td>3</td><td>6</td><td>8</td><td>-2</td><td>0</td><td>1</td><td>2</td><td class="pts">1</td></tr>
-</table>
+</table></div>
 </div>
 <div style="position:fixed;bottom:20px;right:20px;z-index:9999">
 <button onclick="descargarTabla()" style="
