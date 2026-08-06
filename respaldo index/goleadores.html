@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Goleadores Copa San Agustín</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --deep: #07101e;
+            --navy: #0d1f36;
+            --gold: #c9a84c;
+            --gold-light: #f0d47a;
+            --gold-dim: rgba(201,168,76,0.15);
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+            --text: #f0e8d5;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.08), transparent 55%), var(--deep);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px 40px;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* Stadium lines background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(255,255,255,0.015) 40px,
+                    rgba(255,255,255,0.015) 41px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(255,255,255,0.015) 40px,
+                    rgba(255,255,255,0.015) 41px
+                );
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            text-align: center;
+            padding: 28px 20px 24px;
+            position: relative;
+        }
+
+        .trophy-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,168,76,0.25) 0%, transparent 70%);
+            border: 2px solid var(--gold);
+            margin-bottom: 14px;
+            box-shadow: 0 0 30px rgba(201,168,76,0.3), inset 0 0 20px rgba(201,168,76,0.1);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(201,168,76,0.3), inset 0 0 20px rgba(201,168,76,0.1); }
+            50%       { box-shadow: 0 0 50px rgba(201,168,76,0.5), inset 0 0 30px rgba(201,168,76,0.2); }
+        }
+
+        .trophy-wrap i { font-size: 2rem; color: var(--gold); }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.1rem, 5vw, 1.5rem);
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            line-height: 1.2;
+            background: linear-gradient(100deg, var(--gold) 0%, var(--gold-light) 25%, #fff8e0 50%, var(--gold-light) 75%, var(--gold) 100%);
+            background-size: 250% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 24px rgba(201,168,76,0.35);
+            animation: shine 5s linear infinite;
+        }
+
+        @keyframes shine {
+            to { background-position: -250% center; }
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            margin-top: 6px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+        }
+        .divider span { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+        .divider i { color: var(--gold); font-size: 0.6rem; }
+
+        /* ─── PODIUM ─── */
+        .podium {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: flex-end;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 0 4px;
+        }
+
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .podium-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            border: 2px solid;
+            position: relative;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.15);
+            transition: transform 0.25s ease;
+        }
+
+        .podium-item:hover .podium-avatar { transform: translateY(-3px); }
+
+        .podium-item:nth-child(2) .podium-avatar { /* 1st place - center */
+            width: 58px;
+            height: 58px;
+            font-size: 1.3rem;
+            border-color: var(--gold);
+            background: radial-gradient(circle, rgba(201,168,76,0.3), rgba(201,168,76,0.05));
+            box-shadow: 0 0 20px rgba(201,168,76,0.4);
+            color: var(--gold-light);
+        }
+        .podium-item:nth-child(1) .podium-avatar {
+            border-color: var(--silver);
+            background: radial-gradient(circle, rgba(192,192,192,0.15), transparent);
+            color: var(--silver);
+        }
+        .podium-item:nth-child(3) .podium-avatar {
+            border-color: var(--bronze);
+            background: radial-gradient(circle, rgba(205,127,50,0.15), transparent);
+            color: var(--bronze);
+        }
+
+        .podium-name {
+            font-size: clamp(0.68rem, 2.5vw, 0.82rem);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .podium-block {
+            width: 100%;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 4px;
+            border-top: 3px solid;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .podium-block::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent 40%);
+            pointer-events: none;
+        }
+
+        .podium-item:nth-child(2) .podium-block { /* 1st */
+            height: 90px;
+            background: linear-gradient(180deg, rgba(201,168,76,0.25), rgba(201,168,76,0.08));
+            border-color: var(--gold);
+        }
+        .podium-item:nth-child(1) .podium-block { /* 2nd */
+            height: 65px;
+            background: linear-gradient(180deg, rgba(192,192,192,0.15), rgba(192,192,192,0.04));
+            border-color: var(--silver);
+        }
+        .podium-item:nth-child(3) .podium-block { /* 3rd */
+            height: 50px;
+            background: linear-gradient(180deg, rgba(205,127,50,0.15), rgba(205,127,50,0.04));
+            border-color: var(--bronze);
+        }
+
+        .podium-goals {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .podium-item:nth-child(2) .podium-goals { color: var(--gold-light); font-size: 1.8rem; }
+        .podium-item:nth-child(1) .podium-goals { color: var(--silver); }
+        .podium-item:nth-child(3) .podium-goals { color: var(--bronze); }
+
+        .podium-label {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .podium-medal {
+            font-size: 0.7rem;
+            margin-bottom: 2px;
+        }
+
+        /* ─── REST OF LIST ─── */
+        .list-title {
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .scorers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .scorer-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            animation: slideIn 0.4s ease both;
+        }
+
+        .scorer-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--gold), transparent);
+            opacity: 0.6;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-16px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .scorer-card:active { transform: scale(0.99); background: rgba(255,255,255,0.08); }
+
+        @media (hover: hover) {
+            .scorer-card:hover {
+                background: rgba(201,168,76,0.07);
+                border-color: rgba(201,168,76,0.3);
+                transform: translateX(3px);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            }
+        }
+
+        .rank-badge {
+            width: 28px;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.35);
+            flex-shrink: 0;
+        }
+
+        .sc-name {
+            flex: 1;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .sc-goals {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sc-num {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .sc-ball {
+            font-size: 0.85rem;
+            opacity: 0.6;
+        }
+
+        /* ─── FOOTER ─── */
+        .footer-note {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.25);
+            letter-spacing: 1px;
+        }
+
+        /* ─── DOWNLOAD BUTTON ─── */
+        .btn-download {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 24px auto 0;
+            width: 100%;
+            max-width: 260px;
+            padding: 13px 24px;
+            background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.08));
+            border: 1.5px solid var(--gold);
+            border-radius: 50px;
+            color: var(--gold-light);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-download {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+
+        @media (hover: hover) {
+            .btn-download:hover {
+                background: linear-gradient(135deg, rgba(201,168,76,0.35), rgba(201,168,76,0.15));
+                box-shadow: 0 0 24px rgba(201,168,76,0.35), 0 4px 16px rgba(0,0,0,0.3);
+                transform: translateY(-1px);
+            }
+        }
+
+        .btn-download:active { transform: scale(0.97); }
+
+        .btn-download i { font-size: 1rem; }
+
+        .btn-download.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* ─── CAPTURE ZONE ─── */
+        #capture {
+            background: linear-gradient(180deg, rgba(201,168,76,0.05), transparent 220px), var(--deep);
+            border: 1px solid rgba(201,168,76,0.25);
+            border-radius: 16px;
+            padding: 4px 4px 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="capture">
+        <header>
+            <div class="trophy-wrap">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h1>Máximos Goleadores</h1>
+            <p class="subtitle">Copa San Agustín · 2026</p>
+            <div class="divider">
+                <span></span>
+                <i class="fa-solid fa-circle"></i>
+                <span></span>
+            </div>
+        </header>
+
+        <!-- PODIUM TOP 3: orden visual 2°-1°-3° -->
+        <div class="podium">
+
+            <!-- 2° lugar -->
+            <div class="podium-item">
+                <div class="podium-avatar">D</div>
+                <div class="podium-name">Daniel<br>Herrera</div>
+                <div class="podium-block">
+                    <div class="podium-medal">🥈</div>
+                    <div class="podium-goals">3</div>
+                    <div class="podium-label">goles</div>
+                </div>
+            </div>
+
+            <!-- 1° lugar -->
+            <div class="podium-item">
+                <div class="podium-avatar">J</div>
+                <div class="podium-name">Jorge<br>Neira</div>
+                <div class="podium-block">
+                    <div class="podium-medal">🥇</div>
+                    <div class="podium-goals">6</div>
+                    <div class="podium-label">goles</div>
+                </div>
+            </div>
+
+            <!-- 3° lugar -->
+            <div class="podium-item">
+                <div class="podium-avatar">V</div>
+                <div class="podium-name">Víctor<br>Jiménez</div>
+                <div class="podium-block">
+                    <div class="podium-medal">🥉</div>
+                    <div class="podium-goals">3</div>
+                    <div class="podium-label">goles</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RESTO DE GOLEADORES -->
+        <p class="list-title">Otros goleadores</p>
+        <div class="scorers-list">
+
+            <div class="scorer-card" style="animation-delay:0.05s">
+                <div class="rank-badge">4°</div>
+                <div class="sc-name">Elier Vicencio</div>
+                <div class="sc-goals">
+                    <div class="sc-num">1</div>
+                    <div class="sc-ball">⚽</div>
+                </div>
+            </div>
+
+            <div class="scorer-card" style="animation-delay:0.08s">
+                <div class="rank-badge">5°</div>
+                <div class="sc-name">Matías Concha</div>
+                <div class="sc-goals">
+                    <div class="sc-num">1</div>
+                    <div class="sc-ball">⚽</div>
+                </div>
+            </div>
+
+            <div class="scorer-card" style="animation-delay:0.1s">
+                <div class="rank-badge">6°</div>
+                <div class="sc-name">Facundo Farías</div>
+                <div class="sc-goals">
+                    <div class="sc-num">1</div>
+                    <div class="sc-ball">⚽</div>
+                </div>
+            </div>
+
+            <div class="scorer-card" style="animation-delay:0.13s">
+                <div class="rank-badge">7°</div>
+                <div class="sc-name">Gaspar Farías</div>
+                <div class="sc-goals">
+                    <div class="sc-num">1</div>
+                    <div class="sc-ball">⚽</div>
+                </div>
+            </div>
+
+            <div class="scorer-card" style="animation-delay:0.16s">
+                <div class="rank-badge">8°</div>
+                <div class="sc-name">Edgardo Cornejo</div>
+                <div class="sc-goals">
+                    <div class="sc-num">1</div>
+                    <div class="sc-ball">⚽</div>
+                </div>
+            </div>
+
+            <div class="scorer-card" style="animation-delay:0.19s">
+                <div class="rank-badge">9°</div>
+                <div class="sc-name">Felipe Espinoza</div>
+                <div class="sc-goals">
+                    <div class="sc-num">1</div>
+                    <div class="sc-ball">⚽</div>
+                </div>
+            </div>
+
+            <div class="scorer-card" style="animation-delay:0.22s">
+                <div class="rank-badge">10°</div>
+                <div class="sc-name">Juan Serrano</div>
+                <div class="sc-goals">
+                    <div class="sc-num">1</div>
+                    <div class="sc-ball">⚽</div>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="footer-note">⚽ Datos actualizados según actas de arbitraje oficiales</p>
+    </div>
+
+    <!-- BOTÓN DESCARGA -->
+    <button class="btn-download" id="btnDownload" onclick="descargarImagen()">
+        <i class="fa-solid fa-camera"></i>
+        <span>Capturar imagen</span>
+    </button>
+</div>
+
+<script>
+    async function descargarImagen() {
+        const btn = document.getElementById('btnDownload');
+        btn.classList.add('loading');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Generando...</span>';
+
+        try {
+            const el = document.getElementById('capture');
+            const canvas = await html2canvas(el, {
+                backgroundColor: '#07101e',
+                scale: 2,
+                useCORS: true,
+                logging: false
+            });
+
+            const link = document.createElement('a');
+            link.download = 'goleadores-copa-san-agustin-2026.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch(e) {
+            alert('Error al generar la imagen. Intenta de nuevo.');
+            console.error(e);
+        } finally {
+            btn.classList.remove('loading');
+            btn.innerHTML = '<i class="fa-solid fa-camera"></i><span>Capturar imagen</span>';
+        }
+    }
+</script>
+
+</body>
+</html>
