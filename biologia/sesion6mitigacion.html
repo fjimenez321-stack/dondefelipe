@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesión 6 — Mitigación, adaptación y mapas conceptuales | Biología de los Ecosistemas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#0F2A22;
+    --verde:#1B4332;
+    --verde-2:#25573F;
+    --crema:#F6F1E7;
+    --crema-2:#EFE7D6;
+    --oro:#C9A227;
+    --ascua:#E2572B;
+    --cielo:#3E7C8C;
+    --tinta:#132720;
+    --texto-claro:#F6F1E7;
+    --linea:rgba(19,39,32,0.14);
+    --sombra:0 20px 50px -20px rgba(15,42,34,0.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(1200px 700px at 15% 10%, #163d30 0%, transparent 60%),
+      radial-gradient(1000px 600px at 90% 90%, #1e2a1f 0%, transparent 55%),
+      #0a1712;
+    font-family:'Inter', sans-serif; color:var(--tinta); padding:18px;
+  }
+  .marca{ font-family:'IBM Plex Mono', monospace; }
+  .deck{
+    position:relative; width:min(1280px, 100%); aspect-ratio:16/9;
+    background:var(--crema); border-radius:18px; overflow:hidden;
+    box-shadow:var(--sombra); border:1px solid rgba(255,255,255,0.06);
+  }
+  .deck::before{
+    content:""; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.055;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cg fill='%231B4332'%3E%3Cpath d='M15 10 Q25 5 30 15 Q25 25 15 20 Q10 15 15 10Z'/%3E%3Cpath d='M60 50 Q70 45 75 55 Q70 65 60 60 Q55 55 60 50Z' transform='rotate(40 67 55)'/%3E%3Cpath d='M35 70 Q45 65 50 75 Q45 85 35 80 Q30 75 35 70Z' transform='rotate(-25 42 75)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:90px 90px;
+  }
+  @media (max-width: 780px){ .deck{ aspect-ratio:auto; height:94vh; width:100%; border-radius:0; } }
+  .slides{ position:absolute; inset:0; z-index:1; }
+  .slide{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    padding:clamp(20px,4vw,56px) clamp(24px,5.5vw,72px);
+    opacity:0; transform:translateY(14px) scale(0.995); pointer-events:none;
+    transition:opacity .45s ease, transform .45s ease; overflow:auto;
+  }
+  .slide.activa{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:clamp(11px,1.1vw,13px);
+    letter-spacing:.14em; text-transform:uppercase; color:var(--oro); font-weight:600;
+  }
+  h1,h2,h3{ font-family:'Fraunces', serif; margin:0; color:var(--verde); }
+  h1{ font-size:clamp(28px,4.6vw,52px); line-height:1.03; font-weight:700; letter-spacing:-.01em;}
+  h2{ font-size:clamp(22px,3.1vw,34px); font-weight:700; line-height:1.1;}
+  h3{ font-size:clamp(16px,1.6vw,20px); font-weight:600; }
+  p{ line-height:1.5; }
+  .lead{ font-size:clamp(14px,1.5vw,18px); color:#2b453a; max-width:64ch; }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:600;
+    letter-spacing:.04em; text-transform:uppercase; padding:5px 11px; border-radius:99px;
+    border:1px solid var(--linea); color:var(--verde); background:rgba(27,67,50,0.06);
+  }
+  .pill--ascua{ color:#8f2c12; border-color:rgba(226,87,43,.35); background:rgba(226,87,43,0.1);}
+  .pill--oro{ color:#7a5f16; border-color:rgba(201,162,39,.4); background:rgba(201,162,39,0.12);}
+  .pill--cielo{ color:#1c4a56; border-color:rgba(62,124,140,.4); background:rgba(62,124,140,0.12);}
+  .chrome-top{ position:absolute; top:0; left:0; right:0; height:5px; background:rgba(19,39,32,0.08); z-index:5;}
+  .chrome-top-bar{ height:100%; width:0%; background:linear-gradient(90deg,var(--oro),var(--ascua)); transition:width .4s ease;}
+  .chrome-bottom{
+    position:absolute; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:space-between;
+    gap:14px; padding:10px clamp(16px,3vw,34px);
+    background:linear-gradient(0deg, rgba(246,241,231,0.97), rgba(246,241,231,0.0)); z-index:6;
+  }
+  .nav-btn{
+    width:38px; height:38px; border-radius:50%; border:1.5px solid var(--verde); background:var(--crema);
+    color:var(--verde); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background .2s, color .2s, transform .15s;
+  }
+  .nav-btn:hover:not(:disabled){ background:var(--verde); color:var(--texto-claro); }
+  .nav-btn:active:not(:disabled){ transform:scale(.92); }
+  .nav-btn:disabled{ opacity:.28; cursor:default; }
+  .dots{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:44vw;}
+  .dot{ width:7px; height:7px; border-radius:50%; background:rgba(19,39,32,0.25); border:none; cursor:pointer; padding:0; transition:background .2s, transform .2s;}
+  .dot.activo{ background:var(--ascua); transform:scale(1.4); }
+  .contador{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--verde); min-width:44px; text-align:right;}
+  .hud-felipesos{
+    position:absolute; top:14px; right:16px; z-index:30;
+    display:flex; align-items:center; gap:8px;
+    background:var(--verde); color:var(--texto-claro);
+    border-radius:99px; padding:7px 14px 7px 8px;
+    box-shadow:0 8px 18px -10px rgba(19,39,32,.55);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .moneda{
+    width:24px; height:24px; border-radius:50%; flex-shrink:0;
+    background:radial-gradient(circle at 32% 30%, #ffe9a8, var(--oro) 65%, #93761c 100%);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-weight:700; font-size:11px; color:#4a3a0e;
+    box-shadow:inset 0 -2px 3px rgba(0,0,0,.25), 0 2px 4px rgba(0,0,0,.3);
+  }
+  .hud-felipesos.pulso{ animation:pulso .5s ease; }
+  @keyframes pulso{ 0%{transform:scale(1);} 35%{transform:scale(1.12);} 100%{transform:scale(1);} }
+  #hudValor{ font-weight:600; font-size:13px; letter-spacing:.02em; }
+  .flotante{
+    position:absolute; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:13px;
+    color:var(--oro); pointer-events:none; z-index:40; animation:flotar 1s ease forwards;
+  }
+  @keyframes flotar{ 0%{ opacity:0; transform:translateY(0);} 15%{opacity:1;} 100%{ opacity:0; transform:translateY(-46px);} }
+  .btn-pdf{
+    position:absolute; top:60px; right:16px; z-index:29;
+    display:flex; align-items:center; gap:7px;
+    background:#FDFCF8; color:var(--verde); border:1px solid var(--linea);
+    border-radius:99px; padding:7px 14px 7px 10px;
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600;
+    cursor:pointer; box-shadow:0 8px 18px -10px rgba(19,39,32,.4);
+    transition:background .2s, color .2s, transform .15s;
+  }
+  .btn-pdf svg{ width:16px; height:16px; flex-shrink:0; }
+  .btn-pdf:hover{ background:var(--verde); color:var(--texto-claro); }
+  .btn-pdf:active{ transform:scale(.96); }
+  @media (max-width:780px){ .btn-pdf span{ display:none; } .btn-pdf{ padding:9px; top:58px; } }
+  .btn-sonido{
+    position:absolute; top:106px; right:16px; z-index:29;
+    width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    background:#FDFCF8; color:var(--verde); border:1px solid var(--linea); border-radius:50%;
+    cursor:pointer; box-shadow:0 8px 18px -10px rgba(19,39,32,.4); transition:background .2s, color .2s, transform .15s;
+  }
+  .btn-sonido svg{ width:16px; height:16px; }
+  .btn-sonido:hover{ background:var(--verde); color:var(--texto-claro); }
+  .btn-sonido:active{ transform:scale(.92); }
+  .btn-sonido[aria-pressed="true"]{ color:var(--ascua); }
+  @media (max-width:780px){ .btn-sonido{ top:104px; } }
+  .cabecera-slide{ display:flex; flex-direction:column; gap:8px; margin-bottom:clamp(14px,2.4vw,26px); flex-shrink:0;}
+  .cuerpo-slide{ flex:1; min-height:0; }
+  .dos-columnas{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2.4vw,30px); height:100%; }
+  @media (max-width:780px){ .dos-columnas{ grid-template-columns:1fr; } }
+  .tarjeta{ background:#fff; border:1px solid var(--linea); border-radius:14px; padding:clamp(14px,1.8vw,20px); box-shadow:0 8px 22px -14px rgba(19,39,32,.35);}
+  .slide--portada{
+    background:radial-gradient(1100px 500px at 80% -10%, #1c4433 0%, transparent 55%), var(--night);
+    color:var(--texto-claro); justify-content:center; padding-bottom:clamp(50px,7vw,80px) !important;
+  }
+  .hero-terreno{ position:absolute; inset:0; overflow:hidden; z-index:0; }
+  .hero-terreno svg{ position:absolute; bottom:0; left:0; width:100%; height:58%; }
+  .silueta-monte{ fill:#173b2c; }
+  .silueta-monte2{ fill:#0f2a20; }
+  .silueta-bosque{ fill:#081912; }
+  .textura-topo{
+    position:absolute; inset:0; opacity:.16; pointer-events:none;
+    background-image:repeating-radial-gradient(circle at 82% 18%, transparent 0, transparent 26px, rgba(201,162,39,.5) 27px, transparent 28px, transparent 54px);
+  }
+  .hoja{
+    position:absolute; width:9px; height:9px; top:-4%;
+    background:linear-gradient(135deg, var(--oro), #8a6a1a); border-radius:0 60% 0 60%;
+    opacity:0; animation-name:caerHoja; animation-timing-function:linear; animation-iteration-count:infinite;
+  }
+  @keyframes caerHoja{
+    0%{ transform:translate(0,0) rotate(0deg); opacity:0; }
+    8%{ opacity:.85; }
+    50%{ transform:translate(22px, 260%) rotate(160deg); }
+    92%{ opacity:.7; }
+    100%{ transform:translate(-12px, 560%) rotate(320deg); opacity:0; }
+  }
+  .brote{ position:absolute; width:5px; height:5px; border-radius:50%; background:var(--oro); box-shadow:0 0 8px 2px rgba(201,162,39,.6); bottom:8%; animation:crecer ease-in-out infinite; }
+  @keyframes crecer{ 0%{ transform:translateY(0) scale(.4); opacity:0;} 20%{opacity:1;} 60%{ transform:translateY(-60%) scale(1); opacity:1;} 100%{ transform:translateY(-90%) scale(.6); opacity:0;} }
+  .portada-contenido{ position:relative; z-index:2; max-width:760px; }
+  .slide--portada .eyebrow{ color:var(--oro); }
+  .slide--portada h1{ color:var(--texto-claro); margin-top:14px; }
+  .slide--portada h1 em{ font-style:normal; color:var(--oro); }
+  .slide--portada .lead{ color:#d9e6dd; margin-top:16px; }
+  .portada-footer{ margin-top:24px; display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono', monospace; font-size:12px; color:#a9c2b6;}
+  .portada-footer::before{ content:""; width:26px; height:1px; background:#a9c2b6;}
+  .qr-inicio{
+    position:relative; z-index:2; margin-top:26px; display:inline-flex; align-items:center; gap:12px;
+    background:rgba(246,241,231,0.08); border:1px solid rgba(246,241,231,0.22); border-radius:14px;
+    padding:10px 16px 10px 10px; backdrop-filter:blur(2px);
+  }
+  .qr-inicio .qr-caja{ background:#FDFCF8; border-radius:9px; padding:6px; display:flex; }
+  .qr-inicio .qr-svg{ width:54px; height:54px; display:block; color:var(--verde); }
+  .qr-inicio .qr-svg rect{ fill:currentColor; shape-rendering:crispEdges; }
+  .qr-inicio .qr-texto{ font-size:12px; color:#dbe8de; max-width:24ch; line-height:1.35; }
+  .qr-inicio .qr-texto strong{ color:var(--texto-claro); display:block; font-size:12.5px; margin-bottom:2px; }
+  .agenda-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0; counter-reset:paso;}
+  .agenda-lista li{ counter-increment:paso; display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:14px; padding:7px 4px; border-bottom:1px solid var(--linea); font-size:clamp(11.5px,1.15vw,14px);}
+  .agenda-lista li:last-child{ border-bottom:none; }
+  .agenda-lista li::before{ content:counter(paso,decimal-leading-zero); font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--oro); font-weight:600;}
+  .agenda-tag{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#5b7266; }
+  .grid-cards3{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(10px,1.6vw,16px); height:100%; }
+  .grid-cards4{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(9px,1.4vw,14px); height:100%; }
+  .grid-cards2{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,1.6vw,16px); height:100%; }
+  @media (max-width:780px){ .grid-cards3{ grid-template-columns:1fr; } .grid-cards4{ grid-template-columns:1fr 1fr; } .grid-cards2{ grid-template-columns:1fr; } }
+  .concepto-icono{ width:36px; height:36px; border-radius:10px; background:rgba(27,67,50,.1); color:var(--verde); display:flex; align-items:center; justify-content:center; }
+  .concepto-icono svg{ width:18px; height:18px; }
+  .tarjeta-desplegable--oscura{ background:var(--crema-2) !important; border:1px solid rgba(201,162,39,.45) !important; }
+  .concepto-icono--claro{ background:rgba(201,162,39,.16); color:#7a5f16; }
+  .tarjeta-desplegable{ padding:0 !important; }
+  .despliegue-cabecera{
+    width:100%; display:flex; align-items:center; gap:12px; text-align:left;
+    background:none; border:none; cursor:pointer; padding:clamp(12px,1.6vw,16px);
+    font-family:'Inter',sans-serif; color:inherit; -webkit-tap-highlight-color:transparent;
+  }
+  .despliegue-cabecera .concepto-icono{ margin-bottom:0; }
+  .despliegue-titulo-caja{ flex:1; min-width:0; }
+  .despliegue-titulo-caja h3{ margin:0; font-size:13.5px; }
+  .despliegue-hint{ display:block; font-family:'IBM Plex Mono',monospace; font-size:9px; color:#5b7266; margin-top:3px; text-transform:uppercase; letter-spacing:.03em; transition:opacity .2s; }
+  .tarjeta-desplegable--oscura .despliegue-hint{ color:#8a6a1a; }
+  .despliegue-flecha{ width:16px; height:16px; flex-shrink:0; color:var(--verde); transition:transform .3s ease; }
+  .tarjeta-desplegable--oscura .despliegue-flecha{ color:#7a5f16; }
+  .tarjeta-desplegable.abierta .despliegue-flecha{ transform:rotate(180deg); }
+  .tarjeta-desplegable.abierta .despliegue-hint{ opacity:.6; }
+  .despliegue-cuerpo{ max-height:0; overflow:hidden; transition:max-height .35s ease; }
+  .despliegue-contenido{ padding:0 clamp(12px,1.6vw,16px) clamp(12px,1.6vw,16px); }
+  .despliegue-contenido p{ font-size:11.5px; color:#2b453a; line-height:1.45; margin:0; }
+  .tarjeta-desplegable--oscura .despliegue-contenido p{ color:#4a3a0e; }
+  .slide--divisor{ background:var(--verde); color:var(--texto-claro); justify-content:center; align-items:flex-start; }
+  .slide--divisor .eyebrow{ color:var(--oro); }
+  .slide--divisor h1{ color:var(--texto-claro); }
+  .slide--divisor .lead{ color:#d9e6dd; max-width:56ch; }
+  .divisor-icono{ width:64px; height:64px; border-radius:18px; background:rgba(246,241,231,.14); color:var(--oro); display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+  .divisor-icono svg{ width:32px; height:32px; }
+  .mapa-caja{ background:#fff; border:1px solid var(--linea); border-radius:14px; padding:14px; }
+  .mapa-caja svg{ width:100%; height:auto; display:block; }
+  .mc-nodo rect{ fill:#fff; stroke:var(--verde); stroke-width:1.6; }
+  .mc-nodo text{ font-family:'Inter',sans-serif; font-weight:700; font-size:13px; fill:var(--verde); }
+  .mc-nodo--raiz rect{ fill:var(--verde); stroke:var(--verde); }
+  .mc-nodo--raiz text{ fill:var(--texto-claro); }
+  .mc-enlace{ stroke:#9CA3AF; stroke-width:1.4; fill:none; }
+  .mc-etiqueta{ font-family:'IBM Plex Mono',monospace; font-size:10px; fill:#5b7266; font-style:italic; }
+
+  /* -------- Línea de tiempo -------- */
+  .linea-tiempo{ position:relative; display:flex; flex-direction:column; gap:0; height:100%; justify-content:center; }
+  .lt-pista{ position:relative; height:3px; background:var(--linea); border-radius:2px; margin:0 6px 18px; }
+  .lt-progreso{ position:absolute; left:0; top:0; height:100%; width:0%; background:linear-gradient(90deg,var(--verde),var(--ascua)); border-radius:2px; transition:width .3s ease; }
+  .lt-nodos{ display:flex; justify-content:space-between; margin:0 -2px; }
+  .lt-nodo{ width:16px; height:16px; border-radius:50%; background:#fff; border:2.5px solid var(--linea); cursor:pointer; transform:translateY(-9px); transition:border-color .2s, background .2s, transform .2s; flex-shrink:0; }
+  .lt-nodo.activo{ border-color:var(--ascua); background:var(--ascua); transform:translateY(-9px) scale(1.25); }
+  .lt-etiquetas{ display:flex; justify-content:space-between; margin-top:2px; }
+  .lt-etiqueta{ font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#5b7266; text-align:center; width:16px; overflow:visible; white-space:nowrap; }
+  .lt-detalle{ margin-top:16px; background:#fff; border:1px solid var(--linea); border-radius:14px; padding:14px 16px; min-height:88px; }
+  .lt-detalle-cabecera{ display:flex; align-items:center; gap:10px; }
+  .lt-detalle-icono{ width:28px; height:28px; border-radius:9px; background:rgba(226,87,43,.12); color:var(--ascua); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .lt-detalle-icono svg{ width:15px; height:15px; }
+  .lt-detalle-anio{ font-family:'Fraunces',serif; font-weight:700; color:var(--ascua); font-size:17px; }
+  .lt-detalle-texto{ font-size:12px; color:#2b453a; margin-top:7px; line-height:1.45; }
+
+  /* -------- Esquema de proceso (con íconos) -------- */
+  .proceso-flujo{ display:flex; align-items:stretch; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .proceso-paso{ background:#fff; border:1.6px solid var(--verde); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; min-width:120px; max-width:150px; }
+  .proceso-paso-icono{ width:32px; height:32px; border-radius:9px; background:rgba(27,67,50,.1); color:var(--verde); display:flex; align-items:center; justify-content:center; }
+  .proceso-paso-icono svg{ width:17px; height:17px; }
+  .proceso-paso span{ font-size:11.5px; font-weight:600; color:var(--verde); line-height:1.3; }
+  .proceso-flecha{ color:var(--oro); font-size:20px; display:flex; align-items:center; }
+  @media (max-width:780px){ .proceso-flujo{ flex-direction:column; } .proceso-flecha{ transform:rotate(90deg); align-self:center; } }
+
+  /* -------- Esquema ramificado SVG (mitigación / adaptación) -------- */
+  .rama-caja{ background:#fff; border:1px solid var(--linea); border-radius:14px; padding:12px; }
+  .rama-caja svg{ width:100%; height:auto; display:block; }
+  .rn-raiz rect{ fill:var(--verde); stroke:var(--verde); }
+  .rn-raiz text{ fill:var(--texto-claro); font-weight:700; }
+  .rn-mitigacion rect{ fill:#fff; stroke:var(--ascua); stroke-width:1.6; }
+  .rn-mitigacion text{ fill:#8f2c12; font-weight:700; }
+  .rn-adaptacion rect{ fill:#fff; stroke:var(--cielo); stroke-width:1.6; }
+  .rn-adaptacion text{ fill:#1c4a56; font-weight:700; }
+  .rn-hoja rect{ fill:var(--crema-2); stroke:var(--linea); stroke-width:1; }
+  .rn-hoja text{ fill:var(--tinta); font-weight:500; font-size:10.5px; }
+  .rn-enlace{ stroke:#9CA3AF; stroke-width:1.3; fill:none; }
+  .rn-enlace--mit{ stroke:rgba(226,87,43,.5); }
+  .rn-enlace--ada{ stroke:rgba(62,124,140,.5); }
+  .pasos-actividad{ list-style:none; margin:0; padding:0; counter-reset:pasoact; display:flex; flex-direction:column; gap:8px; }
+  .pasos-actividad li{ counter-increment:pasoact; position:relative; background:#fff; border:1px solid var(--linea); border-radius:12px; padding:10px 14px 10px 44px; font-size:12px; color:#2b453a; line-height:1.45; }
+  .pasos-actividad li::before{ content:counter(pasoact); position:absolute; left:11px; top:10px; width:21px; height:21px; border-radius:50%; background:var(--verde); color:var(--texto-claro); font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .banco-sesion{ background:#fff; border:1px solid var(--linea); border-left:4px solid var(--verde); border-radius:12px; padding:10px 14px; margin-bottom:8px; }
+  .banco-sesion h3{ font-size:12.5px; color:var(--verde); margin-bottom:6px; }
+  .chip-concepto{ display:inline-block; background:var(--crema-2); color:var(--tinta); font-size:11px; padding:4px 10px; border-radius:99px; margin:2px 3px 0 0; }
+  .fuente-tarjeta{ display:flex; flex-direction:column; gap:6px; }
+  .fuente-etiqueta{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:#5b7266; }
+  .fuente-cita{ font-size:11.5px; color:#2b453a; line-height:1.4; }
+  .tabla-plantilla{ width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 8px 22px -14px rgba(19,39,32,.35); }
+  .tabla-plantilla th{ background:var(--verde); color:var(--texto-claro); font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.03em; padding:8px 10px; text-align:left; font-weight:600; }
+  .tabla-plantilla td{ padding:14px 10px; border-bottom:1px solid var(--linea); font-size:11.5px; color:#9aa79e; font-style:italic; }
+  .tabla-plantilla tr:last-child td{ border-bottom:none; }
+  .tabla-plantilla td:first-child{ font-weight:700; color:var(--verde); font-style:normal; }
+  .esquema-flujo{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .esquema-caja{ background:#fff; border:1.6px solid var(--verde); border-radius:12px; padding:12px 16px; font-size:12px; font-weight:600; color:var(--verde); text-align:center; min-width:120px; display:flex; flex-direction:column; align-items:center; }
+  .esquema-caja--vacia{ border-style:dashed; color:#9aa79e; font-style:italic; font-weight:400; }
+  .esquema-flecha{ color:var(--oro); font-size:20px; }
+  .check-cuaderno{
+    display:flex; align-items:center; gap:12px; background:#fff; border:1px solid var(--linea);
+    border-radius:12px; padding:12px 16px; margin-bottom:10px; cursor:pointer;
+  }
+  .check-cuaderno input{ width:20px; height:20px; accent-color:var(--verde); flex-shrink:0; cursor:pointer; }
+  .check-cuaderno span{ font-size:12.5px; color:var(--tinta); line-height:1.4; }
+  .check-cuaderno.marcado{ background:rgba(27,67,50,.08); border-color:var(--verde); }
+  .bloom-header{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pregunta-bloque{ margin-bottom:14px; }
+  .pregunta-enunciado{ font-weight:700; font-size:clamp(12.5px,1.4vw,15px); margin-bottom:8px; color:var(--tinta);}
+  .opciones{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  @media (max-width:780px){ .opciones{ grid-template-columns:1fr; } }
+  .opcion{
+    text-align:left; padding:8px 11px; border-radius:11px; border:1.4px solid var(--linea); background:#fff;
+    cursor:pointer; font-size:12px; font-family:'Inter',sans-serif; color:var(--tinta);
+    transition:border-color .2s, background .2s, transform .12s;
+  }
+  .opcion:hover:not(:disabled){ border-color:var(--verde); }
+  .opcion:active:not(:disabled){ transform:scale(.98); }
+  .opcion.correcta{ background:rgba(27,67,50,.12); border-color:var(--verde); font-weight:600;}
+  .opcion.incorrecta{ background:rgba(226,87,43,.1); border-color:var(--ascua);}
+  .opcion:disabled{ cursor:default; }
+  .feedback{ margin-top:6px; font-size:11.5px; padding:7px 11px; border-radius:9px; background:var(--crema-2); display:none; color:#2b453a;}
+  .feedback.visible{ display:block; }
+  textarea{ width:100%; min-height:64px; border-radius:12px; border:1.4px solid var(--linea); padding:10px 12px; font-family:'Inter',sans-serif; font-size:13px; resize:vertical; color:var(--tinta); background:#fffdf8;}
+  .nota-discreta{ font-size:11.5px; color:#5b7266; margin-top:6px; }
+  .aviso-caja{ background:#fff; border:1px solid rgba(226,87,43,.35); border-left:4px solid var(--ascua); border-radius:12px; padding:11px 15px; margin-bottom:10px; display:flex; gap:11px; align-items:flex-start; }
+  .aviso-icono{ width:30px; height:30px; border-radius:9px; background:rgba(226,87,43,.12); color:var(--ascua); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .aviso-icono svg{ width:16px; height:16px; }
+  .aviso-caja .eyebrow{ color:#8f2c12; }
+  .aviso-caja p{ font-size:11.5px; color:#3a2a20; margin:3px 0 0; }
+  .respaldo-caja{ max-width:480px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:12px; padding:clamp(24px,3.4vw,36px); margin:0 auto; }
+  .respaldo-icono{ width:64px; height:64px; border-radius:18px; background:var(--verde); color:var(--texto-claro); display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
+  .respaldo-icono svg{ width:30px; height:30px; }
+  .btn-accion{
+    display:inline-flex; align-items:center; gap:8px; border:none; border-radius:99px; padding:11px 22px;
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12.5px; cursor:pointer;
+    background:var(--verde); color:var(--texto-claro); transition:transform .15s, filter .2s;
+  }
+  .btn-accion:active{ transform:scale(.97); }
+  .btn-accion:hover{ filter:brightness(1.08); }
+  .btn-accion svg{ width:16px; height:16px; }
+  .cierre-wrap{ display:grid; grid-template-columns:1fr 1fr; gap:22px; height:100%; }
+  @media (max-width:780px){ .cierre-wrap{ grid-template-columns:1fr; } }
+  .marcador-final{ background:var(--verde); color:var(--texto-claro); border-radius:16px; padding:22px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; }
+  .marcador-moneda{ width:52px; height:52px; border-radius:50%; background:radial-gradient(circle at 32% 30%, #ffe9a8, var(--oro) 65%, #93761c 100%); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:700; font-size:20px; color:#4a3a0e; box-shadow:inset 0 -3px 5px rgba(0,0,0,.25), 0 3px 8px rgba(0,0,0,.35); margin-bottom:4px;}
+  .marcador-total{ font-family:'Fraunces',serif; font-weight:700; font-size:clamp(30px,4vw,46px); }
+  .marcador-rango{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--oro);}
+  .cierre-caja{ margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; background:#fff; border:1px solid var(--linea); border-radius:14px; padding:12px 16px;}
+  .cierre-caja p{ margin:2px 0 0; font-size:12.5px; color:#3a4f45; }
+  .rana-mascota{ width:26px; height:26px; flex-shrink:0; animation:ranaRespira 3.2s ease-in-out infinite; }
+  .rana-mascota svg{ width:100%; height:100%; display:block; }
+  .rana-cuerpo{ fill:#5EA35B; }
+  .rana-vientre{ fill:#EAE3C8; }
+  .rana-pata{ fill:#4A8A49; }
+  .rana-ojo{ fill:#EAE3C8; stroke:#3f7a40; stroke-width:.6; }
+  .rana-pupila{ fill:#132720; }
+  .rana-boca{ fill:none; stroke:#2f5c30; stroke-width:.9; stroke-linecap:round; }
+  @keyframes ranaRespira{ 0%,100%{ transform:translateY(0) scaleY(1); } 50%{ transform:translateY(-1.5px) scaleY(1.05); } }
+  .rana-mascota.rana-salta{ animation:ranaSalto .55s cubic-bezier(.3,1.6,.4,1); }
+  @keyframes ranaSalto{
+    0%{ transform:translateY(0) scaleX(1) scaleY(1); }
+    30%{ transform:translateY(-9px) scaleX(.9) scaleY(1.15); }
+    55%{ transform:translateY(-9px) scaleX(1) scaleY(1); }
+    75%{ transform:translateY(1px) scaleX(1.12) scaleY(.85); }
+    100%{ transform:translateY(0) scaleX(1) scaleY(1); }
+  }
+  .cuerpo-slide::-webkit-scrollbar{ width:8px; }
+  .cuerpo-slide::-webkit-scrollbar-thumb{ background:rgba(19,39,32,.18); border-radius:8px; }
+  @media (prefers-reduced-motion: reduce){
+    .brote, .hoja, .rana-mascota, .rana-mascota.rana-salta{ animation:none !important; opacity:0 !important; }
+    .rana-mascota{ opacity:1 !important; }
+    .slide{ transition:opacity .01s linear; }
+  }
+  @media (max-width:780px){
+    body{ padding:0; align-items:stretch; }
+    textarea{ font-size:16px; }
+    .nav-btn{ width:44px; height:44px; font-size:20px; }
+    .opcion, .btn-accion, .btn-pdf{ padding-top:12px; padding-bottom:12px; }
+    .dots{ display:none; }
+    .chrome-bottom{ justify-content:space-between; }
+    .contador{ position:static; font-size:13px; }
+    .hud-felipesos{ padding:6px 11px 6px 7px; }
+    .btn-pdf{ font-size:11px; }
+    h1{ font-size:clamp(26px,7vw,38px); }
+    h2{ font-size:clamp(19px,6vw,25px); }
+    .lead{ font-size:14px; }
+    .tarjeta, .aviso-caja{ padding:13px; }
+    .qr-inicio{ flex-direction:row; padding:9px 12px 9px 9px; }
+    .qr-inicio .qr-svg{ width:48px; height:48px; }
+    .esquema-flujo{ flex-direction:column; }
+    .esquema-flecha{ transform:rotate(90deg); }
+  }
+  @media (max-width:420px){
+    .bloom-header .pill{ font-size:9px; padding:4px 7px; }
+  }
+  .imprimible{ display:none; }
+  @media screen{ .imprimible{ display:none !important; } }
+  @media print{
+    @page{ margin:16mm; }
+    html,body{ background:#fff !important; padding:0; margin:0; height:auto; display:block; }
+    .deck{ display:none !important; }
+    .imprimible{ display:block !important; color:#132720; font-family:'Inter', sans-serif; font-size:11.5pt; line-height:1.45; }
+    .imprimible h1,.imprimible h2,.imprimible h3{ font-family:'Fraunces', serif; color:#1B4332; margin:0 0 8px; }
+    .imprimible h1{ font-size:22pt; }
+    .imprimible h2{ font-size:15pt; margin-top:0; border-bottom:1.5pt solid #C9A227; padding-bottom:4px; }
+    .imprimible h3{ font-size:12.5pt; margin-top:14px; color:#8f2c12; }
+    .imp-pagina{ page-break-after:always; padding-top:4mm; }
+    .imp-pagina:last-child{ page-break-after:auto; }
+    .imp-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:9pt; letter-spacing:.08em; text-transform:uppercase; color:#8f2c12; }
+    .imp-portada{ text-align:center; padding-top:60mm; }
+    .imp-portada p{ font-size:11pt; color:#3a4f45; }
+    .imp-lista{ margin:0 0 10px; padding-left:18px; }
+    .imp-lista li{ margin-bottom:4px; }
+    .imp-pregunta{ margin-bottom:12px; break-inside:avoid; }
+    .imp-enunciado{ font-weight:700; margin-bottom:4px; }
+    .imp-opciones{ list-style:none; margin:0; padding:0; }
+    .imp-opciones li{ margin-bottom:2px; }
+    .imp-opciones .letra{ display:inline-block; width:16px; height:16px; border:1px solid #132720; border-radius:50%; text-align:center; font-size:8.5pt; line-height:15px; margin-right:6px; }
+    .imp-respuesta-caja{ background:#EFE7D6; border-left:3px solid #1B4332; padding:6px 10px; margin-top:10px; font-size:10.5pt; }
+    .imp-clave{ font-weight:700; color:#1B4332; }
+    .imp-retro{ color:#3a4f45; font-style:italic; }
+    .imp-nota-docente{ background:#1B4332; color:#F6F1E7; padding:6px 10px; border-radius:6px; font-family:'IBM Plex Mono',monospace; font-size:9pt; text-transform:uppercase; letter-spacing:.05em; display:inline-block; margin-bottom:10px; }
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+  <div class="chrome-top"><div class="chrome-top-bar" id="barraProgreso"></div></div>
+  <div class="hud-felipesos" id="hud">
+    <span class="moneda">F$</span>
+    <span id="hudValor">0 Felipesos</span>
+  </div>
+  <button class="btn-pdf" id="btnPdf" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M15 3v4h4"/><path d="M8 13h1.6a1.4 1.4 0 010 2.8H8V13z"/><path d="M12.2 13v4.6h.9a2.3 2.3 0 000-4.6h-.9z"/><path d="M16.8 13H19M16.8 13v4.6M16.8 15.3H18.6"/></svg>
+    <span>Descargar PDF</span>
+  </button>
+  <button class="btn-sonido" id="btnSonido" type="button" aria-label="Silenciar sonidos" aria-pressed="false">
+    <svg class="icono-sonido-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10v4h4l5 4V6l-5 4H4z"/><path d="M16.5 9a4.5 4.5 0 010 6"/><path d="M19 6.5a8 8 0 010 11"/></svg>
+    <svg class="icono-sonido-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none;"><path d="M4 10v4h4l5 4V6l-5 4H4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>
+  </button>
+  <div class="slides" id="slides">
+
+    <!-- 0. PORTADA -->
+    <section class="slide slide--portada activa" data-titulo="Portada">
+      <div class="hero-terreno" aria-hidden="true">
+        <div class="textura-topo"></div>
+        <svg viewBox="0 0 800 260" preserveAspectRatio="none">
+          <polygon class="silueta-monte2" points="0,260 0,150 120,90 260,160 400,70 560,150 700,100 800,150 800,260"></polygon>
+          <polygon class="silueta-monte" points="0,260 0,190 150,140 300,200 480,120 650,190 800,160 800,260"></polygon>
+          <g class="silueta-bosque">
+            <rect x="70" y="200" width="6" height="38"/><ellipse cx="73" cy="195" rx="30" ry="24"/>
+            <rect x="190" y="190" width="6" height="48"/><ellipse cx="193" cy="182" rx="34" ry="27"/>
+            <rect x="330" y="205" width="6" height="33"/><ellipse cx="333" cy="200" rx="26" ry="21"/>
+            <rect x="460" y="185" width="6" height="53"/><ellipse cx="463" cy="176" rx="36" ry="29"/>
+            <rect x="590" y="200" width="6" height="38"/><ellipse cx="593" cy="195" rx="30" ry="24"/>
+            <rect x="710" y="195" width="6" height="43"/><ellipse cx="713" cy="188" rx="32" ry="26"/>
+          </g>
+        </svg>
+        <div id="capaBrotes"></div>
+        <div id="capaHojas"></div>
+      </div>
+      <div class="portada-contenido">
+        <span class="eyebrow marca">Biología de los Ecosistemas · 3° Medio · Unidad 3</span>
+        <h1>Sesión 6 — <em>de la evidencia a la acción</em></h1>
+        <p class="lead">Leemos y evaluamos fuentes sobre mitigación y adaptación al cambio climático — y empezamos a tejer, en el cuaderno, el mapa conceptual que conecta toda la unidad.</p>
+        <div class="portada-footer">Colegio San Agustín Villa Alemana</div>
+      </div>
+      <div class="qr-inicio">
+        <div class="qr-caja">
+          <svg class="qr-svg" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Código QR hacia el sitio del curso"><rect x="0" y="0" width="7" height="1"/><rect x="8" y="0" width="2" height="1"/><rect x="11" y="0" width="1" height="1"/><rect x="13" y="0" width="1" height="1"/><rect x="16" y="0" width="2" height="1"/><rect x="19" y="0" width="2" height="1"/><rect x="23" y="0" width="1" height="1"/><rect x="26" y="0" width="7" height="1"/><rect x="0" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="8" y="1" width="3" height="1"/><rect x="13" y="1" width="1" height="1"/><rect x="18" y="1" width="1" height="1"/><rect x="23" y="1" width="2" height="1"/><rect x="26" y="1" width="1" height="1"/><rect x="32" y="1" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="2" y="2" width="3" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="9" y="2" width="1" height="1"/><rect x="12" y="2" width="1" height="1"/><rect x="17" y="2" width="1" height="1"/><rect x="24" y="2" width="1" height="1"/><rect x="26" y="2" width="1" height="1"/><rect x="28" y="2" width="3" height="1"/><rect x="32" y="2" width="1" height="1"/><rect x="0" y="3" width="1" height="1"/><rect x="2" y="3" width="3" height="1"/><rect x="6" y="3" width="1" height="1"/><rect x="8" y="3" width="5" height="1"/><rect x="14" y="3" width="3" height="1"/><rect x="20" y="3" width="1" height="1"/><rect x="22" y="3" width="1" height="1"/><rect x="24" y="3" width="1" height="1"/><rect x="26" y="3" width="1" height="1"/><rect x="28" y="3" width="3" height="1"/><rect x="32" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="2" y="4" width="3" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="10" y="4" width="5" height="1"/><rect x="17" y="4" width="1" height="1"/><rect x="20" y="4" width="3" height="1"/><rect x="24" y="4" width="1" height="1"/><rect x="26" y="4" width="1" height="1"/><rect x="28" y="4" width="3" height="1"/><rect x="32" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="13" y="5" width="1" height="1"/><rect x="18" y="5" width="4" height="1"/><rect x="26" y="5" width="1" height="1"/><rect x="32" y="5" width="1" height="1"/><rect x="0" y="6" width="7" height="1"/><rect x="8" y="6" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="16" y="6" width="1" height="1"/><rect x="18" y="6" width="1" height="1"/><rect x="20" y="6" width="1" height="1"/><rect x="22" y="6" width="1" height="1"/><rect x="24" y="6" width="1" height="1"/><rect x="26" y="6" width="7" height="1"/><rect x="8" y="7" width="2" height="1"/><rect x="12" y="7" width="1" height="1"/><rect x="14" y="7" width="1" height="1"/><rect x="17" y="7" width="1" height="1"/><rect x="20" y="7" width="1" height="1"/><rect x="23" y="7" width="2" height="1"/><rect x="0" y="8" width="1" height="1"/><rect x="2" y="8" width="2" height="1"/><rect x="5" y="8" width="3" height="1"/><rect x="9" y="8" width="2" height="1"/><rect x="12" y="8" width="1" height="1"/><rect x="14" y="8" width="1" height="1"/><rect x="17" y="8" width="5" height="1"/><rect x="23" y="8" width="1" height="1"/><rect x="26" y="8" width="1" height="1"/><rect x="29" y="8" width="1" height="1"/><rect x="31" y="8" width="2" height="1"/><rect x="2" y="9" width="2" height="1"/><rect x="7" y="9" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/><rect x="11" y="9" width="1" height="1"/><rect x="14" y="9" width="1" height="1"/><rect x="16" y="9" width="1" height="1"/><rect x="18" y="9" width="4" height="1"/><rect x="23" y="9" width="1" height="1"/><rect x="26" y="9" width="2" height="1"/><rect x="29" y="9" width="2" height="1"/><rect x="32" y="9" width="1" height="1"/><rect x="0" y="10" width="2" height="1"/><rect x="3" y="10" width="2" height="1"/><rect x="6" y="10" width="3" height="1"/><rect x="11" y="10" width="1" height="1"/><rect x="14" y="10" width="1" height="1"/><rect x="16" y="10" width="2" height="1"/><rect x="23" y="10" width="3" height="1"/><rect x="27" y="10" width="3" height="1"/><rect x="31" y="10" width="2" height="1"/><rect x="0" y="11" width="1" height="1"/><rect x="5" y="11" width="1" height="1"/><rect x="8" y="11" width="1" height="1"/><rect x="10" y="11" width="1" height="1"/><rect x="13" y="11" width="2" height="1"/><rect x="16" y="11" width="1" height="1"/><rect x="18" y="11" width="3" height="1"/><rect x="22" y="11" width="1" height="1"/><rect x="24" y="11" width="4" height="1"/><rect x="29" y="11" width="1" height="1"/><rect x="31" y="11" width="2" height="1"/><rect x="1" y="12" width="1" height="1"/><rect x="3" y="12" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="8" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/><rect x="12" y="12" width="1" height="1"/><rect x="18" y="12" width="2" height="1"/><rect x="22" y="12" width="4" height="1"/><rect x="27" y="12" width="3" height="1"/><rect x="31" y="12" width="2" height="1"/><rect x="2" y="13" width="2" height="1"/><rect x="5" y="13" width="1" height="1"/><rect x="8" y="13" width="2" height="1"/><rect x="11" y="13" width="1" height="1"/><rect x="16" y="13" width="3" height="1"/><rect x="24" y="13" width="1" height="1"/><rect x="27" y="13" width="1" height="1"/><rect x="29" y="13" width="3" height="1"/><rect x="1" y="14" width="2" height="1"/><rect x="4" y="14" width="3" height="1"/><rect x="8" y="14" width="1" height="1"/><rect x="10" y="14" width="1" height="1"/><rect x="12" y="14" width="2" height="1"/><rect x="15" y="14" width="2" height="1"/><rect x="24" y="14" width="1" height="1"/><rect x="26" y="14" width="2" height="1"/><rect x="29" y="14" width="1" height="1"/><rect x="0" y="15" width="3" height="1"/><rect x="4" y="15" width="1" height="1"/><rect x="7" y="15" width="1" height="1"/><rect x="13" y="15" width="2" height="1"/><rect x="16" y="15" width="1" height="1"/><rect x="19" y="15" width="4" height="1"/><rect x="25" y="15" width="2" height="1"/><rect x="28" y="15" width="3" height="1"/><rect x="2" y="16" width="3" height="1"/><rect x="6" y="16" width="2" height="1"/><rect x="9" y="16" width="1" height="1"/><rect x="11" y="16" width="5" height="1"/><rect x="18" y="16" width="6" height="1"/><rect x="25" y="16" width="2" height="1"/><rect x="28" y="16" width="3" height="1"/><rect x="0" y="17" width="3" height="1"/><rect x="4" y="17" width="1" height="1"/><rect x="7" y="17" width="2" height="1"/><rect x="10" y="17" width="1" height="1"/><rect x="13" y="17" width="1" height="1"/><rect x="15" y="17" width="1" height="1"/><rect x="17" y="17" width="1" height="1"/><rect x="23" y="17" width="4" height="1"/><rect x="28" y="17" width="2" height="1"/><rect x="31" y="17" width="2" height="1"/><rect x="0" y="18" width="2" height="1"/><rect x="5" y="18" width="2" height="1"/><rect x="8" y="18" width="1" height="1"/><rect x="13" y="18" width="1" height="1"/><rect x="15" y="18" width="3" height="1"/><rect x="20" y="18" width="3" height="1"/><rect x="25" y="18" width="1" height="1"/><rect x="27" y="18" width="2" height="1"/><rect x="30" y="18" width="1" height="1"/><rect x="4" y="19" width="1" height="1"/><rect x="7" y="19" width="1" height="1"/><rect x="9" y="19" width="1" height="1"/><rect x="15" y="19" width="2" height="1"/><rect x="20" y="19" width="1" height="1"/><rect x="22" y="19" width="2" height="1"/><rect x="26" y="19" width="1" height="1"/><rect x="28" y="19" width="1" height="1"/><rect x="0" y="20" width="1" height="1"/><rect x="2" y="20" width="1" height="1"/><rect x="6" y="20" width="1" height="1"/><rect x="11" y="20" width="1" height="1"/><rect x="14" y="20" width="1" height="1"/><rect x="18" y="20" width="6" height="1"/><rect x="29" y="20" width="3" height="1"/><rect x="0" y="21" width="2" height="1"/><rect x="3" y="21" width="3" height="1"/><rect x="8" y="21" width="1" height="1"/><rect x="11" y="21" width="5" height="1"/><rect x="18" y="21" width="1" height="1"/><rect x="23" y="21" width="1" height="1"/><rect x="26" y="21" width="1" height="1"/><rect x="29" y="21" width="1" height="1"/><rect x="32" y="21" width="1" height="1"/><rect x="2" y="22" width="3" height="1"/><rect x="6" y="22" width="2" height="1"/><rect x="9" y="22" width="1" height="1"/><rect x="12" y="22" width="1" height="1"/><rect x="16" y="22" width="1" height="1"/><rect x="21" y="22" width="1" height="1"/><rect x="23" y="22" width="1" height="1"/><rect x="25" y="22" width="2" height="1"/><rect x="30" y="22" width="3" height="1"/><rect x="1" y="23" width="1" height="1"/><rect x="3" y="23" width="3" height="1"/><rect x="7" y="23" width="1" height="1"/><rect x="9" y="23" width="1" height="1"/><rect x="11" y="23" width="2" height="1"/><rect x="16" y="23" width="1" height="1"/><rect x="18" y="23" width="2" height="1"/><rect x="22" y="23" width="7" height="1"/><rect x="31" y="23" width="1" height="1"/><rect x="0" y="24" width="1" height="1"/><rect x="6" y="24" width="2" height="1"/><rect x="9" y="24" width="4" height="1"/><rect x="15" y="24" width="1" height="1"/><rect x="17" y="24" width="1" height="1"/><rect x="20" y="24" width="1" height="1"/><rect x="24" y="24" width="5" height="1"/><rect x="8" y="25" width="2" height="1"/><rect x="11" y="25" width="1" height="1"/><rect x="13" y="25" width="5" height="1"/><rect x="19" y="25" width="6" height="1"/><rect x="28" y="25" width="2" height="1"/><rect x="0" y="26" width="7" height="1"/><rect x="8" y="26" width="2" height="1"/><rect x="14" y="26" width="1" height="1"/><rect x="16" y="26" width="1" height="1"/><rect x="19" y="26" width="1" height="1"/><rect x="21" y="26" width="1" height="1"/><rect x="23" y="26" width="2" height="1"/><rect x="26" y="26" width="1" height="1"/><rect x="28" y="26" width="1" height="1"/><rect x="0" y="27" width="1" height="1"/><rect x="6" y="27" width="1" height="1"/><rect x="8" y="27" width="1" height="1"/><rect x="10" y="27" width="2" height="1"/><rect x="14" y="27" width="1" height="1"/><rect x="16" y="27" width="1" height="1"/><rect x="19" y="27" width="1" height="1"/><rect x="21" y="27" width="4" height="1"/><rect x="28" y="27" width="4" height="1"/><rect x="0" y="28" width="1" height="1"/><rect x="2" y="28" width="3" height="1"/><rect x="6" y="28" width="1" height="1"/><rect x="10" y="28" width="2" height="1"/><rect x="15" y="28" width="1" height="1"/><rect x="17" y="28" width="1" height="1"/><rect x="20" y="28" width="1" height="1"/><rect x="23" y="28" width="6" height="1"/><rect x="30" y="28" width="3" height="1"/><rect x="0" y="29" width="1" height="1"/><rect x="2" y="29" width="3" height="1"/><rect x="6" y="29" width="1" height="1"/><rect x="8" y="29" width="1" height="1"/><rect x="10" y="29" width="2" height="1"/><rect x="13" y="29" width="2" height="1"/><rect x="17" y="29" width="4" height="1"/><rect x="22" y="29" width="1" height="1"/><rect x="24" y="29" width="1" height="1"/><rect x="27" y="29" width="1" height="1"/><rect x="29" y="29" width="2" height="1"/><rect x="32" y="29" width="1" height="1"/><rect x="0" y="30" width="1" height="1"/><rect x="2" y="30" width="3" height="1"/><rect x="6" y="30" width="1" height="1"/><rect x="8" y="30" width="1" height="1"/><rect x="10" y="30" width="2" height="1"/><rect x="13" y="30" width="2" height="1"/><rect x="17" y="30" width="3" height="1"/><rect x="26" y="30" width="2" height="1"/><rect x="29" y="30" width="1" height="1"/><rect x="0" y="31" width="1" height="1"/><rect x="6" y="31" width="1" height="1"/><rect x="11" y="31" width="9" height="1"/><rect x="22" y="31" width="7" height="1"/><rect x="32" y="31" width="1" height="1"/><rect x="0" y="32" width="7" height="1"/><rect x="8" y="32" width="6" height="1"/><rect x="15" y="32" width="3" height="1"/><rect x="20" y="32" width="4" height="1"/><rect x="28" y="32" width="1" height="1"/><rect x="30" y="32" width="1" height="1"/></svg>
+        </div>
+        <div class="qr-texto"><strong>Escanea para seguir</strong>Todo el material del curso, en tu celular.</div>
+      </div>
+    </section>
+
+    <!-- 2. ESTRUCTURA -->
+    <section class="slide" data-titulo="Estructura">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Estructura de la sesión</span>
+        <h2>Lo que vamos a recorrer</h2>
+        <p class="lead" style="font-size:11.5px;">Hoy el cuaderno es protagonista: ten hojas, lápiz, regla y idealmente lápices de colores a mano.</p>
+      </div>
+      <div class="cuerpo-slide">
+        <ol class="agenda-lista">
+          <li><span>Repaso: surgencia costera, productividad y Corriente de Humboldt</span><span class="agenda-tag">5 min</span></li>
+          <li><span>Marco conceptual: mitigación y adaptación</span><span class="agenda-tag">10 min</span></li>
+          <li><span>Caso: Ley Marco de Cambio Climático y Estrategia de Hidrógeno Verde</span><span class="agenda-tag">10 min</span></li>
+          <li><span>Mirada crítica: evidencia vs. expectativa</span><span class="agenda-tag">5 min</span></li>
+          <li><span><strong>Abran su cuaderno</strong> — cómo construir un mapa conceptual</span><span class="agenda-tag">8 min</span></li>
+          <li><span><strong>Actividad:</strong> taller de lectura crítica en grupos</span><span class="agenda-tag">12 min</span></li>
+          <li><span><strong>Actividad de síntesis:</strong> mapa conceptual de la Unidad 3</span><span class="agenda-tag">15 min</span></li>
+          <li><span>Preguntas de análisis</span><span class="agenda-tag">8 min</span></li>
+          <li><span>Cierre y respaldo en PDF</span><span class="agenda-tag">4 min</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 2b. REPASO SESION 3 -->
+    <section class="slide" data-titulo="Repaso · Sesión 3 · 1">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Antes de seguir · repaso · 1 de 2</span>
+        <h2>Recordando la Sesión 3</h2>
+        <p class="lead" style="font-size:12px;">Toca cada tarjeta para refrescar la definición.</p>
+      </div>
+      <div class="cuerpo-slide grid-cards2">
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M4.2 12H2.2M21.8 12h-2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M17 7l1.4-1.4M5.6 18.4L7 17"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Surgencia costera</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>El viento que sopla paralelo a la costa desplaza el agua superficial mar adentro. Agua profunda, fría y rica en nutrientes asciende para reemplazarla.</p></div></div>
+        </div>
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21V10"/><path d="M12 10c0-4 3-6 6-6 0 4-2 6-6 6z"/><path d="M12 14c0-3-3-5-6-5 0 3 2 5 6 5z"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Productividad primaria</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>La cantidad de materia orgánica que producen organismos fotosintéticos —como el fitoplancton— a partir de luz solar y nutrientes. Es la base de toda la red trófica marina.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2c. REPASO SESION 3 (2 DE 2) -->
+    <section class="slide" data-titulo="Repaso · Sesión 3 · 2">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Antes de seguir · repaso · 2 de 2</span>
+        <h2>Recordando la Sesión 3</h2>
+      </div>
+      <div class="cuerpo-slide">
+        <div class="tarjeta tarjeta-desplegable tarjeta-desplegable--oscura" style="margin-bottom:14px;">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono concepto-icono--claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 15c3-5 7-6 9-6-1 2-1 3 0 4 2 0 6-1 9-5-1 6-6 10-11 10-3 0-5-1-7-3z"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3 style="color:#7a5f16;">Corriente de Humboldt</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Corriente marina fría que recorre la costa de Chile y Perú. Cubre menos del 1% de la superficie oceánica mundial, pero aporta entre el 10% y el 20% de la captura pesquera global gracias a la surgencia costera.</p></div></div>
+        </div>
+        <div class="tarjeta">
+          <p class="lead" style="font-size:11.5px; margin-bottom:10px;">Los tres conceptos son, en realidad, una sola cadena causal:</p>
+          <div class="proceso-flujo">
+            <div class="proceso-paso">
+              <div class="proceso-paso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 15c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M3 10c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/></svg></div>
+              <span>Viento costero</span>
+            </div>
+            <span class="proceso-flecha">→</span>
+            <div class="proceso-paso">
+              <div class="proceso-paso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M4.2 12H2.2M21.8 12h-2"/></svg></div>
+              <span>Surgencia costera</span>
+            </div>
+            <span class="proceso-flecha">→</span>
+            <div class="proceso-paso">
+              <div class="proceso-paso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21V10"/><path d="M12 10c0-4 3-6 6-6 0 4-2 6-6 6z"/></svg></div>
+              <span>Productividad primaria</span>
+            </div>
+            <span class="proceso-flecha">→</span>
+            <div class="proceso-paso">
+              <div class="proceso-paso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 15c3-5 7-6 9-6-1 2-1 3 0 4 2 0 6-1 9-5-1 6-6 10-11 10-3 0-5-1-7-3z"/></svg></div>
+              <span>Corriente de Humboldt rica en vida</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. MARCO CONCEPTUAL: MITIGACION VS ADAPTACION -->
+    <section class="slide" data-titulo="Marco conceptual · mitigación y adaptación">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Marco conceptual · 1 de 5</span>
+        <h2>Mitigación y adaptación</h2>
+        <p class="lead" style="font-size:12px;">Toca cada tarjeta para ver la definición completa.</p>
+      </div>
+      <div class="cuerpo-slide grid-cards2">
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v7"/><path d="M12 10l-6 11h12z"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Mitigación</h3><span class="despliegue-hint">Toca para ver la definición</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Acciones que atacan la <strong>causa</strong> del cambio climático: reducen las emisiones de GEI o aumentan la captura de carbono (ej. energías renovables, reforestación).</p></div></div>
+        </div>
+        <div class="tarjeta tarjeta-desplegable tarjeta-desplegable--oscura">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono concepto-icono--claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21c4-3 7-6.5 7-11a7 7 0 00-14 0c0 4.5 3 8 7 11z"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3 style="color:#7a5f16;">Adaptación</h3><span class="despliegue-hint">Toca para ver la definición</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Acciones que reducen la <strong>vulnerabilidad</strong> frente a los efectos del cambio climático que ya son inevitables (ej. sistemas de alerta temprana, gestión hídrica).</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3a2. ESQUEMA RAMIFICADO MITIGACION/ADAPTACION -->
+    <section class="slide" data-titulo="Esquema · mitigación y adaptación">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Esquema</span>
+        <h2>De un mismo problema, dos caminos de respuesta</h2>
+      </div>
+      <div class="cuerpo-slide" style="display:flex; align-items:center; justify-content:center;">
+        <div class="rama-caja" style="max-width:680px; width:100%;">
+          <svg viewBox="0 0 680 300" id="svgRamaMitAda"></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3b. MARCO CONCEPTUAL: ESTRATEGIAS DE MITIGACION -->
+    <section class="slide" data-titulo="Marco conceptual · mitigación 1">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Marco conceptual · 2 de 5</span>
+        <h2>Estrategias de mitigación (1 de 2)</h2>
+      </div>
+      <div class="cuerpo-slide grid-cards2">
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M4.2 12H2.2M21.8 12h-2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M17 7l1.4-1.4M5.6 18.4L7 17"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Energías renovables</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Solar, eólica e hidráulica reemplazan combustibles fósiles en la generación eléctrica, reduciendo emisiones directas.</p></div></div>
+        </div>
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M8 6h5.5a2.5 2.5 0 010 5H8m0 0h6.5a2.5 2.5 0 010 5H8"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Hidrógeno verde</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Se produce con electricidad renovable; sustituye combustibles fósiles en industria y transporte pesado, sectores difíciles de electrificar directamente.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3b2. MARCO CONCEPTUAL: ESTRATEGIAS DE MITIGACION (2 DE 2) -->
+    <section class="slide" data-titulo="Marco conceptual · mitigación 2">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Marco conceptual · 3 de 5</span>
+        <h2>Estrategias de mitigación (2 de 2)</h2>
+      </div>
+      <div class="cuerpo-slide grid-cards2">
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21V10"/><path d="M12 10c0-4 3-6 6-6 0 4-2 6-6 6z"/><path d="M12 14c0-3-3-5-6-5 0 3 2 5 6 5z"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Reforestación nativa</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Los bosques capturan CO₂ mediante fotosíntesis. Reforestar con especies nativas —como en Lago Peñuelas— es captura de carbono además de recuperación de biodiversidad.</p></div></div>
+        </div>
+        <div class="tarjeta tarjeta-desplegable tarjeta-desplegable--oscura">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono concepto-icono--claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h7l-1 8 11-14h-7z"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3 style="color:#7a5f16;">Eficiencia energética</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Usar menos energía para lograr el mismo resultado (aislación térmica, electrodomésticos eficientes) reduce emisiones sin depender de nueva tecnología.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3c. MARCO CONCEPTUAL: ESTRATEGIAS DE ADAPTACION -->
+    <section class="slide" data-titulo="Marco conceptual · adaptación 1">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Marco conceptual · 4 de 5</span>
+        <h2>Estrategias de adaptación (1 de 2)</h2>
+      </div>
+      <div class="cuerpo-slide grid-cards2">
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Alerta temprana</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Sistemas que anticipan incendios, olas de calor o marejadas, dando tiempo para evacuar o proteger recursos antes del evento extremo.</p></div></div>
+        </div>
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c1 3-3 4-3 8a5 5 0 0010 0c0-2-1-3-2-4 0 2-1 3-2 2 1-3-1-4-3-6z"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Cultivos resistentes</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Variedades vegetales seleccionadas o mejoradas para tolerar sequía o suelos salinos, sosteniendo la producción agrícola pese a la megasequía.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3c2. MARCO CONCEPTUAL: ESTRATEGIAS DE ADAPTACION (2 DE 2) -->
+    <section class="slide" data-titulo="Marco conceptual · adaptación 2">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Marco conceptual · 5 de 5</span>
+        <h2>Estrategias de adaptación (2 de 2)</h2>
+      </div>
+      <div class="cuerpo-slide grid-cards2">
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 19c2-3 10-3 12 0"/><path d="M12 3c1 3-2 4-2 7a2 2 0 004 0c0-3-1-4-2-7z"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Gestión hídrica</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Embalses, reúso de aguas y riego eficiente para enfrentar la megasequía que vimos en la sesión 5, repartiendo mejor un recurso cada vez más escaso.</p></div></div>
+        </div>
+        <div class="tarjeta tarjeta-desplegable tarjeta-desplegable--oscura">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono concepto-icono--claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-6h6v6"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3 style="color:#7a5f16;">Infraestructura verde</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Áreas verdes urbanas y humedales que absorben calor y agua de lluvia, reduciendo islas de calor e inundaciones en las ciudades.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CASO: LEY MARCO -->
+    <section class="slide" data-titulo="Caso · Ley Marco de Cambio Climático">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Caso · 1 de 2</span>
+        <h2>La Ley Marco de Cambio Climático</h2>
+        <p class="lead" style="font-size:12px;">Toca cada punto de la línea de tiempo para ver qué ocurrió.</p>
+      </div>
+      <div class="cuerpo-slide linea-tiempo" id="lineaTiempoLey"></div>
+    </section>
+
+    <!-- 5. CASO: HIDROGENO VERDE -->
+    <section class="slide" data-titulo="Caso · Hidrógeno Verde">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Caso · 2 de 2</span>
+        <h2>Estrategia Nacional de Hidrógeno Verde</h2>
+      </div>
+      <div class="cuerpo-slide">
+        <div class="stat-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px;">
+          <div class="tarjeta"><div style="font-family:'Fraunces',serif; font-weight:700; font-size:22px; color:var(--ascua);">2020</div><div style="font-size:11px; color:#3a4f45; margin-top:4px;">Chile publica su primera Estrategia Nacional de Hidrógeno Verde.</div></div>
+          <div class="tarjeta"><div style="font-family:'Fraunces',serif; font-weight:700; font-size:22px; color:var(--ascua);">1.800 GW</div><div style="font-size:11px; color:#3a4f45; margin-top:4px;">Potencial energético renovable estimado del país, muy por sobre su demanda interna.</div></div>
+          <div class="tarjeta"><div style="font-family:'Fraunces',serif; font-weight:700; font-size:22px; color:var(--ascua);">81</div><div style="font-size:11px; color:#3a4f45; margin-top:4px;">Medidas del Plan de Acción de Hidrógeno Verde 2023-2030 para acelerar la descarbonización.</div></div>
+        </div>
+        <div class="tarjeta" style="margin-bottom:12px;">
+          <p class="lead" style="font-size:12px; margin-bottom:10px;">¿Cómo se produce? La idea: usar el enorme potencial solar y eólico de Chile (especialmente en el norte) para producir hidrógeno sin emisiones, y sustituir combustibles fósiles en sectores difíciles de electrificar directamente.</p>
+          <div class="proceso-flujo">
+            <div class="proceso-paso">
+              <div class="proceso-paso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M4.2 12H2.2M21.8 12h-2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M17 7l1.4-1.4M5.6 18.4L7 17"/></svg></div>
+              <span>Energía solar y eólica</span>
+            </div>
+            <span class="proceso-flecha">→</span>
+            <div class="proceso-paso">
+              <div class="proceso-paso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M8 6h5.5a2.5 2.5 0 010 5H8m0 0h6.5a2.5 2.5 0 010 5H8"/></svg></div>
+              <span>Electrólisis del agua</span>
+            </div>
+            <span class="proceso-flecha">→</span>
+            <div class="proceso-paso">
+              <div class="proceso-paso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3a3 3 0 006 0M9 3v5.5L4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4l-5-6.5V3"/></svg></div>
+              <span>Hidrógeno verde (H₂)</span>
+            </div>
+            <span class="proceso-flecha">→</span>
+            <div class="proceso-paso">
+              <div class="proceso-paso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h1.5l1.5-5h8l1.5 5H19"/><rect x="3" y="17" width="18" height="4" rx="1.4"/><circle cx="8" cy="21" r="1.2" fill="currentColor" stroke="none"/><circle cx="16" cy="21" r="1.2" fill="currentColor" stroke="none"/></svg></div>
+              <span>Sustituye combustibles fósiles</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. MIRADA CRITICA -->
+    <section class="slide" data-titulo="Mirada crítica">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Evidencia vs. interpretación</span>
+        <h2>¿Estrategia real o "industria PowerPoint"?</h2>
+      </div>
+      <div class="cuerpo-slide">
+        <div class="aviso-caja">
+          <div class="aviso-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.5-4.5"/></svg></div>
+          <div>
+            <span class="eyebrow" style="color:#8f2c12;">Una fuente periodística reciente advierte</span>
+            <p>Hasta ahora, la mayoría de los proyectos de hidrógeno verde en Chile no cuenta con plantas industriales operativas, ductos ni demanda consolidada. Un ingeniero civil mecánico los describe como una "industria PowerPoint": muchas presentaciones y anuncios, poca infraestructura construida.</p>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <p class="lead" style="font-size:12.5px;"><strong>Esto no significa que la estrategia sea falsa o inútil</strong> — significa que hay que distinguir entre la <strong>evidencia</strong> (el potencial renovable de Chile, medido en GW, es un dato real) y la <strong>interpretación o expectativa</strong> (que ese potencial se traducirá en una industria consolidada es, todavía, una proyección a confirmar). Exactamente la habilidad que practicamos con fuentes en la sesión 5.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. DIVISOR: ABRAN SU CUADERNO -->
+    <section class="slide slide--divisor" data-titulo="Divisor cuaderno">
+      <div class="divisor-icono">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h13a2 2 0 012 2v14H6a2 2 0 01-2-2V4z"/><path d="M4 4v16"/><path d="M9 9h7M9 13h7M9 17h4"/></svg>
+      </div>
+      <span class="eyebrow">De aquí en adelante</span>
+      <h1 style="margin-top:10px;">Abran su cuaderno</h1>
+      <p class="lead">Desde esta diapositiva, el trabajo principal ocurre en papel: esquemas, tablas y —sobre todo— el mapa conceptual que va a conectar toda la Unidad 3. La pantalla guía; el cuaderno construye.</p>
+      <span class="pill pill--oro" style="margin-top:16px; background:rgba(201,162,39,.18); color:var(--oro); border-color:rgba(201,162,39,.5);">OA 4 · Habilidad OA h</span>
+    </section>
+
+    <!-- 8. COMO SE CONSTRUYE UN MAPA CONCEPTUAL -->
+    <section class="slide" data-titulo="Cómo se construye un mapa conceptual 1">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Metodología · 1 de 2</span>
+        <h2>¿Cómo se construye un mapa conceptual?</h2>
+      </div>
+      <div class="cuerpo-slide grid-cards2">
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="9" width="16" height="6" rx="2"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Concepto</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Una palabra o frase corta que representa una idea. Va dentro de un óvalo o recuadro (ej. "resiliencia", "hidrógeno verde").</p></div></div>
+        </div>
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h16"/><path d="M14 6l6 6-6 6"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Palabra de enlace</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Un verbo o frase corta sobre la línea que conecta dos conceptos (ej. "genera", "depende de", "se mide con").</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8b. COMO SE CONSTRUYE UN MAPA CONCEPTUAL (2 DE 2) -->
+    <section class="slide" data-titulo="Cómo se construye un mapa conceptual 2">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Metodología · 2 de 2</span>
+        <h2>¿Cómo se construye un mapa conceptual?</h2>
+      </div>
+      <div class="cuerpo-slide grid-cards2">
+        <div class="tarjeta tarjeta-desplegable">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="9" width="7" height="5"/><rect x="14" y="9" width="7" height="5"/><path d="M10 11.5h4"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3>Proposición</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Concepto + palabra de enlace + concepto = una unidad de significado completa (ej. "GEI → intensifican → efecto invernadero").</p></div></div>
+        </div>
+        <div class="tarjeta tarjeta-desplegable tarjeta-desplegable--oscura">
+          <button class="despliegue-cabecera" type="button" aria-expanded="false">
+            <div class="concepto-icono concepto-icono--claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="12" r="2.4"/><circle cx="8" cy="18" r="2.4"/><path d="M8 8l8 3M8 16l8-3"/></svg></div>
+            <div class="despliegue-titulo-caja"><h3 style="color:#7a5f16;">Enlace cruzado</h3><span class="despliegue-hint">Toca para ver más</span></div>
+            <svg class="despliegue-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="despliegue-cuerpo"><div class="despliegue-contenido"><p>Una línea que conecta conceptos de ramas distintas del mapa. Es lo más valioso hoy: mostrar cómo se relacionan ideas de sesiones diferentes.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. EJEMPLO MODELO -->
+    <section class="slide" data-titulo="Ejemplo modelo de mapa conceptual">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Ejemplo modelo</span>
+        <h2>Así se ve un mapa conceptual simple</h2>
+        <p class="lead" style="font-size:12px;">Un ejemplo fuera de esta unidad, solo para calibrar la técnica.</p>
+      </div>
+      <div class="cuerpo-slide" style="display:flex; align-items:center; justify-content:center;">
+        <div class="mapa-caja" style="max-width:640px; width:100%;">
+          <svg viewBox="0 0 640 300" id="svgEjemploMapa"></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. PAUTA DE TRABAJO -->
+    <section class="slide" data-titulo="Pauta de trabajo">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Pauta de trabajo</span>
+        <h2>La actividad de síntesis, paso a paso</h2>
+      </div>
+      <div class="cuerpo-slide">
+        <ol class="pasos-actividad">
+          <li><strong>En una hoja nueva de tu cuaderno,</strong> escribe el título "Unidad 3: cambio climático y resiliencia de ecosistemas" en el centro, dentro de un recuadro.</li>
+          <li><strong>Revisa el banco de conceptos</strong> (próxima diapositiva) y elige al menos <strong>12 conceptos</strong>, tomados de al menos <strong>4 sesiones distintas</strong> de esta unidad.</li>
+          <li><strong>Organiza por jerarquía:</strong> los conceptos más generales van arriba, cerca del título; los más específicos, abajo.</li>
+          <li><strong>Conecta con palabras de enlace</strong> sobre cada línea — sin palabra de enlace, no es una proposición válida.</li>
+          <li><strong>Traza al menos 3 enlaces cruzados</strong> entre conceptos de sesiones distintas (ej. entre "resiliencia" de la sesión 4 y "mitigación" de hoy).</li>
+          <li><strong>Usa lápices de colores</strong> si tienes: un color por sesión ayuda a visualizar de dónde viene cada concepto.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 11. BANCO DE CONCEPTOS -->
+    <section class="slide" data-titulo="Banco de conceptos">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Insumo para el mapa</span>
+        <h2>Banco de conceptos de la Unidad 3</h2>
+      </div>
+      <div class="cuerpo-slide" id="bancoConceptos"></div>
+    </section>
+
+    <!-- 12. TALLER LECTURA CRITICA: INSTRUCCIONES -->
+    <section class="slide" data-titulo="Taller de lectura crítica">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Actividad grupal</span>
+        <h2>Taller de lectura crítica</h2>
+      </div>
+      <div class="cuerpo-slide">
+        <ol class="pasos-actividad" style="margin-bottom:14px;">
+          <li><strong>Formen grupos de 3 a 4 personas.</strong> Cada grupo revisa las tres fuentes de esta diapositiva (pueden buscarlas en internet si tienen conexión).</li>
+          <li><strong>Para cada fuente,</strong> identifiquen: tipo de fuente, si describe mitigación o adaptación, un dato o cifra clave, y su nivel de confiabilidad (según los criterios de la sesión 5).</li>
+          <li><strong>Registren todo en la tabla</strong> de la próxima diapositiva, copiada en su cuaderno.</li>
+        </ol>
+        <div class="grid-cards3" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+          <div class="tarjeta fuente-tarjeta">
+            <span class="fuente-etiqueta">Fuente 1 · Ley</span>
+            <p class="fuente-cita">Ley Marco de Cambio Climático (Ley 21.455, 2022) — Biblioteca del Congreso Nacional.</p>
+          </div>
+          <div class="tarjeta fuente-tarjeta">
+            <span class="fuente-etiqueta">Fuente 2 · Estrategia</span>
+            <p class="fuente-cita">Estrategia Nacional de Hidrógeno Verde (Ministerio de Energía, 2020, actualizada 2026).</p>
+          </div>
+          <div class="tarjeta fuente-tarjeta">
+            <span class="fuente-etiqueta">Fuente 3 · Reportaje</span>
+            <p class="fuente-cita">Reportaje crítico sobre el estado real de los proyectos de hidrógeno verde (Mongabay, 2025).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. TABLA PLANTILLA -->
+    <section class="slide" data-titulo="Tabla a construir">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Para copiar en tu cuaderno</span>
+        <h2>Tabla comparativa de fuentes</h2>
+      </div>
+      <div class="cuerpo-slide">
+        <table class="tabla-plantilla">
+          <tr><th>Fuente</th><th>Tipo de fuente</th><th>¿Mitigación o adaptación?</th><th>Dato o cifra clave</th><th>Confiabilidad</th></tr>
+          <tr><td>Ley 21.455</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+          <tr><td>Estrategia H2V</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+          <tr><td>Reportaje crítico</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+        </table>
+        <label class="check-cuaderno" id="checkTabla" style="margin-top:16px;">
+          <input type="checkbox" id="inputCheckTabla">
+          <span>Ya copié y completé esta tabla en mi cuaderno</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- 14. ESQUEMA PLANTILLA -->
+    <section class="slide" data-titulo="Esquema a construir">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Para dibujar en tu cuaderno</span>
+        <h2>Esquema: de la evidencia a la acción</h2>
+        <p class="lead" style="font-size:12px;">Complétalo con una de las estrategias vistas hoy.</p>
+      </div>
+      <div class="cuerpo-slide" style="display:flex; flex-direction:column; justify-content:center;">
+        <div class="esquema-flujo">
+          <div class="esquema-caja">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:20px;height:20px;margin-bottom:4px;"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.5-4.5"/></svg>
+            <div>Evidencia científica</div>
+          </div>
+          <span class="esquema-flecha">→</span>
+          <div class="esquema-caja esquema-caja--vacia">¿qué la respalda?</div>
+          <span class="esquema-flecha">→</span>
+          <div class="esquema-caja">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:20px;height:20px;margin-bottom:4px;"><path d="M4 21V10l8-6 8 6v11"/><path d="M9 21v-6h6v6"/></svg>
+            <div>Política o tecnología</div>
+          </div>
+          <span class="esquema-flecha">→</span>
+          <div class="esquema-caja esquema-caja--vacia">¿mitigación o adaptación?</div>
+          <span class="esquema-flecha">→</span>
+          <div class="esquema-caja">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:20px;height:20px;margin-bottom:4px;"><path d="M12 21V10"/><path d="M12 10c0-4 3-6 6-6 0 4-2 6-6 6z"/><path d="M12 14c0-3-3-5-6-5 0 3 2 5 6 5z"/></svg>
+            <div>Efecto esperado</div>
+          </div>
+        </div>
+        <label class="check-cuaderno" id="checkEsquema" style="margin-top:26px; max-width:480px; margin-left:auto; margin-right:auto;">
+          <input type="checkbox" id="inputCheckEsquema">
+          <span>Ya dibujé y completé este esquema en mi cuaderno</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- 15. CHECKLIST MAPA CONCEPTUAL -->
+    <section class="slide" data-titulo="Mapa conceptual de síntesis">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Actividad de síntesis</span>
+        <h2>Tu mapa conceptual de la Unidad 3</h2>
+      </div>
+      <div class="cuerpo-slide">
+        <div class="tarjeta" style="margin-bottom:16px;">
+          <p class="lead" style="font-size:12.5px;">Con el banco de conceptos y la pauta ya revisados, construye ahora tu mapa conceptual completo en el cuaderno. Recuerda: mínimo 12 conceptos, al menos 4 sesiones distintas, y al menos 3 enlaces cruzados.</p>
+        </div>
+        <label class="check-cuaderno" id="checkMapa">
+          <input type="checkbox" id="inputCheckMapa">
+          <span>Ya construí mi mapa conceptual de síntesis en el cuaderno</span>
+        </label>
+        <label class="check-cuaderno" id="checkReflexion">
+          <input type="checkbox" id="inputCheckReflexion">
+          <span>Ya respondí por escrito: ¿qué estrategia —mitigación o adaptación— te parece más urgente priorizar en Chile hoy, y por qué?</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- 16. PREGUNTAS ANALISIS 1 -->
+    <section class="slide" data-titulo="Preguntas de análisis · 1">
+      <div class="cabecera-slide">
+        <div class="bloom-header">
+          <span class="eyebrow">Preguntas de análisis</span>
+          <span class="pill pill--cielo">1 de 2</span>
+          <span class="pill pill--oro">+35 Felipesos c/u</span>
+        </div>
+        <h2>Mitigación y adaptación</h2>
+      </div>
+      <div class="cuerpo-slide" id="bloqueAnalisis1"></div>
+    </section>
+
+    <!-- 17. PREGUNTAS ANALISIS 2 -->
+    <section class="slide" data-titulo="Preguntas de análisis · 2">
+      <div class="cabecera-slide">
+        <div class="bloom-header">
+          <span class="eyebrow">Preguntas de análisis</span>
+          <span class="pill pill--cielo">2 de 2</span>
+          <span class="pill pill--oro">+35 Felipesos c/u</span>
+        </div>
+        <h2>Fuentes y mapas conceptuales</h2>
+      </div>
+      <div class="cuerpo-slide" id="bloqueAnalisis2"></div>
+    </section>
+
+    <!-- 18. RESPALDO PDF -->
+    <section class="slide" data-titulo="Respaldo en PDF">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Recurso final</span>
+        <h2>Guarda esta guía</h2>
+      </div>
+      <div class="cuerpo-slide" style="display:flex; align-items:center; justify-content:center;">
+        <div class="tarjeta respaldo-caja">
+          <div class="respaldo-icono">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3h9l4 4v14a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M15 3v4h4"/><path d="M9 13h6M9 16.5h6M9 9.5h2"/></svg>
+          </div>
+          <h3>Descarga el compilado de la sesión</h3>
+          <p class="lead" style="font-size:13px;">Un PDF con el compilado de contenidos, la pauta de trabajo, el banco de conceptos, las tres fuentes, la tabla y el esquema en blanco, el banco de preguntas y la hoja de respuestas para tu profesor.</p>
+          <button class="btn-accion" id="btnPdf2" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>
+            Descargar PDF
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 19. CIERRE -->
+    <section class="slide" data-titulo="Cierre">
+      <div class="cabecera-slide">
+        <span class="eyebrow">Cierre</span>
+        <h2>Marcador final</h2>
+      </div>
+      <div class="cuerpo-slide cierre-wrap">
+        <div class="marcador-final">
+          <span class="marcador-moneda">F$</span>
+          <span class="marcador-total" id="marcadorTotal">0</span>
+          <span class="lead" style="color:#d9e6dd; font-size:12px;">Felipesos ganados hoy</span>
+          <span class="marcador-rango" id="marcadorRango">Observador/a novato/a</span>
+        </div>
+        <div>
+          <p class="pregunta-enunciado" style="font-size:13.5px;">Exit ticket, en tu cuaderno: dibuja un solo enlace cruzado nuevo que se te ocurra entre dos conceptos de sesiones distintas, y compártelo con tu compañero o compañera de banco.</p>
+          <div class="cierre-caja">
+            <div>
+              <strong style="font-size:12.5px; color:var(--verde);">Próxima sesión</strong>
+              <p>Diseñaremos, a partir de la evidencia reunida, una propuesta tecnológica o comunicacional frente al cambio climático.</p>
+            </div>
+            <span class="pill pill--oro">OA 4 · Habilidad OA g</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="chrome-bottom">
+    <button class="nav-btn" id="btnPrev" aria-label="Diapositiva anterior">‹</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="btnNext" aria-label="Siguiente diapositiva">›</button>
+  </div>
+  <div style="position:absolute; bottom:10px; right:clamp(16px,3vw,34px); z-index:6; display:flex; align-items:center; gap:7px;">
+    <div class="rana-mascota" id="ranaMascota" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <ellipse class="rana-pata" cx="5" cy="18.5" rx="2.6" ry="1.8"/>
+        <ellipse class="rana-pata" cx="19" cy="18.5" rx="2.6" ry="1.8"/>
+        <ellipse class="rana-cuerpo" cx="12" cy="15" rx="8.2" ry="6.2"/>
+        <ellipse class="rana-vientre" cx="12" cy="17" rx="4.6" ry="3"/>
+        <circle class="rana-ojo" cx="7.6" cy="8.6" r="3"/>
+        <circle class="rana-ojo" cx="16.4" cy="8.6" r="3"/>
+        <circle class="rana-pupila" cx="7.6" cy="8.6" r="1.15"/>
+        <circle class="rana-pupila" cx="16.4" cy="8.6" r="1.15"/>
+        <path class="rana-boca" d="M8 16.5q4 3 8 0"/>
+      </svg>
+    </div>
+    <span class="contador" id="contador">01 / 27</span>
+  </div>
+</div>
+
+<div class="imprimible" id="imprimible"></div>
+
+<script>
+(function(){
+
+  /* ============ Motor de sonido (tonos sintetizados, sin archivos externos) ============ */
+  var sonidoActivado = true;
+  var audioCtx = null;
+  var ACtor = window.AudioContext || window.webkitAudioContext;
+
+  function obtenerAudioCtx(){
+    if(!ACtor) return null;
+    if(!audioCtx){ audioCtx = new ACtor(); }
+    if(audioCtx.state === "suspended"){ audioCtx.resume(); }
+    return audioCtx;
+  }
+
+  function tono(frecuencia, duracion, tipo, volumen, demora){
+    if(!sonidoActivado) return;
+    var ctx = obtenerAudioCtx();
+    if(!ctx) return;
+    try{
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = tipo || "sine";
+      osc.frequency.value = frecuencia;
+      var inicio = ctx.currentTime + (demora || 0);
+      gain.gain.setValueAtTime(0.0001, inicio);
+      gain.gain.exponentialRampToValueAtTime(volumen || 0.1, inicio + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, inicio + duracion);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(inicio);
+      osc.stop(inicio + duracion + 0.02);
+    } catch(err){ /* Web Audio no disponible: se ignora silenciosamente */ }
+  }
+
+  function sonidoDesplegar(abrir){ tono(abrir ? 540 : 400, 0.11, "sine", 0.09); }
+  function sonidoNavegar(){ tono(340, 0.08, "triangle", 0.07); }
+  function sonidoCorrecto(){ tono(660, 0.11, "sine", 0.11); tono(880, 0.16, "sine", 0.11, 0.09); }
+  function sonidoIncorrecto(){ tono(190, 0.26, "sawtooth", 0.06); }
+  function sonidoAccion(){ tono(480, 0.09, "sine", 0.08); }
+
+  var btnSonido = document.getElementById("btnSonido");
+  var iconoSonidoOn = btnSonido.querySelector(".icono-sonido-on");
+  var iconoSonidoOff = btnSonido.querySelector(".icono-sonido-off");
+  btnSonido.addEventListener("click", function(){
+    sonidoActivado = !sonidoActivado;
+    btnSonido.setAttribute("aria-pressed", sonidoActivado ? "false" : "true");
+    iconoSonidoOn.style.display = sonidoActivado ? "" : "none";
+    iconoSonidoOff.style.display = sonidoActivado ? "none" : "";
+    if(sonidoActivado){ tono(500, 0.09, "sine", 0.09); }
+  });
+
+  /* ============ FELIPESOS: economía del juego ============ */
+  var felipesos = 0;
+  var hud = document.getElementById("hud");
+  var hudValor = document.getElementById("hudValor");
+
+  function otorgarFelipesos(cantidad, origenEl){
+    felipesos += cantidad;
+    hudValor.textContent = felipesos + " Felipesos";
+    hud.classList.remove("pulso");
+    void hud.offsetWidth;
+    hud.classList.add("pulso");
+    if(origenEl){
+      var rect = origenEl.getBoundingClientRect();
+      var deckRect = document.getElementById("deck").getBoundingClientRect();
+      var flot = document.createElement("div");
+      flot.className = "flotante";
+      flot.textContent = "+" + cantidad;
+      flot.style.left = (rect.left - deckRect.left + rect.width/2 - 10) + "px";
+      flot.style.top = (rect.top - deckRect.top - 6) + "px";
+      document.getElementById("deck").appendChild(flot);
+      setTimeout(function(){ flot.remove(); }, 1000);
+    }
+    actualizarCierre();
+  }
+
+  /* ============ Ejemplo modelo de mapa conceptual (SVG) ============ */
+  var svgNS = "http://www.w3.org/2000/svg";
+  var svgEjemplo = document.getElementById("svgEjemploMapa");
+
+  function nodoMapa(cx, cy, w, h, texto, raiz){
+    var g = document.createElementNS(svgNS, "g");
+    g.setAttribute("class", "mc-nodo" + (raiz ? " mc-nodo--raiz" : ""));
+    var r = document.createElementNS(svgNS, "rect");
+    r.setAttribute("x", cx - w/2); r.setAttribute("y", cy - h/2);
+    r.setAttribute("width", w); r.setAttribute("height", h);
+    r.setAttribute("rx", 10);
+    g.appendChild(r);
+    var t = document.createElementNS(svgNS, "text");
+    t.setAttribute("x", cx); t.setAttribute("y", cy + 4.5);
+    t.setAttribute("text-anchor", "middle");
+    t.textContent = texto;
+    g.appendChild(t);
+    svgEjemplo.appendChild(g);
+    return { cx:cx, cy:cy, w:w, h:h };
+  }
+  function enlaceMapa(a, b, etiqueta){
+    var l = document.createElementNS(svgNS, "line");
+    l.setAttribute("class", "mc-enlace");
+    l.setAttribute("x1", a.cx); l.setAttribute("y1", a.cy + a.h/2);
+    l.setAttribute("x2", b.cx); l.setAttribute("y2", b.cy - b.h/2);
+    svgEjemplo.appendChild(l);
+    var mx = (a.cx + b.cx)/2, my = (a.cy + a.h/2 + b.cy - b.h/2)/2;
+    var t = document.createElementNS(svgNS, "text");
+    t.setAttribute("class", "mc-etiqueta");
+    t.setAttribute("x", mx); t.setAttribute("y", my - 5);
+    t.setAttribute("text-anchor", "middle");
+    t.textContent = etiqueta;
+    svgEjemplo.appendChild(t);
+  }
+
+  var nA = nodoMapa(320, 28, 190, 36, "SISTEMA SOLAR", true);
+  var nB = nodoMapa(150, 140, 150, 36, "el Sol");
+  var nC = nodoMapa(490, 140, 170, 36, "los planetas");
+  var nD = nodoMapa(410, 250, 130, 36, "rocosos");
+  var nE = nodoMapa(570, 250, 130, 36, "gaseosos");
+  enlaceMapa(nA, nB, "está compuesto por");
+  enlaceMapa(nA, nC, "y por");
+  enlaceMapa(nC, nD, "se clasifican en");
+  enlaceMapa(nC, nE, "");
+
+  /* ============ Línea de tiempo: Ley Marco de Cambio Climático ============ */
+  var iconosHitoLey = {
+    anuncio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>',
+    congreso: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21V10a1 1 0 011-1h14a1 1 0 011 1v11"/><path d="M9 21v-5h6v5M4 10l8-6 8 6"/></svg>',
+    ley: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M6 8l-3 5a3 3 0 006 0zM18 8l-3 5a3 3 0 006 0zM5 8h14"/></svg>',
+    instrumentos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="9" width="16" height="6" rx="2"/><path d="M4 9V6a2 2 0 012-2h12a2 2 0 012 2v3"/></svg>',
+    revision: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>',
+    meta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>'
+  };
+  var hitosLey = [
+    { anio:"2019", icono:"anuncio", texto:"En la COP25, Chile anuncia que ingresará al Congreso el proyecto de Ley Marco de Cambio Climático." },
+    { anio:"Mar. 2022", icono:"congreso", texto:"El Congreso Nacional despacha por unanimidad la Ley Marco de Cambio Climático." },
+    { anio:"Jun. 2022", icono:"ley", texto:"Se publica en el Diario Oficial la Ley 21.455: Chile, primer país en desarrollo en fijar por ley la meta de carbono neutralidad." },
+    { anio:"2022–26", icono:"instrumentos", texto:"Se implementan instrumentos: la NDC, la Estrategia Climática de Largo Plazo, y obligaciones concretas para 17 ministerios." },
+    { anio:"Cada 5 años", icono:"revision", texto:"La meta se revisa periódicamente y podría adelantarse si la evidencia científica lo respalda." },
+    { anio:"2050", icono:"meta", texto:"Meta legal: Chile debe ser carbono neutral y resiliente al clima, como máximo, este año." }
+  ];
+  var lineaTiempoLey = document.getElementById("lineaTiempoLey");
+  var pistaLey = document.createElement("div");
+  pistaLey.className = "lt-pista";
+  pistaLey.innerHTML = '<div class="lt-progreso" id="ltProgresoLey"></div><div class="lt-nodos" id="ltNodosLey"></div>';
+  var etiquetasLey = document.createElement("div");
+  etiquetasLey.className = "lt-etiquetas";
+  var detalleLey = document.createElement("div");
+  detalleLey.className = "lt-detalle";
+  detalleLey.innerHTML = '<div class="lt-detalle-cabecera"><div class="lt-detalle-icono" id="ltIconoLey"></div><div class="lt-detalle-anio" id="ltAnioLey"></div></div><div class="lt-detalle-texto" id="ltTextoLey"></div>';
+  lineaTiempoLey.appendChild(pistaLey);
+  lineaTiempoLey.appendChild(etiquetasLey);
+  lineaTiempoLey.appendChild(detalleLey);
+
+  var ltNodosLey = document.getElementById("ltNodosLey");
+  var ltProgresoLey = document.getElementById("ltProgresoLey");
+  var ltIconoLey = document.getElementById("ltIconoLey");
+  var ltAnioLey = document.getElementById("ltAnioLey");
+  var ltTextoLey = document.getElementById("ltTextoLey");
+  var nodosLeyEls = [];
+
+  function mostrarHitoLey(idx){
+    hitosLey.forEach(function(h, i){ nodosLeyEls[i].classList.toggle("activo", i === idx); });
+    ltProgresoLey.style.width = (idx/(hitosLey.length-1)*100) + "%";
+    ltIconoLey.innerHTML = iconosHitoLey[hitosLey[idx].icono];
+    ltAnioLey.textContent = hitosLey[idx].anio;
+    ltTextoLey.textContent = hitosLey[idx].texto;
+  }
+  hitosLey.forEach(function(h, i){
+    var nodo = document.createElement("div");
+    nodo.className = "lt-nodo";
+    nodo.addEventListener("click", function(){ mostrarHitoLey(i); sonidoAccion(); });
+    ltNodosLey.appendChild(nodo);
+    nodosLeyEls.push(nodo);
+    var etq = document.createElement("div");
+    etq.className = "lt-etiqueta";
+    etq.textContent = h.anio;
+    etiquetasLey.appendChild(etq);
+  });
+  mostrarHitoLey(2);
+
+  /* ============ Esquema ramificado: mitigación / adaptación ============ */
+  var svgRama = document.getElementById("svgRamaMitAda");
+
+  function nodoRama(cx, cy, w, h, texto, clase){
+    var g = document.createElementNS(svgNS, "g");
+    g.setAttribute("class", clase);
+    var r = document.createElementNS(svgNS, "rect");
+    r.setAttribute("x", cx - w/2); r.setAttribute("y", cy - h/2);
+    r.setAttribute("width", w); r.setAttribute("height", h);
+    r.setAttribute("rx", 9);
+    g.appendChild(r);
+    var esHoja = clase.indexOf("rn-hoja") !== -1;
+    var lineas = esHoja ? texto.split(" ").reduce(function(acc, palabra){
+      if(!acc.length){ return [palabra]; }
+      var ultima = acc[acc.length-1];
+      if((ultima + " " + palabra).length <= 12){ acc[acc.length-1] = ultima + " " + palabra; }
+      else { acc.push(palabra); }
+      return acc;
+    }, []) : [texto];
+    var t = document.createElementNS(svgNS, "text");
+    t.setAttribute("x", cx);
+    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("font-family", "Inter, sans-serif");
+    t.setAttribute("font-size", esHoja ? "10" : "13");
+    var yInicio = cy - ((lineas.length-1) * 6) + 4;
+    lineas.forEach(function(linea, li){
+      var ts = document.createElementNS(svgNS, "tspan");
+      ts.setAttribute("x", cx);
+      ts.setAttribute("y", yInicio + li*12);
+      ts.textContent = linea;
+      t.appendChild(ts);
+    });
+    g.appendChild(t);
+    svgRama.appendChild(g);
+    return { cx:cx, cy:cy, w:w, h:h };
+  }
+  function enlaceRama(a, b, clase){
+    var l = document.createElementNS(svgNS, "line");
+    l.setAttribute("class", "rn-enlace " + (clase || ""));
+    l.setAttribute("x1", a.cx); l.setAttribute("y1", a.cy + a.h/2);
+    l.setAttribute("x2", b.cx); l.setAttribute("y2", b.cy - b.h/2);
+    svgRama.appendChild(l);
+  }
+
+  var rRaiz = nodoRama(340, 24, 220, 38, "CAMBIO CLIMÁTICO", "rn-raiz");
+  var rMit = nodoRama(160, 110, 170, 34, "MITIGACIÓN", "rn-mitigacion");
+  var rAda = nodoRama(520, 110, 170, 34, "ADAPTACIÓN", "rn-adaptacion");
+  enlaceRama(rRaiz, rMit, "rn-enlace--mit");
+  enlaceRama(rRaiz, rAda, "rn-enlace--ada");
+
+  var hojasMit = ["Energías renovables","Hidrógeno verde","Reforestación nativa","Eficiencia energética"];
+  var hojasAda = ["Alerta temprana","Cultivos resistentes","Gestión hídrica","Áreas verdes"];
+  var xsMit = [49, 135, 221, 307];
+  var xsAda = [373, 459, 545, 631];
+  hojasMit.forEach(function(texto, i){
+    var nodo = nodoRama(xsMit[i], 220, 78, 42, texto, "rn-hoja");
+    enlaceRama(rMit, nodo, "rn-enlace--mit");
+  });
+  hojasAda.forEach(function(texto, i){
+    var nodo = nodoRama(xsAda[i], 220, 78, 42, texto, "rn-hoja");
+    enlaceRama(rAda, nodo, "rn-enlace--ada");
+  });
+
+  /* ============ Banco de conceptos ============ */
+  var banco = [
+    { sesion:"Sesión 1 · Causas", conceptos:["Efecto invernadero natural","GEI antrópicos","Huella de carbono","Fuentes naturales vs. artificiales"] },
+    { sesion:"Sesión 2 · Patrones", conceptos:["Patrón vs. anomalía","Curva de Keeling","Tendencia sostenida","Biodiversidad y clima"] },
+    { sesion:"Sesión 3 · Productividad", conceptos:["Surgencia costera","Productividad primaria","Corriente de Humboldt","Variable independiente/dependiente"] },
+    { sesion:"Sesión 4 · Resiliencia", conceptos:["Resistencia","Resiliencia","Umbral ecológico","Estado alternativo estable"] },
+    { sesion:"Sesión 5 · Fuentes", conceptos:["Fuente confiable","Revisión por pares","Sesgo","Justicia ambiental"] },
+    { sesion:"Sesión 6 · Acción", conceptos:["Mitigación","Adaptación","Desarrollo sostenible","Evidencia vs. interpretación"] }
+  ];
+  var contBanco = document.getElementById("bancoConceptos");
+  banco.forEach(function(b){
+    var div = document.createElement("div");
+    div.className = "banco-sesion";
+    div.innerHTML = "<h3>" + b.sesion + "</h3>" +
+      b.conceptos.map(function(c){ return '<span class="chip-concepto">'+c+'</span>'; }).join("");
+    contBanco.appendChild(div);
+  });
+
+  /* ============ Preguntas de análisis (8 preguntas, dos bloques de 4) ============ */
+  var preguntasAnalisis1 = [
+    {
+      enunciado:"1. ¿Cuál de las siguientes acciones corresponde a mitigación del cambio climático?",
+      opciones:[
+        {texto:"Construir un sistema de alerta temprana de incendios", correcta:false},
+        {texto:"Reemplazar una central a carbón por paneles solares", correcta:true},
+        {texto:"Desarrollar cultivos resistentes a la sequía", correcta:false},
+        {texto:"Reforzar la infraestructura hospitalaria ante olas de calor", correcta:false}
+      ],
+      retro:"Reemplazar una fuente de energía fósil por una renovable reduce directamente las emisiones de GEI: eso es mitigación."
+    },
+    {
+      enunciado:"2. ¿Cuál de las siguientes acciones corresponde a adaptación al cambio climático?",
+      opciones:[
+        {texto:"Reducir las emisiones de una fábrica", correcta:false},
+        {texto:"Reemplazar combustibles fósiles por hidrógeno verde", correcta:false},
+        {texto:"Diseñar sistemas de gestión hídrica para enfrentar la megasequía", correcta:true},
+        {texto:"Reforestar con especies nativas para capturar carbono", correcta:false}
+      ],
+      retro:"Gestionar mejor el agua ante una sequía ya en curso reduce la vulnerabilidad frente a un efecto que ya está ocurriendo: eso es adaptación."
+    },
+    {
+      enunciado:"3. La Ley Marco de Cambio Climático (Ley 21.455) establece que Chile debe ser carbono neutral y resiliente al clima, como máximo, el año:",
+      opciones:[
+        {texto:"2030", correcta:false},
+        {texto:"2040", correcta:false},
+        {texto:"2050", correcta:true},
+        {texto:"2100", correcta:false}
+      ],
+      retro:"La meta legal es 2050 como máximo, revisable cada 5 años, con posibilidad de adelantarse si la evidencia lo respalda."
+    },
+    {
+      enunciado:"4. Según los antecedentes vistos en clase, Chile cuenta con un potencial energético renovable estimado en más de:",
+      opciones:[
+        {texto:"180 GW", correcta:false},
+        {texto:"800 GW", correcta:false},
+        {texto:"1.800 GW", correcta:true},
+        {texto:"18.000 GW", correcta:false}
+      ],
+      retro:"El potencial renovable estimado supera los 1.800 GW, muy por sobre la demanda energética interna del país."
+    }
+  ];
+
+  var preguntasAnalisis2 = [
+    {
+      enunciado:"5. Un reportaje advierte que la industria del hidrógeno verde en Chile ha sido calificada por algunos especialistas como \"industria PowerPoint\", ya que:",
+      opciones:[
+        {texto:"Toda su producción se transporta en formato digital", correcta:false},
+        {texto:"Hasta ahora existen sobre todo presentaciones y proyectos anunciados, pero pocas plantas operativas", correcta:true},
+        {texto:"Solo se puede producir usando computadores", correcta:false},
+        {texto:"Ha superado ampliamente las metas de producción establecidas", correcta:false}
+      ],
+      retro:"La crítica apunta a que, pese a los anuncios, aún hay poca infraestructura industrial realmente construida y operando."
+    },
+    {
+      enunciado:"6. Distinguir la evidencia científica de la interpretación al leer un artículo sobre una estrategia de mitigación implica, principalmente:",
+      opciones:[
+        {texto:"Aceptar cualquier cifra que aparezca en el texto sin cuestionarla", correcta:false},
+        {texto:"Separar los datos verificables (cifras, mediciones, hechos) de las opiniones, proyecciones o expectativas de quienes escriben", correcta:true},
+        {texto:"Rechazar cualquier fuente que use cifras", correcta:false},
+        {texto:"Buscar solo fuentes que contradigan la primera que se leyó", correcta:false}
+      ],
+      retro:"La evidencia son los datos verificables; la interpretación incluye proyecciones, expectativas u opiniones que deben identificarse como tales."
+    },
+    {
+      enunciado:"7. En un mapa conceptual, la unidad mínima de significado —formada por dos conceptos unidos por una palabra de enlace— se llama:",
+      opciones:[
+        {texto:"Jerarquía", correcta:false},
+        {texto:"Nodo aislado", correcta:false},
+        {texto:"Proposición", correcta:true},
+        {texto:"Título", correcta:false}
+      ],
+      retro:"Concepto + palabra de enlace + concepto forman una proposición: la unidad básica de significado de un mapa conceptual."
+    },
+    {
+      enunciado:"8. Un buen mapa conceptual que sintetiza esta unidad debería, sobre todo:",
+      opciones:[
+        {texto:"Incluir solo los conceptos de la última sesión", correcta:false},
+        {texto:"Copiar textualmente un párrafo del libro", correcta:false},
+        {texto:"Mostrar enlaces cruzados entre conceptos de distintas sesiones de la unidad", correcta:true},
+        {texto:"Evitar el uso de palabras de enlace para que se vea más simple", correcta:false}
+      ],
+      retro:"Los enlaces cruzados son lo que demuestra comprensión integradora: conectar ideas de sesiones distintas, no solo listarlas por separado."
+    }
+  ];
+
+  var respuestasElegidas = { p1:"", p2:"", p3:"", p4:"", p5:"", p6:"", p7:"", p8:"" };
+  var clavesP1 = ["p1","p2","p3","p4"];
+  var clavesP2 = ["p5","p6","p7","p8"];
+
+  function renderPreguntas(contenedorId, lista, claves){
+    var cont = document.getElementById(contenedorId);
+    lista.forEach(function(p, qi){
+      var clave = claves[qi];
+      var bloque = document.createElement("div");
+      bloque.className = "pregunta-bloque";
+      var opcionesHtml = "";
+      p.opciones.forEach(function(o){
+        opcionesHtml += '<button class="opcion" data-correcta="'+o.correcta+'">'+o.texto+'</button>';
+      });
+      bloque.innerHTML =
+        '<p class="pregunta-enunciado">'+p.enunciado+'</p>' +
+        '<div class="opciones">'+opcionesHtml+'</div>' +
+        '<div class="feedback">'+p.retro+'</div>';
+      cont.appendChild(bloque);
+
+      var botones = bloque.querySelectorAll(".opcion");
+      var feedback = bloque.querySelector(".feedback");
+      botones.forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var esCorrecta = btn.getAttribute("data-correcta") === "true";
+          botones.forEach(function(b){ b.disabled = true; });
+          respuestasElegidas[clave] = btn.textContent + (esCorrecta ? " (correcta)" : " (incorrecta)");
+          if(esCorrecta){
+            btn.classList.add("correcta");
+            sonidoCorrecto();
+            otorgarFelipesos(35, btn);
+          } else {
+            btn.classList.add("incorrecta");
+            sonidoIncorrecto();
+            botones.forEach(function(b){
+              if(b.getAttribute("data-correcta") === "true"){ b.classList.add("correcta"); }
+            });
+          }
+          feedback.classList.add("visible");
+        });
+      });
+    });
+  }
+  renderPreguntas("bloqueAnalisis1", preguntasAnalisis1, clavesP1);
+  renderPreguntas("bloqueAnalisis2", preguntasAnalisis2, clavesP2);
+
+  /* ============ Checklists de cuaderno (autorreporte, otorgan Felipesos una vez) ============ */
+  function activarCheckCuaderno(idCaja, idInput, monto){
+    var caja = document.getElementById(idCaja);
+    var input = document.getElementById(idInput);
+    var yaOtorgado = false;
+    input.addEventListener("change", function(){
+      caja.classList.toggle("marcado", input.checked);
+      if(input.checked){
+        sonidoAccion();
+        if(!yaOtorgado){ otorgarFelipesos(monto, caja); yaOtorgado = true; }
+      }
+    });
+  }
+  activarCheckCuaderno("checkTabla", "inputCheckTabla", 20);
+  activarCheckCuaderno("checkEsquema", "inputCheckEsquema", 20);
+  activarCheckCuaderno("checkMapa", "inputCheckMapa", 30);
+  activarCheckCuaderno("checkReflexion", "inputCheckReflexion", 20);
+
+  /* ============ Brotes ascendentes y hojas cayendo (portada) ============ */
+  var capaBrotes = document.getElementById("capaBrotes");
+  var capaHojas = document.getElementById("capaHojas");
+  var reducirMovimiento = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!reducirMovimiento){
+    for(var j=0;j<10;j++){
+      var b = document.createElement("div");
+      b.className = "brote";
+      b.style.left = (6 + j*9.5) + "%";
+      b.style.animationDuration = (4.5 + Math.random()*3) + "s";
+      b.style.animationDelay = (Math.random()*5) + "s";
+      capaBrotes.appendChild(b);
+    }
+    for(var h=0;h<8;h++){
+      var hoja = document.createElement("div");
+      hoja.className = "hoja";
+      hoja.style.left = (4 + h*12) + "%";
+      hoja.style.animationDuration = (6 + Math.random()*4) + "s";
+      hoja.style.animationDelay = (Math.random()*7) + "s";
+      capaHojas.appendChild(hoja);
+    }
+  }
+
+  /* ============ Cierre: marcador y rango ============ */
+  var marcadorTotal = document.getElementById("marcadorTotal");
+  var marcadorRango = document.getElementById("marcadorRango");
+  function actualizarCierre(){
+    marcadorTotal.textContent = felipesos;
+    var rango;
+    if(felipesos < 90){ rango = "Observador/a novato/a"; }
+    else if(felipesos < 170){ rango = "Tejedor/a de conceptos"; }
+    else if(felipesos < 260){ rango = "Cartógrafo/a conceptual"; }
+    else { rango = "Arquitecto/a de la unidad honorario/a"; }
+    marcadorRango.textContent = rango;
+  }
+  actualizarCierre();
+
+  /* ============ Exportador PDF (impresión del navegador) ============ */
+  function construirImprimible(){
+    var cont = document.getElementById("imprimible");
+    var letras = ["A","B","C","D"];
+    var html = "";
+
+    html += '<div class="imp-pagina imp-portada">' +
+      '<span class="imp-eyebrow">Biología de los Ecosistemas · 3° Medio · Unidad 3</span>' +
+      '<h1>Sesión 6<br>De la evidencia a la acción</h1>' +
+      '<p>Guía compilada: contenidos, pauta de trabajo, banco de conceptos, fuentes, plantillas y hoja de respuestas.</p>' +
+      '<p>Colegio San Agustín Villa Alemana</p>' +
+      '</div>';
+
+    html += '<div class="imp-pagina">' +
+      '<span class="imp-eyebrow">OA 4 · Habilidad OA h</span>' +
+      '<h2>Compilado de contenidos</h2>' +
+      '<h3>Repaso — Sesión 3</h3>' +
+      '<ul class="imp-lista">' +
+        '<li><strong>Surgencia costera:</strong> el viento paralelo a la costa desplaza el agua superficial mar adentro; agua profunda, fría y rica en nutrientes asciende a reemplazarla.</li>' +
+        '<li><strong>Productividad primaria:</strong> materia orgánica producida por organismos fotosintéticos (ej. fitoplancton) a partir de luz y nutrientes; base de la red trófica marina.</li>' +
+        '<li><strong>Corriente de Humboldt:</strong> corriente fría de Chile y Perú; con menos del 1% de la superficie oceánica mundial, aporta 10-20% de la captura pesquera global.</li>' +
+        '<li>Cadena causal: viento costero → surgencia costera → productividad primaria → Corriente de Humboldt rica en vida.</li>' +
+      '</ul>' +
+      '<h3>Mitigación y adaptación</h3>' +
+      '<ul class="imp-lista">' +
+        '<li><strong>Mitigación:</strong> reduce las causas del cambio climático (energías renovables, hidrógeno verde, reforestación, eficiencia energética).</li>' +
+        '<li><strong>Adaptación:</strong> reduce la vulnerabilidad frente a efectos ya inevitables (alerta temprana, cultivos resistentes, gestión hídrica, infraestructura verde).</li>' +
+      '</ul>' +
+      '<h3>Casos revisados</h3>' +
+      '<ul class="imp-lista">' +
+        '<li><strong>Ley 21.455 (2022):</strong> primer país en desarrollo en fijar por ley la meta de carbono neutralidad y resiliencia al 2050.</li>' +
+        '<li><strong>Estrategia Nacional de Hidrógeno Verde (2020):</strong> Chile tiene un potencial renovable estimado en más de 1.800 GW.</li>' +
+        '<li><strong>Mirada crítica:</strong> hasta ahora, la mayoría de los proyectos de H2V son anuncios y presentaciones, con poca infraestructura operativa — distinguir evidencia de expectativa.</li>' +
+      '</ul>' +
+      '<h3>Cómo se construye un mapa conceptual</h3>' +
+      '<ul class="imp-lista">' +
+        '<li><strong>Concepto:</strong> palabra o frase corta que representa una idea.</li>' +
+        '<li><strong>Palabra de enlace:</strong> verbo o frase que conecta dos conceptos.</li>' +
+        '<li><strong>Proposición:</strong> concepto + palabra de enlace + concepto.</li>' +
+        '<li><strong>Enlace cruzado:</strong> conexión entre conceptos de ramas o sesiones distintas.</li>' +
+      '</ul>' +
+      '</div>';
+
+    html += '<div class="imp-pagina">' +
+      '<h2>Pauta de trabajo y banco de conceptos</h2>' +
+      '<h3>Actividad de síntesis</h3>' +
+      '<ul class="imp-lista">' +
+        '<li>Escribe el título de la unidad en el centro de una hoja.</li>' +
+        '<li>Elige al menos 12 conceptos de al menos 4 sesiones distintas.</li>' +
+        '<li>Organiza por jerarquía: lo general arriba, lo específico abajo.</li>' +
+        '<li>Conecta con palabras de enlace y traza al menos 3 enlaces cruzados entre sesiones.</li>' +
+      '</ul>' +
+      '<h3>Banco de conceptos</h3>' +
+      banco.map(function(b){ return '<p style="margin:6px 0 2px;"><strong>'+b.sesion+':</strong> '+b.conceptos.join(", ")+'.</p>'; }).join("") +
+      '</div>';
+
+    html += '<div class="imp-pagina">' +
+      '<h2>Tabla y esquema (plantillas en blanco)</h2>' +
+      '<h3>Tabla comparativa de fuentes</h3>' +
+      '<table class="imp-tabla" style="width:100%; border-collapse:collapse; margin-bottom:14px;">' +
+        '<tr><th style="border:1px solid #C9C4B4; padding:4px 8px; background:#EFE7D6;">Fuente</th><th style="border:1px solid #C9C4B4; padding:4px 8px; background:#EFE7D6;">Tipo</th><th style="border:1px solid #C9C4B4; padding:4px 8px; background:#EFE7D6;">¿Mitigación o adaptación?</th><th style="border:1px solid #C9C4B4; padding:4px 8px; background:#EFE7D6;">Dato clave</th><th style="border:1px solid #C9C4B4; padding:4px 8px; background:#EFE7D6;">Confiabilidad</th></tr>' +
+        '<tr><td style="border:1px solid #C9C4B4; padding:10px 8px;">Ley 21.455</td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td></tr>' +
+        '<tr><td style="border:1px solid #C9C4B4; padding:10px 8px;">Estrategia H2V</td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td></tr>' +
+        '<tr><td style="border:1px solid #C9C4B4; padding:10px 8px;">Reportaje crítico</td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td><td style="border:1px solid #C9C4B4;"></td></tr>' +
+      '</table>' +
+      '<h3>Esquema: de la evidencia a la acción</h3>' +
+      '<p>Evidencia científica &nbsp;→&nbsp; ______________ &nbsp;→&nbsp; Política o tecnología &nbsp;→&nbsp; ______________ &nbsp;→&nbsp; Efecto esperado</p>' +
+      '</div>';
+
+    html += '<div class="imp-pagina">' +
+      '<h2>Banco de preguntas</h2>';
+    preguntasAnalisis1.concat(preguntasAnalisis2).forEach(function(p){
+      html += '<div class="imp-pregunta"><p class="imp-enunciado">' + p.enunciado + '</p><ul class="imp-opciones">' +
+        p.opciones.map(function(o, i){ return '<li><span class="letra">'+letras[i]+'</span>'+o.texto+'</li>'; }).join('') +
+        '</ul></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="imp-pagina">' +
+      '<span class="imp-nota-docente">Hoja de respuestas — solo docente</span>' +
+      '<h2>Respuestas y retroalimentación</h2>' +
+      '<h3>Preguntas de análisis</h3>';
+    preguntasAnalisis1.concat(preguntasAnalisis2).forEach(function(p){
+      var idx = -1;
+      p.opciones.forEach(function(o, i){ if(o.correcta) idx = i; });
+      html += '<div class="imp-respuesta-caja"><span class="imp-clave">' + p.enunciado.match(/^(\d+)\./)[1] + '. Alternativa ' + letras[idx] + '</span> — <span class="imp-retro">' + p.retro + '</span></div>';
+    });
+    html += '</div>';
+
+    cont.innerHTML = html;
+  }
+
+  var btnPdf = document.getElementById("btnPdf");
+  var btnPdf2 = document.getElementById("btnPdf2");
+  function exportarPdf(){ sonidoAccion(); construirImprimible(); window.print(); }
+  btnPdf.addEventListener("click", exportarPdf);
+  btnPdf2.addEventListener("click", exportarPdf);
+
+  /* ============ Tarjetas desplegables (marco conceptual) ============ */
+  var panelesAbiertos = [];
+  document.querySelectorAll(".despliegue-cabecera").forEach(function(btn){
+    var tarjeta = btn.closest(".tarjeta-desplegable");
+    var cuerpo = tarjeta.querySelector(".despliegue-cuerpo");
+    var contenido = cuerpo.querySelector(".despliegue-contenido");
+    btn.addEventListener("click", function(){
+      var abierta = tarjeta.classList.toggle("abierta");
+      btn.setAttribute("aria-expanded", abierta ? "true" : "false");
+      sonidoDesplegar(abierta);
+      if(abierta){
+        cuerpo.style.maxHeight = contenido.scrollHeight + "px";
+        panelesAbiertos.push(cuerpo);
+      } else {
+        cuerpo.style.maxHeight = "0px";
+        panelesAbiertos = panelesAbiertos.filter(function(c){ return c !== cuerpo; });
+      }
+    });
+  });
+  window.addEventListener("resize", function(){
+    panelesAbiertos.forEach(function(cuerpo){
+      cuerpo.style.maxHeight = cuerpo.querySelector(".despliegue-contenido").scrollHeight + "px";
+    });
+  });
+
+  /* ============ Navegación del deck ============ */
+  var slides = document.querySelectorAll(".slide");
+  var total = slides.length;
+  var actual = 0;
+
+  var dotsCont = document.getElementById("dots");
+  for(var k=0;k<total;k++){
+    var d = document.createElement("button");
+    d.className = "dot" + (k===0 ? " activo" : "");
+    d.setAttribute("aria-label", "Ir a diapositiva " + (k+1));
+    d.addEventListener("click", (function(idx){ return function(){ irA(idx); }; })(k));
+    dotsCont.appendChild(d);
+  }
+  var dots = dotsCont.querySelectorAll(".dot");
+
+  var btnPrev = document.getElementById("btnPrev");
+  var btnNext = document.getElementById("btnNext");
+  var contador = document.getElementById("contador");
+  var barraProgreso = document.getElementById("barraProgreso");
+  var ranaMascota = document.getElementById("ranaMascota");
+  ranaMascota.addEventListener("animationend", function(e){
+    if(e.animationName === "ranaSalto"){ ranaMascota.classList.remove("rana-salta"); }
+  });
+
+  function pad(n){ return n < 10 ? "0"+n : ""+n; }
+
+  function irA(idx){
+    if(idx < 0 || idx >= total) return;
+    slides[actual].classList.remove("activa");
+    dots[actual].classList.remove("activo");
+    actual = idx;
+    slides[actual].classList.add("activa");
+    dots[actual].classList.add("activo");
+    contador.textContent = pad(actual+1) + " / " + pad(total);
+    barraProgreso.style.width = ((actual+1)/total*100) + "%";
+    btnPrev.disabled = actual === 0;
+    btnNext.disabled = actual === total-1;
+    slides[actual].scrollTop = 0;
+    sonidoNavegar();
+    ranaMascota.classList.remove("rana-salta");
+    void ranaMascota.offsetWidth;
+    ranaMascota.classList.add("rana-salta");
+  }
+
+  btnPrev.addEventListener("click", function(){ irA(actual-1); });
+  btnNext.addEventListener("click", function(){ irA(actual+1); });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "ArrowRight") irA(actual+1);
+    if(e.key === "ArrowLeft") irA(actual-1);
+  });
+
+  irA(0);
+})();
+</script>
+</body>
+</html>
