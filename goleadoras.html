@@ -25,7 +25,6 @@
             --fs-footer: clamp(0.7rem,  2.5vw, 0.8rem);
         }
 
-        /* Reset general enfocado en consistencia */
         *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
@@ -130,10 +129,9 @@
             width: 28px;
         }
 
-        /* Destacar primeros lugares con colores fluidos */
-        .scorer-card:nth-child(1) .rank { color: #ffd700; } /* Oro */
-        .scorer-card:nth-child(2) .rank { color: #c0c0c0; } /* Plata */
-        .scorer-card:nth-child(3) .rank { color: #cd7f32; } /* Bronce */
+        .scorer-card:nth-child(1) .rank { color: #ffd700; }
+        .scorer-card:nth-child(2) .rank { color: #c0c0c0; }
+        .scorer-card:nth-child(3) .rank { color: #cd7f32; }
 
         .scorer-card .name {
             font-size: var(--fs-name);
@@ -184,12 +182,23 @@
     </header>
 
     <div class="scorers-list">
-        <!-- Orden: 1° por goles (desc), 2° por apellido (asc) -->
+        <!-- 3 goles: Amanda Carrasco (3) y Florencia Pizarro (3) -->
+        <!-- Orden alfabético por apellido: Carrasco antes que Pizarro -->
 
-        <!-- 3 goles -->
         <div class="scorer-card">
             <div class="info">
                 <div class="rank">1°</div>
+                <div class="name">Amanda Carrasco</div>
+            </div>
+            <div class="goals-count">
+                <div class="goals-num">3</div>
+                <div class="goals-label">Goles</div>
+            </div>
+        </div>
+
+        <div class="scorer-card">
+            <div class="info">
+                <div class="rank">2°</div>
                 <div class="name">Florencia Pizarro</div>
             </div>
             <div class="goals-count">
@@ -198,23 +207,13 @@
             </div>
         </div>
 
-        <!-- 2 goles: Amanda Carrasco, Noelia Ayala, Fernanda Molina -->
-        <!-- Orden alfabético por apellido: Ayala, Carrasco, Molina -->
-        <div class="scorer-card">
-            <div class="info">
-                <div class="rank">2°</div>
-                <div class="name">Noelia Ayala</div>
-            </div>
-            <div class="goals-count">
-                <div class="goals-num">2</div>
-                <div class="goals-label">Goles</div>
-            </div>
-        </div>
+        <!-- 2 goles: Noelia Ayala, Fernanda Molina -->
+        <!-- Orden alfabético por apellido: Ayala, Molina -->
 
         <div class="scorer-card">
             <div class="info">
                 <div class="rank">3°</div>
-                <div class="name">Amanda Carrasco</div>
+                <div class="name">Noelia Ayala</div>
             </div>
             <div class="goals-count">
                 <div class="goals-num">2</div>
@@ -234,7 +233,6 @@
         </div>
 
         <!-- 1 gol: orden alfabético por apellido -->
-        <!-- Aparicio, G., Herrera, Hernandez, Ll., Loyola, Rojas, Sarah L. -->
         <div class="scorer-card">
             <div class="info">
                 <div class="rank">5°</div>
