@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Unidad 2 · Sesión 3 — Célula animal y vegetal</title>
+<style>
+:root{
+  --navy:#1A1F3A;
+  --navy-2:#242a52;
+  --navy-3:#141830;
+  --teal:#0D9488;
+  --coral:#E05252;
+  --blue:#3B82F6;
+  --gold:#D4A017;
+  --amber:#F59E0B;
+  --purple:#7C3AED;
+  --paper:#F5F0E6;
+  --paper-2:#ece3cf;
+  --ink:#1A1F3A;
+  --font-head:'Trebuchet MS','Trebuchet MS','Segoe UI',sans-serif;
+  --font-body:Calibri,'Segoe UI',Tahoma,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0;padding:0;height:100%;
+  background:radial-gradient(ellipse at 30% 20%,var(--navy-2) 0%,var(--navy) 55%,var(--navy-3) 100%);
+  font-family:var(--font-body);
+  color:var(--paper);
+  overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+#deck{position:relative;width:100vw;height:100dvh;height:100vh;overflow:hidden;}
+
+.lens-deco{
+  position:fixed;right:-70px;bottom:-70px;width:260px;height:260px;
+  border-radius:50%;border:2px solid rgba(245,240,230,0.08);
+  pointer-events:none;z-index:0;
+}
+.lens-deco::before{content:"";position:absolute;inset:26px;border-radius:50%;border:1px solid rgba(245,240,230,0.10);}
+.lens-deco::after{content:"";position:absolute;inset:52px;border-radius:50%;border:1px solid rgba(245,240,230,0.14);}
+
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(1.1rem,4vw,3rem) clamp(1.2rem,6vw,5rem);
+  opacity:0;pointer-events:none;transform:scale(.965);
+  transition:opacity .45s ease, transform .45s ease;
+  z-index:1;
+}
+.slide.active{opacity:1;pointer-events:auto;transform:scale(1);z-index:2;}
+.slide-inner{width:100%;max-width:980px;margin:0 auto;}
+
+.eyebrow{
+  font-family:var(--font-head);font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  font-size:clamp(.65rem,1.6vw,.8rem);color:var(--gold);margin-bottom:.6rem;
+}
+h1.title{
+  font-family:var(--font-head);font-weight:700;
+  font-size:clamp(1.5rem,4.6vw,2.7rem);line-height:1.15;margin:0 0 .5rem 0;color:var(--paper);
+}
+h2.subtitle{
+  font-family:var(--font-head);font-weight:400;
+  font-size:clamp(.95rem,2.4vw,1.3rem);color:#c9cde0;margin:0 0 1.4rem 0;font-style:italic;
+}
+p{line-height:1.5;}
+
+.lamina{
+  background:var(--paper);color:var(--ink);border-radius:8px;
+  box-shadow:0 18px 40px rgba(0,0,0,.38), 0 2px 0 rgba(255,255,255,.4) inset;
+  position:relative;padding:1.5rem 1.6rem 1.5rem 2.7rem;margin-bottom:1rem;
+  transition:box-shadow .25s ease, transform .25s ease;
+  animation:cardIn .5s ease both;
+}
+.lamina:hover{box-shadow:0 22px 48px rgba(0,0,0,.44), 0 2px 0 rgba(255,255,255,.4) inset;transform:translateY(-2px);}
+.lamina-tag{
+  position:absolute;left:0;top:0;bottom:0;width:15px;border-radius:8px 0 0 8px;
+  background:linear-gradient(180deg, var(--accent,var(--teal)), color-mix(in srgb, var(--accent,var(--teal)) 70%, #000 15%));
+  display:flex;align-items:center;justify-content:center;
+  writing-mode:vertical-rl;text-orientation:mixed;color:#fff;
+  font-family:var(--font-head);font-size:.62rem;letter-spacing:.12em;font-weight:700;
+}
+.lamina h3{font-family:var(--font-head);margin:0 0 .5rem 0;font-size:clamp(1rem,2.6vw,1.25rem);}
+.lamina p{margin:.25rem 0;font-size:clamp(.82rem,2vw,.98rem);}
+.lamina ul{margin:.4rem 0;padding-left:1.2rem;font-size:clamp(.82rem,2vw,.98rem);}
+.lamina-row{display:flex;gap:1rem;flex-wrap:wrap;}
+.lamina-row .lamina{flex:1 1 260px;}
+
+@keyframes cardIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+.chip{
+  display:inline-block;background:var(--navy);color:var(--paper);border:1px solid rgba(245,240,230,.25);
+  padding:.25rem .7rem;border-radius:20px;font-size:.72rem;font-family:var(--font-head);
+  letter-spacing:.04em;margin:0 .3rem .3rem 0;
+}
+.chip.on-paper{background:rgba(26,31,58,.08);color:var(--navy);border-color:rgba(26,31,58,.2);}
+.bloom-tag{
+  display:inline-block;font-family:var(--font-head);font-weight:700;font-size:.68rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--navy);background:rgba(212,160,23,.35);
+  padding:.2rem .6rem;border-radius:4px;
+}
+
+.teacher-note{
+  display:none;background:rgba(245,158,11,.14);border:1px dashed var(--amber);
+  color:var(--paper);border-radius:6px;padding:.7rem 1rem;font-size:.82rem;margin-top:.7rem;
+}
+body.show-teacher .teacher-note{display:block;}
+.teacher-note b{color:var(--amber);}
+
+.navbar{
+  position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem clamp(.8rem,3vw,2rem);z-index:20;pointer-events:none;
+}
+.navbar > *{pointer-events:auto;}
+.session-label{
+  font-family:var(--font-head);font-weight:700;font-size:.72rem;letter-spacing:.08em;
+  text-transform:uppercase;color:#c9cde0;background:rgba(255,255,255,.06);
+  padding:.3rem .7rem;border-radius:20px;
+}
+.progress-wrap{display:flex;align-items:center;gap:.9rem;}
+.counter{font-size:.75rem;color:#9aa0c0;font-family:var(--font-head);}
+.stars{
+  font-family:var(--font-head);font-weight:700;font-size:.8rem;color:var(--gold);
+  background:rgba(212,160,23,.15);border:1px solid rgba(212,160,23,.4);
+  padding:.3rem .7rem;border-radius:20px;
+}
+.dots{display:none;gap:.35rem;}
+@media (min-width:700px){.dots{display:flex;}}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);cursor:pointer;transition:background .2s, transform .2s;}
+.dot:hover{transform:scale(1.4);background:rgba(255,255,255,.5);}
+.dot.active{background:var(--gold);transform:scale(1.3);}
+
+.arrowbar{
+  position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;
+  padding:.8rem clamp(.8rem,3vw,2rem) 1rem;z-index:20;
+}
+.navbtn{
+  font-family:var(--font-head);font-weight:700;font-size:.85rem;letter-spacing:.02em;
+  background:rgba(255,255,255,.08);color:var(--paper);border:1px solid rgba(255,255,255,.18);
+  padding:.55rem 1.1rem;border-radius:24px;cursor:pointer;
+  transition:background .2s, transform .15s, box-shadow .2s;
+}
+.navbtn:hover{background:rgba(255,255,255,.16);transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.25);}
+.navbtn:active{transform:scale(.96) translateY(0);}
+.navbtn:disabled{opacity:.25;cursor:default;}
+.navbtn:disabled:hover{transform:none;box-shadow:none;}
+.navbtn.primary{background:var(--gold);color:var(--navy);border-color:var(--gold);}
+.navbtn.primary:hover{background:#e6b530;box-shadow:0 6px 16px rgba(212,160,23,.4);}
+.navbtn:focus-visible, .navbtn.primary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+.teacher-toggle{
+  position:fixed;left:clamp(.8rem,3vw,2rem);bottom:4.6rem;z-index:20;
+  font-family:var(--font-head);font-size:.7rem;font-weight:700;letter-spacing:.04em;
+  background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.5);
+  padding:.4rem .8rem;border-radius:20px;cursor:pointer;transition:background .2s, transform .15s;
+}
+.teacher-toggle:hover{transform:translateY(-2px);}
+.teacher-toggle:active{transform:scale(.96);}
+body.show-teacher .teacher-toggle{background:var(--amber);color:var(--navy);}
+
+.export-fab{
+  position:fixed;right:clamp(.8rem,3vw,2rem);bottom:4.6rem;z-index:20;
+  font-family:var(--font-head);font-size:.72rem;font-weight:700;letter-spacing:.03em;
+  background:var(--teal);color:#fff;border:none;padding:.55rem 1rem;border-radius:20px;cursor:pointer;
+  box-shadow:0 8px 18px rgba(13,148,136,.4);transition:background .2s, transform .15s, box-shadow .2s;
+}
+.export-fab:hover{background:#0b7a70;transform:translateY(-2px);box-shadow:0 10px 22px rgba(13,148,136,.5);}
+.export-fab:active{transform:scale(.96);}
+.export-inline-btn{
+  margin-top:1rem;font-family:var(--font-head);font-weight:700;font-size:.95rem;
+  background:var(--teal);color:#fff;border:none;padding:.8rem 1.8rem;border-radius:26px;cursor:pointer;
+  box-shadow:0 8px 20px rgba(13,148,136,.4);transition:background .2s, transform .15s, box-shadow .2s;
+}
+.export-inline-btn:hover{background:#0b7a70;transform:translateY(-2px);box-shadow:0 12px 26px rgba(13,148,136,.5);}
+.export-inline-btn:active{transform:scale(.97);}
+
+.portada-wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2.5rem;}
+.portada-text{text-align:center;max-width:520px;}
+.byline{font-size:.85rem;color:#c9cde0;margin-top:.3rem;}
+.desktop-only{display:block;}
+@media (max-width:768px){.desktop-only{display:none !important;}}
+.qr-card{
+  background:var(--paper);color:var(--ink);border-radius:10px;padding:1.1rem 1.3rem;text-align:center;
+  box-shadow:0 18px 40px rgba(0,0,0,.4);width:210px;transition:transform .25s ease;
+}
+.qr-card:hover{transform:translateY(-3px) scale(1.02);}
+.qr-card img{width:150px;height:150px;display:block;margin:0 auto .5rem;border:6px solid var(--navy);border-radius:6px;}
+.qr-card .qr-label{font-family:var(--font-head);font-weight:700;font-size:.78rem;margin-bottom:.3rem;}
+.qr-card .qr-url{font-size:.62rem;word-break:break-all;color:#555;}
+.start-btn{
+  margin-top:1.5rem;font-family:var(--font-head);font-weight:700;font-size:1rem;
+  background:var(--gold);color:var(--navy);border:none;padding:.85rem 2rem;border-radius:30px;
+  cursor:pointer;box-shadow:0 8px 20px rgba(212,160,23,.35);
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(212,160,23,.45);background:#e6b530;}
+.start-btn:active{transform:translateY(0) scale(.97);}
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.6rem;}
+@media (max-width:520px){.team-grid{grid-template-columns:1fr;}}
+.team-input{
+  font-family:var(--font-body);font-size:.85rem;padding:.55rem .7rem;border-radius:6px;
+  border:1px solid rgba(26,31,58,.25);background:#fff;color:var(--ink);
+  transition:border-color .2s, box-shadow .2s;
+}
+.team-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.18);}
+
+.flip-row{display:flex;gap:1.1rem;flex-wrap:wrap;justify-content:center;}
+.flip-card{width:min(230px,85vw);height:170px;perspective:1000px;cursor:pointer;animation:cardIn .5s ease both;}
+.flip-row .flip-card:nth-child(1){animation-delay:.04s;}
+.flip-row .flip-card:nth-child(2){animation-delay:.1s;}
+.flip-row .flip-card:nth-child(3){animation-delay:.16s;}
+.flip-row .flip-card:nth-child(4){animation-delay:.22s;}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d;}
+.flip-card:not(.flipped):hover .flip-inner{transform:translateY(-4px) scale(1.02);}
+.flip-card.flipped .flip-inner{transform:rotateY(180deg);}
+.flip-face{
+  position:absolute;inset:0;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;padding:1rem;text-align:center;backface-visibility:hidden;
+  box-shadow:0 12px 26px rgba(0,0,0,.3);transition:box-shadow .25s ease;
+}
+.flip-card:hover .flip-face{box-shadow:0 18px 34px rgba(0,0,0,.4);}
+.flip-front{background:var(--paper);color:var(--ink);}
+.flip-front .ic{font-size:1.8rem;margin-bottom:.4rem;transition:transform .25s ease;}
+.flip-card:hover .flip-front .ic{transform:scale(1.15) rotate(-4deg);}
+.flip-front h4{font-family:var(--font-head);margin:0;font-size:.95rem;}
+.flip-back{background:var(--navy-2);color:var(--paper);transform:rotateY(180deg);font-size:.8rem;line-height:1.4;}
+
+.quiz-q{margin-bottom:1rem;}
+.quiz-opts{display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem;}
+.quiz-opt{
+  text-align:left;font-family:var(--font-body);font-size:.88rem;padding:.6rem .9rem;border-radius:6px;
+  border:1px solid rgba(26,31,58,.2);background:#fff;color:var(--ink);cursor:pointer;
+  transition:background .18s ease, border-color .18s ease, transform .12s ease, box-shadow .18s ease;
+}
+.quiz-opt:not([disabled]):hover{background:rgba(13,148,136,.08);border-color:var(--teal);transform:translateX(3px);}
+.quiz-opt:not([disabled]):active{transform:translateX(3px) scale(.99);}
+.quiz-opt.correct{background:#d7f2ea;border-color:var(--teal);font-weight:700;animation:pop .3s ease;}
+.quiz-opt.wrong{background:#fbdede;border-color:var(--coral);animation:shake .3s ease;}
+.quiz-opt[disabled]{cursor:default;}
+.score-line{font-family:var(--font-head);font-weight:700;margin-top:.6rem;color:var(--navy);animation:fadeIn .4s ease;}
+@keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.03);}100%{transform:scale(1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+
+.vf-item{margin-bottom:1.1rem;}
+.vf-statement{font-size:.88rem;margin:0 0 .4rem;}
+.vf-btns{display:flex;gap:.6rem;}
+.vf-btn{
+  flex:1;font-family:var(--font-head);font-weight:700;font-size:.85rem;padding:.6rem;border-radius:8px;
+  border:1px solid rgba(26,31,58,.2);background:#fff;color:var(--ink);cursor:pointer;
+  transition:background .18s ease, transform .15s ease, box-shadow .18s ease;
+}
+.vf-btn:not([disabled]):hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.15);}
+.vf-btn:not([disabled]):active{transform:translateY(0) scale(.97);}
+.vf-btn.correct{background:#d7f2ea;border-color:var(--teal);animation:pop .3s ease;}
+.vf-btn.wrong{background:#fbdede;border-color:var(--coral);animation:shake .3s ease;}
+.vf-btn[disabled]{cursor:default;}
+
+/* tabs */
+.tabs{display:flex;gap:.6rem;justify-content:center;margin-bottom:.8rem;}
+.tab-btn{
+  font-family:var(--font-head);font-weight:700;font-size:.8rem;padding:.5rem 1.2rem;border-radius:20px;
+  border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.05);color:var(--paper);cursor:pointer;
+  transition:background .2s ease, transform .15s ease, border-color .2s ease;
+}
+.tab-btn:hover{background:rgba(255,255,255,.14);transform:translateY(-1px);}
+.tab-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold);}
+.tab-btn.active:hover{background:#e6b530;}
+
+
+/* 3D cell viewer */
+.cell3d-wrap{max-width:520px;margin:0 auto;text-align:center;}
+.cell3d-stage{
+  width:100%;max-width:300px;height:260px;margin:0 auto;perspective:900px;
+  border-radius:50%;transition:box-shadow .3s ease;
+}
+.cell3d-stage:hover{box-shadow:0 0 0 6px rgba(212,160,23,.08);}
+.cell3d-rotator{width:100%;height:100%;position:relative;transform-style:preserve-3d;cursor:grab;}
+.cell3d-rotator:active{cursor:grabbing;}
+.c3d-membrane{
+  position:absolute;inset:26px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.32), rgba(245,240,230,.10) 60%, rgba(245,240,230,.04));
+  border:2px solid rgba(245,240,230,.55);
+}
+.c3d-wall{
+  position:absolute;inset:6px;border-radius:16px;border:4px solid rgba(212,160,23,.6);display:none;
+}
+.cell3d-wrap.vegetal .c3d-wall{display:block;}
+.c3d-part{
+  position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;
+  transform:translate3d(var(--tx),var(--ty),var(--tz));cursor:pointer;
+}
+.c3d-part.only-vegetal{display:none;}
+.cell3d-wrap.vegetal .c3d-part.only-vegetal{display:block;}
+.c3d-dot{
+  display:block;width:100%;height:100%;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 12px 4px rgba(212,160,23,.6);animation:pulse-dot 1.6s ease-in-out infinite;
+  transition:transform .15s ease;
+}
+.c3d-part:hover .c3d-dot{transform:scale(1.3);}
+.c3d-part.visited .c3d-dot{background:var(--teal);box-shadow:0 0 12px 4px rgba(13,148,136,.6);animation:none;}
+@keyframes pulse-dot{0%,100%{transform:scale(1);}50%{transform:scale(1.25);}}
+.c3d-label{
+  position:absolute;left:28px;top:2px;white-space:nowrap;font-size:.62rem;font-family:var(--font-head);
+  font-weight:700;color:#fff;background:rgba(26,31,58,.6);padding:.1rem .4rem;border-radius:10px;
+  pointer-events:none;
+}
+.c3d-info{
+  max-width:440px;margin:.7rem auto 0;background:var(--paper);color:var(--ink);border-radius:8px;
+  padding:.7rem .9rem;font-size:.82rem;text-align:center;min-height:2.6em;transition:box-shadow .2s ease;
+}
+.c3d-hint{font-size:.72rem;color:#c9cde0;margin-bottom:.5rem;}
+
+.sketchfab-embed-wrap{
+  position:relative;width:100%;max-width:640px;margin:0 auto;
+  aspect-ratio:16/9;border-radius:10px;overflow:hidden;
+  box-shadow:0 18px 40px rgba(0,0,0,.4);background:#0c0e1a;
+  border:1px solid rgba(212,160,23,.3);transition:box-shadow .3s ease, border-color .3s ease;
+}
+.sketchfab-embed-wrap:hover{box-shadow:0 22px 48px rgba(0,0,0,.5);border-color:rgba(212,160,23,.55);}
+.sketchfab-embed-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.sketchfab-credit{
+  text-align:center;font-size:.68rem;color:#9aa0c0;max-width:640px;margin:.5rem auto 0;
+}
+.sketchfab-credit a{color:var(--gold);}
+
+.progress-bar-wrap{width:100%;max-width:420px;margin:0 auto .6rem;background:rgba(255,255,255,.12);border-radius:10px;height:10px;overflow:hidden;}
+.progress-bar-fill{height:100%;width:0%;background:var(--gold);transition:width .4s;}
+.progress-text{text-align:center;font-size:.78rem;color:#c9cde0;margin-bottom:.4rem;}
+
+/* labeling activity */
+.label-pool{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:1rem;}
+.classify-chip{
+  font-family:var(--font-body);font-size:.8rem;padding:.5rem .8rem;border-radius:20px;
+  border:1px solid rgba(26,31,58,.25);background:#fff;color:var(--ink);cursor:pointer;
+  transition:background .18s ease, transform .15s ease, box-shadow .18s ease;
+}
+.classify-chip:not(.placed):hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.18);}
+.classify-chip.selected{background:var(--gold);border-color:var(--gold);animation:pop .25s ease;}
+.classify-chip.placed{opacity:.3;cursor:default;}
+.label-diagram-wrap{position:relative;max-width:300px;margin:0 auto;}
+.label-diagram-wrap svg{display:block;width:100%;height:auto;}
+.label-slot{
+  position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+  background:rgba(255,255,255,.9);color:var(--navy);font-family:var(--font-head);font-weight:700;
+  display:flex;align-items:center;justify-content:center;font-size:.78rem;cursor:pointer;
+  border:2px dashed var(--navy);transition:transform .18s ease, box-shadow .18s ease;
+}
+.label-slot:hover{transform:scale(1.15);box-shadow:0 0 0 4px rgba(212,160,23,.25);}
+.label-slot.filled{border-style:solid;background:var(--gold);font-size:.5rem;padding:0 2px;text-align:center;}
+.label-slot.correct{background:#8fd9c4;border-color:var(--teal);animation:pop .3s ease;}
+.label-slot.wrong{background:#f3a6a6;border-color:var(--coral);animation:shake .3s ease;}
+
+/* memory game */
+.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;max-width:560px;margin:0 auto;}
+@media (max-width:560px){.mem-grid{grid-template-columns:repeat(2,1fr);}}
+.mem-card{height:90px;perspective:800px;cursor:pointer;animation:cardIn .4s ease both;}
+.mem-grid .mem-card:nth-child(1){animation-delay:.02s;}
+.mem-grid .mem-card:nth-child(2){animation-delay:.05s;}
+.mem-grid .mem-card:nth-child(3){animation-delay:.08s;}
+.mem-grid .mem-card:nth-child(4){animation-delay:.11s;}
+.mem-grid .mem-card:nth-child(5){animation-delay:.14s;}
+.mem-grid .mem-card:nth-child(6){animation-delay:.17s;}
+.mem-grid .mem-card:nth-child(7){animation-delay:.2s;}
+.mem-grid .mem-card:nth-child(8){animation-delay:.23s;}
+.mem-inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d;}
+.mem-card:not(.flip):not(.matched):hover .mem-inner{transform:translateY(-3px) scale(1.03);}
+.mem-card.flip .mem-inner{transform:rotateY(180deg);}
+.mem-face{position:absolute;inset:0;border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;padding:.4rem;font-size:.68rem;backface-visibility:hidden;box-shadow:0 6px 14px rgba(0,0,0,.25);transition:box-shadow .2s ease;}
+.mem-front{background:var(--navy-2);color:var(--paper);font-family:var(--font-head);font-weight:700;font-size:1.4rem;}
+.mem-back{background:var(--paper);color:var(--ink);transform:rotateY(180deg);}
+.mem-card.matched .mem-back{background:#d7f2ea;animation:pop .35s ease;}
+
+.game-nav{display:flex;gap:.7rem;justify-content:center;margin-top:.9rem;flex-wrap:wrap;}
+.btn-outline{
+  font-family:var(--font-head);font-weight:700;font-size:.82rem;padding:.55rem 1.1rem;border-radius:20px;
+  background:transparent;border:1px solid var(--navy);color:var(--navy);cursor:pointer;
+  transition:background .18s ease, transform .15s ease, box-shadow .18s ease;
+}
+.btn-outline:hover{background:rgba(26,31,58,.08);transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.15);}
+.btn-outline:active{transform:translateY(0) scale(.97);}
+.finale-msg{font-family:var(--font-head);font-weight:700;font-size:1.1rem;margin-top:.6rem;color:var(--navy);}
+
+.timerbar-wrap{width:100%;background:rgba(255,255,255,.12);border-radius:8px;height:8px;overflow:hidden;margin-bottom:.6rem;}
+.timerbar-fill{height:100%;background:var(--coral);width:100%;transition:width 1s linear;}
+
+.game-intro-cards{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+.game-intro-card{
+  background:var(--paper);color:var(--ink);border-radius:8px;width:min(230px,85vw);padding:1.1rem;
+  text-align:center;cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.3);
+  transition:transform .22s ease, box-shadow .22s ease;animation:cardIn .5s ease both;
+}
+.game-intro-cards .game-intro-card:nth-child(1){animation-delay:.05s;}
+.game-intro-cards .game-intro-card:nth-child(2){animation-delay:.12s;}
+.game-intro-cards .game-intro-card:nth-child(3){animation-delay:.19s;}
+.game-intro-card:hover{transform:translateY(-6px) scale(1.02);box-shadow:0 20px 38px rgba(0,0,0,.4);}
+.game-intro-card .ic{font-size:2rem;transition:transform .25s ease;}
+.game-intro-card:hover .ic{transform:scale(1.15) rotate(-3deg);}
+
+/* open response */
+.open-q{margin-bottom:.8rem;}
+.open-q .oq-text{font-size:.85rem;margin:0 0 .3rem;}
+.open-q .oq-input{
+  width:100%;min-height:48px;border-radius:6px;border:1px solid rgba(26,31,58,.25);
+  font-family:var(--font-body);font-size:.82rem;padding:.5rem;resize:vertical;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.open-q .oq-input:focus, .qb-q-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.16);}
+.qb-wrap{width:100%;max-width:760px;margin:0 auto;max-height:56vh;overflow-y:auto;padding-right:.5rem;}
+.qb-wrap::-webkit-scrollbar{width:8px;}
+.qb-wrap::-webkit-scrollbar-track{background:rgba(255,255,255,.08);border-radius:8px;}
+.qb-wrap::-webkit-scrollbar-thumb{background:var(--gold);border-radius:8px;}
+.qb-level{
+  background:var(--paper);color:var(--ink);border-radius:8px;padding:.7rem .9rem;margin-bottom:.6rem;
+  border-left:8px solid var(--accent,var(--teal));box-shadow:0 8px 18px rgba(0,0,0,.22);
+  transition:box-shadow .2s ease;
+}
+.qb-level[open]{box-shadow:0 12px 26px rgba(0,0,0,.3);}
+.qb-level summary{
+  cursor:pointer;font-family:var(--font-head);font-weight:700;font-size:.92rem;
+  list-style:none;display:flex;align-items:center;gap:.5rem;
+}
+.qb-level summary::-webkit-details-marker{display:none;}
+.qb-level summary::before{content:"▸";display:inline-block;transition:transform .2s;font-size:.75rem;}
+.qb-level[open] summary::before{transform:rotate(90deg);}
+.qb-q{margin-bottom:.7rem;margin-top:.5rem;}
+.qb-q .qb-q-text{font-size:.8rem;margin:0 0 .25rem;}
+.qb-q .qb-q-input{
+  width:100%;min-height:42px;border-radius:6px;border:1px solid rgba(26,31,58,.25);
+  font-family:var(--font-body);font-size:.78rem;padding:.45rem;resize:vertical;
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+
+.road-cards{display:flex;gap:1.4rem;flex-wrap:wrap;justify-content:center;}
+.road-card{
+  background:var(--paper);color:var(--ink);border-radius:8px;width:min(320px,90vw);cursor:pointer;
+  padding:1.3rem 1.4rem;box-shadow:0 14px 30px rgba(0,0,0,.32);border-left:8px solid var(--accent,var(--teal));
+  transition:transform .22s ease, box-shadow .22s ease;animation:cardIn .5s ease both;
+}
+.road-cards .road-card:nth-child(1){animation-delay:.05s;}
+.road-cards .road-card:nth-child(2){animation-delay:.12s;}
+.road-card:hover{transform:translateY(-5px);box-shadow:0 20px 38px rgba(0,0,0,.4);}
+
+/* notebook activity */
+.notebook-wrap{max-width:640px;margin:0 auto;}
+.notebook-example{
+  background:#fff;border-radius:8px;padding:.8rem;box-shadow:0 10px 22px rgba(0,0,0,.25);
+  margin:.6rem 0;
+}
+.notebook-example svg{display:block;width:100%;height:auto;max-width:340px;margin:0 auto;}
+.word-bank{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0;}
+.word-bank .wb-chip{
+  font-family:var(--font-head);font-weight:700;font-size:.72rem;padding:.35rem .8rem;border-radius:16px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);color:var(--paper);
+}
+.checklist{margin:.6rem 0;padding-left:0;list-style:none;}
+.checklist li{font-size:.82rem;margin-bottom:.35rem;padding-left:1.6rem;position:relative;}
+.checklist li::before{content:"✔";position:absolute;left:0;color:var(--teal);font-weight:700;}
+.notebook-check{
+  display:flex;align-items:center;gap:.6rem;background:rgba(13,148,136,.12);border:1px solid var(--teal);
+  border-radius:8px;padding:.7rem .9rem;margin:.8rem 0;cursor:pointer;transition:background .2s ease;
+}
+.notebook-check:hover{background:rgba(13,148,136,.2);}
+.notebook-check input{width:18px;height:18px;accent-color:var(--teal);cursor:pointer;}
+.notebook-check span{font-size:.85rem;font-family:var(--font-head);font-weight:700;color:var(--navy);}
+
+
+#printExport{display:none;}
+@media print{
+  body *{visibility:hidden !important;}
+  #printExport, #printExport *{visibility:visible !important;}
+  #printExport{
+    display:block !important;position:absolute;left:0;top:0;width:100%;
+    background:#fff;color:#111;padding:0 1cm;
+  }
+  .lens-deco,.navbar,.arrowbar,.teacher-toggle,.export-fab,.start-btn,.export-inline-btn{display:none !important;}
+}
+#printExport{font-family:Calibri,'Segoe UI',sans-serif;color:#111;}
+#printExport h1{font-family:var(--font-head);font-size:1.4rem;margin-bottom:.1rem;}
+#printExport h2{font-family:var(--font-head);font-size:1rem;color:#555;font-weight:400;margin-top:0;}
+#printExport h3{font-family:var(--font-head);font-size:1.05rem;border-bottom:2px solid #1A1F3A;padding-bottom:.2rem;margin-top:1.4rem;}
+#printExport h4{font-family:var(--font-head);font-size:.9rem;margin-bottom:.2rem;color:#0D9488;}
+#printExport p{font-size:.85rem;line-height:1.5;margin:.2rem 0;}
+#printExport .pe-answer{
+  border:1px solid #999;border-radius:4px;padding:.4rem .6rem;margin:.15rem 0 .6rem;
+  font-size:.82rem;min-height:1.1em;white-space:pre-wrap;background:#fafafa;
+}
+#printExport .pe-meta{font-size:.78rem;color:#555;margin-bottom:.2rem;}
+#printExport table{border-collapse:collapse;width:100%;margin:.3rem 0 .6rem;}
+#printExport table td, #printExport table th{border:1px solid #ccc;padding:.3rem .5rem;font-size:.8rem;text-align:left;}
+#printExport .pe-score{font-weight:700;color:#1A1F3A;}
+#printExport .pe-section{page-break-inside:avoid;}
+
+@media (max-width:520px){
+  .lamina{padding:1.1rem 1.1rem 1.1rem 2.2rem;}
+  .lamina-tag{width:12px;font-size:.55rem;}
+  .navbar{padding:.5rem .7rem;}
+  .arrowbar{padding:.6rem .7rem .8rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="lens-deco"></div>
+
+<div class="navbar">
+  <span class="session-label" id="sessionLabel">Inicio</span>
+  <div class="progress-wrap">
+    <span class="stars" id="starsBadge">⭐ 0</span>
+    <span class="counter" id="counterLabel">1 / 16</span>
+    <div class="dots" id="dotsWrap"></div>
+  </div>
+</div>
+
+<button class="teacher-toggle" id="teacherToggle">👁️ Notas docente: OFF</button>
+<button class="export-fab" id="exportFab" onclick="exportPDF()">📄 Exportar PDF</button>
+
+<div id="deck">
+
+  <!-- SLIDE 0 : PORTADA -->
+  <section class="slide" data-session="Inicio" id="slide-0">
+    <div class="slide-inner">
+      <div class="portada-wrap">
+        <div class="portada-text">
+          <div class="eyebrow">Unidad 2 · La Célula</div>
+          <h1 class="title">Célula animal y vegetal: estructuras básicas</h1>
+          <h2 class="subtitle">Sesión 3 — 8° Básico · Ciencias Naturales</h2>
+          <p class="byline">Prof. Felipe Jiménez</p>
+          <button class="start-btn" onclick="goTo(1)">Comenzar ▸</button>
+        </div>
+        <div class="qr-card desktop-only">
+          <div class="qr-label">📱 Súmate desde tu celular</div>
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXIAAAFyAQAAAADAX2ykAAADAUlEQVR4nO2cUYrbMBCGv6kF+2hDDrBHkW+29Gb2UXqAgvQYkPn7INnxUkhamk1tmHmJkvkefhhmrBlLMfE3Nn/7Kxycd975L+WzNRuzGfOwGGQzZgswD7D6w2v0OP9EPgBdAcAALKYF6IVFAeRQiBNAvrxAj/Nfwbfk7Aua8puAxTQBxAQ1xccX6nH+S/gcMBvAzN5Uv47/U4/zz+V71dQl6mp19V/1OP/PfABg1yTFaQmCTtYcBegF5Ffocf75/FK3x5ADkN9kYw4QU9dWs5mZDa/S4/zz+NCSE4C8mGqa9te60jx0++w+nH7nH/J1V7WY2XvBxtVjNiwGfcFGltYOH1G/8/f5vgB00gTo+3sBapO02jyAfaQX6XH+iXyAPKB5DMXgFtXF2jIbmsdQK/Xx9Dt/39r8KmoxkS9YTEv9zaArFtOA0f8ML9Lj/NP5/mrMQycbAchv0tQXauGeB9CUw47/aj3OP5FHklRHk0qgqZekBERJUuq2cEuajqbf+QcmqbQxc0ydiAk00alZ6tboy+N7Pp6WqzVNpTXcbTtNvEXf43tCfq3PrGk6AeskGupD2ON7Wv5T/tKJqIKmW0EGdjXb43syfnu/cDViuqyzyDqJHiBqCZqHrrTX/UfT7/x9W+fP+SLm96upVup6pqMrNg9Jtgv80fQ7/8DqDjlKak/Yvq2af9tzeX90Rn7temmR3u2v9uEuq/do+p2/b7U+11kk/dUU06VADkWwBEEdV8rA58/n4+t8o+bvVPujbptqbEWatTv2/D0Z3+ruNqSkxXItyEq033x+dUYe7Sy1JK6OqX62IHt8z8rf7i/ANoTej7NsrD3Ti/Q4/0T+8/2Frhh92rnbIcq8GNVxNP3OP7C2l2Jtgmubuz1/p0o1xOvzqfn6Gn8x+0i0mwwf9cXS1dpNlUPrd/43C3d8farn241+O+l+NP3O/wm/TiBLO4tTz8LSroa245TZz8eek7/dX2ib6Dau/GHW5s8JbOw9f8/Hmx4zO/P/Z3De+QPxvwAzVvgFI2SXlQAAAABJRU5ErkJggg==" alt="Código QR de acceso">
+          <div class="qr-url">fjimenez321-stack.github.io/dondefelipe/</div>
+        </div>
+      </div>
+      <div class="lamina" style="--accent:var(--purple);max-width:640px;margin:1.6rem auto 0;">
+        <span class="lamina-tag">GRUPO</span>
+        <h3 style="font-size:.95rem;">Antes de comenzar: ¿quién trabaja hoy?</h3>
+        <div class="team-grid">
+          <input type="text" class="team-input" id="teamMember1" placeholder="Integrante 1">
+          <input type="text" class="team-input" id="teamMember2" placeholder="Integrante 2 (opcional)">
+          <input type="text" class="team-input" id="teamMember3" placeholder="Integrante 3 (opcional)">
+          <input type="text" class="team-input" id="teamMember4" placeholder="Integrante 4 (opcional)">
+          <input type="text" class="team-input" id="teamCourse" placeholder="Curso (ej: 8°A)">
+          <input type="text" class="team-input" id="teamDate" placeholder="Fecha">
+        </div>
+        <p style="font-size:.7rem;color:#777;margin-top:.5rem;">Estos datos aparecerán en el PDF que exportes al finalizar la clase.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 1 : OBJETIVO -->
+  <section class="slide" data-session="Sesión 3" id="slide-1">
+    <div class="slide-inner">
+      <div class="eyebrow">Sesión 3 · Inicio</div>
+      <h1 class="title" style="font-size:clamp(1.25rem,3.6vw,2.1rem);">Célula animal y vegetal: estructuras básicas</h1>
+      <div class="lamina" style="--accent:var(--teal)">
+        <span class="lamina-tag">S3</span>
+        <span class="chip on-paper">OA 2 · IE 1 (introducción)</span>
+        <span class="bloom-tag">Recordar / Comprender</span>
+        <p>Reconocer las estructuras generales de la célula: <b>membrana</b>, <b>citoplasma</b>, <b>núcleo</b> y <b>pared celular</b>.</p>
+        <div class="teacher-note"><b>Encuadre (~5 min):</b> conecta con lo visto en Sesiones 1 y 2 — "ya sabemos que la célula es la unidad de la vida y quiénes la descubrieron; hoy miramos qué hay dentro".</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2 : REPASO -->
+  <section class="slide" data-session="Sesión 3" id="slide-2">
+    <div class="slide-inner">
+      <div class="eyebrow">Activación</div>
+      <h1 class="title" style="font-size:clamp(1.2rem,3.4vw,1.9rem);">Antes de seguir... ¿qué recordamos?</h1>
+      <div class="lamina" style="--accent:var(--gold)" id="repasoQuizBox">
+        <span class="lamina-tag">S3</span>
+        <div class="quiz-q">
+          <p><b>1.</b> La célula es...</p>
+          <div class="quiz-opts">
+            <button class="quiz-opt" onclick="answerRepaso(this,false)">a) Un órgano exclusivo de las plantas</button>
+            <button class="quiz-opt" onclick="answerRepaso(this,true)">b) La unidad estructural y funcional básica de los seres vivos</button>
+            <button class="quiz-opt" onclick="answerRepaso(this,false)">c) Un tipo de tejido animal</button>
+          </div>
+        </div>
+        <div class="quiz-q">
+          <p><b>2.</b> ¿Quién propuso que "toda célula proviene de una célula anterior"?</p>
+          <div class="quiz-opts">
+            <button class="quiz-opt" onclick="answerRepaso(this,false)">a) Robert Hooke</button>
+            <button class="quiz-opt" onclick="answerRepaso(this,true)">b) Rudolf Virchow</button>
+            <button class="quiz-opt" onclick="answerRepaso(this,false)">c) Theodor Schwann</button>
+          </div>
+        </div>
+        <div class="score-line" id="repasoScoreLine"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 : EXPLICACION COMPARADA (flip cards) -->
+  <section class="slide" data-session="Sesión 3" id="slide-3">
+    <div class="slide-inner">
+      <div class="eyebrow">Explicación comparada</div>
+      <h1 class="title" style="font-size:clamp(1.2rem,3.4vw,1.9rem);">4 estructuras, un mismo plano básico</h1>
+      <p style="font-size:.8rem;color:#c9cde0;text-align:center;">Toca cada tarjeta para ver su función</p>
+      <div class="flip-row">
+        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+          <div class="flip-inner">
+            <div class="flip-face flip-front"><div class="ic">🫧</div><h4>Membrana plasmática</h4></div>
+            <div class="flip-face flip-back">Regula el paso de sustancias hacia dentro y fuera de la célula. Presente en célula animal y vegetal.</div>
+          </div>
+        </div>
+        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+          <div class="flip-inner">
+            <div class="flip-face flip-front"><div class="ic">💧</div><h4>Citoplasma</h4></div>
+            <div class="flip-face flip-back">Medio interno gelatinoso donde ocurren la mayoría de los procesos celulares. Presente en ambas células.</div>
+          </div>
+        </div>
+        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+          <div class="flip-inner">
+            <div class="flip-face flip-front"><div class="ic">🧬</div><h4>Núcleo</h4></div>
+            <div class="flip-face flip-back">Contiene el material genético (ADN) que dirige las funciones de la célula. Presente en ambas células.</div>
+          </div>
+        </div>
+        <div class="flip-card" onclick="this.classList.toggle('flipped')">
+          <div class="flip-inner">
+            <div class="flip-face flip-front"><div class="ic">🧱</div><h4>Pared celular</h4></div>
+            <div class="flip-face flip-back">Capa rígida externa que da soporte y protección. Exclusiva de la célula vegetal.</div>
+          </div>
+        </div>
+      </div>
+      <div class="teacher-note" style="max-width:600px;margin:.8rem auto 0;"><b>Clásica (~10 min):</b> clase expositivo-dialogada. Pide ejemplos de la vida cotidiana para cada función antes de mostrar el reverso de cada tarjeta.</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 : MODELO 3D INTERACTIVO -->
+  <section class="slide" data-session="Sesión 3" id="slide-4">
+    <div class="slide-inner">
+      <div class="eyebrow">Actividad STEAM · Recurso 3D</div>
+      <h1 class="title" style="font-size:clamp(1.15rem,3.2vw,1.85rem);">🧬 Explora la célula en 3D</h1>
+      <div class="cell3d-wrap" id="cell3dWrap">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchCell3D('animal',this)">🐾 Célula animal</button>
+          <button class="tab-btn" onclick="switchCell3D('vegetal',this)">🌱 Célula vegetal</button>
+        </div>
+        <p class="c3d-hint">Arrastra para rotar · toca un punto brillante para descubrir qué es</p>
+        <div class="cell3d-stage" id="cell3dStage">
+          <div class="cell3d-rotator" id="cell3dRotator">
+            <div class="c3d-membrane"></div>
+            <div class="c3d-wall"></div>
+            <div class="c3d-part" data-key="nucleo" style="--tx:0px;--ty:10px;--tz:-10px;" onclick="hotspotClick(this)">
+              <span class="c3d-dot"></span><span class="c3d-label">Núcleo</span>
+            </div>
+            <div class="c3d-part" data-key="citoplasma" style="--tx:-55px;--ty:35px;--tz:25px;" onclick="hotspotClick(this)">
+              <span class="c3d-dot"></span><span class="c3d-label">Citoplasma</span>
+            </div>
+            <div class="c3d-part" data-key="membrana" style="--tx:60px;--ty:-25px;--tz:65px;" onclick="hotspotClick(this)">
+              <span class="c3d-dot"></span><span class="c3d-label">Membrana</span>
+            </div>
+            <div class="c3d-part only-vegetal" data-key="pared" style="--tx:-65px;--ty:-45px;--tz:78px;" onclick="hotspotClick(this)">
+              <span class="c3d-dot"></span><span class="c3d-label">Pared celular</span>
+            </div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="c3dProgressFill"></div></div>
+        <div class="progress-text" id="c3dProgressText">0 / 4 estructuras exploradas</div>
+        <div class="c3d-info" id="c3dInfo">Toca un punto brillante de la célula para descubrir qué es.</div>
+      </div>
+      <div class="teacher-note" style="max-width:600px;margin:.8rem auto 0;"><b>Gestión (~15 min):</b> modelo esquemático, no a escala. Si el dispositivo no permite arrastrar con fluidez, usa las tarjetas de la diapositiva anterior como respaldo. Cambia entre pestaña animal/vegetal para comparar.</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 : MODELO 3D REAL (SKETCHFAB / UNAM) -->
+  <section class="slide" data-session="Sesión 3" id="slide-5">
+    <div class="slide-inner">
+      <div class="eyebrow">Recurso 3D · Material UNAM</div>
+      <h1 class="title" style="font-size:clamp(1.1rem,3.1vw,1.75rem);">🔬 Modelo 3D real: célula eucarionte animal</h1>
+      <p class="c3d-hint">Este modelo es de un servidor externo (EVE3D · UNAM) y requiere conexión a internet para verse. Arrastra con el mouse o el dedo para rotarlo, y usa la rueda o pellizco para acercarte.</p>
+      <div class="sketchfab-embed-wrap">
+        <iframe title="EVE3D Célula Eucariota Animal" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen loading="lazy"
+          src="https://sketchfab.com/models/fb3311da5c9a4572bda870f6d356d83a/embed?autostart=1">
+        </iframe>
+      </div>
+      <p class="sketchfab-credit">Modelo "EVE3D Célula Eucariota Animal" por <a href="https://sketchfab.com/eve3d_unam" target="_blank" rel="noopener">EVE3D UNAM</a> en Sketchfab · Licencia CC Atribución-NoComercial · <a href="https://sketchfab.com/3d-models/eve3d-celula-eucariota-animal-fb3311da5c9a4572bda870f6d356d83a" target="_blank" rel="noopener">ver ficha del modelo</a></p>
+
+      <div class="lamina" style="--accent:var(--gold);max-width:640px;margin:1rem auto 0;">
+        <span class="lamina-tag">S3</span>
+        <h3 style="font-size:.95rem;">Preguntas de exploración</h3>
+        <div class="open-q">
+          <p class="oq-text">1. Gira el modelo y obsérvalo desde distintos ángulos. ¿Qué estructura identificas primero y por qué crees que resalta tanto?</p>
+          <textarea class="oq-input" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+        <div class="open-q">
+          <p class="oq-text">2. Ubica el núcleo en el modelo 3D. Descríbelo: ¿qué forma y tamaño tiene en comparación con el resto de la célula?</p>
+          <textarea class="oq-input" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+        <div class="open-q">
+          <p class="oq-text">3. Dentro del citoplasma se ven otras estructuras pequeñas (organelos) que estudiaremos más adelante en la unidad. Nombra al menos dos que puedas distinguir a simple vista.</p>
+          <textarea class="oq-input" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+        <div class="open-q">
+          <p class="oq-text">4. Compara este modelo 3D real con el modelo esquemático que exploraste antes. ¿Qué ventaja y qué limitación tiene cada uno para aprender?</p>
+          <textarea class="oq-input" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+        <div class="open-q">
+          <p class="oq-text">5. Si tuvieras que explicarle a alguien de tu casa qué es una célula usando solo este modelo 3D, ¿qué le dirías?</p>
+          <textarea class="oq-input" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+        <div class="teacher-note"><b>Gestión (~10 min):</b> requiere internet y puede tardar unos segundos en cargar la primera vez. Si no hay conexión en el momento, salta esta diapositiva y retómala como tarea o en la sala de computación.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6 : ESQUEMA ROTULADO -->
+  <section class="slide" data-session="Sesión 3" id="slide-6">
+    <div class="slide-inner">
+      <div class="eyebrow">Actividad individual</div>
+      <h1 class="title" style="font-size:clamp(1.2rem,3.4vw,1.9rem);">Rotula el esquema de la célula vegetal</h1>
+      <p style="font-size:.8rem;color:#c9cde0;text-align:center;">Toca una etiqueta y luego toca el punto correcto del dibujo</p>
+      <div class="label-pool" id="labelPool">
+        <button class="classify-chip" data-label="pared" onclick="selectLabel(this)">Pared celular</button>
+        <button class="classify-chip" data-label="membrana" onclick="selectLabel(this)">Membrana plasmática</button>
+        <button class="classify-chip" data-label="citoplasma" onclick="selectLabel(this)">Citoplasma</button>
+        <button class="classify-chip" data-label="nucleo" onclick="selectLabel(this)">Núcleo</button>
+      </div>
+      <div class="label-diagram-wrap">
+        <svg viewBox="0 0 300 220" width="300" height="220" xmlns="http://www.w3.org/2000/svg">
+          <rect x="15" y="15" width="270" height="190" rx="18" fill="none" stroke="#D4A017" stroke-width="5"/>
+          <rect x="32" y="32" width="236" height="156" rx="14" fill="#eef7f5" stroke="#0D9488" stroke-width="3"/>
+          <circle cx="150" cy="110" r="36" fill="#0D9488" opacity=".55"/>
+        </svg>
+        <div class="label-slot" data-key="pared" style="left:5%;top:8%;" onclick="placeLabel(this)">1</div>
+        <div class="label-slot" data-key="membrana" style="left:13%;top:18%;" onclick="placeLabel(this)">2</div>
+        <div class="label-slot" data-key="citoplasma" style="left:72%;top:22%;" onclick="placeLabel(this)">3</div>
+        <div class="label-slot" data-key="nucleo" style="left:50%;top:50%;" onclick="placeLabel(this)">4</div>
+      </div>
+      <div class="game-nav">
+        <button class="btn-outline" onclick="checkLabels()">✅ Comprobar</button>
+        <button class="btn-outline" onclick="resetLabels()">↺ Reiniciar</button>
+      </div>
+      <div class="finale-msg" id="label-result"></div>
+      <div class="teacher-note" style="max-width:600px;margin:.8rem auto 0;"><b>Evaluación:</b> este esquema se revisa con lista de cotejo de rotulación (individual).</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7 : VERDADERO O FALSO RELAMPAGO -->
+  <section class="slide" data-session="Sesión 3" id="slide-7">
+    <div class="slide-inner">
+      <div class="eyebrow">Actividad rápida</div>
+      <h1 class="title" style="font-size:clamp(1.2rem,3.4vw,1.9rem);">⚡ Verdadero o Falso relámpago</h1>
+      <div class="lamina" style="--accent:var(--coral)" id="vfBox">
+        <span class="lamina-tag">S3</span>
+        <div class="vf-item" data-answer="falso">
+          <p class="vf-statement">1. La membrana plasmática solo existe en la célula vegetal.</p>
+          <div class="vf-btns">
+            <button class="vf-btn" data-choice="verdadero" onclick="answerVF(this,'verdadero')">✔️ Verdadero</button>
+            <button class="vf-btn" data-choice="falso" onclick="answerVF(this,'falso')">✖️ Falso</button>
+          </div>
+        </div>
+        <div class="vf-item" data-answer="verdadero">
+          <p class="vf-statement">2. El núcleo contiene el material genético de la célula.</p>
+          <div class="vf-btns">
+            <button class="vf-btn" data-choice="verdadero" onclick="answerVF(this,'verdadero')">✔️ Verdadero</button>
+            <button class="vf-btn" data-choice="falso" onclick="answerVF(this,'falso')">✖️ Falso</button>
+          </div>
+        </div>
+        <div class="vf-item" data-answer="verdadero">
+          <p class="vf-statement">3. El citoplasma es donde ocurren la mayoría de los procesos celulares.</p>
+          <div class="vf-btns">
+            <button class="vf-btn" data-choice="verdadero" onclick="answerVF(this,'verdadero')">✔️ Verdadero</button>
+            <button class="vf-btn" data-choice="falso" onclick="answerVF(this,'falso')">✖️ Falso</button>
+          </div>
+        </div>
+        <div class="vf-item" data-answer="falso">
+          <p class="vf-statement">4. La pared celular está presente en ambas células (animal y vegetal).</p>
+          <div class="vf-btns">
+            <button class="vf-btn" data-choice="verdadero" onclick="answerVF(this,'verdadero')">✔️ Verdadero</button>
+            <button class="vf-btn" data-choice="falso" onclick="answerVF(this,'falso')">✖️ Falso</button>
+          </div>
+        </div>
+        <div class="vf-item" data-answer="verdadero">
+          <p class="vf-statement">5. La célula animal y la célula vegetal comparten membrana, citoplasma y núcleo.</p>
+          <div class="vf-btns">
+            <button class="vf-btn" data-choice="verdadero" onclick="answerVF(this,'verdadero')">✔️ Verdadero</button>
+            <button class="vf-btn" data-choice="falso" onclick="answerVF(this,'falso')">✖️ Falso</button>
+          </div>
+        </div>
+        <div class="vf-item" data-answer="falso">
+          <p class="vf-statement">6. Todas las células tienen exactamente la misma forma.</p>
+          <div class="vf-btns">
+            <button class="vf-btn" data-choice="verdadero" onclick="answerVF(this,'verdadero')">✔️ Verdadero</button>
+            <button class="vf-btn" data-choice="falso" onclick="answerVF(this,'falso')">✖️ Falso</button>
+          </div>
+        </div>
+        <div class="score-line" id="vfScoreLine"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8 : CUADERNO - DIAGRAMA DE VENN -->
+  <section class="slide" data-session="Sesión 3" id="slide-8">
+    <div class="slide-inner">
+      <div class="eyebrow">En tu cuaderno</div>
+      <h1 class="title" style="font-size:clamp(1.1rem,3.1vw,1.8rem);">📓 Diagrama de Venn: célula animal y vegetal</h1>
+      <div class="lamina notebook-wrap" style="--accent:var(--purple)">
+        <span class="lamina-tag">S3</span>
+        <p style="font-size:.85rem;">En tu cuaderno, dibuja dos círculos que se superpongan (como el ejemplo) y complétalos con lo que aprendiste hoy.</p>
+        <div class="notebook-example">
+          <svg viewBox="0 0 340 190" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="130" cy="100" r="82" fill="rgba(224,82,82,0.12)" stroke="#E05252" stroke-width="2.5"/>
+            <circle cx="210" cy="100" r="82" fill="rgba(13,148,136,0.12)" stroke="#0D9488" stroke-width="2.5"/>
+            <text x="45" y="35" font-size="12" font-family="Trebuchet MS" font-weight="700" fill="#E05252">Célula animal</text>
+            <text x="222" y="35" font-size="12" font-family="Trebuchet MS" font-weight="700" fill="#0D9488">Célula vegetal</text>
+            <text x="140" y="95" font-size="10" font-family="Calibri" fill="#1A1F3A" text-anchor="middle">Ej: Membrana,</text>
+            <text x="140" y="108" font-size="10" font-family="Calibri" fill="#1A1F3A" text-anchor="middle">Citoplasma, Núcleo</text>
+            <text x="245" y="150" font-size="10" font-family="Calibri" fill="#0D9488" text-anchor="middle">Ej: Pared celular</text>
+            <text x="75" y="150" font-size="11" font-family="Calibri" fill="#E05252" text-anchor="middle">¿...?</text>
+          </svg>
+        </div>
+        <p style="font-size:.78rem;color:#555;">El lado exclusivo de "célula animal" queda casi vacío a este nivel — ¡piensa por qué en tu respuesta de abajo!</p>
+        <h3 style="font-size:.9rem;margin-top:.8rem;">Tu diagrama debe incluir</h3>
+        <ul class="checklist">
+          <li>Título del diagrama</li>
+          <li>Ambos círculos rotulados (animal / vegetal)</li>
+          <li>Al menos 3 elementos en la intersección (lo que comparten)</li>
+          <li>Al menos 1 elemento exclusivo del lado vegetal</li>
+        </ul>
+        <label class="notebook-check">
+          <input type="checkbox" onchange="trackNotebook('venn', this.checked)">
+          <span>Ya dibujé mi diagrama de Venn en el cuaderno</span>
+        </label>
+        <div class="open-q">
+          <p class="oq-text">¿Qué fue lo que más te costó clasificar? ¿Por qué?</p>
+          <textarea class="oq-input" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+        <div class="teacher-note"><b>Evaluación:</b> revisa este diagrama junto al esquema rotulado como evidencia de la sesión.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9 : CUADERNO - MAPA DE CONCEPTOS -->
+  <section class="slide" data-session="Sesión 3" id="slide-9">
+    <div class="slide-inner">
+      <div class="eyebrow">En tu cuaderno</div>
+      <h1 class="title" style="font-size:clamp(1.1rem,3.1vw,1.8rem);">🗺️ Mapa de conceptos: relaciona las ideas</h1>
+      <div class="lamina notebook-wrap" style="--accent:var(--blue)">
+        <span class="lamina-tag">S3</span>
+        <p style="font-size:.85rem;">En tu cuaderno, crea un mapa conceptual uniendo estos términos con flechas y palabras de enlace.</p>
+        <div class="word-bank">
+          <span class="wb-chip">Célula</span>
+          <span class="wb-chip">Membrana plasmática</span>
+          <span class="wb-chip">Citoplasma</span>
+          <span class="wb-chip">Núcleo</span>
+          <span class="wb-chip">Pared celular</span>
+          <span class="wb-chip">Célula animal</span>
+          <span class="wb-chip">Célula vegetal</span>
+          <span class="wb-chip">ADN</span>
+        </div>
+        <p style="font-size:.78rem;color:#c9cde0;">Palabras de enlace sugeridas: <i>"está formada por", "contiene", "regula", "es exclusiva de", "puede ser"</i></p>
+        <div class="notebook-example">
+          <svg viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#D4A017"/>
+              </marker>
+            </defs>
+            <rect x="8" y="35" width="85" height="30" rx="6" fill="#1A1F3A" stroke="#D4A017" stroke-width="1.5"/>
+            <text x="50" y="54" font-size="11" font-family="Trebuchet MS" fill="#F5F0E6" text-anchor="middle">Célula</text>
+            <line x1="93" y1="50" x2="145" y2="50" stroke="#D4A017" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+            <text x="119" y="43" font-size="8" font-family="Calibri" fill="#D4A017" text-anchor="middle">está formada por</text>
+            <rect x="148" y="35" width="164" height="30" rx="6" fill="#1A1F3A" stroke="#0D9488" stroke-width="1.5"/>
+            <text x="230" y="54" font-size="9.5" font-family="Trebuchet MS" fill="#F5F0E6" text-anchor="middle">Membrana, Citoplasma, Núcleo...</text>
+          </svg>
+        </div>
+        <p style="font-size:.78rem;color:#555;">Este es solo el inicio — continúa el mapa incorporando el resto de los términos del banco de palabras.</p>
+        <h3 style="font-size:.9rem;margin-top:.8rem;">Tu mapa debe incluir</h3>
+        <ul class="checklist">
+          <li>Al menos 6 de los 8 conceptos del banco de palabras</li>
+          <li>Mínimo 5 conexiones con flecha y palabra de enlace</li>
+          <li>Una jerarquía clara (Célula arriba, estructuras específicas debajo)</li>
+        </ul>
+        <label class="notebook-check">
+          <input type="checkbox" onchange="trackNotebook('mapa', this.checked)">
+          <span>Ya completé mi mapa de conceptos en el cuaderno</span>
+        </label>
+        <div class="open-q">
+          <p class="oq-text">Elige una conexión de tu mapa y explícala en una frase completa.</p>
+          <textarea class="oq-input" placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+        <div class="teacher-note"><b>Gestión (~10 min):</b> puedes proyectar esta guía y pedir que 2-3 estudiantes compartan una conexión de su mapa en voz alta.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10 : CIERRE DE SESION -->
+  <section class="slide" data-session="Sesión 3" id="slide-10">
+    <div class="slide-inner">
+      <div class="eyebrow">Cierre de sesión</div>
+      <h1 class="title" style="font-size:clamp(1.2rem,3.4vw,1.9rem);">¿Qué nos llevamos hoy?</h1>
+      <div class="lamina" style="--accent:var(--teal)">
+        <span class="lamina-tag">S3</span>
+        <ul>
+          <li>La célula animal y la célula vegetal comparten <b>membrana</b>, <b>citoplasma</b> y <b>núcleo</b>.</li>
+          <li>La <b>pared celular</b> es exclusiva de la célula vegetal — le da soporte y protección extra.</li>
+        </ul>
+        <p style="font-size:.8rem;color:#555;">Evaluación de hoy: lista de cotejo de rotulación del esquema celular (actividad anterior).</p>
+        <div class="teacher-note"><b>Cierre (~5 min):</b> pide a 2-3 estudiantes que compartan su esquema rotulado antes de pasar a la Zona de Juegos.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 11 : JUEGOS INTRO -->
+  <section class="slide" data-session="Zona de juegos" id="slide-11">
+    <div class="slide-inner">
+      <div class="eyebrow">Repaso jugado</div>
+      <h1 class="title">Zona de juegos 🎮</h1>
+      <h2 class="subtitle">Pongamos a prueba lo aprendido hoy</h2>
+      <div class="game-intro-cards">
+        <div class="game-intro-card" onclick="goTo(12)"><div class="ic">🧠</div><h3 style="font-family:var(--font-head);font-size:.95rem;">Memoria celular</h3><p style="font-size:.78rem;">Empareja cada estructura con su función.</p></div>
+        <div class="game-intro-card" onclick="goTo(13)"><div class="ic">⏱️</div><h3 style="font-family:var(--font-head);font-size:.95rem;">Trivia rápida</h3><p style="font-size:.78rem;">5 preguntas contra el reloj.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 12 : JUEGO 1 MEMORIA -->
+  <section class="slide" data-session="Zona de juegos" id="slide-12">
+    <div class="slide-inner">
+      <div class="eyebrow">Juego 1</div>
+      <h1 class="title" style="font-size:clamp(1.2rem,3.4vw,1.9rem);">🧠 Memoria: estructura y función</h1>
+      <div class="lamina" style="--accent:var(--teal)">
+        <span class="lamina-tag">J1</span>
+        <p style="font-size:.85rem;">Toca dos tarjetas para revelarlas. Si forman una pareja (estructura + función), quedan destapadas.</p>
+        <div class="mem-grid" id="memGrid"></div>
+        <div class="game-nav">
+          <button class="btn-outline" onclick="resetMemory()">↺ Reiniciar</button>
+        </div>
+        <div class="finale-msg" id="mem-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 13 : JUEGO 2 TRIVIA -->
+  <section class="slide" data-session="Zona de juegos" id="slide-13">
+    <div class="slide-inner">
+      <div class="eyebrow">Juego 2</div>
+      <h1 class="title" style="font-size:clamp(1.2rem,3.4vw,1.9rem);">⏱️ Trivia rápida: Sesión 3</h1>
+      <div class="lamina" style="--accent:var(--purple)" id="triviaBox">
+        <span class="lamina-tag">J2</span>
+        <div class="timerbar-wrap"><div class="timerbar-fill" id="triviaTimerFill"></div></div>
+        <div id="triviaQuestionWrap"></div>
+        <div class="game-nav">
+          <button class="btn-outline" onclick="startTrivia()" id="triviaStartBtn">▶️ Comenzar trivia</button>
+        </div>
+        <div class="finale-msg" id="trivia-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 14 : BLOOM BANK -->
+  <section class="slide" data-session="Batería de preguntas" id="slide-14">
+    <div class="slide-inner">
+      <div class="eyebrow">Recurso docente · Sesión 3</div>
+      <h1 class="title" style="font-size:clamp(1.15rem,3.2vw,1.8rem);">Batería de preguntas graduada por Taxonomía de Bloom</h1>
+      <p style="text-align:center;font-size:.78rem;color:#c9cde0;margin:-.3rem 0 .8rem;">Toca cada nivel para desplegar sus preguntas. Úsalas para preguntas orales, boletos de salida o guías escritas.</p>
+      <div class="qb-wrap">
+        <details class="qb-level" data-level="Recordar" style="--accent:var(--teal)" open>
+          <summary>🧠 Recordar</summary>
+          <div class="qb-q"><p class="qb-q-text">1. Nombra las cuatro estructuras básicas que estudiamos hoy.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">2. ¿Cuál de esas estructuras es exclusiva de la célula vegetal?</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">3. ¿Qué contiene el núcleo de la célula?</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+        </details>
+        <details class="qb-level" data-level="Comprender" style="--accent:var(--blue)">
+          <summary>💬 Comprender</summary>
+          <div class="qb-q"><p class="qb-q-text">1. Explica con tus palabras la función de la membrana plasmática.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">2. ¿Por qué decimos que el citoplasma es el "medio interno" de la célula?</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">3. Explica qué significa que una estructura sea "exclusiva" de un tipo de célula.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+        </details>
+        <details class="qb-level" data-level="Aplicar" style="--accent:var(--gold)">
+          <summary>🔧 Aplicar</summary>
+          <div class="qb-q"><p class="qb-q-text">1. Si una célula perdiera su membrana plasmática, ¿qué crees que pasaría con las sustancias de su interior?</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">2. Observa el esquema que rotulaste: ¿qué estructura ocupa más espacio en el dibujo?</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">3. Dibuja en tu cuaderno una célula animal simple usando solo las 3 estructuras comunes.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+        </details>
+        <details class="qb-level" data-level="Analizar" style="--accent:var(--coral)">
+          <summary>🔍 Analizar</summary>
+          <div class="qb-q"><p class="qb-q-text">1. Compara la célula animal y la célula vegetal: ¿qué comparten y en qué se diferencian?</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">2. ¿Por qué la pared celular podría ser una ventaja para una planta pero no para una célula animal?</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">3. Relaciona la forma más "fija" de las células vegetales con la presencia de la pared celular.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+        </details>
+        <details class="qb-level" data-level="Evaluar" style="--accent:var(--amber)">
+          <summary>⚖️ Evaluar</summary>
+          <div class="qb-q"><p class="qb-q-text">1. ¿Es correcto decir que "la célula vegetal es más completa" solo porque tiene una estructura adicional? Argumenta.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">2. Evalúa la utilidad de un modelo 3D interactivo para aprender estas estructuras, comparado con un dibujo en papel.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">3. Autoevalúa tu esquema rotulado: ¿qué mejorarías?</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+        </details>
+        <details class="qb-level" data-level="Crear" style="--accent:var(--purple)">
+          <summary>🎨 Crear</summary>
+          <div class="qb-q"><p class="qb-q-text">1. Diseña una analogía propia (distinta a "fábrica" o "ciudad") para explicar la membrana, el citoplasma y el núcleo.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">2. Crea un esquema de una célula "imaginaria" con una estructura extra, explicando su función.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+          <div class="qb-q"><p class="qb-q-text">3. Propón una pregunta de investigación sobre cómo la pared celular protege a la planta.</p><textarea class="qb-q-input" placeholder="Tu respuesta..."></textarea></div>
+        </details>
+      </div>
+      <button class="export-inline-btn" onclick="exportPDF()">📄 Exportar mi trabajo completo (PDF)</button>
+    </div>
+  </section>
+
+  <!-- SLIDE 15 : CIERRE GENERAL -->
+  <section class="slide" data-session="Cierre" id="slide-15">
+    <div class="slide-inner" style="text-align:center;">
+      <div class="eyebrow">Cierre</div>
+      <h1 class="title">¡Buen trabajo! 🔬</h1>
+      <div class="lamina" style="--accent:var(--teal);text-align:left;max-width:600px;margin:0 auto;">
+        <span class="lamina-tag">S3</span>
+        <h3 style="font-size:.95rem;">Vimos</h3>
+        <p style="font-size:.85rem;">La célula animal y la célula vegetal comparten membrana, citoplasma y núcleo; la pared celular es exclusiva de la vegetal.</p>
+      </div>
+      <p style="margin-top:1rem;font-size:.9rem;color:#c9cde0;">Próxima sesión: <b>S4 · El núcleo y el material genético</b>.</p>
+      <button class="start-btn" onclick="goTo(0)">⟲ Volver al inicio</button>
+    </div>
+  </section>
+
+</div>
+
+<div id="printExport"></div>
+
+<div class="arrowbar">
+  <button class="navbtn" id="prevBtn" onclick="prevSlide()">◂ Anterior</button>
+  <button class="navbtn primary" id="nextBtn" onclick="nextSlide()">Siguiente ▸</button>
+</div>
+
+<script>
+/* ---------- Deck navigation ---------- */
+const TOTAL = 16;
+let idx = 0;
+let stars = 0;
+
+const slides = [];
+for(let i=0;i<TOTAL;i++){ slides.push(document.getElementById('slide-'+i)); }
+
+const dotsWrap = document.getElementById('dotsWrap');
+for(let i=0;i<TOTAL;i++){
+  const d = document.createElement('div');
+  d.className = 'dot'+(i===0?' active':'');
+  d.onclick = ()=>goTo(i);
+  dotsWrap.appendChild(d);
+}
+
+function updateStars(){ document.getElementById('starsBadge').textContent = '⭐ '+stars; }
+
+function render(){
+  slides.forEach((s,i)=> s.classList.toggle('active', i===idx));
+  document.getElementById('sessionLabel').textContent = slides[idx].dataset.session;
+  document.getElementById('counterLabel').textContent = (idx+1)+' / '+TOTAL;
+  const dots = dotsWrap.children;
+  for(let i=0;i<dots.length;i++){ dots[i].classList.toggle('active', i===idx); }
+  document.getElementById('prevBtn').disabled = (idx===0);
+  document.getElementById('nextBtn').textContent = (idx===TOTAL-1) ? '⟲ Inicio' : 'Siguiente ▸';
+}
+
+function goTo(i){ idx = Math.max(0, Math.min(TOTAL-1, i)); render(); }
+function nextSlide(){ if(idx===TOTAL-1){ goTo(0); } else { goTo(idx+1); } }
+function prevSlide(){ goTo(idx-1); }
+
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='ArrowRight' || e.key===' '){ nextSlide(); }
+  else if(e.key==='ArrowLeft'){ prevSlide(); }
+});
+
+let touchStartX = null;
+document.getElementById('deck').addEventListener('touchstart', e=>{ touchStartX = e.changedTouches[0].clientX; }, {passive:true});
+document.getElementById('deck').addEventListener('touchend', e=>{
+  if(touchStartX===null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(dx < -40) nextSlide();
+  else if(dx > 40) prevSlide();
+  touchStartX = null;
+}, {passive:true});
+
+document.getElementById('teacherToggle').addEventListener('click', function(){
+  document.body.classList.toggle('show-teacher');
+  this.textContent = document.body.classList.contains('show-teacher') ? '👁️ Notas docente: ON' : '👁️ Notas docente: OFF';
+});
+
+render();
+
+/* ---------- Confetti ---------- */
+function confetti(){
+  const colors = ['#0D9488','#E05252','#D4A017','#3B82F6','#7C3AED'];
+  for(let i=0;i<28;i++){
+    const p = document.createElement('div');
+    p.style.position = 'fixed';
+    p.style.top = '-10px';
+    p.style.width = '8px';
+    p.style.height = '14px';
+    p.style.zIndex = '999';
+    p.style.pointerEvents = 'none';
+    p.style.borderRadius = '2px';
+    p.style.left = Math.random()*100+'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animation = 'fall '+(1.6+Math.random()*1.2)+'s linear forwards';
+    p.style.animationDelay = (Math.random()*0.3)+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 3200);
+  }
+}
+const fallStyle = document.createElement('style');
+fallStyle.textContent = '@keyframes fall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(105vh) rotate(360deg);opacity:0;}}';
+document.head.appendChild(fallStyle);
+
+/* ---------- Repaso quiz (slide 2) ---------- */
+let repasoScore = 0;
+let repasoAnswered = 0;
+let repasoAnswers = [];
+const repasoTotal = document.querySelectorAll('#repasoQuizBox .quiz-q').length;
+function answerRepaso(btn, isCorrect){
+  const group = btn.closest('.quiz-opts');
+  if(group.dataset.locked) return;
+  group.dataset.locked = '1';
+  group.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  btn.classList.add(isCorrect?'correct':'wrong');
+  if(isCorrect){ repasoScore++; stars++; updateStars(); }
+  repasoAnswered++;
+  const qText = btn.closest('.quiz-q').querySelector('p').textContent;
+  repasoAnswers.push({question:qText, chosen:btn.textContent, correct:isCorrect});
+  if(repasoAnswered===repasoTotal){
+    document.getElementById('repasoScoreLine').textContent = 'Puntaje: '+repasoScore+' / '+repasoTotal;
+    if(repasoScore===repasoTotal) confetti();
+  }
+}
+
+/* ---------- Verdadero o Falso (slide 7) ---------- */
+let vfScore = 0;
+let vfAnswered = 0;
+let vfAnswers = [];
+const vfTotal = document.querySelectorAll('#vfBox .vf-item').length;
+function answerVF(btn, choice){
+  const item = btn.closest('.vf-item');
+  if(item.dataset.locked) return;
+  item.dataset.locked = '1';
+  const correctAnswer = item.dataset.answer;
+  const buttons = item.querySelectorAll('.vf-btn');
+  buttons.forEach(b=>b.disabled=true);
+  const isCorrect = (choice === correctAnswer);
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+  if(!isCorrect){
+    buttons.forEach(b=>{ if(b.dataset.choice === correctAnswer) b.classList.add('correct'); });
+  }
+  if(isCorrect){ vfScore++; stars++; updateStars(); }
+  vfAnswered++;
+  const statementText = item.querySelector('.vf-statement').textContent;
+  vfAnswers.push({question:statementText, chosen:(choice==='verdadero'?'Verdadero':'Falso'), correct:isCorrect});
+  if(vfAnswered===vfTotal){
+    document.getElementById('vfScoreLine').textContent = 'Puntaje: '+vfScore+' / '+vfTotal;
+    if(vfScore===vfTotal) confetti();
+  }
+}
+
+/* ---------- Notebook activities (slides 8, 9) ---------- */
+let notebookStatus = {venn:false, mapa:false};
+function trackNotebook(key, checked){
+  const wasNew = checked && !notebookStatus[key];
+  notebookStatus[key] = checked;
+  if(wasNew){ stars++; updateStars(); }
+}
+
+/* ---------- Tabs / 3D cell viewer (slide 4) ---------- */
+function switchCell3D(which, btn){
+  document.querySelectorAll('#slide-4 .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const wrap = document.getElementById('cell3dWrap');
+  if(which==='vegetal'){ wrap.classList.add('vegetal'); } else { wrap.classList.remove('vegetal'); }
+}
+
+const cellData = {
+  membrana:{name:'Membrana plasmática', info:'Envoltura que regula el paso de sustancias hacia dentro y fuera de la célula. Presente en ambas células.'},
+  citoplasma:{name:'Citoplasma', info:'Medio interno gelatinoso donde ocurren la mayoría de los procesos celulares. Presente en ambas células.'},
+  nucleo:{name:'Núcleo', info:'Contiene el material genético (ADN) que dirige las funciones de la célula. Presente en ambas células.'},
+  pared:{name:'Pared celular', info:'Capa rígida externa que da soporte y protección. Exclusiva de la célula vegetal.'}
+};
+let c3dVisited = new Set();
+function hotspotClick(el){
+  const key = el.dataset.key;
+  const firstTime = !c3dVisited.has(key);
+  el.classList.add('visited');
+  if(firstTime){
+    c3dVisited.add(key);
+    stars++; updateStars();
+    const pct = Math.round((c3dVisited.size/4)*100);
+    document.getElementById('c3dProgressFill').style.width = pct+'%';
+    document.getElementById('c3dProgressText').textContent = c3dVisited.size+' / 4 estructuras exploradas';
+    if(c3dVisited.size===4){
+      document.getElementById('c3dProgressText').textContent += ' — ¡Modelo 3D completo! 🧬';
+      confetti();
+    }
+  }
+  document.getElementById('c3dInfo').innerHTML = '<b>'+cellData[key].name+':</b> '+cellData[key].info;
+  c3dScheduleResume();
+}
+
+let c3dRX = -8, c3dRY = 25, c3dDragging = false, c3dLastX = 0, c3dLastY = 0, c3dAutoRotate = true, c3dResumeTimer = null;
+function updateC3DTransform(){
+  document.getElementById('cell3dRotator').style.transform = 'rotateX('+c3dRX+'deg) rotateY('+c3dRY+'deg)';
+}
+function c3dStart(x,y){ c3dDragging = true; c3dAutoRotate = false; c3dLastX = x; c3dLastY = y; }
+function c3dMove(x,y){
+  if(!c3dDragging) return;
+  const dx = x-c3dLastX, dy = y-c3dLastY;
+  c3dRY += dx*0.4;
+  c3dRX -= dy*0.3;
+  c3dRX = Math.max(-60, Math.min(60, c3dRX));
+  c3dLastX = x; c3dLastY = y;
+  updateC3DTransform();
+}
+function c3dEnd(){ c3dDragging = false; c3dScheduleResume(); }
+function c3dScheduleResume(){
+  clearTimeout(c3dResumeTimer);
+  c3dResumeTimer = setTimeout(()=>{ c3dAutoRotate = true; }, 4000);
+}
+const c3dStage = document.getElementById('cell3dStage');
+c3dStage.addEventListener('mousedown', e=>c3dStart(e.clientX,e.clientY));
+window.addEventListener('mousemove', e=>c3dMove(e.clientX,e.clientY));
+window.addEventListener('mouseup', c3dEnd);
+c3dStage.addEventListener('touchstart', e=>{ const t=e.touches[0]; c3dStart(t.clientX,t.clientY); }, {passive:true});
+c3dStage.addEventListener('touchmove', e=>{ const t=e.touches[0]; c3dMove(t.clientX,t.clientY); }, {passive:true});
+c3dStage.addEventListener('touchend', c3dEnd);
+function c3dAutoLoop(){
+  if(!c3dDragging && c3dAutoRotate){ c3dRY += 0.15; updateC3DTransform(); }
+  requestAnimationFrame(c3dAutoLoop);
+}
+updateC3DTransform();
+requestAnimationFrame(c3dAutoLoop);
+
+/* ---------- Labeling activity (slide 5) ---------- */
+let labelSelected = null;
+function selectLabel(btn){
+  if(btn.classList.contains('placed')) return;
+  document.querySelectorAll('#slide-6 .classify-chip').forEach(c=>c.classList.remove('selected'));
+  btn.classList.add('selected');
+  labelSelected = btn;
+}
+function placeLabel(slot){
+  if(!labelSelected) return;
+  slot.textContent = labelSelected.textContent;
+  slot.classList.add('filled');
+  slot.dataset.chosen = labelSelected.dataset.label;
+  labelSelected.classList.add('placed');
+  labelSelected.classList.remove('selected');
+  labelSelected = null;
+}
+function checkLabels(){
+  let correct = 0;
+  document.querySelectorAll('#slide-6 .label-slot').forEach(slot=>{
+    if(!slot.classList.contains('filled')) return;
+    const ok = slot.dataset.chosen === slot.dataset.key;
+    slot.classList.add(ok?'correct':'wrong');
+    if(ok) correct++;
+  });
+  stars += correct; updateStars();
+  document.getElementById('label-result').textContent = 'Aciertos: '+correct+' / 4';
+  if(correct===4) confetti();
+}
+function resetLabels(){
+  document.querySelectorAll('#slide-6 .classify-chip').forEach(c=>c.classList.remove('placed','selected'));
+  const slots = document.querySelectorAll('#slide-6 .label-slot');
+  slots.forEach((slot,i)=>{
+    slot.textContent = (i+1);
+    slot.className = 'label-slot';
+    delete slot.dataset.chosen;
+  });
+  labelSelected = null;
+  document.getElementById('label-result').textContent = '';
+}
+
+/* ---------- Game 1: memory match (slide 8) ---------- */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+const memoryPairs = [
+  {key:'membrana', text:'Membrana plasmática', func:'Controla la entrada y salida de sustancias'},
+  {key:'citoplasma', text:'Citoplasma', func:'Medio donde ocurren los procesos celulares'},
+  {key:'nucleo', text:'Núcleo', func:'Guarda el material genético (ADN)'},
+  {key:'pared', text:'Pared celular', func:'Da soporte y protección (solo en plantas)'}
+];
+let memCards = [];
+let memFlipped = [];
+let memMatched = 0;
+let memLock = false;
+
+function buildMemDeck(){
+  let deck = [];
+  memoryPairs.forEach(p=>{
+    deck.push({pairKey:p.key, label:p.text});
+    deck.push({pairKey:p.key, label:p.func});
+  });
+  return shuffle(deck);
+}
+function renderMemory(){
+  memCards = buildMemDeck();
+  memFlipped = [];
+  memMatched = 0;
+  memLock = false;
+  document.getElementById('mem-result').textContent = '';
+  const grid = document.getElementById('memGrid');
+  grid.innerHTML = '';
+  memCards.forEach((c,i)=>{
+    const card = document.createElement('div');
+    card.className = 'mem-card';
+    card.innerHTML = '<div class="mem-inner"><div class="mem-face mem-front">?</div><div class="mem-face mem-back">'+esc(c.label)+'</div></div>';
+    card.addEventListener('click', ()=>flipMemCard(card, i));
+    grid.appendChild(card);
+  });
+}
+function flipMemCard(card, i){
+  if(memLock || card.classList.contains('flip') || memFlipped.length===2) return;
+  card.classList.add('flip');
+  memFlipped.push({card, i});
+  if(memFlipped.length===2){
+    memLock = true;
+    const a = memFlipped[0], b = memFlipped[1];
+    if(memCards[a.i].pairKey === memCards[b.i].pairKey){
+      a.card.classList.add('matched');
+      b.card.classList.add('matched');
+      memMatched++;
+      stars++; updateStars();
+      memFlipped = [];
+      memLock = false;
+      if(memMatched===memoryPairs.length){
+        document.getElementById('mem-result').textContent = '¡Encontraste los 4 pares! 🎉';
+        confetti();
+      }
+    } else {
+      setTimeout(()=>{
+        a.card.classList.remove('flip');
+        b.card.classList.remove('flip');
+        memFlipped = [];
+        memLock = false;
+      }, 900);
+    }
+  }
+}
+function resetMemory(){ renderMemory(); }
+renderMemory();
+
+/* ---------- Game 2: timed trivia (slide 9) ---------- */
+const triviaQs = [
+  {q:'¿Cuál estructura es exclusiva de la célula vegetal?', opts:['Núcleo','Pared celular','Citoplasma'], correct:1},
+  {q:'¿Dónde se encuentra el material genético de la célula?', opts:['En el núcleo','En la membrana','En la pared celular'], correct:0},
+  {q:'¿Qué estructura regula el paso de sustancias hacia dentro y fuera de la célula?', opts:['El citoplasma','La membrana plasmática','El núcleo'], correct:1},
+  {q:'¿Qué comparten la célula animal y la célula vegetal?', opts:['Solo la pared celular','Membrana, citoplasma y núcleo','Solo el núcleo'], correct:1},
+  {q:'¿Qué función cumple el citoplasma?', opts:['Da soporte rígido externo','Es el medio donde ocurren los procesos celulares','Contiene el ADN'], correct:1}
+];
+let triviaIdx = 0;
+let triviaScore = 0;
+let triviaTimer = null;
+let triviaTimeLeft = 15;
+let triviaAnswers = [];
+let triviaPlayed = false;
+
+function startTrivia(){
+  triviaIdx = 0;
+  triviaScore = 0;
+  triviaAnswers = [];
+  triviaPlayed = true;
+  document.getElementById('trivia-result').textContent = '';
+  document.getElementById('triviaStartBtn').style.display = 'none';
+  renderTriviaQ();
+}
+function renderTriviaQ(){
+  clearInterval(triviaTimer);
+  if(triviaIdx >= triviaQs.length){ finishTrivia(); return; }
+  triviaTimeLeft = 15;
+  const fill = document.getElementById('triviaTimerFill');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  const wrap = document.getElementById('triviaQuestionWrap');
+  const item = triviaQs[triviaIdx];
+  wrap.innerHTML = '<p><b>'+(triviaIdx+1)+'/'+triviaQs.length+'.</b> '+item.q+'</p>';
+  const optsWrap = document.createElement('div');
+  optsWrap.className = 'quiz-opts';
+  item.opts.forEach((opt,i)=>{
+    const b = document.createElement('button');
+    b.className = 'quiz-opt';
+    b.textContent = opt;
+    b.onclick = ()=> answerTrivia(i);
+    optsWrap.appendChild(b);
+  });
+  wrap.appendChild(optsWrap);
+  requestAnimationFrame(()=>{
+    fill.style.transition = 'width 15s linear';
+    fill.style.width = '0%';
+  });
+  triviaTimer = setInterval(()=>{
+    triviaTimeLeft--;
+    if(triviaTimeLeft<=0){ answerTrivia(-1); }
+  },1000);
+}
+function answerTrivia(choice){
+  clearInterval(triviaTimer);
+  const item = triviaQs[triviaIdx];
+  const opts = document.querySelectorAll('#triviaQuestionWrap .quiz-opt');
+  opts.forEach((b,i)=>{
+    b.disabled = true;
+    if(i===item.correct) b.classList.add('correct');
+    else if(i===choice) b.classList.add('wrong');
+  });
+  const isCorrect = (choice===item.correct);
+  if(isCorrect){ triviaScore++; stars++; updateStars(); }
+  triviaAnswers.push({
+    question:item.q,
+    chosen: choice>=0 ? item.opts[choice] : '(sin responder / tiempo agotado)',
+    correctText:item.opts[item.correct],
+    isCorrect:isCorrect
+  });
+  setTimeout(()=>{ triviaIdx++; renderTriviaQ(); }, 900);
+}
+function finishTrivia(){
+  document.getElementById('triviaQuestionWrap').innerHTML = '';
+  document.getElementById('triviaStartBtn').style.display = 'inline-block';
+  document.getElementById('triviaStartBtn').textContent = '↺ Jugar de nuevo';
+  let msg = '';
+  if(triviaScore===5) msg = '¡Nivel experto en biología celular! 🏆';
+  else if(triviaScore>=3) msg = '¡Muy bien! Vas por buen camino 🔬';
+  else msg = 'Sigamos repasando, ¡la próxima será mejor! 💪';
+  document.getElementById('trivia-result').textContent = 'Puntaje: '+triviaScore+' / 5 — '+msg;
+  if(triviaScore===5) confetti();
+}
+
+/* ---------- Export to PDF (print) ---------- */
+function esc(s){
+  if(s===undefined || s===null || s==='') return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function answerBlock(text){
+  const t = (text||'').trim();
+  return t ? esc(t) : '<span style="color:#999;">(sin responder)</span>';
+}
+
+function exportPDF(){
+  const m1 = document.getElementById('teamMember1').value.trim();
+  const m2 = document.getElementById('teamMember2').value.trim();
+  const m3 = document.getElementById('teamMember3').value.trim();
+  const m4 = document.getElementById('teamMember4').value.trim();
+  const course = document.getElementById('teamCourse').value.trim();
+  const dateField = document.getElementById('teamDate').value.trim();
+  const members = [m1,m2,m3,m4].filter(Boolean);
+
+  let html = '';
+  html += '<h1>Unidad 2 · La Célula — Registro de trabajo</h1>';
+  html += '<h2>Sesión 3 · 8° Básico · Ciencias Naturales</h2>';
+  html += '<p class="pe-meta">Generado el '+esc(new Date().toLocaleDateString('es-CL'))+'</p>';
+
+  html += '<div class="pe-section"><h3>Integrantes</h3>';
+  html += members.length ? '<p>'+members.map(esc).join(' · ')+'</p>' : '<p style="color:#999;">(sin registrar)</p>';
+  html += '<p class="pe-meta">Curso: '+(course?esc(course):'—')+' &nbsp;|&nbsp; Fecha: '+(dateField?esc(dateField):'—')+'</p></div>';
+
+  html += '<div class="pe-section"><h3>Activación: repaso de sesiones anteriores</h3>';
+  if(repasoAnswers.length){
+    repasoAnswers.forEach(a=>{
+      html += '<p class="pe-meta">'+esc(a.question)+'</p>';
+      html += '<div class="pe-answer">Tu respuesta: '+esc(a.chosen)+' — '+(a.correct?'✅ correcta':'❌ incorrecta')+'</div>';
+    });
+    html += '<p class="pe-score">Puntaje: '+repasoScore+' / '+repasoTotal+'</p>';
+  } else {
+    html += '<p style="color:#999;">(sin responder)</p>';
+  }
+  html += '</div>';
+
+  html += '<div class="pe-section"><h3>Modelo 3D interactivo (esquemático)</h3>';
+  if(c3dVisited.size){
+    const names = Array.from(c3dVisited).map(k=>cellData[k].name);
+    html += '<p>Estructuras exploradas: '+names.map(esc).join(' · ')+' ('+c3dVisited.size+' / 4)</p>';
+  } else {
+    html += '<p style="color:#999;">(sin explorar)</p>';
+  }
+  html += '</div>';
+
+  html += '<div class="pe-section"><h3>Modelo 3D real (Sketchfab · EVE3D UNAM) — preguntas de exploración</h3>';
+  const sfTexts = document.querySelectorAll('#slide-5 .oq-text');
+  const sfInputs = document.querySelectorAll('#slide-5 .oq-input');
+  sfTexts.forEach((p,i)=>{
+    html += '<p class="pe-meta">'+esc(p.textContent)+'</p>';
+    html += '<div class="pe-answer">'+answerBlock(sfInputs[i] ? sfInputs[i].value : '')+'</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="pe-section"><h3>Esquema rotulado</h3>';
+  const labelSlots = document.querySelectorAll('#slide-6 .label-slot');
+  if(Array.from(labelSlots).some(s=>s.classList.contains('filled'))){
+    let lhtml = '<table><tr><th>Punto</th><th>Tu etiqueta</th><th>Resultado</th></tr>';
+    labelSlots.forEach((s,i)=>{
+      const result = s.classList.contains('correct') ? '✅' : (s.classList.contains('wrong') ? '❌' : '—');
+      const labelTxt = s.classList.contains('filled') ? s.textContent : '(sin etiquetar)';
+      lhtml += '<tr><td>'+(i+1)+'</td><td>'+esc(labelTxt)+'</td><td>'+result+'</td></tr>';
+    });
+    lhtml += '</table>';
+    html += lhtml;
+  } else {
+    html += '<p style="color:#999;">(sin completar)</p>';
+  }
+  html += '</div>';
+
+  html += '<div class="pe-section"><h3>Verdadero o Falso relámpago</h3>';
+  if(vfAnswers.length){
+    let vfhtml = '<table><tr><th>Afirmación</th><th>Tu respuesta</th><th>Resultado</th></tr>';
+    vfAnswers.forEach(a=>{
+      vfhtml += '<tr><td>'+esc(a.question)+'</td><td>'+esc(a.chosen)+'</td><td>'+(a.correct?'✅':'❌')+'</td></tr>';
+    });
+    vfhtml += '</table>';
+    html += vfhtml;
+    html += '<p class="pe-score">Puntaje: '+vfScore+' / '+vfTotal+'</p>';
+  } else {
+    html += '<p style="color:#999;">(sin responder)</p>';
+  }
+  html += '</div>';
+
+  html += '<div class="pe-section"><h3>En tu cuaderno: Diagrama de Venn</h3>';
+  html += '<p>'+(notebookStatus.venn ? '✅ Marcado como completado en el cuaderno' : '<span style="color:#999;">(no marcado como completado)</span>')+'</p>';
+  const vennInput = document.querySelector('#slide-8 .oq-input');
+  html += '<p class="pe-meta">¿Qué fue lo que más te costó clasificar? ¿Por qué?</p>';
+  html += '<div class="pe-answer">'+answerBlock(vennInput ? vennInput.value : '')+'</div>';
+  html += '</div>';
+
+  html += '<div class="pe-section"><h3>En tu cuaderno: Mapa de conceptos</h3>';
+  html += '<p>'+(notebookStatus.mapa ? '✅ Marcado como completado en el cuaderno' : '<span style="color:#999;">(no marcado como completado)</span>')+'</p>';
+  const mapaInput = document.querySelector('#slide-9 .oq-input');
+  html += '<p class="pe-meta">Elige una conexión de tu mapa y explícala en una frase completa.</p>';
+  html += '<div class="pe-answer">'+answerBlock(mapaInput ? mapaInput.value : '')+'</div>';
+  html += '</div>';
+
+  html += '<div class="pe-section"><h3>Zona de juegos</h3>';
+  html += '<h4>Juego 1 · Memoria: estructura y función</h4>';
+  html += '<p>Pares encontrados: '+memMatched+' / '+memoryPairs.length+'</p>';
+  html += '<h4>Juego 2 · Trivia rápida</h4>';
+  if(triviaPlayed && triviaAnswers.length){
+    let g3html = '<table><tr><th>Pregunta</th><th>Tu respuesta</th><th>Resultado</th></tr>';
+    triviaAnswers.forEach(a=>{
+      g3html += '<tr><td>'+esc(a.question)+'</td><td>'+esc(a.chosen)+'</td><td>'+(a.isCorrect?'✅':'❌')+'</td></tr>';
+    });
+    g3html += '</table>';
+    html += g3html;
+    html += '<p class="pe-score">Puntaje: '+triviaScore+' / '+triviaQs.length+'</p>';
+  } else {
+    html += '<p style="color:#999;">(sin jugar)</p>';
+  }
+  html += '</div>';
+
+  html += '<div class="pe-section"><h3>Batería de preguntas — Taxonomía de Bloom</h3>';
+  document.querySelectorAll('.qb-level').forEach(level=>{
+    const levelName = level.dataset.level;
+    html += '<h4>'+esc(levelName)+'</h4>';
+    level.querySelectorAll('.qb-q').forEach(q=>{
+      const qt = q.querySelector('.qb-q-text').textContent;
+      const qv = q.querySelector('.qb-q-input').value;
+      html += '<p class="pe-meta">'+esc(qt)+'</p>';
+      html += '<div class="pe-answer">'+answerBlock(qv)+'</div>';
+    });
+  });
+  html += '</div>';
+
+  html += '<p class="pe-meta" style="margin-top:1rem;">⭐ Puntaje total acumulado en la actividad: '+stars+'</p>';
+
+  document.getElementById('printExport').innerHTML = html;
+  setTimeout(function(){ window.print(); }, 80);
+}
+</script>
+</body>
+</html>
