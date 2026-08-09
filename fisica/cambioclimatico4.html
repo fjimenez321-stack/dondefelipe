@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad 3 · Sesión 1 · Cambio Climático</title>
+<style>
+:root{
+  --parchment:#f6f0e2;
+  --parchment-dk:#ece2c9;
+  --navy:#132436;
+  --navy-mid:#1c3550;
+  --teal:#0e7c7b;
+  --teal-l:#2aaea3;
+  --amber:#e2a12b;
+  --amber-l:#f4c869;
+  --red:#c0392b;
+  --green:#3c8a4a;
+  --ink:#2b2116;
+  --paper-line:#d9cba3;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:'Georgia','Times New Roman',serif;
+  background:var(--navy);
+  color:var(--ink);
+  overflow:hidden;
+}
+#deck{position:relative;width:100vw;height:100vh;}
+.slide{
+  position:absolute;inset:0;
+  display:none;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(226,161,43,0.10), transparent 45%),
+    linear-gradient(var(--parchment), var(--parchment-dk));
+  padding:5vh 6vw;
+  flex-direction:column;
+}
+.slide.active{display:flex;animation:fadeIn .5s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+.eyebrow{
+  font-family:'Helvetica Neue',Arial,sans-serif;
+  text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;
+  color:var(--teal);font-weight:700;margin-bottom:.3rem;
+}
+h1{font-size:2.5rem;margin:.1rem 0 .3rem;color:var(--navy);line-height:1.15;}
+h2{font-size:1.9rem;color:var(--navy);margin:0 0 .6rem;}
+h3{font-size:1.2rem;color:var(--navy-mid);margin:0 0 .3rem;}
+p{line-height:1.55;font-size:1.08rem;}
+.sub{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.05rem;color:#5a4c33;margin-bottom:1rem;}
+
+.badge{
+  display:inline-block;font-family:'Helvetica Neue',Arial,sans-serif;
+  font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:.22rem .6rem;border-radius:999px;margin-right:.4rem;
+}
+.badge.bloom{background:var(--navy);color:var(--parchment);}
+.badge.oa{background:var(--teal);color:#fff;}
+.badge.cuaderno{background:var(--amber);color:var(--navy);}
+.badge.form{background:var(--red);color:#fff;}
+
+.grid{display:grid;gap:1rem;flex:1;min-height:0;align-items:start;}
+.cols-2{grid-template-columns:1fr 1fr;}
+.cols-3{grid-template-columns:1fr 1fr 1fr;}
+
+.card{
+  background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;
+  padding:1rem 1.1rem;box-shadow:0 2px 6px rgba(43,33,22,.08);
+}
+.card h3{margin-top:0;}
+.card.teal{border-top:4px solid var(--teal);}
+.card.amber{border-top:4px solid var(--amber);}
+.card.navy{border-top:4px solid var(--navy);}
+.card.red{border-top:4px solid var(--red);}
+
+.hero-concept{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  max-width:820px;
+}
+.hero-concept .icon{font-size:3.4rem;margin-bottom:.4rem;}
+.hero-concept h2{font-size:2.3rem;}
+.hero-concept p{font-size:1.2rem;}
+.hero-concept .scale{
+  margin-top:1rem;display:inline-block;background:#fffdf6;border:1px solid var(--paper-line);
+  border-radius:8px;padding:.6rem 1rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.95rem;
+}
+
+.cuaderno-box{
+  background:repeating-linear-gradient(#fffef9,#fffef9 27px,#e3dcc4 28px);
+  border:1px solid var(--paper-line);border-left:5px solid var(--amber);
+  border-radius:6px;padding:1rem 1.2rem;position:relative;
+}
+.cuaderno-box::before{
+  content:"📓 REGISTRA EN TU CUADERNO";
+  position:absolute;top:-11px;left:14px;background:var(--amber);color:var(--navy);
+  font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;
+  letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;
+}
+.exit-box{
+  background:#fdf3e9;
+  border:1px solid var(--paper-line);border-left:5px solid var(--red);
+  border-radius:6px;padding:1rem 1.2rem;position:relative;
+}
+.exit-box::before{
+  content:"🎫 TICKET DE SALIDA";
+  position:absolute;top:-11px;left:14px;background:var(--red);color:#fff;
+  font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;
+  letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;
+}
+
+.footer-nav{
+  position:absolute;bottom:1.1rem;left:6vw;right:6vw;
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:'Helvetica Neue',Arial,sans-serif;font-size:.8rem;color:#7a6b4d;
+}
+.progress{flex:1;height:5px;background:#d9cba3;border-radius:3px;margin:0 1rem;overflow:hidden;}
+.progress-bar{height:100%;background:var(--teal);width:4%;transition:width .3s;}
+.navbtn{
+  background:var(--navy);color:var(--parchment);border:none;border-radius:6px;
+  width:34px;height:34px;cursor:pointer;font-size:1rem;
+}
+.navbtn:hover{background:var(--teal);}
+.navbtn:disabled{opacity:.3;cursor:default;}
+#soundBtn{position:absolute;top:1.1rem;right:6vw;background:none;border:1px solid var(--navy);
+  border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:1rem;color:var(--navy);z-index:5;}
+
+.tag{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.85rem;color:var(--teal);font-weight:700;}
+
+/* Slide 1 - apertura */
+#slide-1{background:
+  radial-gradient(ellipse at 70% 20%, rgba(226,161,43,.35), transparent 55%),
+  linear-gradient(160deg,#132436 0%,#1c3550 55%,#0e7c7b 130%);
+  color:var(--parchment);align-items:center;text-align:center;justify-content:center;cursor:pointer;}
+#slide-1 h1{color:#fff;font-size:3.1rem;}
+#slide-1 .sub{color:#cfe8e6;}
+#sky{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.ray{position:absolute;width:2px;background:linear-gradient(var(--amber-l),transparent);opacity:0;border-radius:2px;}
+.hint{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.85rem;color:#a8c8c6;margin-top:2rem;letter-spacing:.04em;}
+
+/* MC / feedback */
+.opt{
+  display:block;width:100%;text-align:left;background:#fffdf6;border:1.5px solid var(--paper-line);
+  border-radius:8px;padding:.8rem 1rem;margin-bottom:.6rem;cursor:pointer;
+  font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.02rem;transition:.15s;
+}
+.opt:hover{border-color:var(--teal);background:#f0f8f7;}
+.opt.correct{background:#e6f4e6;border-color:var(--green);}
+.opt.wrong{background:#fbe9e7;border-color:var(--red);}
+.feedback{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1rem;margin-top:.6rem;min-height:1.4rem;}
+.feedback.ok{color:var(--green);font-weight:700;}
+.feedback.bad{color:var(--red);font-weight:700;}
+
+/* sliders */
+input[type=range]{width:100%;accent-color:var(--teal);}
+.slidewrap{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.85rem;margin-bottom:.7rem;}
+.valpill{display:inline-block;background:var(--navy);color:#fff;padding:.1rem .5rem;border-radius:5px;font-size:.8rem;margin-left:.4rem;}
+
+.small{font-size:.85rem;color:#5a4c33;}
+.source{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.78rem;color:#8a7a58;font-style:italic;}
+ul{margin:.3rem 0;padding-left:1.2rem;}
+li{margin-bottom:.3rem;line-height:1.45;}
+.scroll{overflow-y:auto;padding-bottom:4.5rem;}
+.center-mid{justify-content:center;}
+
+/* layer stack (Sol / Atmósfera / Hidrosfera) */
+.layer-stack{display:flex;flex-direction:column;gap:.55rem;flex:1;justify-content:center;max-width:920px;}
+.layer-row{display:flex;align-items:center;gap:1rem;padding:.7rem 1.1rem;border-radius:9px;background:#fffdf6;border:1px solid var(--paper-line);box-shadow:0 1px 4px rgba(43,33,22,.06);}
+.layer-row .num{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:.9rem;flex-shrink:0;}
+.layer-row .txt{flex:1;}
+.layer-row .txt b{display:block;font-family:Georgia,serif;color:var(--navy-mid);font-size:1.08rem;}
+.layer-row .txt span{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.85rem;color:#5a4c33;}
+.layer-row .alt{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.78rem;color:#8a7a58;flex-shrink:0;text-align:right;min-width:90px;}
+
+/* stat grid (Sol características, Tropósfera) */
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:.6rem;}
+.stat{background:#fffdf6;border:1px solid var(--paper-line);border-radius:9px;padding:.75rem .9rem;}
+.stat b{display:block;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--teal);margin-bottom:.2rem;}
+.stat span{font-family:Georgia,serif;font-size:1.05rem;color:var(--navy);}
+
+/* activity option cards */
+.actcard{background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;align-items:flex-start;gap:.35rem;}
+.actcard .icon{font-size:1.7rem;}
+.actcard h3{margin:.1rem 0 0;}
+
+/* rubric table */
+.rubric{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.82rem;}
+.rubric th,.rubric td{border:1px solid var(--paper-line);padding:.55rem .6rem;text-align:left;vertical-align:top;}
+.rubric th{background:var(--navy);color:var(--parchment);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
+.rubric td.crit{background:#f4ecd8;font-weight:700;font-family:Georgia,serif;font-size:.9rem;color:var(--navy-mid);}
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- 1: APERTURA -->
+<div class="slide active" id="slide-1" onclick="rayBurst(event)">
+  <div id="sky"></div>
+  <div class="eyebrow" style="color:var(--amber-l)">Unidad 3 · Cambio Climático · Sesión 1</div>
+  <h1>El clima que heredarás</h1>
+  <p class="sub" style="max-width:640px;margin:0 auto;">Del saber a la acción sostenible. Hoy empezamos a construir, con herramientas de la física, el marco conceptual para entender uno de los fenómenos más complejos de nuestro tiempo — desde Villa Alemana hacia el planeta.</p>
+  <div class="hint">☀️ Haz clic en cualquier parte del cielo</div>
+</div>
+
+<!-- 2: CONCEPTO - Tiempo atmosférico -->
+<div class="slide center-mid" id="slide-2">
+  <div class="eyebrow">Inicio · Activación</div>
+  <div class="hero-concept">
+    <div class="icon">☔</div>
+    <h2>Tiempo atmosférico</h2>
+    <p>Estado de la atmósfera en un lugar y <b>momento puntual</b>: llueve hoy en Villa Alemana, hace viento esta tarde en Valparaíso, mañana se pronostican precipitaciones aisladas.</p>
+    <div class="scale"><b>Escala:</b> horas a días. Es lo que anuncia el pronóstico cada noche o la app del celular.</div>
+  </div>
+</div>
+
+<!-- 3: CONCEPTO - Clima -->
+<div class="slide center-mid" id="slide-3">
+  <div class="eyebrow">Inicio · Activación</div>
+  <div class="hero-concept">
+    <div class="icon">🌍</div>
+    <h2>Clima</h2>
+    <p>Patrón <b>estadístico</b> del tiempo atmosférico de una zona a lo largo de <b>décadas</b> (típicamente 30 años, según la Organización Meteorológica Mundial).</p>
+    <div class="scale"><b>Escala:</b> años a décadas. Es lo que caracteriza a la zona central de Chile como "clima mediterráneo".</div>
+  </div>
+</div>
+
+<!-- 4: CUADERNO - comparación -->
+<div class="slide" id="slide-4">
+  <div class="eyebrow">Inicio · Cuaderno</div>
+  <h2>Tiempo atmosférico ≠ Clima</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;"><b>Error frecuente a discutir:</b> "El clima cambia todos los días" — ¿están de acuerdo? Escribe en tu cuaderno una respuesta breve y argumentada.</p>
+    <ul>
+      <li>Anota un ejemplo propio (no visto en clase) de <b>tiempo atmosférico</b>.</li>
+      <li>Anota un ejemplo propio de <b>clima</b>.</li>
+      <li>En una frase, explica la diferencia de escala temporal entre ambos.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 5: Sistema climático - intro Sol -->
+<div class="slide center-mid" id="slide-5">
+  <div class="eyebrow">Desarrollo · Sistema climático</div>
+  <div class="hero-concept">
+    <div class="icon">☀️</div>
+    <h2>El Sol: motor energético del sistema</h2>
+    <p>Toda la dinámica del sistema climático parte de la radiación solar entrante. Sin esa energía no hay tiempo atmosférico, ni clima, ni vida tal como la conocemos.</p>
+    <div class="scale">Antes de ver los subsistemas terrestres, conozcamos mejor a nuestra estrella: su estructura interna, sus características y su origen.</div>
+  </div>
+</div>
+
+<!-- 6: Sol - Capas -->
+<div class="slide" id="slide-6">
+  <div class="eyebrow">Desarrollo · El Sol 1 de 3</div>
+  <h2>Capas del Sol</h2>
+  <div class="layer-stack">
+    <div class="layer-row"><div class="num" style="background:#c0392b;">1</div><div class="txt"><b>Núcleo</b><span>Fusión nuclear de hidrógeno en helio — la fuente de toda la energía solar.</span></div><div class="alt">~15.000.000 °C</div></div>
+    <div class="layer-row"><div class="num" style="background:#e2a12b;">2</div><div class="txt"><b>Zona radiativa</b><span>La energía viaja hacia afuera como radiación, rebotando entre partículas durante miles de años.</span></div><div class="alt">~7.000.000 °C</div></div>
+    <div class="layer-row"><div class="num" style="background:#f4c869;">3</div><div class="txt"><b>Zona convectiva</b><span>El plasma se mueve en corrientes de convección, como agua hirviendo, transportando energía hacia la superficie.</span></div><div class="alt">~2.000.000 °C</div></div>
+    <div class="layer-row"><div class="num" style="background:#2aaea3;">4</div><div class="txt"><b>Fotósfera</b><span>La "superficie" visible del Sol — la luz que vemos desde la Tierra proviene de aquí.</span></div><div class="alt">~5.500 °C</div></div>
+    <div class="layer-row"><div class="num" style="background:#0e7c7b;">5</div><div class="txt"><b>Cromósfera</b><span>Capa rojiza, visible a simple vista solo durante un eclipse solar total.</span></div><div class="alt">~20.000 °C</div></div>
+    <div class="layer-row"><div class="num" style="background:#132436;">6</div><div class="txt"><b>Corona</b><span>Capa externa, extremadamente caliente y tenue; origina el viento solar.</span></div><div class="alt">~1.000.000 °C</div></div>
+  </div>
+</div>
+
+<!-- 7: Sol - Características como estrella -->
+<div class="slide" id="slide-7">
+  <div class="eyebrow">Desarrollo · El Sol 2 de 3</div>
+  <h2>El Sol como estrella</h2>
+  <p class="sub">Una estrella enana amarilla de tipo espectral G2V, como hay miles de millones en nuestra galaxia.</p>
+  <div class="statgrid">
+    <div class="stat"><b>Tipo espectral</b><span>G2V (enana amarilla)</span></div>
+    <div class="stat"><b>Radio</b><span>≈696.000 km (109 × la Tierra)</span></div>
+    <div class="stat"><b>Masa</b><span>≈333.000 × la masa terrestre</span></div>
+    <div class="stat"><b>Temp. superficial</b><span>≈5.500 °C</span></div>
+    <div class="stat"><b>Composición</b><span>≈73% H, ≈25% He</span></div>
+    <div class="stat"><b>Edad actual</b><span>≈4.600 millones de años</span></div>
+  </div>
+  <div class="scale" style="margin-top:1rem;">Hilo cuantitativo: la energía del Sol proviene de la conversión de masa en energía por fusión nuclear (E=mc²) — el mismo principio que retomaremos con más profundidad en la Unidad 4, Física Moderna.</div>
+</div>
+
+<!-- 8: Sol - Origen -->
+<div class="slide center-mid" id="slide-8">
+  <div class="eyebrow">Desarrollo · El Sol 3 de 3</div>
+  <div class="hero-concept">
+    <div class="icon">🌌</div>
+    <h2>Origen del Sol</h2>
+    <p>Se formó hace aproximadamente <b>4.600 millones de años</b> por el colapso gravitacional de una región densa de una nube molecular (la nebulosa solar). Al contraerse, la mayor parte de la masa se concentró en el centro, y el resto formó un disco de gas y polvo que dio origen a los planetas, incluida la Tierra.</p>
+    <p>Cuando la presión y la temperatura del núcleo fueron suficientes, se inició la fusión nuclear y el Sol se convirtió en una estrella de secuencia principal — la fase estable en la que se encuentra actualmente, a mitad de una vida útil estimada en unos 10.000 millones de años.</p>
+  </div>
+</div>
+
+<!-- 9: Subsistema - Atmósfera -->
+<div class="slide center-mid" id="slide-9">
+  <div class="eyebrow">Desarrollo · Subsistema 1 de 4</div>
+  <div class="hero-concept">
+    <div class="icon">🌫️</div>
+    <h2>Atmósfera</h2>
+    <p>Capa de gases que envuelve la Tierra, incluyendo los <b>gases de efecto invernadero</b>. Regula viento y precipitación, e interactúa con todos los demás subsistemas.</p>
+  </div>
+</div>
+
+<!-- 10: Atmósfera - Capas -->
+<div class="slide" id="slide-10">
+  <div class="eyebrow">Desarrollo · Capas de la atmósfera</div>
+  <h2>Capas de la atmósfera terrestre</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:.8rem;">
+  <div class="layer-stack" style="flex:none;">
+    <div class="layer-row"><div class="num" style="background:#0e7c7b;">1</div><div class="txt"><b>Tropósfera</b><span>Aquí ocurren el tiempo atmosférico y el clima. Concentra la mayoría del vapor de agua y los gases de efecto invernadero.</span></div><div class="alt">0 – 12 km</div></div>
+    <div class="layer-row"><div class="num" style="background:#2aaea3;">2</div><div class="txt"><b>Estratósfera</b><span>Contiene la capa de ozono, que absorbe radiación ultravioleta del Sol.</span></div><div class="alt">12 – 50 km</div></div>
+    <div class="layer-row"><div class="num" style="background:#f4c869;">3</div><div class="txt"><b>Mesósfera</b><span>Capa donde la mayoría de los meteoritos se desintegran por fricción al entrar a la atmósfera.</span></div><div class="alt">50 – 85 km</div></div>
+    <div class="layer-row"><div class="num" style="background:#e2a12b;">4</div><div class="txt"><b>Termósfera</b><span>Aquí ocurren las auroras; la Estación Espacial Internacional orbita dentro de esta capa.</span></div><div class="alt">85 – 600 km</div></div>
+    <div class="layer-row"><div class="num" style="background:#c0392b;">5</div><div class="txt"><b>Exósfera</b><span>Capa más externa y difusa; transición gradual hacia el espacio interplanetario.</span></div><div class="alt">600 km +</div></div>
+  </div>
+  <div class="scale">La próxima diapositiva profundiza en la tropósfera: la capa donde ocurre todo lo que estudiaremos hoy.</div>
+  </div>
+</div>
+
+<!-- 11: Tropósfera en detalle -->
+<div class="slide" id="slide-11">
+  <div class="eyebrow">Desarrollo · La tropósfera en detalle</div>
+  <h2>La tropósfera: la capa donde vivimos el clima</h2>
+  <p class="sub">La capa más baja y delgada de la atmósfera es, sin embargo, la que concentra casi toda la actividad climática del planeta.</p>
+  <div class="statgrid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat"><b>Espesor</b><span>~18 km (ecuador) a ~8 km (polos)</span></div>
+    <div class="stat"><b>% de la masa atmosférica</b><span>≈80%</span></div>
+    <div class="stat"><b>Gradiente térmico</b><span>≈ -6,5 °C cada 1.000 m</span></div>
+  </div>
+  <div class="card teal" style="margin-top:1rem;">
+    <h3>¿Por qué es la capa clave para esta unidad?</h3>
+    <ul class="small">
+      <li>Concentra casi todo el <b>vapor de agua</b> y los <b>gases de efecto invernadero</b> (CO₂, CH₄, N₂O).</li>
+      <li>Aquí se forman las nubes, el viento y la precipitación: el "tiempo atmosférico" ocurre en esta capa.</li>
+      <li>Es la capa donde se produce la mayor parte del <b>balance radiativo</b> que simularemos a continuación — el intercambio de energía entre la superficie terrestre y la atmósfera.</li>
+      <li>Su límite superior, la tropopausa, actúa como una especie de "tapa" que contiene la mezcla vertical del aire.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 12: Subsistema - Hidrosfera -->
+<div class="slide center-mid" id="slide-12">
+  <div class="eyebrow">Desarrollo · Subsistema 2 de 4</div>
+  <div class="hero-concept">
+    <div class="icon">🌊</div>
+    <h2>Hidrosfera</h2>
+    <p>Océanos, mares y aguas continentales. La <b>Corriente de Humboldt</b> regula la temperatura costera de Chile y explica en parte nuestro clima árido-templado.</p>
+  </div>
+</div>
+
+<!-- 13: Hidrosfera - Capas -->
+<div class="slide" id="slide-13">
+  <div class="eyebrow">Desarrollo · Capas de la hidrosfera</div>
+  <h2>Capas térmicas del océano</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:.8rem;">
+  <div class="layer-stack" style="flex:none;">
+    <div class="layer-row"><div class="num" style="background:#2aaea3;">1</div><div class="txt"><b>Capa superficial (zona de mezcla)</b><span>Temperatura relativamente uniforme por acción del viento y el oleaje. Alta interacción térmica con la atmósfera — aquí ocurre el intercambio de calor y humedad.</span></div><div class="alt">0 – 200 m</div></div>
+    <div class="layer-row"><div class="num" style="background:#e2a12b;">2</div><div class="txt"><b>Termoclina</b><span>Zona de transición donde la temperatura desciende bruscamente con la profundidad. Actúa como una barrera que dificulta la mezcla vertical de calor.</span></div><div class="alt">200 – 1.000 m aprox.</div></div>
+    <div class="layer-row"><div class="num" style="background:#132436;">3</div><div class="txt"><b>Capa profunda (zona abisal)</b><span>Temperaturas bajas y casi constantes (~2–4 °C), gran densidad y prácticamente sin luz solar.</span></div><div class="alt">1.000 m +</div></div>
+  </div>
+  <div class="scale">El océano profundo funciona como un enorme reservorio de calor con gran inercia térmica: absorbe una parte importante del exceso de energía del sistema climático, amortiguando —pero no deteniendo— el calentamiento global.</div>
+  </div>
+</div>
+
+<!-- 14: Subsistema - Criosfera -->
+<div class="slide center-mid" id="slide-14">
+  <div class="eyebrow">Desarrollo · Subsistema 3 de 4</div>
+  <div class="hero-concept">
+    <div class="icon">🏔️</div>
+    <h2>Criosfera</h2>
+    <p>Glaciares andinos y hielo. Protagonista de la <b>retroalimentación hielo-albedo</b>: menos hielo → superficie más oscura → más absorción de energía → más calor → menos hielo.</p>
+  </div>
+</div>
+
+<!-- 15: Subsistema - Bio/Litosfera -->
+<div class="slide center-mid" id="slide-15">
+  <div class="eyebrow">Desarrollo · Subsistema 4 de 4</div>
+  <div class="hero-concept">
+    <div class="icon">🌱</div>
+    <h2>Biosfera y litosfera</h2>
+    <p>Suelos, vegetación y actividad geológica. Intercambian materia y energía con la atmósfera (por ejemplo, el suelo desértico del norte de Chile absorbe y libera calor de forma muy distinta al bosque nativo del sur).</p>
+  </div>
+</div>
+
+<!-- 16: CUADERNO - esquema sistema climático -->
+<div class="slide" id="slide-16">
+  <div class="eyebrow">Desarrollo · Cuaderno</div>
+  <h2>Esquema del sistema climático</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">En tu cuaderno:</p>
+    <ul>
+      <li>Dibuja el Sol y los 5 subsistemas (atmósfera, hidrosfera, criosfera, bio/litosfera).</li>
+      <li>Traza al menos <b>tres flechas de interacción</b> entre ellos (por ejemplo, océano ⇄ atmósfera: evaporación / precipitación).</li>
+      <li>Rotula la retroalimentación hielo–albedo con una flecha circular y una frase de una línea.</li>
+    </ul>
+    <p class="small">Guarda este esquema: lo usaremos en la síntesis de cierre.</p>
+  </div>
+</div>
+
+<!-- 17: Simulador 1 -->
+<div class="slide" id="slide-17">
+  <div class="eyebrow">Desarrollo · Simulador 1</div>
+  <h2>De la variabilidad diaria emerge el clima</h2>
+  <div class="grid cols-2">
+    <div class="card teal">
+      <canvas id="cvTiempoClima" width="480" height="260" style="width:100%;border-radius:6px;background:#fbf7ec;"></canvas>
+      <div class="slidewrap" style="margin-top:.6rem;">
+        Años promediados<span class="valpill" id="lblAnios">1</span>
+        <input type="range" id="rngAnios" min="1" max="30" value="1">
+      </div>
+      <p class="small">El punto naranja salta día a día (tiempo atmosférico). La línea turquesa es el promedio acumulado (clima).</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;"><b>Antes de tocar el simulador</b>, predice en tu cuaderno: si promediamos solo 1 año de temperaturas diarias, ¿la curva se verá más irregular o más suave que si promediamos 30 años?</p>
+      <p><b>Después</b>, anota si tu predicción se cumplió y por qué esto explica que "un día frío no refuta el cambio climático".</p>
+    </div>
+  </div>
+</div>
+
+<!-- 18: Simulador 2 -->
+<div class="slide" id="slide-18">
+  <div class="eyebrow">Desarrollo · Simulador 2 · Hilo cuantitativo</div>
+  <h2>Balance radiativo de la Tierra</h2>
+  <div class="grid cols-2">
+    <div class="card amber">
+      <svg id="svgBalance" viewBox="0 0 300 220" style="width:100%;background:#fbf7ec;border-radius:6px;"></svg>
+      <div class="slidewrap" style="margin-top:.6rem;">
+        Albedo (reflectividad)<span class="valpill" id="lblAlbedo">30%</span>
+        <input type="range" id="rngAlbedo" min="0" max="80" value="30">
+      </div>
+      <div class="slidewrap">
+        Efecto invernadero<span class="valpill" id="lblGEI">40%</span>
+        <input type="range" id="rngGEI" min="0" max="100" value="40">
+      </div>
+      <p class="small" id="txtEquilibrio">Estado: energía entrante ≈ energía saliente → equilibrio.</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;"><b>En tu cuaderno</b>, completa: "El planeta está en equilibrio térmico cuando la energía que ______ es igual a la energía que ______."</p>
+      <p>Mueve el deslizador de <b>efecto invernadero</b> y registra qué le pasa a la temperatura de equilibrio.</p>
+      <p class="small">Modelo simplificado con unidades relativas, pensado para la intuición del equilibrio (no cálculo fino de σT⁴).</p>
+    </div>
+  </div>
+</div>
+
+<!-- 19: Evidencia - Megasequía -->
+<div class="slide center-mid" id="slide-19">
+  <div class="eyebrow">Desarrollo · Evidencia en Chile 1 de 3</div>
+  <div class="hero-concept">
+    <span class="badge bloom">Analizar</span>
+    <h2 style="margin-top:.5rem;">Megasequía zona central</h2>
+    <p>Déficit de precipitaciones sostenido desde 2010 en Chile central. Es una <b>afirmación a respaldar con datos</b> — no la des por memorizada.</p>
+    <div class="scale source">Fuente a consultar: Centro de Ciencia del Clima y la Resiliencia (CR2)</div>
+  </div>
+</div>
+
+<!-- 20: Evidencia - Glaciar -->
+<div class="slide center-mid" id="slide-20">
+  <div class="eyebrow">Desarrollo · Evidencia en Chile 2 de 3</div>
+  <div class="hero-concept">
+    <span class="badge bloom">Analizar</span>
+    <h2 style="margin-top:.5rem;">Retroceso glaciar andino</h2>
+    <p>Reducción de superficie de glaciares en la Cordillera de los Andes, relevante para la disponibilidad futura de agua dulce en Chile.</p>
+    <div class="scale source">Fuente a consultar: Dirección Meteorológica de Chile (DMC)</div>
+  </div>
+</div>
+
+<!-- 21: Evidencia - Tendencia global -->
+<div class="slide center-mid" id="slide-21">
+  <div class="eyebrow">Desarrollo · Evidencia en Chile 3 de 3</div>
+  <div class="hero-concept">
+    <span class="badge bloom">Analizar</span>
+    <h2 style="margin-top:.5rem;">Tendencia global de temperatura</h2>
+    <p>Aumento de la temperatura media global respecto de la era preindustrial, documentado con registros históricos y actuales.</p>
+    <div class="scale source">Fuente a consultar: Informe IPCC — bases físicas</div>
+    <p class="small" style="margin-top:1rem;">No se inventan cifras: son puntos de partida para que ustedes busquen el dato exacto y la fuente primaria.</p>
+  </div>
+</div>
+
+<!-- 22: Mirada crítica - Variabilidad -->
+<div class="slide center-mid" id="slide-22">
+  <div class="eyebrow">Desarrollo · Mirada crítica 1 de 3</div>
+  <div class="hero-concept">
+    <h2>Variabilidad ≠ Cambio</h2>
+    <p>La <b>variabilidad climática</b> son fluctuaciones normales del clima a distintas escalas. El <b>cambio climático</b> es una alteración sostenida de esos patrones, atribuible directa o indirectamente a la actividad humana (CMNUCC).</p>
+  </div>
+</div>
+
+<!-- 23: Mirada crítica - Evidencia -->
+<div class="slide center-mid" id="slide-23">
+  <div class="eyebrow">Desarrollo · Mirada crítica 2 de 3</div>
+  <div class="hero-concept">
+    <h2>Evidencia ≠ Interpretación</h2>
+    <p>Un dato (temperatura, glaciar, precipitación) es <b>evidencia</b>. La explicación de por qué ocurre es <b>interpretación</b>, y debe justificarse con un modelo o mecanismo físico.</p>
+  </div>
+</div>
+
+<!-- 24: Mirada crítica - Atribución -->
+<div class="slide center-mid" id="slide-24">
+  <div class="eyebrow">Desarrollo · Mirada crítica 3 de 3</div>
+  <div class="hero-concept">
+    <h2>Atribución antropogénica</h2>
+    <p>El consenso científico (IPCC) atribuye el cambio climático reciente principalmente a la actividad humana, sin que esto niegue la variabilidad natural de fondo.</p>
+    <div class="scale">En tu cuaderno: explica la frase <i>"un día no refuta una tendencia"</i> usando lo aprendido en el Simulador 1.</div>
+  </div>
+</div>
+
+<!-- 25: Actividad AER -->
+<div class="slide" id="slide-25">
+  <div class="eyebrow">Desarrollo · Argumentación</div>
+  <h2>Actividad AER — Afirmación · Evidencia · Razonamiento</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">Trabaja en tu cuaderno usando el marco AER sobre la siguiente situación:</p>
+    <p><b>Situación:</b> "La zona central de Chile atraviesa una megasequía que se extiende por más de una década."</p>
+    <ul>
+      <li><b>Afirmación:</b> escribe una oración que responda si esto es evidencia de cambio climático, variabilidad natural, o ambas.</li>
+      <li><b>Evidencia:</b> ¿qué datos necesitarías (y de qué fuente — DMC, CR2, IPCC) para sostener tu afirmación?</li>
+      <li><b>Razonamiento:</b> conecta la evidencia con la afirmación usando un mecanismo físico del sistema climático.</li>
+    </ul>
+    <p class="small">Trabajo individual (8 min) → puesta en común en parejas (4 min). El docente proyectará 2–3 respuestas para retroalimentación grupal.</p>
+  </div>
+</div>
+
+<!-- 26: MC 1 -->
+<div class="slide" id="slide-26">
+  <div class="eyebrow">Cierre · Comprobación 1 de 3</div>
+  <h2>Pregunta de alternativas</h2>
+  <div id="mcArea1"></div>
+</div>
+
+<!-- 27: MC 2 -->
+<div class="slide" id="slide-27">
+  <div class="eyebrow">Cierre · Comprobación 2 de 3</div>
+  <h2>Pregunta de alternativas</h2>
+  <div id="mcArea2"></div>
+</div>
+
+<!-- 28: MC 3 -->
+<div class="slide" id="slide-28">
+  <div class="eyebrow">Cierre · Comprobación 3 de 3</div>
+  <h2>Pregunta de alternativas</h2>
+  <div id="mcArea3"></div>
+</div>
+
+<!-- 29: Desarrollo pregunta IPCC -->
+<div class="slide" id="slide-29">
+  <div class="eyebrow">Cierre · Pregunta de desarrollo</div>
+  <h2>La definición del IPCC, en tus palabras</h2>
+  <div class="card navy" style="margin-bottom:.8rem;">
+    <p style="font-style:italic;">"Cambio de clima atribuido directa o indirectamente a la actividad humana, que altera la composición de la atmósfera global y que se suma a la variabilidad natural del clima observada durante períodos de tiempo comparables." — CMNUCC, art. 1 (vía IPCC)</p>
+  </div>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">Responde en tu cuaderno (mínimo 4 líneas cada una):</p>
+    <ul>
+      <li>¿Con la información entregada hoy en clase, se puede atribuir el 100% del cambio climático a la actividad humana? Argumenta.</li>
+      <li>Compara esta definición con la que tú redactarías en tus propias palabras: ¿qué coincide y qué diferencia hay?</li>
+    </ul>
+    <p class="small">Nivel Bloom: Evaluar / Crear — respuesta abierta, se corrige con rúbrica AER.</p>
+  </div>
+</div>
+
+<!-- 30: CUADERNO mapa conceptual -->
+<div class="slide" id="slide-30">
+  <div class="eyebrow">Cierre · Cuaderno</div>
+  <h2>Síntesis — Mapa conceptual</h2>
+  <div class="grid cols-2">
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Construye un mapa conceptual en tu cuaderno partiendo del concepto central <b>"Sistema climático"</b>, usando conectores como "compuesto por", "interactúa con", "se mide mediante", "se diferencia de".</p>
+    </div>
+    <div class="card teal">
+      <h3>Banco de conceptos</h3>
+      <p class="small">Tiempo atmosférico · Clima · Variabilidad climática · Cambio climático · Balance radiativo · Albedo · Efecto invernadero · Retroalimentación hielo-albedo · Atmósfera · Hidrosfera · Criosfera · IPCC</p>
+    </div>
+  </div>
+</div>
+
+<!-- 31: Ticket de salida - instrucciones -->
+<div class="slide" id="slide-31">
+  <div class="eyebrow">Cierre · Evaluación Formativa 2</div>
+  <h2>Ticket de salida de la sesión</h2>
+  <div class="exit-box" style="flex:1;">
+    <p style="margin-top:.6rem;"><span class="badge form">Formativa 2</span><span class="badge bloom">Trabajo individual</span></p>
+    <p>Antes de salir de la sala, elige <b>una</b> de las cuatro opciones de la próxima diapositiva para demostrar lo que aprendiste hoy. Debes entregarlo al profesor (en papel o según se indique) antes del término de la clase.</p>
+    <ul>
+      <li>Tiempo estimado: <b>10 minutos</b>.</li>
+      <li>Puedes apoyarte en tu cuaderno (esquema del sistema climático, mapa conceptual y respuestas de hoy).</li>
+      <li>Debe incluir al menos <b>dos conceptos clave</b> trabajados en la sesión.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 32: Opciones de actividades -->
+<div class="slide" id="slide-32">
+  <div class="eyebrow">Cierre · Ticket de salida</div>
+  <h2>Elige tu formato</h2>
+  <div class="grid cols-2">
+    <div class="actcard">
+      <div class="icon">🎨</div>
+      <span class="badge bloom">Crear</span>
+      <h3>Cómic científico</h3>
+      <p class="small">Crea una historieta de mínimo 4 viñetas que explique, con tus propias palabras, la diferencia entre tiempo atmosférico y clima, o el balance radiativo. Incluye personajes y diálogo.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">❓</div>
+      <span class="badge bloom">Analizar / Evaluar</span>
+      <h3>Banco de preguntas</h3>
+      <p class="small">Redacta 3 preguntas propias sobre el contenido de hoy (una de recordar, una de aplicar y una de evaluar), junto con sus respuestas y una breve justificación.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">🎬</div>
+      <span class="badge bloom">Crear</span>
+      <h3>Guion de video explicativo</h3>
+      <p class="small">Escribe el guion de un video breve (60–90 s) sobre el sistema climático o el balance radiativo: escenas, narración y al menos un ejemplo chileno. La grabación es opcional y fuera de la sala.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">🗺️</div>
+      <span class="badge bloom">Comprender / Analizar</span>
+      <h3>Esquema resumen</h3>
+      <p class="small">Diseña un esquema visual distinto al mapa conceptual ya trabajado, que sintetice los conceptos clave de la sesión de forma clara y ordenada.</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:.6rem;">Las próximas 4 diapositivas entregan consejos y especificaciones para cada formato — revisa la que corresponde a tu elección.</p>
+</div>
+
+<!-- 33: Consejos - Cómic -->
+<div class="slide" id="slide-33">
+  <div class="eyebrow">Cierre · Ticket de salida · Formato 1 de 4</div>
+  <h2>🎨 Cómic científico — consejos</h2>
+  <div class="statgrid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat"><b>Mínimo</b><span>4 viñetas</span></div>
+    <div class="stat"><b>Debe incluir</b><span>Personajes + diálogo</span></div>
+    <div class="stat"><b>Conceptos mínimos</b><span>2, bien explicados</span></div>
+  </div>
+  <div class="card teal" style="margin-top:1rem;">
+    <h3>Para lograr un buen resultado</h3>
+    <ul class="small">
+      <li>Elige <b>un solo concepto central</b> (tiempo vs. clima, o balance radiativo) y explícalo paso a paso, viñeta por viñeta.</li>
+      <li>Usa diálogos <b>breves y claros</b> — evita párrafos largos dentro de los globos de texto.</li>
+      <li>Puedes partir de una situación cotidiana de Villa Alemana o de Chile.</li>
+      <li><b>La calidad del contenido científico pesa más que el dibujo:</b> no necesitas ser buen dibujante, necesitas explicar bien el concepto.</li>
+      <li>Estructura sugerida: situación inicial → pregunta o conflicto → explicación del concepto → cierre o conclusión.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 34: Consejos + Banco de preguntas -->
+<div class="slide scroll" id="slide-34">
+  <div class="eyebrow">Cierre · Ticket de salida · Formato 2 de 4</div>
+  <h2>❓ Banco de preguntas — consejos</h2>
+  <div class="statgrid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat"><b>Cantidad</b><span>3 preguntas (1 por nivel)</span></div>
+    <div class="stat"><b>Debe incluir</b><span>Respuesta + justificación</span></div>
+    <div class="stat"><b>Niveles Bloom</b><span>Recordar · Aplicar · Evaluar</span></div>
+  </div>
+  <div class="card teal" style="margin:1rem 0;">
+    <h3>Para lograr un buen resultado</h3>
+    <ul class="small">
+      <li>Puedes escribir tus propias preguntas o <b>adaptar alguna del banco de apoyo</b> a continuación.</li>
+      <li>Cada pregunta debe ir acompañada de su respuesta y una breve justificación de por qué es correcta.</li>
+      <li>Evita repetir tal cual las preguntas ya vistas en las diapositivas de comprobación de hoy — reformúlalas o profundiza un poco más.</li>
+    </ul>
+  </div>
+  <h3 style="margin-top:.2rem;">Banco de apoyo (elige, adapta o inspírate)</h3>
+  <div class="grid cols-3" style="margin-top:.4rem;">
+    <div class="card navy">
+      <span class="badge bloom">Recordar</span>
+      <ul class="small" style="margin-top:.5rem;">
+        <li>¿Cuál es la diferencia de escala temporal entre tiempo atmosférico y clima?</li>
+        <li>¿Qué gases se concentran principalmente en la tropósfera?</li>
+        <li>¿Qué es la retroalimentación hielo-albedo?</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <span class="badge bloom">Aplicar</span>
+      <ul class="small" style="margin-top:.5rem;">
+        <li>Si el albedo terrestre aumentara de golpe (por ejemplo, más nubes), ¿qué le pasaría a la temperatura de equilibrio?</li>
+        <li>¿Por qué la Corriente de Humboldt ayuda a explicar el clima árido de la costa chilena?</li>
+        <li>¿Cómo explicarías el fenómeno "TropiConce" usando el sistema climático?</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <span class="badge bloom">Evaluar</span>
+      <ul class="small" style="margin-top:.5rem;">
+        <li>¿Es válido afirmar que la megasequía de Chile central es 100% causada por el ser humano? Argumenta con el marco AER.</li>
+        <li>¿Qué limitaciones tiene un experimento casero (como el de los dos frascos) para representar el efecto invernadero real?</li>
+        <li>¿Qué evidencia necesitarías para convencer a alguien escéptico del cambio climático?</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 35: Consejos - Video -->
+<div class="slide" id="slide-35">
+  <div class="eyebrow">Cierre · Ticket de salida · Formato 3 de 4</div>
+  <h2>🎬 Guion de video explicativo — consejos</h2>
+  <div class="statgrid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat"><b>Duración</b><span>60 – 90 segundos</span></div>
+    <div class="stat"><b>Debe incluir</b><span>1 ejemplo chileno</span></div>
+    <div class="stat"><b>Grabación</b><span>Opcional, fuera de la sala</span></div>
+  </div>
+  <div class="card teal" style="margin-top:1rem;">
+    <h3>Para lograr un buen resultado</h3>
+    <ul class="small">
+      <li>Escribe el guion como una lista o tabla: <b>escena → tiempo aproximado → qué se dice/narra → qué se muestra</b>.</li>
+      <li>Empieza con un <b>gancho</b> (pregunta o dato llamativo) que capte la atención en los primeros 10 segundos.</li>
+      <li>Desarrolla <b>un solo concepto</b> en profundidad — no intentes explicar toda la sesión en 90 segundos.</li>
+      <li>Cierra con una idea clara o una pregunta que invite a seguir pensando.</li>
+      <li>Hoy solo se evalúa el <b>guion escrito</b>; grabarlo es opcional y queda para tu tiempo libre, no para la sala de clases.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 36: Consejos - Esquema -->
+<div class="slide" id="slide-36">
+  <div class="eyebrow">Cierre · Ticket de salida · Formato 4 de 4</div>
+  <h2>🗺️ Esquema resumen — consejos</h2>
+  <div class="statgrid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat"><b>Formato</b><span>Distinto al mapa conceptual ya hecho</span></div>
+    <div class="stat"><b>Conceptos mínimos</b><span>4, conectados entre sí</span></div>
+    <div class="stat"><b>Prioridad</b><span>Claridad sobre cantidad</span></div>
+  </div>
+  <div class="card teal" style="margin-top:1rem;">
+    <h3>Para lograr un buen resultado</h3>
+    <ul class="small">
+      <li>Elige un formato distinto al mapa conceptual de la actividad anterior: <b>línea de tiempo, diagrama de flujo, infografía comparativa, diagrama de causa-efecto</b>, etc.</li>
+      <li>Usa colores o símbolos de forma consistente (por ejemplo, un color para "evidencia" y otro para "conceptos").</li>
+      <li>Prioriza la claridad por sobre la cantidad: es mejor un esquema simple y bien explicado que uno saturado de información.</li>
+      <li>Incluye un <b>título</b> que refleje la idea central del esquema.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 37: Criterios de evaluación -->
+<div class="slide scroll" id="slide-37">
+  <div class="eyebrow">Cierre · Rúbrica · Formativa 2</div>
+  <h2>Criterios de evaluación del ticket de salida</h2>
+  <p class="small">Los mismos cuatro criterios aplican sin importar el formato elegido (cómic, preguntas, guion o esquema).</p>
+  <table class="rubric">
+    <tr>
+      <th style="width:22%;">Criterio</th>
+      <th>Logro pleno</th>
+      <th>Logro parcial</th>
+      <th>En desarrollo</th>
+      <th>Inicial</th>
+    </tr>
+    <tr>
+      <td class="crit">Precisión conceptual</td>
+      <td>Usa correctamente los conceptos de la sesión (tiempo/clima, sistema climático, balance radiativo) sin errores.</td>
+      <td>Usa los conceptos correctamente, con alguna imprecisión menor.</td>
+      <td>Mezcla o confunde conceptos clave (p. ej. tiempo con clima).</td>
+      <td>No hay evidencia de comprensión de los conceptos trabajados.</td>
+    </tr>
+    <tr>
+      <td class="crit">Uso de evidencia o contexto chileno</td>
+      <td>Incorpora un dato, fuente (DMC/CR2/IPCC) o ejemplo local pertinente y bien integrado.</td>
+      <td>Incorpora un ejemplo o dato, aunque poco desarrollado.</td>
+      <td>Menciona un ejemplo sin conectarlo claramente al concepto.</td>
+      <td>No incorpora evidencia ni contexto.</td>
+    </tr>
+    <tr>
+      <td class="crit">Claridad y organización</td>
+      <td>El producto se entiende por sí solo, con secuencia lógica y clara.</td>
+      <td>Se entiende con algo de esfuerzo; falta orden en alguna parte.</td>
+      <td>Requiere explicación adicional para entenderse.</td>
+      <td>No es posible seguir la idea central.</td>
+    </tr>
+    <tr>
+      <td class="crit">Cumplimiento del formato elegido</td>
+      <td>Cumple todos los requisitos de la consigna (n.º de viñetas, preguntas, duración del guion, etc.).</td>
+      <td>Cumple la mayoría de los requisitos.</td>
+      <td>Cumple parcialmente el formato solicitado.</td>
+      <td>No sigue el formato de la actividad elegida.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 38: Cierre -->
+<div class="slide" id="slide-38">
+  <div class="eyebrow">Cierre</div>
+  <h2>Síntesis de la sesión y próximo paso</h2>
+  <div class="grid cols-2">
+    <div class="card navy">
+      <h3>Lo que construimos hoy</h3>
+      <ul class="small">
+        <li>El Sol: capas, características y origen</li>
+        <li>Distinción tiempo atmosférico / clima</li>
+        <li>Sistema climático, sus subsistemas y capas (atmósfera, tropósfera, océano)</li>
+        <li>Balance radiativo como hilo cuantitativo de la unidad</li>
+        <li>Marco AER aplicado a evidencia chilena</li>
+        <li>Ticket de salida — Evaluación Formativa 2</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>📎 Anexo — Experimento</h3>
+      <p class="small">Para profundizar el balance radiativo de forma <b>experimental y sin tecnología</b>, revisa el documento anexo <b>"Anexo_Experimento_Balance_Radiativo.txt"</b> entregado junto a esta sesión. Se realizará como actividad práctica de aula/hogar antes de la Sesión 2.</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:1rem;">Próxima sesión: profundización cuantitativa del balance radiativo y su relación con el efecto invernadero antropogénico.</p>
+</div>
+
+</div>
+
+<button id="soundBtn" onclick="toggleSound()">🔊</button>
+<div class="footer-nav">
+  <button class="navbtn" id="prevBtn" onclick="go(-1)">←</button>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+  <span id="slideLabel">1 / 38</span>
+  <button class="navbtn" id="nextBtn" onclick="go(1)">→</button>
+</div>
+
+<script>
+/* ---------- Nav ---------- */
+const TOTAL = 38;
+let cur = 1;
+let soundOn = true;
+
+function render(){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.getElementById('slide-'+cur).classList.add('active');
+  document.getElementById('slideLabel').textContent = cur+' / '+TOTAL;
+  document.getElementById('progressBar').style.width = (cur/TOTAL*100)+'%';
+  document.getElementById('prevBtn').disabled = cur===1;
+  document.getElementById('nextBtn').disabled = cur===TOTAL;
+}
+function go(d){
+  const n = cur+d;
+  if(n<1||n>TOTAL) return;
+  cur = n; render(); playClick();
+}
+window.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight') go(1);
+  if(e.key==='ArrowLeft') go(-1);
+});
+render();
+
+/* ---------- Sound (Web Audio API, no external files) ---------- */
+let actx;
+function ensureAudio(){ if(!actx){ actx = new (window.AudioContext||window.webkitAudioContext)(); } }
+function beep(freq, dur, type='sine', vol=.05){
+  if(!soundOn) return;
+  ensureAudio();
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type=type; o.frequency.value=freq;
+  g.gain.value=vol;
+  o.connect(g); g.connect(actx.destination);
+  o.start();
+  g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime+dur);
+  o.stop(actx.currentTime+dur);
+}
+function playClick(){ beep(520,.08,'sine',.04); }
+function toggleSound(){
+  soundOn = !soundOn;
+  document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+}
+
+/* ---------- Slide 1: ray burst ---------- */
+function rayBurst(e){
+  const sky = document.getElementById('sky');
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX-rect.left, y = e.clientY-rect.top;
+  for(let i=0;i<14;i++){
+    const ray = document.createElement('div');
+    ray.className='ray';
+    const len = 60+Math.random()*90;
+    const ang = Math.random()*360;
+    ray.style.height=len+'px';
+    ray.style.left=x+'px'; ray.style.top=y+'px';
+    ray.style.transform=`rotate(${ang}deg)`;
+    ray.style.transformOrigin='top center';
+    sky.appendChild(ray);
+    requestAnimationFrame(()=>{ ray.style.transition='opacity .9s ease, height .9s ease'; ray.style.opacity='.9'; });
+    setTimeout(()=>{ ray.style.opacity='0'; },500);
+    setTimeout(()=>ray.remove(),1400);
+  }
+  beep(700,.25,'sine',.03);
+  beep(880,.3,'sine',.02);
+}
+
+/* ---------- Simulador 1: tiempo vs clima ---------- */
+const cv = document.getElementById('cvTiempoClima');
+const ctx = cv.getContext('2d');
+let dailyTemps = [];
+for(let i=0;i<365*30;i++){
+  const base = 15 + 6*Math.sin(i/365*2*Math.PI);
+  dailyTemps.push(base + (Math.random()-0.5)*10);
+}
+function drawTiempoClima(years){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const days = Math.min(dailyTemps.length, years*365);
+  const w = cv.width, h = cv.height, pad=30;
+  ctx.strokeStyle='#d9cba3'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,10); ctx.lineTo(pad,h-pad); ctx.lineTo(w-10,h-pad); ctx.stroke();
+  ctx.fillStyle='#5a4c33'; ctx.font='11px Helvetica';
+  ctx.fillText('Temp (°C)', 4, 16);
+  ctx.fillText('tiempo →', w-60, h-8);
+
+  ctx.fillStyle='#e2a12b';
+  const showDays = Math.min(days,60);
+  for(let i=0;i<showDays;i++){
+    const t = dailyTemps[days-showDays+i];
+    const px = pad + (i/showDays)*(w-pad-20);
+    const py = h-pad - ((t)/35)*(h-pad-20);
+    ctx.beginPath(); ctx.arc(px,py,2.3,0,7); ctx.fill();
+  }
+  ctx.strokeStyle='#0e7c7b'; ctx.lineWidth=2.4; ctx.beginPath();
+  let sum=0, avgs=[];
+  const step = Math.max(1, Math.floor(days/120));
+  for(let i=0;i<days;i+=step){
+    sum += dailyTemps[i];
+    avgs.push(sum/(i+1));
+  }
+  avgs.forEach((a,idx)=>{
+    const px = pad + (idx/avgs.length)*(w-pad-20);
+    const py = h-pad - (a/35)*(h-pad-20);
+    if(idx===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+}
+document.getElementById('rngAnios').addEventListener('input',e=>{
+  const y = +e.target.value;
+  document.getElementById('lblAnios').textContent = y;
+  drawTiempoClima(y);
+});
+drawTiempoClima(1);
+
+/* ---------- Simulador 2: balance radiativo ---------- */
+const svgNS = "http://www.w3.org/2000/svg";
+const svgBal = document.getElementById('svgBalance');
+function buildBalanceScene(){
+  svgBal.innerHTML='';
+  const circle = document.createElementNS(svgNS,'circle');
+  circle.setAttribute('cx',150); circle.setAttribute('cy',120); circle.setAttribute('r',34);
+  circle.setAttribute('fill','#2aaea3'); circle.setAttribute('id','planetCircle');
+  svgBal.appendChild(circle);
+  const sun = document.createElementNS(svgNS,'text');
+  sun.setAttribute('x',20); sun.setAttribute('y',40); sun.setAttribute('font-size',22);
+  sun.textContent='☀️'; svgBal.appendChild(sun);
+  const arrowIn = document.createElementNS(svgNS,'line');
+  arrowIn.setAttribute('x1',40); arrowIn.setAttribute('y1',45); arrowIn.setAttribute('x2',128); arrowIn.setAttribute('y2',105);
+  arrowIn.setAttribute('stroke','#e2a12b'); arrowIn.setAttribute('stroke-width',4); arrowIn.setAttribute('marker-end','url(#arrowAmber)');
+  svgBal.appendChild(arrowIn);
+  const defs = document.createElementNS(svgNS,'defs');
+  defs.innerHTML = `<marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#e2a12b"/></marker>
+  <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#c0392b"/></marker>
+  <marker id="arrowGray" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9a8a63"/></marker>`;
+  svgBal.appendChild(defs);
+  const arrowRefl = document.createElementNS(svgNS,'line');
+  arrowRefl.setAttribute('id','arrowRefl');
+  arrowRefl.setAttribute('x1',150); arrowRefl.setAttribute('y1',86); arrowRefl.setAttribute('x2',210); arrowRefl.setAttribute('y2',40);
+  arrowRefl.setAttribute('stroke','#9a8a63'); arrowRefl.setAttribute('stroke-width',3); arrowRefl.setAttribute('marker-end','url(#arrowGray)');
+  svgBal.appendChild(arrowRefl);
+  const arrowOut = document.createElementNS(svgNS,'line');
+  arrowOut.setAttribute('id','arrowOut');
+  arrowOut.setAttribute('x1',175); arrowOut.setAttribute('y1',135); arrowOut.setAttribute('x2',255); arrowOut.setAttribute('y2',175);
+  arrowOut.setAttribute('stroke','#c0392b'); arrowOut.setAttribute('stroke-width',3); arrowOut.setAttribute('marker-end','url(#arrowRed)');
+  svgBal.appendChild(arrowOut);
+  const therm = document.createElementNS(svgNS,'text');
+  therm.setAttribute('id','thermText'); therm.setAttribute('x',115); therm.setAttribute('y',125);
+  therm.setAttribute('font-size',13); therm.setAttribute('fill','#132436'); therm.setAttribute('font-family','Helvetica');
+  therm.textContent='15°C'; svgBal.appendChild(therm);
+}
+buildBalanceScene();
+function updateBalance(){
+  const albedo = +document.getElementById('rngAlbedo').value;
+  const gei = +document.getElementById('rngGEI').value;
+  document.getElementById('lblAlbedo').textContent = albedo+'%';
+  document.getElementById('lblGEI').textContent = gei+'%';
+  const base = 14;
+  const temp = (base + gei*0.18 - albedo*0.09).toFixed(1);
+  document.getElementById('thermText').textContent = temp+'°C';
+  const planet = document.getElementById('planetCircle');
+  const heat = Math.max(0,Math.min(1,(temp-8)/25));
+  const r = Math.round(42+heat*180), g = Math.round(174-heat*140), b = Math.round(163-heat*130);
+  planet.setAttribute('fill',`rgb(${r},${g},${b})`);
+  document.getElementById('arrowRefl').setAttribute('stroke-width', 1+ (albedo/80)*5);
+  document.getElementById('arrowOut').setAttribute('stroke-width', 1+ ((100-gei)/100)*5);
+  const eq = document.getElementById('txtEquilibrio');
+  eq.textContent = `Estado: energía entrante ≈ energía saliente → equilibrio térmico en torno a ${temp}°C.`;
+}
+document.getElementById('rngAlbedo').addEventListener('input',updateBalance);
+document.getElementById('rngGEI').addEventListener('input',updateBalance);
+updateBalance();
+
+/* ---------- MC questions: one per slide ---------- */
+const mcData = [
+  {
+    area:'mcArea1',
+    q:"¿Cuál de las siguientes situaciones describe mejor el CLIMA de Villa Alemana, y no el tiempo atmosférico?",
+    opts:[
+      "Hoy amaneció nublado y con 12°C.",
+      "En promedio, los veranos son secos y los inviernos lluviosos, según los últimos 30 años.",
+      "Esta tarde hay viento fuerte desde el sur.",
+      "Mañana se pronostican precipitaciones aisladas."
+    ],
+    correct:1,
+    fb_ok:"Correcto: es un patrón estadístico de largo plazo, no una condición puntual.",
+    fb_bad:"Esa opción describe una condición puntual (tiempo atmosférico), no un patrón de décadas."
+  },
+  {
+    area:'mcArea2',
+    q:"Si aumenta la concentración de gases de efecto invernadero, ¿qué ocurre con la temperatura de equilibrio del planeta, según el simulador de balance radiativo?",
+    opts:[
+      "Disminuye, porque se refleja más energía.",
+      "No cambia, el albedo la compensa siempre.",
+      "Aumenta, porque se emite menos energía hacia el espacio en relación a la que entra.",
+      "Se vuelve impredecible."
+    ],
+    correct:2,
+    fb_ok:"Correcto: menos energía saliente relativa a la entrante desplaza el equilibrio hacia una temperatura mayor.",
+    fb_bad:"Revisa el simulador: al subir el efecto invernadero, la flecha de salida (roja) se debilita."
+  },
+  {
+    area:'mcArea3',
+    q:"¿Cuál de las siguientes NO es una atribución correcta según el marco AER trabajado hoy?",
+    opts:[
+      "Afirmar sin dato ni fuente que 'el cambio climático es falso porque hizo frío ayer'.",
+      "Sostener una afirmación citando una fuente como DMC, CR2 o IPCC.",
+      "Explicar el mecanismo físico que conecta la evidencia con la afirmación.",
+      "Distinguir entre evidencia (dato) e interpretación (explicación)."
+    ],
+    correct:0,
+    fb_ok:"Correcto: un evento puntual no es evidencia válida contra una tendencia de décadas.",
+    fb_bad:"Esa es precisamente la falacia que el marco AER busca evitar: un día no refuta una tendencia."
+  }
+];
+mcData.forEach((item)=>{
+  const mcArea = document.getElementById(item.area);
+  const wrap = document.createElement('div');
+  wrap.className='card navy';
+  wrap.innerHTML = `<span class="badge bloom">Aplicar</span><h3>${item.q}</h3>`;
+  const fb = document.createElement('div'); fb.className='feedback';
+  item.opts.forEach((opt,oi)=>{
+    const b = document.createElement('button');
+    b.className='opt'; b.textContent=opt;
+    b.onclick=()=>{
+      wrap.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+      if(oi===item.correct){ b.classList.add('correct'); fb.className='feedback ok'; fb.textContent='✔ '+item.fb_ok; beep(660,.15,'sine',.04);}
+      else{ b.classList.add('wrong'); wrap.querySelectorAll('.opt')[item.correct].classList.add('correct'); fb.className='feedback bad'; fb.textContent='✘ '+item.fb_bad; beep(220,.2,'sawtooth',.03);}
+    };
+    wrap.appendChild(b);
+  });
+  wrap.appendChild(fb);
+  mcArea.appendChild(wrap);
+});
+</script>
+</body>
+</html>

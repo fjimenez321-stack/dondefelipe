@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sesión 6 · Propagación del Calor</title>
+<style>
+  :root{
+    --navy:#1A3A5C;
+    --navy-dark:#102438;
+    --navy-tint:#E8EEF3;
+    --amber:#D4891A;
+    --amber-light:#F2B84D;
+    --amber-glow:#FFD98A;
+    --cold:#3E7CB1;
+    --hot:#C1442D;
+    --gold:#C9971E;
+    --white:#FFFFFF;
+    --text:#1F2937;
+    --ok:#3A7D44;
+    --danger:#B23A3A;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--navy-dark);
+    color:var(--text);
+    overflow:hidden;
+  }
+  .deck{position:relative;width:100vw;height:100vh;display:flex;flex-direction:column;background:var(--navy-dark);}
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{
+    flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+    padding:10px 26px;background:var(--navy);color:var(--white);
+    border-bottom:3px solid var(--amber);gap:10px;flex-wrap:wrap;
+  }
+  .topbar .brand{display:flex;align-items:center;gap:12px;min-width:0;}
+  .topbar .brand .badge{background:var(--amber);color:var(--navy-dark);font-weight:700;font-size:12px;letter-spacing:.04em;padding:4px 10px;border-radius:20px;text-transform:uppercase;white-space:nowrap;}
+  .topbar .brand .title{font-size:15px;font-weight:700;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .topbar .brand .sub{font-size:11.5px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .topbar .right-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+  .progress-wrap{flex:1;max-width:260px;height:6px;background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden;}
+  .progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--amber),var(--amber-light));transition:width .35s ease;}
+  .slide-counter{font-size:12.5px;font-variant-numeric:tabular-nums;opacity:.9;white-space:nowrap;}
+  .felipesos-wallet{
+    display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 12px;
+    font-size:13px;font-weight:800;color:var(--amber-light);white-space:nowrap;
+  }
+  .felipesos-wallet .coin{font-size:15px;}
+  .felipesos-wallet.bump{animation:bump .35s ease;}
+  @keyframes bump{ 0%{transform:scale(1);} 40%{transform:scale(1.18);} 100%{transform:scale(1);} }
+
+  /* ---------- SLIDES ---------- */
+  .slides{position:relative;flex:1 1 auto;overflow:hidden;}
+  .slide{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    padding:34px 56px 20px;opacity:0;visibility:hidden;pointer-events:none;
+    transform:translateX(24px);transition:opacity .38s ease, transform .38s ease;
+    background:linear-gradient(180deg, var(--navy-tint) 0%, #FFFFFF 55%);overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .slide.active{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0);}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--amber);font-weight:700;font-size:13px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px;}
+  .eyebrow::before{content:"";width:22px;height:3px;background:var(--amber);border-radius:2px;display:inline-block;}
+  h1.slide-title{color:var(--navy);font-size:34px;margin:0 0 4px;line-height:1.15;}
+  h2.slide-sub{color:var(--navy);font-size:20px;margin:0 0 18px;font-weight:400;opacity:.85;}
+  .content-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:26px;flex:1;min-height:0;}
+  .content-grid.single{grid-template-columns:1fr;}
+  .content-grid.three{grid-template-columns:repeat(3,1fr);}
+  .card{background:var(--white);border:1px solid #DCE4EC;border-radius:var(--radius);padding:18px 20px;box-shadow:0 3px 10px rgba(16,36,56,.06);}
+  .card h3{margin:0 0 10px;color:var(--navy);font-size:17px;border-bottom:2px solid var(--navy-tint);padding-bottom:6px;}
+  .card ul{margin:0;padding-left:20px;}
+  .card li{margin-bottom:7px;font-size:16px;line-height:1.45;}
+  .pill{display:inline-block;background:var(--navy-tint);color:var(--navy);font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:20px;margin:2px 4px 2px 0;}
+  .pill.amber{background:#FBEBD6;color:var(--amber);}
+  .callout{background:#FFF7EA;border-left:4px solid var(--amber);padding:12px 16px;border-radius:8px;font-size:16px;line-height:1.5;}
+  .callout strong{color:var(--navy);}
+  footer.oa-strip{flex:0 0 auto;font-size:12.5px;color:var(--navy);opacity:.75;padding-top:8px;margin-top:auto;border-top:1px dashed #C7D2DC;}
+
+  /* ---------- NAV CONTROLS (mejorado para móvil) ---------- */
+  .controls{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:16px;padding:12px 10px;background:var(--navy);border-top:1px solid rgba(255,255,255,.08);}
+  .nav-btn{
+    background:var(--amber);color:var(--navy-dark);border:none;width:46px;height:46px;border-radius:50%;
+    font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:transform .15s ease, background .15s ease;flex:0 0 auto;
+  }
+  .nav-btn:hover{background:var(--amber-light);transform:scale(1.06);}
+  .nav-btn:active{transform:scale(.92);}
+  .nav-btn:disabled{opacity:.35;cursor:default;transform:none;}
+  .dots{display:flex;gap:7px;max-width:44vw;overflow-x:auto;padding:4px 2px;scrollbar-width:none;}
+  .dots::-webkit-scrollbar{display:none;}
+  .dot{width:10px;height:10px;min-width:10px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer;border:none;padding:0;transition:background .2s ease, transform .2s ease;}
+  .dot.active{background:var(--amber);transform:scale(1.3);}
+
+  /* ---------- SWIPE HINT ---------- */
+  .swipe-hint{
+    position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+    background:rgba(16,36,56,.88);color:#fff;font-size:12.5px;font-weight:600;
+    padding:6px 14px;border-radius:20px;z-index:8;pointer-events:none;
+    opacity:1;transition:opacity .6s ease;display:none;white-space:nowrap;
+  }
+  .swipe-hint.hide{opacity:0;}
+  @media (max-width:820px){ .swipe-hint{display:block;} }
+
+  /* ---------- TITLE SLIDE ---------- */
+  .title-slide{align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at top, #24486e 0%, var(--navy-dark) 70%);}
+  .title-slide .unit-tag{color:var(--amber-light);font-size:14px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:14px;}
+  .title-slide h1{color:var(--white);font-size:46px;margin:0 0 14px;line-height:1.2;max-width:900px;}
+  .title-slide h1 span{color:var(--amber-light);}
+  .title-slide p.desc{color:#C9D6E4;font-size:18px;max-width:640px;margin:0 auto 22px;line-height:1.5;}
+  .oa-card{display:inline-flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius);padding:16px 22px;max-width:720px;text-align:left;}
+  .oa-card .tag{background:var(--amber);color:var(--navy-dark);font-weight:800;font-size:13px;padding:6px 10px;border-radius:8px;white-space:nowrap;}
+  .oa-card p{color:#DCE6F0;font-size:15.5px;line-height:1.5;margin:0;}
+
+  /* ---------- QR BOX ---------- */
+  .qr-box{position:absolute;top:22px;right:34px;background:#FFFFFF;border-radius:12px;padding:12px 14px 10px;box-shadow:0 6px 18px rgba(0,0,0,.28);display:flex;flex-direction:column;align-items:center;gap:6px;width:168px;z-index:6;}
+  .qr-box img{width:116px;height:116px;display:block;border-radius:4px;}
+  .qr-box .qr-caption{font-size:13.5px;color:var(--navy);text-align:center;font-weight:700;line-height:1.35;}
+  .qr-box .qr-caption b{color:var(--amber);}
+  .qr-box .qr-url{font-size:10px;color:#5b6b7a;text-align:center;word-break:break-all;line-height:1.3;}
+  @media (max-width: 820px){ .qr-box{ display:none; } }
+
+  /* ---------- FELIPESOS TOAST ---------- */
+  .toast-stack{position:fixed;bottom:78px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:50;pointer-events:none;}
+  .toast{
+    background:var(--navy-dark);color:var(--amber-light);border:1px solid var(--amber);
+    padding:9px 16px;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.35);
+    opacity:0;transform:translateY(8px);transition:opacity .3s ease, transform .3s ease;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+  @media (max-width:700px){ .toast-stack{ bottom:90px; right:12px; left:12px; align-items:center; } .toast{font-size:13px;} }
+
+  /* ---------- ACCORDION ---------- */
+  .acc-item{background:var(--white);border:1px solid #DCE4EC;border-radius:10px;margin-bottom:8px;overflow:hidden;}
+  .acc-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;font-size:15px;font-weight:700;color:var(--navy);gap:10px;}
+  .acc-head:hover{background:var(--navy-tint);}
+  .acc-head .arrow{transition:transform .2s ease;color:var(--amber);font-size:16px;flex:0 0 auto;}
+  .acc-item.open .arrow{transform:rotate(90deg);}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:14.5px;padding:0 14px;color:var(--text);}
+  .acc-item.open .acc-body{max-height:160px;padding:0 14px 12px;}
+  .acc-tag{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:12px;margin-bottom:6px;}
+
+  /* ---------- ESTACIÓN 1: CONDUCCIÓN ---------- */
+  .station-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .rod-area{display:flex;align-items:center;gap:8px;width:100%;justify-content:center;}
+  .flame{font-size:26px;}
+  .rod{display:flex;gap:3px;background:#EDF1F5;border:2px solid var(--navy);border-radius:10px;padding:8px;}
+  .segment{width:24px;height:34px;border-radius:5px;background:#B8C6D3;transition:background .35s ease;}
+  .material-toggle{display:flex;gap:8px;}
+  .mat-btn{background:var(--navy-tint);color:var(--navy);border:2px solid transparent;padding:7px 16px;border-radius:20px;font-size:13.5px;font-weight:700;cursor:pointer;}
+  .mat-btn.active{background:var(--navy);color:var(--white);}
+  .mat-btn:active{transform:scale(.95);}
+
+  /* ---------- ESTACIÓN 2: CONVECCIÓN ---------- */
+  .convection-box{position:relative;width:100%;max-width:260px;height:200px;border:3px solid var(--navy);border-radius:0 0 14px 14px;background:linear-gradient(180deg,#DCEBF7 0%, #EAF3FA 100%);overflow:hidden;}
+  .heat-source{position:absolute;bottom:-6px;left:0;right:0;height:12px;background:linear-gradient(90deg,#C1442D,#F2B84D,#C1442D);opacity:.35;transition:opacity .3s ease;}
+  .heat-source.on{opacity:1;}
+  .conv-particle{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--cold);}
+
+  /* ---------- ESTACIÓN 3: RADIACIÓN ---------- */
+  .radiation-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;}
+  .lamp-row{display:flex;align-items:center;justify-content:center;gap:18px;width:100%;}
+  .lamp-icon{font-size:34px;}
+  .papers-row{display:flex;gap:22px;}
+  .paper-unit{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .paper{width:64px;height:80px;border-radius:6px;border:2px solid var(--navy);transition:box-shadow .3s ease, filter .3s ease;}
+  .paper.black{background:#2b2b2b;}
+  .paper.white{background:#f5f5f5;}
+  .paper-temp{font-size:15px;font-weight:800;color:var(--navy);}
+  .paper-label{font-size:12px;color:var(--navy);font-weight:700;}
+
+  /* ---------- CALCULATORS / RESULT BOXES ---------- */
+  .calc-box{background:var(--white);border:1px solid #DCE4EC;border-radius:var(--radius);padding:18px 22px;}
+  .calc-btn{background:var(--amber);border:none;color:var(--navy-dark);font-weight:700;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14.5px;}
+  .calc-btn:hover{background:var(--amber-light);}
+  .calc-btn:active{transform:scale(.96);}
+  .calc-btn.secondary{background:var(--navy-tint);color:var(--navy);}
+  .result-box{margin-top:12px;padding:10px 14px;border-radius:8px;background:#F1F8F1;border-left:4px solid var(--ok);font-size:15px;min-height:18px;}
+  .result-box.error{background:#FBEEEE;border-left-color:var(--danger);color:var(--danger);}
+
+  /* ---------- QUIZ ---------- */
+  .quiz-field{margin-bottom:10px;}
+  .quiz-field label{font-size:12.5px;font-weight:700;color:var(--navy);display:block;margin-bottom:4px;}
+  .quiz-field input[type=text]{width:100%;padding:9px 11px;border:2px solid #CBD8E3;border-radius:8px;font-size:15px;font-family:Arial;}
+  .quiz-q{background:var(--white);border:1px solid #DCE4EC;border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+  .quiz-q .qtext{font-size:14.5px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+  .quiz-opt{display:flex;align-items:flex-start;gap:8px;font-size:14px;margin-bottom:6px;cursor:pointer;line-height:1.35;}
+  .quiz-opt input{margin-top:3px;accent-color:var(--amber);flex:0 0 auto;}
+
+  table.data-table{width:100%;border-collapse:collapse;font-size:14.5px;}
+  table.data-table th, table.data-table td{border:1px solid #DCE4EC;padding:6px 10px;text-align:left;}
+  table.data-table th{background:var(--navy);color:var(--white);}
+  table.data-table tr:nth-child(even){background:#F5F8FB;}
+
+  .steps-list{counter-reset:step;list-style:none;padding:0;margin:0;}
+  .steps-list li{counter-increment:step;position:relative;padding:10px 10px 10px 44px;margin-bottom:8px;background:var(--white);border:1px solid #DCE4EC;border-radius:10px;font-size:15px;line-height:1.4;}
+  .steps-list li::before{content:counter(step);position:absolute;left:10px;top:50%;transform:translateY(-50%);width:24px;height:24px;background:var(--navy);color:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;}
+  .closing-q{background:var(--white);border:1px dashed var(--navy);border-radius:10px;padding:12px 16px;margin-bottom:10px;font-size:15.5px;}
+  .closing-q b{color:var(--amber);}
+  textarea.line{width:100%;border:none;border-bottom:1px solid #9AA9B8;background:transparent;font-family:Arial;font-size:14.5px;resize:none;height:20px;margin-top:4px;}
+
+  .felipesos-summary{
+    display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#1A3A5C,#264d73);
+    color:var(--amber-light);border-radius:12px;padding:16px;font-size:20px;font-weight:800;margin:10px 0;
+  }
+  .felipesos-summary .coin-big{font-size:30px;}
+
+  /* ---------- RESPONSIVE: TABLETS ---------- */
+  @media (max-width:880px){
+    .content-grid, .content-grid.three{grid-template-columns:1fr;}
+    h1.slide-title{font-size:25px;}
+    .title-slide h1{font-size:30px;}
+  }
+
+  /* ---------- RESPONSIVE: MÓVIL (punto clave para aula diversa) ---------- */
+  @media (max-width:700px){
+    .topbar{padding:8px 12px;gap:6px;}
+    .topbar .brand{gap:8px;max-width:60%;}
+    .topbar .brand .badge{font-size:10px;padding:3px 8px;}
+    .topbar .brand .title{font-size:12.5px;}
+    .topbar .brand .sub{font-size:9.5px;}
+    .progress-wrap{display:none;}
+    .slide-counter{font-size:11.5px;}
+    .felipesos-wallet{font-size:11.5px;padding:4px 9px;}
+    .slide{padding:18px 16px 16px;}
+    h1.slide-title{font-size:21px;}
+    h2.slide-sub{font-size:14.5px;margin-bottom:12px;}
+    .card{padding:14px 15px;}
+    .card h3{font-size:15.5px;}
+    .card li, .callout, .closing-q{font-size:14.5px;}
+    .controls{padding:10px 8px;gap:12px;}
+    .nav-btn{width:52px;height:52px;font-size:24px;}
+    .dots{max-width:38vw;}
+  }
+  @media (max-width:380px){
+    .dots{display:none;}
+    .topbar .brand .sub{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="badge">OA 11 · Física</div>
+      <div>
+        <div class="title">Unidad 3: Electricidad y Calor</div>
+        <div class="sub">Sesión 6 · Propagación del Calor</div>
+      </div>
+    </div>
+    <div class="right-group">
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="felipesos-wallet" id="felipesosWallet"><span class="coin">🪙</span><span id="felipesosCount">0</span> Felipesos</div>
+      <div class="slide-counter"><span id="curNum">1</span> / <span id="totalNum">9</span></div>
+    </div>
+  </div>
+
+  <div class="slides" id="slides">
+    <div class="swipe-hint" id="swipeHint">← Desliza para navegar →</div>
+
+    <!-- SLIDE 1 : PORTADA -->
+    <section class="slide title-slide">
+      <div class="qr-box">
+        <img src="data:image/png;base64,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" alt="Código QR hacia dondefelipe, sitio de apoyo del curso">
+        <div class="qr-caption">Escanea para más recursos<br>Dirígete a la sección <b>VIII Básico</b></div>
+        <div class="qr-url">fjimenez321-stack.github.io/dondefelipe</div>
+      </div>
+      <div class="unit-tag">8° Básico · Ciencias Naturales · Física</div>
+      <h1>¿Cómo <span>viaja</span> el calor?</h1>
+      <p class="desc">Al tocar la llama de una vela te quemas, al tocar una baranda metálica sientes frío, y en la playa sientes el calor del sol. Tres formas distintas de propagación del calor — hoy las exploraremos en estaciones experimentales y ganarás Felipesos 🪙 en el camino.</p>
+      <div class="oa-card">
+        <div class="tag">OA 11</div>
+        <p>Desarrollar modelos e investigaciones experimentales que expliquen el calor como transferencia de energía térmica, considerando las formas en que se propaga: conducción, convección y radiación.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 2 : INICIO - ACTIVACIÓN -->
+    <section class="slide">
+      <div class="eyebrow">Inicio · Activación de conocimientos previos</div>
+      <h1 class="slide-title">¿Qué mecanismo predomina?</h1>
+      <h2 class="slide-sub">Haz clic en cada situación para revisar tu respuesta y ganar Felipesos 🪙</h2>
+      <div class="content-grid single">
+        <div class="card">
+          <div class="acc-item" onclick="toggleAcc(this,'sit1',5)">
+            <div class="acc-head"><span>1. Al colocar las manos sobre la llama de una vela, una persona se puede quemar</span><span class="arrow">▶</span></div>
+            <div class="acc-body"><span class="acc-tag" style="background:#FBE1DC;color:var(--hot);">Convección (predominante)</span><br>El aire caliente que rodea la llama asciende y transfiere calor a la mano. También hay algo de radiación directa de la llama.</div>
+          </div>
+          <div class="acc-item" onclick="toggleAcc(this,'sit2',5)">
+            <div class="acc-head"><span>2. Al tocar el fierro de una baranda metálica, se siente frío</span><span class="arrow">▶</span></div>
+            <div class="acc-body"><span class="acc-tag" style="background:#DCEBF7;color:var(--cold);">Conducción</span><br>El calor de tu mano se transfiere rápidamente hacia el metal (buen conductor), por eso sientes que "roba" calor de tu piel.</div>
+          </div>
+          <div class="acc-item" onclick="toggleAcc(this,'sit3',5)">
+            <div class="acc-head"><span>3. En la playa, una persona siente el calor del sol y de la arena</span><span class="arrow">▶</span></div>
+            <div class="acc-body"><span class="acc-tag" style="background:#FBEBD6;color:var(--amber);">Radiación + Conducción</span><br>El sol calienta por radiación (viaja por el vacío); la arena caliente transmite calor a la piel por conducción, al contacto directo.</div>
+          </div>
+          <div class="acc-item" onclick="toggleAcc(this,'sit4',5)">
+            <div class="acc-head"><span>4. Una habitación se mantiene calefaccionada gracias a una estufa encendida</span><span class="arrow">▶</span></div>
+            <div class="acc-body"><span class="acc-tag" style="background:#FBE1DC;color:var(--hot);">Convección (predominante)</span><br>El aire caliente circula por toda la habitación. También hay radiación directa desde la estufa hacia los cuerpos cercanos.</div>
+          </div>
+        </div>
+      </div>
+      <footer class="oa-strip">Habilidades: OA b (identificar preguntas y/o problemas) · OA j (examinar resultados y plantear conclusiones) · Actitudes: OA A, B, C</footer>
+    </section>
+
+    <!-- SLIDE 3 : CONCEPTOS CLAVE -->
+    <section class="slide">
+      <div class="eyebrow">Desarrollo · Conceptos clave</div>
+      <h1 class="slide-title">Tres formas de propagar el calor</h1>
+      <h2 class="slide-sub">En la mayoría de las situaciones cotidianas, ¡actúan los tres a la vez!</h2>
+      <div class="content-grid three">
+        <div class="card">
+          <h3>🔗 Conducción</h3>
+          <ul>
+            <li>Transferencia de calor por <b>contacto directo</b> entre partículas.</li>
+            <li>La materia <b>no se desplaza</b>, solo transmite la energía de partícula a partícula.</li>
+            <li>Ocurre mejor en <b>sólidos</b>, especialmente metales.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🌊 Convección</h3>
+          <ul>
+            <li>Transferencia de calor mediante el <b>movimiento de un fluido</b> (líquido o gas).</li>
+            <li>El fluido caliente <b>asciende</b> (menos denso) y el frío <b>desciende</b> (más denso).</li>
+            <li>Ocurre en <b>líquidos y gases</b>, nunca en sólidos.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>☀️ Radiación</h3>
+          <ul>
+            <li>Transferencia de calor mediante <b>ondas electromagnéticas</b>.</li>
+            <li><b>No necesita un medio material</b>: viaja incluso por el vacío.</li>
+            <li>Así llega la energía del Sol hasta la Tierra.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:14px;"><strong>Dato clave:</strong> el aire es prácticamente "transparente" a la radiación térmica del Sol — no se calienta directamente por ella. Se calienta principalmente por conducción y convección desde el suelo, que sí absorbe la radiación solar.</div>
+      <footer class="oa-strip">Habilidades: OA i (crear y ajustar modelos simples) · OA l (comunicar conocimientos científicos)</footer>
+    </section>
+
+    <!-- SLIDE 4 : ESTACIÓN 1 - CONDUCCIÓN -->
+    <section class="slide">
+      <div class="eyebrow">Desarrollo · Estación experimental 1</div>
+      <h1 class="slide-title">Conducción: la cuchara metálica</h1>
+      <h2 class="slide-sub">Compara cómo viaja el calor en distintos materiales</h2>
+      <div class="content-grid">
+        <div class="card">
+          <h3>¿Qué estás viendo?</h3>
+          <ul>
+            <li>Cada segmento representa una parte de la cuchara, desde la llama hacia el mango.</li>
+            <li>Elige el material y presiona "Aplicar calor" para ver cómo se propaga.</li>
+            <li>Relación con lo cotidiano: por eso los mangos de sartenes y ollas se fabrican con materiales aislantes.</li>
+          </ul>
+          <div class="callout"><strong>Predicción:</strong> ¿en cuál material esperas que el calor llegue más rápido al otro extremo?</div>
+        </div>
+        <div class="card station-wrap">
+          <div class="material-toggle">
+            <button class="mat-btn active" id="matMetalBtn" onclick="setMaterial('metal')">Metal</button>
+            <button class="mat-btn" id="matMaderaBtn" onclick="setMaterial('madera')">Madera</button>
+          </div>
+          <div class="rod-area">
+            <span class="flame">🔥</span>
+            <div class="rod" id="rodBar"></div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="calc-btn" onclick="startConduction()">Aplicar calor</button>
+            <button class="calc-btn secondary" onclick="resetConduction()">Reiniciar</button>
+          </div>
+          <div class="result-box" id="conductionStatus">Elige un material y presiona "Aplicar calor".</div>
+        </div>
+      </div>
+      <footer class="oa-strip">Habilidades: OA c (formular y fundamentar predicciones) · OA f (llevar a cabo la investigación) · OA j (examinar resultados y plantear conclusiones)</footer>
+    </section>
+
+    <!-- SLIDE 5 : ESTACIÓN 2 - CONVECCIÓN -->
+    <section class="slide">
+      <div class="eyebrow">Desarrollo · Estación experimental 2</div>
+      <h1 class="slide-title">Convección: el colorante en agua caliente</h1>
+      <h2 class="slide-sub">Observa el movimiento del agua al calentarse</h2>
+      <div class="content-grid">
+        <div class="card">
+          <h3>¿Qué estás viendo?</h3>
+          <ul>
+            <li>Al calentar el agua desde abajo, las partículas cercanas a la fuente de calor se agitan, se separan y el agua se vuelve menos densa.</li>
+            <li>Esa agua "más liviana" <b>asciende</b>, mientras el agua fría de arriba <b>desciende</b> a ocupar su lugar.</li>
+            <li>Este movimiento circular se llama <b>corriente convectiva</b>.</li>
+          </ul>
+          <div class="callout"><strong>Conexión real:</strong> los deportistas de parapente buscan zonas con corrientes convectivas de aire caliente ascendente para mantenerse en vuelo.</div>
+        </div>
+        <div class="card station-wrap">
+          <div class="convection-box" id="convectionBox">
+            <div class="heat-source" id="heatSource"></div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="calc-btn" onclick="startConvection()">Calentar el agua</button>
+            <button class="calc-btn secondary" onclick="resetConvection()">Reiniciar</button>
+          </div>
+          <div class="result-box" id="convectionStatus">Presiona "Calentar el agua" para ver la corriente convectiva.</div>
+        </div>
+      </div>
+      <footer class="oa-strip">Habilidades: OA c (formular y fundamentar predicciones) · OA f (llevar a cabo la investigación) · OA j (examinar resultados y plantear conclusiones)</footer>
+    </section>
+
+    <!-- SLIDE 6 : ESTACIÓN 3 - RADIACIÓN -->
+    <section class="slide">
+      <div class="eyebrow">Desarrollo · Estación experimental 3</div>
+      <h1 class="slide-title">Radiación: lámpara y papel negro/blanco</h1>
+      <h2 class="slide-sub">¿Absorben igual la radiación los distintos colores?</h2>
+      <div class="content-grid">
+        <div class="card">
+          <h3>¿Qué estás viendo?</h3>
+          <ul>
+            <li>Ambos papeles reciben la misma radiación de la lámpara, a la misma distancia.</li>
+            <li>Mueve el control para acercar o alejar la lámpara (mayor intensidad de radiación).</li>
+            <li>Observa cuál papel se calienta más rápido.</li>
+          </ul>
+          <div class="callout"><strong>Predicción:</strong> ¿el papel negro o el blanco absorberá más radiación y alcanzará mayor temperatura?</div>
+        </div>
+        <div class="card radiation-wrap">
+          <div class="lamp-row">
+            <span class="lamp-icon" id="lampIcon">💡</span>
+            <input type="range" id="radiationSlider" min="0" max="100" value="0" oninput="updateRadiation(this.value)" style="flex:1;max-width:180px;accent-color:var(--amber);">
+          </div>
+          <div class="papers-row">
+            <div class="paper-unit">
+              <div class="paper black" id="paperBlack"></div>
+              <div class="paper-temp" id="tempBlack">20°C</div>
+              <div class="paper-label">Papel negro</div>
+            </div>
+            <div class="paper-unit">
+              <div class="paper white" id="paperWhite"></div>
+              <div class="paper-temp" id="tempWhite">20°C</div>
+              <div class="paper-label">Papel blanco</div>
+            </div>
+          </div>
+          <button class="calc-btn secondary" onclick="resetRadiation()">Reiniciar</button>
+        </div>
+      </div>
+      <footer class="oa-strip">Habilidades: OA c (formular y fundamentar predicciones) · OA j (examinar resultados y plantear conclusiones)</footer>
+    </section>
+
+    <!-- SLIDE 7 : ACTIVIDAD EXPERIMENTAL -->
+    <section class="slide">
+      <div class="eyebrow">Desarrollo · Actividad práctica (rotación por estaciones)</div>
+      <h1 class="slide-title">Ficha de estaciones</h1>
+      <h2 class="slide-sub">Trabajo en equipos rotando por las 3 estaciones físicas del aula</h2>
+      <div class="content-grid">
+        <div class="card">
+          <h3>Materiales por estación</h3>
+          <ul>
+            <li><b>Estación 1 (Conducción):</b> cucharas metálicas, mantequilla o cera, fósforos pequeños o pines, vela.</li>
+            <li><b>Estación 2 (Convección):</b> vaso transparente con agua caliente, colorante vegetal, cuentagotas.</li>
+            <li><b>Estación 3 (Radiación):</b> lámpara, papel negro y papel blanco, termómetro o sensor táctil.</li>
+          </ul>
+          <div class="callout"><strong>Seguridad:</strong> manipular la vela y el agua caliente solo bajo supervisión docente.</div>
+        </div>
+        <div class="card">
+          <h3>Procedimiento</h3>
+          <ol class="steps-list">
+            <li>Formen equipos y roten por las 3 estaciones (10 minutos cada una).</li>
+            <li>En cada estación, formulen una predicción antes de observar.</li>
+            <li>Registren sus observaciones en la ficha de estaciones.</li>
+            <li>Identifiquen el mecanismo de propagación predominante en cada estación.</li>
+            <li>Al finalizar, comparen sus predicciones iniciales con la evidencia obtenida.</li>
+          </ol>
+        </div>
+      </div>
+      <footer class="oa-strip">Habilidades: OA f (llevar a cabo la investigación) · OA h (organizar y presentar datos) · OA j (examinar resultados y plantear conclusiones) · Evaluación: Ficha de estaciones (formativa)</footer>
+    </section>
+
+    <!-- SLIDE 8 : COMPROBACIÓN DE APRENDIZAJE (QUIZ) -->
+    <section class="slide">
+      <div class="eyebrow">Comprobación de aprendizaje · Formativa, no calificada</div>
+      <h1 class="slide-title">¡Gana tus Felipesos! 🪙</h1>
+      <h2 class="slide-sub">5 preguntas — 20 Felipesos por cada respuesta correcta</h2>
+      <div class="content-grid">
+        <div class="card">
+          <div class="quiz-field">
+            <label>Nombre completo</label>
+            <input type="text" id="quizNombre" placeholder="Escribe tu nombre">
+          </div>
+          <div class="quiz-field">
+            <label>Curso</label>
+            <input type="text" id="quizCurso" placeholder="ej: 8°A">
+          </div>
+
+          <div class="quiz-q">
+            <div class="qtext">1. ¿Cuál mecanismo ocurre por contacto directo entre partículas, sin que la materia se desplace?</div>
+            <label class="quiz-opt"><input type="radio" name="q1" value="A"> Radiación</label>
+            <label class="quiz-opt"><input type="radio" name="q1" value="B"> Convección</label>
+            <label class="quiz-opt"><input type="radio" name="q1" value="C"> Conducción</label>
+            <label class="quiz-opt"><input type="radio" name="q1" value="D"> Evaporación</label>
+          </div>
+
+          <div class="quiz-q">
+            <div class="qtext">2. ¿Por qué los mangos de sartenes y ollas suelen fabricarse con plástico o madera?</div>
+            <label class="quiz-opt"><input type="radio" name="q2" value="A"> Porque son buenos conductores del calor</label>
+            <label class="quiz-opt"><input type="radio" name="q2" value="B"> Porque son aislantes térmicos, que dificultan la conducción</label>
+            <label class="quiz-opt"><input type="radio" name="q2" value="C"> Porque son más económicos que el metal</label>
+            <label class="quiz-opt"><input type="radio" name="q2" value="D"> Porque no se degradan con el fuego</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="quiz-q">
+            <div class="qtext">3. Las corrientes convectivas que aprovechan los parapentistas se producen porque:</div>
+            <label class="quiz-opt"><input type="radio" name="q3" value="A"> El aire frío desciende (más denso) y el caliente asciende (menos denso)</label>
+            <label class="quiz-opt"><input type="radio" name="q3" value="B"> El sol calienta el aire de forma pareja en toda la atmósfera</label>
+            <label class="quiz-opt"><input type="radio" name="q3" value="C"> El aire no puede transportar calor</label>
+            <label class="quiz-opt"><input type="radio" name="q3" value="D"> El viento siempre sopla en línea recta</label>
+          </div>
+
+          <div class="quiz-q">
+            <div class="qtext">4. La radiación térmica del Sol puede llegar a la Tierra a través del espacio vacío porque:</div>
+            <label class="quiz-opt"><input type="radio" name="q4" value="A"> Necesita un medio material para propagarse</label>
+            <label class="quiz-opt"><input type="radio" name="q4" value="B"> No necesita un medio material para propagarse, a diferencia de la conducción y la convección</label>
+            <label class="quiz-opt"><input type="radio" name="q4" value="C"> Es un tipo de conducción</label>
+            <label class="quiz-opt"><input type="radio" name="q4" value="D"> Solo se propaga en el agua</label>
+          </div>
+
+          <div class="quiz-q">
+            <div class="qtext">5. En la playa, en un día caluroso, sientes el calor del sol sobre tu piel principalmente por:</div>
+            <label class="quiz-opt"><input type="radio" name="q5" value="A"> Conducción</label>
+            <label class="quiz-opt"><input type="radio" name="q5" value="B"> Convección</label>
+            <label class="quiz-opt"><input type="radio" name="q5" value="C"> Radiación</label>
+            <label class="quiz-opt"><input type="radio" name="q5" value="D"> Evaporación</label>
+          </div>
+
+          <button class="calc-btn" onclick="submitQuiz()">Enviar respuestas</button>
+          <div class="result-box" id="quizResult">Completa tu nombre, curso y las 5 preguntas, luego presiona "Enviar respuestas".</div>
+        </div>
+      </div>
+      <footer class="oa-strip">Evaluación formativa — no calificada. Recompensa: hasta 100 Felipesos 🪙</footer>
+    </section>
+
+    <!-- SLIDE 9 : CIERRE -->
+    <section class="slide">
+      <div class="eyebrow">Cierre · Síntesis y metacognición</div>
+      <h1 class="slide-title">Bitácora de cierre</h1>
+      <h2 class="slide-sub">Revisa tu total de Felipesos ganados hoy</h2>
+      <div class="content-grid">
+        <div class="card">
+          <h3>Reflexiona y responde</h3>
+          <div class="closing-q"><b>1.</b> ¿Cuál de los tres mecanismos te costó más comprender? ¿Por qué?<textarea class="line"></textarea></div>
+          <div class="closing-q"><b>2.</b> Da un ejemplo cotidiano, distinto a los vistos hoy, donde actúen los tres mecanismos a la vez.<textarea class="line"></textarea></div>
+          <div class="closing-q"><b>3.</b> ¿Por qué el aire no se calienta directamente por la radiación del sol?<textarea class="line"></textarea></div>
+          <div class="closing-q"><b>4.</b> ¿Qué diferencia encontraste entre cómo se propaga el calor en un sólido y en un fluido?<textarea class="line"></textarea></div>
+          <div class="closing-q"><b>5.</b> ¿Qué pregunta te queda pendiente sobre la propagación del calor?<textarea class="line"></textarea></div>
+        </div>
+        <div class="card">
+          <h3>Lo que aprendimos hoy</h3>
+          <ul>
+            <li>Diferenciar conducción, convección y radiación como mecanismos de propagación del calor.</li>
+            <li>Reconocer que, en situaciones cotidianas, los tres mecanismos suelen actuar simultáneamente.</li>
+            <li>Explorar experimentalmente cada mecanismo en estaciones interactivas.</li>
+          </ul>
+          <div class="felipesos-summary"><span class="coin-big">🪙</span> Total de Felipesos ganados: <span id="felipesosFinal">0</span></div>
+          <div class="callout"><strong>Próxima sesión:</strong> exploraremos los efectos del calor — cambios de temperatura, dilatación y cambios de estado.</div>
+        </div>
+      </div>
+      <footer class="oa-strip">Habilidades trabajadas hoy: OA a, b, c, f, h, i, j, l · Actitudes: OA A, B, C, D</footer>
+    </section>
+
+  </div>
+
+  <div class="controls">
+    <button class="nav-btn" id="prevBtn" onclick="goTo(currentSlide-1)">‹</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="nextBtn" onclick="goTo(currentSlide+1)">›</button>
+  </div>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <!-- Formulario oculto para enviar respuestas a Google Sheets vía Apps Script (evita problemas de CORS) -->
+  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+  <form id="quizForm" method="POST" target="hidden_iframe">
+    <input type="hidden" name="nombre" id="formNombre">
+    <input type="hidden" name="curso" id="formCurso">
+    <input type="hidden" name="respuestas" id="formRespuestas">
+    <input type="hidden" name="puntaje" id="formPuntaje">
+    <input type="hidden" name="felipesos" id="formFelipesos">
+    <input type="hidden" name="estaciones" id="formEstaciones">
+    <input type="hidden" name="autochequeo" id="formAutochequeo">
+    <input type="hidden" name="sesion" id="formSesion" value="Sesion 6 - Propagacion del Calor">
+    <input type="hidden" name="timestamp" id="formTimestamp">
+  </form>
+</div>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN: pega aquí la URL de tu Apps Script Web App desplegado.
+   Ver instrucciones en el archivo "Instrucciones_AppsScript.txt".
+   ===================================================================== */
+const SCRIPT_URL = "PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT";
+
+/* ---------------- NAVEGACIÓN ---------------- */
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let currentSlide = 0;
+
+const dotsWrap = document.getElementById('dots');
+slides.forEach((s,i)=>{
+  const d = document.createElement('button');
+  d.className = 'dot';
+  d.setAttribute('aria-label', 'Ir a diapositiva '+(i+1));
+  d.onclick = ()=>goTo(i);
+  dotsWrap.appendChild(d);
+});
+
+let isFirstGoTo = true;
+function goTo(i){
+  if(i<0 || i>=total) return;
+  if(!isFirstGoTo){
+    const hint = document.getElementById('swipeHint');
+    if(hint) hint.classList.add('hide');
+  }
+  isFirstGoTo = false;
+  slides[currentSlide].classList.remove('active');
+  currentSlide = i;
+  slides[currentSlide].classList.add('active');
+  document.querySelectorAll('.dot').forEach((d,idx)=>d.classList.toggle('active', idx===currentSlide));
+  document.getElementById('curNum').textContent = currentSlide+1;
+  document.getElementById('progressBar').style.width = ((currentSlide+1)/total*100)+'%';
+  document.getElementById('prevBtn').disabled = currentSlide===0;
+  document.getElementById('nextBtn').disabled = currentSlide===total-1;
+  // desplazar el dot activo a la vista en móvil
+  const activeDot = document.querySelectorAll('.dot')[currentSlide];
+  if(activeDot && activeDot.scrollIntoView) activeDot.scrollIntoView({block:'nearest', inline:'center'});
+}
+document.getElementById('totalNum').textContent = total;
+goTo(0);
+setTimeout(()=>{
+  const hint = document.getElementById('swipeHint');
+  if(hint) hint.classList.add('hide');
+}, 4500);
+
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='ArrowRight' || e.key===' ') goTo(currentSlide+1);
+  if(e.key==='ArrowLeft') goTo(currentSlide-1);
+});
+
+/* ---------------- NAVEGACIÓN TÁCTIL (SWIPE) ---------------- */
+const slidesWrap = document.getElementById('slides');
+let touchStartX = 0, touchStartY = 0, touchTarget = null;
+const SWIPE_MIN_DIST = 50;
+
+slidesWrap.addEventListener('touchstart', (e)=>{
+  if(e.touches.length !== 1) return;
+  touchTarget = e.target;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, {passive:true});
+
+slidesWrap.addEventListener('touchend', (e)=>{
+  if(!touchTarget) return;
+  if(touchTarget.closest('input, textarea, select, button, .acc-item, .qr-box, label')){
+    touchTarget = null;
+    return;
+  }
+  const touch = e.changedTouches[0];
+  const dx = touch.clientX - touchStartX;
+  const dy = touch.clientY - touchStartY;
+  touchTarget = null;
+  if(Math.abs(dx) > SWIPE_MIN_DIST && Math.abs(dx) > Math.abs(dy) * 1.4){
+    if(dx < 0) goTo(currentSlide+1);
+    else goTo(currentSlide-1);
+  }
+}, {passive:true});
+
+/* ---------------- SISTEMA DE FELIPESOS (GAMIFICACIÓN) ---------------- */
+let felipesos = 0;
+const awardedReasons = new Set();
+
+function earnFelipesos(amount, reasonKey, label){
+  if(awardedReasons.has(reasonKey)) return;
+  awardedReasons.add(reasonKey);
+  felipesos += amount;
+  document.getElementById('felipesosCount').textContent = felipesos;
+  const wallet = document.getElementById('felipesosWallet');
+  wallet.classList.remove('bump'); void wallet.offsetWidth; wallet.classList.add('bump');
+  showToast('+'+amount+' Felipesos — '+label);
+}
+
+function showToast(text){
+  const stack = document.getElementById('toastStack');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = text;
+  stack.appendChild(t);
+  requestAnimationFrame(()=> t.classList.add('show'));
+  setTimeout(()=>{
+    t.classList.remove('show');
+    setTimeout(()=> t.remove(), 400);
+  }, 2400);
+}
+
+/* ---------------- ACCORDION (SLIDE 2) ---------------- */
+function toggleAcc(el, reasonKey, points){
+  const wasOpen = el.classList.contains('open');
+  el.classList.toggle('open');
+  if(!wasOpen && points){
+    earnFelipesos(points, reasonKey, 'Situación identificada');
+  }
+}
+
+/* ---------------- ESTACIÓN 1: CONDUCCIÓN ---------------- */
+const N_SEGMENTS = 10;
+const rodBar = document.getElementById('rodBar');
+let material = 'metal';
+let conductionTimer = null;
+for(let i=0;i<N_SEGMENTS;i++){
+  const seg = document.createElement('div');
+  seg.className = 'segment';
+  seg.id = 'seg'+i;
+  rodBar.appendChild(seg);
+}
+function setMaterial(m){
+  material = m;
+  document.getElementById('matMetalBtn').classList.toggle('active', m==='metal');
+  document.getElementById('matMaderaBtn').classList.toggle('active', m==='madera');
+  resetConduction();
+}
+function startConduction(){
+  earnFelipesos(10, 'estacion_conduccion', 'Estación de Conducción');
+  if(conductionTimer) clearInterval(conductionTimer);
+  for(let i=0;i<N_SEGMENTS;i++){ document.getElementById('seg'+i).style.background = '#B8C6D3'; }
+  const maxSegments = material==='metal' ? N_SEGMENTS : 3; // la madera es aislante: el calor casi no avanza
+  const delay = material==='metal' ? 130 : 500;
+  let i = 0;
+  document.getElementById('conductionStatus').textContent = 'El calor se está propagando por la '+(material==='metal' ? 'cuchara metálica...' : 'cuchara de madera...');
+  conductionTimer = setInterval(()=>{
+    if(i >= maxSegments){
+      clearInterval(conductionTimer);
+      const msg = material==='metal'
+        ? 'El calor recorrió toda la cuchara rápidamente: el metal es buen conductor.'
+        : 'El calor casi no avanzó: la madera es un aislante térmico, por eso se usa en mangos.';
+      document.getElementById('conductionStatus').textContent = msg;
+      return;
+    }
+    const t = i/(N_SEGMENTS-1);
+    document.getElementById('seg'+i).style.background = lerpColor('f2b84d','c1442d', Math.min(1, t+0.3));
+    i++;
+  }, delay);
+}
+function resetConduction(){
+  if(conductionTimer) clearInterval(conductionTimer);
+  for(let i=0;i<N_SEGMENTS;i++){ document.getElementById('seg'+i).style.background = '#B8C6D3'; }
+  document.getElementById('conductionStatus').textContent = 'Elige un material y presiona "Aplicar calor".';
+}
+function lerpColor(c1,c2,t){
+  const a = c1.match(/\w\w/g).map(v=>parseInt(v,16));
+  const b = c2.match(/\w\w/g).map(v=>parseInt(v,16));
+  const r = a.map((v,i)=>Math.round(v+(b[i]-v)*Math.max(0,Math.min(1,t))));
+  return '#'+r.map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+/* ---------------- ESTACIÓN 2: CONVECCIÓN ---------------- */
+const convectionBox = document.getElementById('convectionBox');
+const N_PARTICLES_CONV = 10;
+const convParticles = [];
+for(let i=0;i<N_PARTICLES_CONV;i++){
+  const p = document.createElement('div');
+  p.className = 'conv-particle';
+  convectionBox.appendChild(p);
+  convParticles.push({ el:p, phase: Math.random()*Math.PI*2, xOff:(Math.random()-0.5)*60 });
+}
+let convRunning = false;
+let convAnimFrame = null;
+let convStartTime = null;
+function animateConvection(ts){
+  if(!convStartTime) convStartTime = ts;
+  const elapsed = (ts - convStartTime)/1000;
+  const H = 190, W = 250, cx = W/2;
+  convParticles.forEach((p, idx)=>{
+    const speed = 0.6 + (idx%3)*0.08;
+    const angle = p.phase + elapsed*speed;
+    const y = H/2 - Math.cos(angle) * (H/2 - 14);
+    const x = cx + p.xOff * Math.sin(angle*0.5);
+    const tHeat = (H - y)/H; // 0 arriba (frío) -> 1 abajo (caliente)
+    p.el.style.top = y+'px';
+    p.el.style.left = x+'px';
+    p.el.style.background = lerpColor('3e7cb1','c1442d', tHeat);
+  });
+  if(convRunning) convAnimFrame = requestAnimationFrame(animateConvection);
+}
+function startConvection(){
+  earnFelipesos(10, 'estacion_conveccion', 'Estación de Convección');
+  document.getElementById('heatSource').classList.add('on');
+  document.getElementById('convectionStatus').textContent = 'El agua caliente asciende y el agua fría desciende: se forma una corriente convectiva.';
+  if(!convRunning){
+    convRunning = true;
+    convStartTime = null;
+    convAnimFrame = requestAnimationFrame(animateConvection);
+  }
+}
+function resetConvection(){
+  convRunning = false;
+  if(convAnimFrame) cancelAnimationFrame(convAnimFrame);
+  document.getElementById('heatSource').classList.remove('on');
+  convParticles.forEach(p=>{
+    p.el.style.top = '90px';
+    p.el.style.left = '125px';
+    p.el.style.background = '#3E7CB1';
+  });
+  document.getElementById('convectionStatus').textContent = 'Presiona "Calentar el agua" para ver la corriente convectiva.';
+}
+resetConvection();
+
+/* ---------------- ESTACIÓN 3: RADIACIÓN ---------------- */
+function updateRadiation(val){
+  earnFelipesos(10, 'estacion_radiacion', 'Estación de Radiación');
+  const v = val/100;
+  const tBlack = 20 + v*60; // el negro absorbe más: hasta 80°C
+  const tWhite = 20 + v*22; // el blanco refleja más: hasta ~42°C
+  document.getElementById('tempBlack').textContent = Math.round(tBlack)+'°C';
+  document.getElementById('tempWhite').textContent = Math.round(tWhite)+'°C';
+  document.getElementById('paperBlack').style.boxShadow = v>0.05 ? '0 0 '+(8+v*18)+'px rgba(193,68,45,'+(0.3+v*0.5)+')' : 'none';
+  document.getElementById('paperWhite').style.boxShadow = v>0.05 ? '0 0 '+(4+v*8)+'px rgba(193,68,45,'+(0.15+v*0.2)+')' : 'none';
+  document.getElementById('lampIcon').style.filter = 'brightness('+(1+v*0.8)+')';
+}
+function resetRadiation(){
+  document.getElementById('radiationSlider').value = 0;
+  updateRadiation(0);
+  document.getElementById('tempBlack').textContent = '20°C';
+  document.getElementById('tempWhite').textContent = '20°C';
+  document.getElementById('paperBlack').style.boxShadow = 'none';
+  document.getElementById('paperWhite').style.boxShadow = 'none';
+  document.getElementById('lampIcon').style.filter = 'none';
+}
+
+/* ---------------- QUIZ Y ENVÍO DE RESPUESTAS ---------------- */
+const answerKey = { q1:'C', q2:'B', q3:'A', q4:'B', q5:'C' };
+let quizSubmitted = false;
+
+function submitQuiz(){
+  const resEl = document.getElementById('quizResult');
+  const nombre = document.getElementById('quizNombre').value.trim();
+  const curso = document.getElementById('quizCurso').value.trim();
+
+  if(!nombre || !curso){
+    resEl.textContent = 'Por favor completa tu nombre y curso antes de enviar.';
+    resEl.classList.add('error');
+    return;
+  }
+
+  const respuestas = {};
+  let answeredAll = true;
+  Object.keys(answerKey).forEach(q=>{
+    const sel = document.querySelector('input[name="'+q+'"]:checked');
+    respuestas[q] = sel ? sel.value : null;
+    if(!sel) answeredAll = false;
+  });
+
+  if(!answeredAll){
+    resEl.textContent = 'Debes responder las 5 preguntas antes de enviar.';
+    resEl.classList.add('error');
+    return;
+  }
+
+  if(quizSubmitted){
+    resEl.textContent = 'Ya enviaste tus respuestas. Si necesitas corregir algo, avisa a tu profesor.';
+    return;
+  }
+
+  let correctCount = 0;
+  Object.keys(answerKey).forEach(q=>{
+    if(respuestas[q] === answerKey[q]) correctCount++;
+  });
+  const quizFelipesos = correctCount * 20;
+  earnFelipesos(quizFelipesos, 'quiz_total', 'Comprobación de aprendizaje');
+  quizSubmitted = true;
+
+  document.getElementById('felipesosFinal').textContent = felipesos;
+
+  // Estaciones y situaciones del autochequeo realmente exploradas por el estudiante
+  // (se deducen de los mismos "reasonKey" usados por earnFelipesos, para que el dato
+  // enviado sea siempre consistente con los Felipesos ganados).
+  const stationKeys = ['estacion_conduccion', 'estacion_conveccion', 'estacion_radiacion'];
+  const accordionKeys = ['sit1', 'sit2', 'sit3', 'sit4'];
+  const stationsCount = stationKeys.filter(k => awardedReasons.has(k)).length;
+  const accordionCount = accordionKeys.filter(k => awardedReasons.has(k)).length;
+
+  document.getElementById('formNombre').value = nombre;
+  document.getElementById('formCurso').value = curso;
+  document.getElementById('formRespuestas').value = JSON.stringify(respuestas);
+  document.getElementById('formPuntaje').value = correctCount;
+  document.getElementById('formFelipesos').value = felipesos;
+  document.getElementById('formEstaciones').value = stationsCount;
+  document.getElementById('formAutochequeo').value = accordionCount;
+  document.getElementById('formTimestamp').value = new Date().toISOString();
+
+  const configured = SCRIPT_URL && SCRIPT_URL.indexOf('PEGA_AQUI') === -1;
+  if(configured){
+    document.getElementById('quizForm').action = SCRIPT_URL;
+    document.getElementById('quizForm').submit();
+    resEl.innerHTML = '¡Enviado! Obtuviste <b>'+correctCount+'/5</b> correctas (+'+quizFelipesos+' Felipesos). Total de la sesión: <b>'+felipesos+' 🪙</b>. Si tu profesor no ve tu respuesta reflejada, avísale.';
+  } else {
+    resEl.innerHTML = '¡Obtuviste <b>'+correctCount+'/5</b> correctas! (+'+quizFelipesos+' Felipesos, total: <b>'+felipesos+' 🪙</b>). Nota: tu profesor aún no configuró el envío a Google Sheets, así que esta respuesta no se guardó en línea.';
+  }
+  resEl.classList.remove('error');
+}
+</script>
+</body>
+</html>

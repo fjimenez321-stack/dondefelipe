@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Unidad 3 · Sesión 4 · Guía de Actividades en el Cuaderno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a1220;
+  --bg-alt:#0e1a2c;
+  --panel:#142238;
+  --panel-2:#182a45;
+  --paper:#f6f1e3;
+  --paper-ink:#1a1712;
+  --ink:#eef3f8;
+  --muted:#93a6bd;
+  --line:rgba(255,255,255,.12);
+  --teal:#33d6c0;
+  --teal-ink:#06322c;
+  --amber:#f2b344;
+  --amber-ink:#3a2703;
+  --magenta:#ef5da8;
+  --magenta-ink:#3a0e24;
+  --violet:#9a8cf5;
+  --violet-ink:#20164a;
+  --good:#33d6a0;
+  --bad:#ef5d5d;
+  --radius:20px;
+  --shadow: 0 24px 60px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0; padding:0; height:100%;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'IBM Plex Sans', sans-serif;
+  overflow:hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+body{
+  background:
+    radial-gradient(circle at 15% 8%, rgba(51,214,192,.10), transparent 45%),
+    radial-gradient(circle at 85% 92%, rgba(154,140,245,.10), transparent 45%),
+    radial-gradient(circle, rgba(255,255,255,.035) 1px, transparent 1.4px) 0 0/26px 26px,
+    var(--bg);
+}
+h1,h2,h3,.display{
+  font-family:'Fraunces', serif;
+  font-weight:700;
+  letter-spacing:-0.01em;
+  margin:0;
+}
+.mono{ font-family:'IBM Plex Mono', monospace; }
+#app{
+  position:relative;
+  width:100vw; height:100vh; height:100dvh;
+}
+.slide{
+  position:absolute; inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding: clamp(16px, 4vw, 56px);
+  opacity:0;
+  transform: translateY(14px) scale(.99);
+  transition: opacity .45s ease, transform .5s ease;
+}
+.slide.active{
+  display:flex;
+  opacity:1;
+  transform:none;
+}
+.slide-inner{
+  width:100%;
+  max-width:1080px;
+  max-height:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding: 4px 4px 20px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-2) transparent;
+}
+.slide-inner::-webkit-scrollbar{ width:6px; }
+.slide-inner::-webkit-scrollbar-thumb{ background:var(--panel-2); border-radius:6px; }
+
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:clamp(11px,1.6vw,13px);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--teal);
+  margin-bottom:14px;
+}
+.eyebrow::before{
+  content:"";
+  width:7px; height:7px; border-radius:50%;
+  background:var(--teal);
+  box-shadow:0 0 12px var(--teal);
+}
+.title-xl{ font-size:clamp(30px, 5.4vw, 58px); line-height:1.04; }
+.title-lg{ font-size:clamp(24px, 3.6vw, 38px); line-height:1.1; }
+.subtitle{
+  font-size:clamp(14px, 1.9vw, 19px);
+  color:var(--muted);
+  margin-top:10px;
+  max-width:640px;
+  line-height:1.5;
+}
+.chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+.chip{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:clamp(10.5px,1.3vw,12.5px);
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  color:var(--muted);
+  white-space:nowrap;
+}
+.chip.on{ color:var(--ink); border-color:rgba(51,214,192,.4); background:rgba(51,214,192,.08); }
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:clamp(16px,2.6vw,28px);
+}
+.paper{
+  background:var(--paper);
+  color:var(--paper-ink);
+  border-radius:var(--radius);
+  padding:clamp(16px,2.6vw,26px);
+  box-shadow:var(--shadow);
+}
+
+/* ===== Lens / viewport signature element ===== */
+.viewport{
+  position:relative;
+  width:min(46vw, 300px); height:min(46vw,300px);
+  border-radius:50%;
+  margin:0 auto;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,.16), transparent 55%),
+    #0c1729;
+  border:10px solid #0a1626;
+  box-shadow: inset 0 0 50px rgba(0,0,0,.65), 0 0 0 3px rgba(51,214,192,.28), var(--shadow);
+  overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.viewport::after{
+  content:"";
+  position:absolute; inset:0;
+  background: repeating-radial-gradient(circle, transparent 0 40px, rgba(255,255,255,.02) 41px 42px);
+  pointer-events:none;
+}
+.lens-badge{
+  position:fixed; right:18px; bottom:18px;
+  width:54px; height:54px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.18), transparent 60%), var(--panel);
+  border:2px solid rgba(51,214,192,.4);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--teal);
+  box-shadow:var(--shadow);
+  z-index:40;
+  cursor:pointer;
+  user-select:none;
+}
+
+/* ===== Nav controls ===== */
+.controls{
+  position:fixed; left:0; right:0; bottom:16px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  z-index:40; pointer-events:none;
+}
+.controls > *{ pointer-events:all; }
+.navbtn{
+  width:42px; height:42px; border-radius:50%;
+  border:1px solid var(--line);
+  background:rgba(20,34,56,.85);
+  backdrop-filter:blur(6px);
+  color:var(--ink); font-size:18px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:.2s;
+}
+.navbtn:hover{ background:var(--panel-2); border-color:var(--teal); color:var(--teal); }
+.dots{ display:flex; gap:6px; max-width:44vw; overflow-x:auto; padding:4px; }
+.dot{
+  width:7px; height:7px; border-radius:50%;
+  background:rgba(255,255,255,.18);
+  flex:none; cursor:pointer; transition:.2s;
+}
+.dot.active{ background:var(--teal); box-shadow:0 0 8px var(--teal); width:20px; border-radius:5px; }
+
+.topbar{
+  position:fixed; top:14px; left:18px; right:18px;
+  display:flex; justify-content:space-between; align-items:center;
+  z-index:40; font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted);
+}
+.topbar .brand{ letter-spacing:.08em; text-transform:uppercase; }
+.iconbtn{
+  background:rgba(20,34,56,.7); border:1px solid var(--line); color:var(--muted);
+  width:32px;height:32px;border-radius:9px; cursor:pointer; font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.iconbtn:hover{ color:var(--teal); border-color:var(--teal); }
+
+.menu-panel{
+  position:fixed; inset:0; background:rgba(6,11,20,.86); backdrop-filter:blur(6px);
+  z-index:60; display:none; align-items:center; justify-content:center;
+}
+.menu-panel.open{ display:flex; }
+.menu-list{
+  width:min(560px,92vw); max-height:80vh; overflow-y:auto;
+  background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:10px;
+}
+.menu-item{
+  display:flex; gap:12px; align-items:center;
+  padding:11px 14px; border-radius:12px; cursor:pointer;
+  color:var(--muted); font-size:14px;
+}
+.menu-item:hover{ background:var(--panel-2); color:var(--ink); }
+.menu-item .n{ font-family:'IBM Plex Mono',monospace; color:var(--teal); font-size:12px; width:22px; }
+
+/* ===== QR box (desktop only) ===== */
+.qr-box{
+  display:flex; gap:16px; align-items:center;
+  background:var(--paper); color:var(--paper-ink);
+  border-radius:18px; padding:16px 20px; margin-top:28px;
+  box-shadow:var(--shadow);
+  max-width:480px;
+}
+.qr-box img{ width:92px; height:92px; border-radius:8px; image-rendering:pixelated; }
+.qr-box .txt strong{ display:block; font-family:'Fraunces',serif; font-size:16px; margin-bottom:4px; }
+.qr-box .txt span{ font-size:12.5px; color:#5a5340; }
+.qr-box .url{ font-family:'IBM Plex Mono',monospace; font-size:11px; background:#eae4d2; padding:3px 7px; border-radius:6px; display:inline-block; margin-top:6px; }
+@media (max-width:860px){
+  .qr-box{ display:none !important; }
+}
+
+/* ===== Buttons ===== */
+.btn{
+  font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:14px;
+  padding:11px 20px; border-radius:12px; border:1px solid var(--line);
+  background:var(--panel-2); color:var(--ink); cursor:pointer; transition:.2s;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn:hover{ transform:translateY(-1px); border-color:var(--teal); }
+.btn.primary{ background:var(--teal); color:var(--teal-ink); border-color:var(--teal); }
+.btn.primary:hover{ filter:brightness(1.08); }
+.btn.ghost{ background:transparent; }
+.btn:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+
+/* ===== Grid helpers ===== */
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+@media (max-width:720px){ .grid2,.grid3{ grid-template-columns:1fr; } }
+
+/* ===== Flip cards ===== */
+.flip-card{ perspective:1200px; height:170px; cursor:pointer; }
+.flip-inner{
+  position:relative; width:100%; height:100%; transition:transform .5s;
+  transform-style:preserve-3d;
+}
+.flip-card.flipped .flip-inner{ transform:rotateY(180deg); }
+.flip-face{
+  position:absolute; inset:0; backface-visibility:hidden;
+  border-radius:16px; padding:16px; display:flex; flex-direction:column; justify-content:center;
+}
+.flip-front{ background:var(--panel-2); border:1px solid var(--line); text-align:center; }
+.flip-front .ic{ font-size:34px; margin-bottom:8px; }
+.flip-back{ background:var(--teal); color:var(--teal-ink); transform:rotateY(180deg); font-size:13.5px; line-height:1.45; }
+
+/* ===== Sorting game cards ===== */
+.sort-card{
+  background:var(--panel-2); border:1px solid var(--line); border-radius:16px;
+  padding:14px; text-align:center; transition:.2s;
+}
+.sort-card .ic{ font-size:38px; }
+.sort-card .name{ font-weight:600; margin:6px 0 10px; }
+.sort-card .choices{ display:flex; gap:6px; justify-content:center; }
+.sort-card.done{ opacity:.55; }
+.sort-card .choices button{
+  flex:1; font-size:12px; padding:7px 6px; border-radius:8px; border:1px solid var(--line);
+  background:transparent; color:var(--muted); cursor:pointer;
+}
+.sort-card .choices button:hover{ border-color:var(--teal); color:var(--ink); }
+.result-tag{ font-size:11px; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:6px; display:inline-block; margin-top:6px;}
+.result-tag.ok{ background:rgba(51,214,160,.15); color:var(--good); }
+.result-tag.bad{ background:rgba(239,93,93,.15); color:var(--bad); }
+.result-tag.mid{ background:rgba(154,140,245,.18); color:var(--violet); }
+
+/* ===== Timer ===== */
+.timer{
+  font-family:'IBM Plex Mono',monospace; font-size:clamp(30px,5vw,44px);
+  letter-spacing:.05em; text-align:center;
+}
+.timer-box{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+
+/* ===== Debate columns ===== */
+.debate-col{ border-radius:16px; padding:16px; }
+.debate-col.pro{ background:rgba(51,214,192,.09); border:1px solid rgba(51,214,192,.3); }
+.debate-col.con{ background:rgba(239,93,93,.08); border:1px solid rgba(239,93,93,.28); }
+.debate-col h4{ font-family:'Fraunces',serif; margin-bottom:8px; }
+.debate-col ul{ margin:0; padding-left:18px; font-size:13.5px; color:var(--muted); line-height:1.6; }
+
+/* ===== Hotspot diagram ===== */
+.diagram-wrap{ position:relative; }
+.hotspot{
+  position:absolute; width:22px; height:22px; border-radius:50%;
+  background:var(--amber); border:3px solid #1a1712; cursor:pointer;
+  transform:translate(-50%,-50%);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(242,179,68,.5);} 50%{ box-shadow:0 0 0 8px rgba(242,179,68,0);} }
+.hotspot.active{ background:var(--magenta); }
+.info-panel{
+  min-height:96px;
+  background:var(--panel-2); border:1px solid var(--line); border-radius:14px; padding:14px; font-size:13.5px; color:var(--muted);
+}
+
+/* ===== Memory game ===== */
+.memo-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+@media (max-width:640px){ .memo-grid{ grid-template-columns:repeat(3,1fr); } }
+.memo-card{
+  aspect-ratio:1/1; border-radius:12px; cursor:pointer;
+  background:var(--panel-2); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  font-size:11.5px; padding:6px; color:transparent; user-select:none;
+  transition:.2s;
+}
+.memo-card.flip{ background:var(--violet); color:#fff; }
+.memo-card.matched{ background:rgba(51,214,160,.18); border-color:var(--good); color:var(--good); }
+
+/* ===== Checklist / rubric ===== */
+.rubric-item{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0; border-bottom:1px solid var(--line); }
+.rubric-item:last-child{ border-bottom:none; }
+.stars{ display:flex; gap:4px; }
+.star{ font-size:20px; cursor:pointer; color:rgba(255,255,255,.25); }
+.star.on{ color:var(--amber); }
+
+.check-item{ display:flex; gap:10px; align-items:flex-start; padding:8px 0; font-size:14px; }
+.check-item input{ margin-top:3px; accent-color:var(--teal); width:16px; height:16px; }
+
+.footnote{ font-size:12px; color:var(--muted); margin-top:16px; }
+.small-cap{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+
+/* svg helpers */
+svg text{ font-family:'IBM Plex Sans',sans-serif; }
+
+/* ===== Form fields (open questions, team members) ===== */
+.field{
+  width:100%; background:var(--panel-2); border:1px solid var(--line); border-radius:10px;
+  padding:10px 12px; color:var(--ink); font-family:'IBM Plex Sans',sans-serif; font-size:14px;
+}
+.field::placeholder{ color:var(--muted); }
+.field:focus{ outline:none; border-color:var(--teal); }
+textarea.field{ resize:vertical; min-height:78px; line-height:1.5; }
+label.field-label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+
+.toggle-group{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle-opt{
+  font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:13px;
+  padding:10px 16px; border-radius:12px; border:1px solid var(--line);
+  background:transparent; color:var(--muted); cursor:pointer; transition:.2s;
+}
+.toggle-opt:hover{ border-color:var(--teal); }
+.toggle-opt.selected{ background:var(--teal); color:var(--teal-ink); border-color:var(--teal); }
+
+.export-btn{
+  background:var(--amber); color:var(--amber-ink); border-color:var(--amber);
+  font-size:16px; padding:16px 28px;
+}
+.export-btn:hover{ filter:brightness(1.06); }
+.export-hint{ font-size:12px; color:var(--muted); margin-top:10px; }
+
+/* ===== Printable report (hidden on screen, shown only when printing) ===== */
+#printReport{ display:none; }
+@media print{
+  #app{ display:none !important; }
+  html, body{ background:#fff !important; color:#111 !important; height:auto !important; overflow:visible !important; }
+  #printReport{
+    display:block !important;
+    font-family:'IBM Plex Sans',sans-serif; color:#171310; max-width:760px; margin:0 auto; padding:10px;
+  }
+  #printReport h1{ font-family:'Fraunces',serif; font-size:24px; margin:0 0 4px; }
+  #printReport h2{ font-family:'Fraunces',serif; font-size:17px; margin:26px 0 10px; border-bottom:2px solid #171310; padding-bottom:5px; page-break-after:avoid; }
+  #printReport .meta{ font-size:12.5px; color:#4a463f; margin-bottom:6px; }
+  #printReport .qa{ margin-bottom:12px; page-break-inside:avoid; }
+  #printReport .qa .q{ font-weight:600; font-size:13px; }
+  #printReport .qa .a{ margin-top:4px; padding:8px 10px; background:#f2efe6; border-left:3px solid #b8ac8a; font-size:13px; min-height:16px; white-space:pre-wrap; }
+  #printReport table{ width:100%; border-collapse:collapse; font-size:12px; margin-top:4px; page-break-inside:avoid; }
+  #printReport th, #printReport td{ border:1px solid #ccc4ae; padding:5px 8px; text-align:left; }
+  #printReport th{ background:#efe9d8; }
+  #printReport .tag-ok{ color:#0a7a4a; font-weight:700; }
+  #printReport .tag-bad{ color:#b3261e; font-weight:700; }
+  #printReport .tag-mid{ color:#6a4fd6; font-weight:700; }
+  #printReport .stars-print{ letter-spacing:2px; color:#b8860b; }
+  #printReport .rep-footer{ margin-top:26px; font-size:10.5px; color:#7a7466; border-top:1px solid #ccc4ae; padding-top:8px; }
+  #printReport .section-block{ page-break-inside:avoid; margin-bottom:8px; }
+}
+
+/* ===== Session 3 specific: experiment picker ===== */
+.exp-card{
+  border:2px solid var(--line); border-radius:16px; padding:16px; cursor:pointer;
+  transition:.2s; background:var(--panel-2);
+}
+.exp-card:hover{ border-color:var(--teal); }
+.exp-card.selected{ border-color:var(--teal); background:rgba(51,214,192,.09); box-shadow:0 0 0 2px rgba(51,214,192,.22) inset; }
+.exp-card h4{ font-family:'Fraunces',serif; margin:8px 0 4px; font-size:18px; }
+.exp-card ul{ margin:8px 0 0; padding-left:18px; font-size:13px; color:var(--muted); line-height:1.7; }
+.exp-card .tag-sel{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--teal); text-transform:uppercase; letter-spacing:.06em; }
+
+/* ===== Data table (predicciones) ===== */
+.data-table{ width:100%; border-collapse:collapse; margin-top:10px; }
+.data-table th, .data-table td{ border:1px solid var(--line); padding:9px; text-align:center; font-size:13px; }
+.data-table th{ background:var(--panel-2); color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; }
+.data-table input{ width:100%; background:transparent; border:none; color:var(--ink); text-align:center; font-family:'IBM Plex Sans',sans-serif; font-size:13px; }
+.data-table input:focus{ outline:1px solid var(--teal); border-radius:4px; }
+.data-table input::placeholder{ color:var(--muted); opacity:.6; }
+
+/* ===== Safety list ===== */
+.safety-item{ display:flex; gap:10px; align-items:flex-start; padding:7px 0; font-size:13.5px; color:var(--muted); }
+.safety-item .ic{ font-size:17px; flex:none; }
+
+/* ===== Sequencing game ===== */
+.seq-pool{ display:flex; flex-wrap:wrap; gap:8px; }
+.seq-chip{
+  padding:10px 15px; border-radius:10px; border:1px solid var(--line);
+  background:var(--panel-2); cursor:pointer; font-size:13.5px; transition:.2s;
+}
+.seq-chip:hover{ border-color:var(--teal); }
+.seq-chip.used{ opacity:.28; pointer-events:none; }
+.seq-slots{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; min-height:48px; }
+.seq-slot{
+  min-width:150px; padding:10px 15px; border-radius:10px; border:2px dashed var(--line);
+  font-size:13px; color:var(--muted); text-align:center;
+}
+.seq-slot.filled{ border-style:solid; border-color:var(--line); color:var(--ink); background:var(--panel-2); }
+.seq-slot.ok{ border-color:var(--good); background:rgba(51,214,160,.12); color:var(--good); }
+.seq-slot.bad{ border-color:var(--bad); background:rgba(239,93,93,.1); color:var(--bad); }
+
+/* ===== Word search (sopa de letras) ===== */
+.ws-grid{
+  display:grid;
+  gap:3px;
+  user-select:none;
+}
+.ws-cell{
+  width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+  background:var(--panel-2); border:1px solid var(--line); border-radius:5px;
+  font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--ink);
+  cursor:pointer; transition:.15s;
+}
+.ws-cell:hover{ border-color:var(--teal); }
+.ws-cell.selected{ background:rgba(51,214,192,.25); border-color:var(--teal); }
+.ws-cell.found{ background:rgba(51,214,160,.3); border-color:var(--good); color:var(--good); }
+.ws-word{ padding:4px 0; color:var(--muted); }
+.ws-word.found{ color:var(--good); text-decoration:line-through; }
+@media (max-width:640px){
+  .ws-cell{ width:21px; height:21px; font-size:11px; }
+}
+
+/* ===== Role assignment (Sesión 5) ===== */
+.role-row{ display:flex; gap:10px; align-items:center; padding:8px 0; flex-wrap:wrap; }
+.role-row .role-tag{
+  font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--teal);
+  background:rgba(51,214,192,.1); border:1px solid rgba(51,214,192,.3);
+  border-radius:8px; padding:7px 10px; min-width:150px; text-align:center; flex:none;
+}
+.role-row input{ flex:1; min-width:160px; }
+
+/* ===== Gantt reference table (Sesión 5) ===== */
+.gantt-table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:11.5px; }
+.gantt-table th, .gantt-table td{ border:1px solid var(--line); padding:7px; text-align:center; }
+.gantt-table th{ background:var(--panel-2); color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; }
+.gantt-table td.task{ text-align:left; color:var(--ink); font-family:'IBM Plex Sans',sans-serif; font-size:12.5px; }
+.gantt-table td.bar{ background:rgba(51,214,192,.4); }
+</style>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div class="brand">Unidad 3 · Sesión 4 · Guía de cuaderno</div>
+    <div style="display:flex; gap:8px;">
+      <button class="iconbtn" id="btnFull" title="Pantalla completa">⛶</button>
+      <button class="iconbtn" id="btnMenu" title="Ver índice">≡</button>
+    </div>
+  </div>
+
+  <div class="slides" id="slides">
+
+    <!-- 0 PORTADA -->
+    <section class="slide">
+      <div class="slide-inner" style="text-align:center;">
+        <div class="viewport" style="margin-bottom:26px;">
+          <span style="font-size:56px;">📓</span>
+        </div>
+        <div class="eyebrow" style="justify-content:center;">Unidad 3 · Ciencias Naturales · 7° Básico</div>
+        <h1 class="title-xl">Guía de Actividades en el Cuaderno</h1>
+        <p class="subtitle" style="margin-left:auto;margin-right:auto;">Sesión 4 · Microorganismos al rescate: biorremediación, biolixiviación y metanogénesis</p>
+        <div class="chips" style="justify-content:center;">
+          <span class="chip on">Todo el trabajo se registra en tu cuaderno</span>
+        </div>
+
+        <div class="qr-box" style="margin-left:auto;margin-right:auto;">
+          <img id="qrImg" alt="Código QR">
+          <div class="txt">
+            <strong>Portal del curso 📱</strong>
+            <span>Escanea para acceder al mundo 3D de la célula y otros materiales</span>
+            <span class="url">fjimenez321-stack.github.io/dondefelipe</span>
+          </div>
+        </div>
+
+        <p class="footnote">Usa las flechas ← → , desliza, o el botón ≡ para navegar</p>
+      </div>
+    </section>
+
+    <!-- 1 ACTIVIDAD 1: ESQUEMATIZA EL PROCESO -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Actividad 1 · En tu cuaderno</div>
+        <h2 class="title-lg">Esquematiza el proceso</h2>
+        <div class="panel" style="margin-top:18px;">
+          <p style="font-size:15px; color:var(--muted); line-height:1.7;">Dibuja en tu cuaderno un esquema del proceso que investigó tu estación (biorremediación, biolixiviación o metanogénesis). Usa esta estructura de 3 pasos y rotula cada parte:</p>
+        </div>
+        <div class="grid3" style="margin-top:16px;">
+          <div class="panel" style="text-align:center;">
+            <div style="font-size:30px;">📥</div>
+            <div class="small-cap" style="margin-top:8px;">Entrada</div>
+            <p style="font-size:13px; color:var(--muted); margin-top:6px;">¿Qué material o problema ambiental existe al inicio?</p>
+          </div>
+          <div class="panel" style="text-align:center;">
+            <div style="font-size:30px;">🦠</div>
+            <div class="small-cap" style="margin-top:8px;">Microorganismo protagonista</div>
+            <p style="font-size:13px; color:var(--muted); margin-top:6px;">¿Qué bacteria, hongo o arquea actúa, y cómo se ve?</p>
+          </div>
+          <div class="panel" style="text-align:center;">
+            <div style="font-size:30px;">📤</div>
+            <div class="small-cap" style="margin-top:8px;">Salida</div>
+            <p style="font-size:13px; color:var(--muted); margin-top:6px;">¿Qué se obtiene al final del proceso?</p>
+          </div>
+        </div>
+        <p class="footnote" style="margin-top:14px;">Sugerencia: usa flechas entre cada parte, igual que en los esquemas revisados en clase.</p>
+      </div>
+    </section>
+
+    <!-- 2 ACTIVIDAD 2: TÉRMINOS PAREADOS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Actividad 2 · En tu cuaderno</div>
+        <h2 class="title-lg">Términos pareados</h2>
+        <p class="subtitle">Copia esta tabla en tu cuaderno y complétala con lo que investigaste (la tuya y la de tus compañeros de otras estaciones).</p>
+        <div class="panel" style="margin-top:16px;">
+          <table class="data-table">
+            <tr><th>Proceso</th><th>Microorganismo protagonista</th><th>Aplicación práctica</th></tr>
+            <tr><td style="text-align:left; font-weight:600;">Biorremediación</td><td></td><td></td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Biolixiviación</td><td></td><td></td></tr>
+            <tr><td style="text-align:left; font-weight:600;">Metanogénesis</td><td></td><td></td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 ACTIVIDAD 3: FICHA GUÍA DE INVESTIGACIÓN -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Actividad 3 · En tu cuaderno</div>
+        <h2 class="title-lg">Ficha guía de investigación</h2>
+        <p class="subtitle">Con tu estación, investiguen en fuentes confiables (sitios .gob, .edu o textos escolares) y completen esta ficha.</p>
+        <div class="paper" style="margin-top:14px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; line-height:2.1;">
+            1. Proceso investigado: ______________________<br>
+            2. ¿Qué problema ambiental resuelve? ______________________<br>
+            3. ¿Qué microorganismo(s) participan? ______________________<br>
+            4. ¿Cómo funciona? (usa el esquema de la Actividad 1) ______________________<br>
+            5. Fuente(s) consultada(s): anota el link o título exacto ______________________<br>
+            6. Conclusión con evidencia: ______________________
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 ACTIVIDAD 4: ANALIZA LOS DATOS -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Actividad 4 · En tu cuaderno</div>
+        <h2 class="title-lg">Analiza los datos</h2>
+        <div class="panel" style="margin-top:18px;">
+          <p style="font-size:15px; color:var(--muted); line-height:1.7;">Tu profesor entregará una tabla simple de eficiencia o impacto ambiental del proceso que investigaste. Cópiala en tu cuaderno y responde:</p>
+        </div>
+        <div class="panel" style="margin-top:14px;">
+          <div class="check-item">📊 <span>¿Qué porcentaje representa el resultado obtenido?</span></div>
+          <div class="check-item">📈 <span>¿La eficiencia aumenta, disminuye o se mantiene con el tiempo? ¿Cómo lo sabes con los datos?</span></div>
+          <div class="check-item">✍️ <span>Escribe una conclusión que use al menos un dato numérico como evidencia.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 ACTIVIDAD 5: MUNDO 3D DE LA CÉLULA -->
+    <section class="slide">
+      <div class="slide-inner">
+        <div class="eyebrow">Actividad 5 · Explora</div>
+        <h2 class="title-lg">El mundo 3D de la célula</h2>
+        <p class="subtitle">Entra a "Dentro de una célula eucarionte" desde el portal del curso (portada). Camina con las flechas/WASD o los botones en pantalla, y acércate a los objetos para ver su ficha.</p>
+        <p style="font-size:14px; color:var(--teal); font-weight:600; margin-top:10px;">Elige y realiza AL MENOS DOS de estas actividades:</p>
+        <div class="grid3" style="margin-top:12px;">
+          <div class="panel"><strong>🧪 Membrana plasmática</strong><p style="font-size:12.5px; color:var(--muted); margin-top:6px;">Dibuja un tramo con sus dos capas y ubica tres proteínas distintas.</p></div>
+          <div class="panel"><strong>⚡ Mitocondria</strong><p style="font-size:12.5px; color:var(--muted); margin-top:6px;">Compara su ADN circular con el del núcleo — conecta con la endosimbiosis (Sesión 2).</p></div>
+          <div class="panel"><strong>🚪 Poro nuclear</strong><p style="font-size:12.5px; color:var(--muted); margin-top:6px;">Anota tres cosas que salen y dos que entran, y explica por qué.</p></div>
+          <div class="panel"><strong>🧬 Cromatina y cromosoma</strong><p style="font-size:12.5px; color:var(--muted); margin-top:6px;">Compara ambas formas del ADN y cuándo aparece cada una.</p></div>
+          <div class="panel"><strong>📦 Aparato de Golgi</strong><p style="font-size:12.5px; color:var(--muted); margin-top:6px;">Dibújalo con tres vesículas saliendo hacia destinos distintos.</p></div>
+          <div class="panel"><strong>🦠 El virus</strong><p style="font-size:12.5px; color:var(--muted); margin-top:6px;">¿Qué argumentos nuevos suma al debate de la Sesión 1?</p></div>
+        </div>
+        <p class="footnote" style="margin-top:12px;">Desafío avanzado (opcional): ADN, Replicación, Transcripción y Traducción — van más allá de lo visto en clase. Si te atreves, inténtalas igual.</p>
+        <div class="panel" style="margin-top:12px;">
+          <div class="small-cap" style="margin-bottom:6px;">Registra en tu cuaderno, por cada actividad elegida</div>
+          <div style="font-size:13px; color:var(--muted); line-height:1.7;">Nombre de la actividad · ¿Qué tuviste que hacer? · ¿Qué aprendiste sobre la célula que no sabías antes?</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 CIERRE -->
+    <section class="slide">
+      <div class="slide-inner" style="text-align:center;">
+        <div class="viewport" style="margin-bottom:20px;">
+          <span style="font-size:54px;">🔬</span>
+        </div>
+        <div class="eyebrow" style="justify-content:center;">Cierre · Bitácora de aprendizaje científico</div>
+        <h2 class="title-xl">Última reflexión en tu cuaderno</h2>
+        <p class="subtitle" style="margin-left:auto;margin-right:auto;">¿Cuál de los tres procesos investigados te pareció más útil para resolver un problema real? ¿Por qué?</p>
+        <p class="footnote" style="margin-top:24px; max-width:520px; margin-left:auto; margin-right:auto;">Evaluación formativa: tu ficha guía citada correctamente y esta guía de actividades son el instrumento que revisará tu profesor (habilidades de indagación OA e, OA j).</p>
+        <p class="footnote" style="margin-top:20px;">Ciencias Naturales · 7° Básico · Colegio San Agustín Villa Alemana · Prof. Felipe Jiménez</p>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="lens-badge" id="lensBadge">1/7</div>
+
+  <div class="controls">
+    <button class="navbtn" id="prevBtn">←</button>
+    <div class="dots" id="dotsWrap"></div>
+    <button class="navbtn" id="nextBtn">→</button>
+  </div>
+
+  <div class="menu-panel" id="menuPanel">
+    <div class="menu-list" id="menuList"></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  document.getElementById('qrImg').src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbwAAAG8AQAAAACNyy1yAAAC3klEQVR4nO2cS27rMAxFDx88l3aQ/S+rO5BWwDfQ104GRVrEkHqJoJAVHTgECJa6+pjzluV/73EgUKBAgfuD1i1iZmQjW+knm0X6Yx+2nI8C1wcPgJDKg5W/odYFPrUtpPOwhXwUuBXYsiWe8IQ9HCCbJwB6xLZhK/oocHHwuDxbz67UELWQrGXU33ijQIHv2TVWvURpNkIim1OL1d97o0CB71mN1ZNyFRI5OhDc2rd+HbaQjwI3AnOd3wOlHLWHW8QiBCe09jRsPR8FLg8eXJJq+b8PgLe2Z7sOW8lHgfuAXVY1M0+0mT40iRWo/bkprqv5KHB9cMqrwcmRKZ1aq1erZfPRuZCPAvcAD8DAc7SQbBL/4VQP1DGtHljKR4EbgcEJ7l/m7oA9vOpUwevC68MBi9SlgRt/qsC/Cx6Uf/o5evCu+ZfsOnSqUrLmOJUEC/kocA8Qdy/p1BNzo7QJXtvBy/JrRdJCPgrcAyyB11b8g9cPlM5uvbM+K1YFfhqk58+aOWsojp7y7RzPilWBN2pWVnaoAjl6jtAUqjJqEgR+/EaBAt+0S14dCTZxSrNwqg2UVwV+Ghx7Vzxb2awya6r0zYE5ejZCagLsQj4K3ANsmXOa6c8l65hVeZ12aW4l8CbwFIRt3kRvz8N6MaBYFXhjvdqDcMz94UX0jsZCPgrcAzzJ/vQVgUuaTUNuLSMVqwI/DtKjkXYw8EWl2q1rsIpVgZ8GD8rqfzkGCAxNNXrdBJiG0Eo/07qQjwL3AIcO0IuBnmZh2ljVCgDpAAJvBM8Xqky7AsIpdOvxq1t/qsA/DD7duxLSvBww+ufNgT96o0CBb1qfQw2VdZpwXVSssX1FNYDAu8FaBmSrZwHKQexHE1e/THMrgTeB13tXns3b53yvxUI+CtwDvN674v2synQ1UG9Zu+FqKR8F7gEe8Dosyy7WOZ2Wb4vcupSPAvcAnzdRf890B7tAgQIFvrb/GBgYBU/dUhoAAAAASUVORK5CYII=";
+
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var current = 0;
+
+  var titles = [
+    "Portada", "Actividad 1: Esquematiza el proceso", "Actividad 2: Términos pareados",
+    "Actividad 3: Ficha guía de investigación", "Actividad 4: Analiza los datos",
+    "Actividad 5: Mundo 3D de la célula", "Cierre: Bitácora"
+  ];
+
+  var dotsWrap = document.getElementById('dotsWrap');
+  titles.forEach(function(t, i){
+    var d = document.createElement('div');
+    d.className = 'dot' + (i===0 ? ' active' : '');
+    d.addEventListener('click', function(){ goTo(i); });
+    dotsWrap.appendChild(d);
+  });
+
+  var menuList = document.getElementById('menuList');
+  titles.forEach(function(t, i){
+    var item = document.createElement('div');
+    item.className = 'menu-item';
+    item.innerHTML = '<span class="n">' + String(i+1).padStart(2,'0') + '</span><span>' + t + '</span>';
+    item.addEventListener('click', function(){
+      goTo(i);
+      document.getElementById('menuPanel').classList.remove('open');
+    });
+    menuList.appendChild(item);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === current); });
+    Array.prototype.forEach.call(dotsWrap.children, function(d, i){ d.classList.toggle('active', i === current); });
+    document.getElementById('lensBadge').textContent = (current+1) + '/' + total;
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === total-1;
+  }
+  function goTo(i){ current = Math.max(0, Math.min(total-1, i)); render(); }
+  function next(){ goTo(current+1); }
+  function prev(){ goTo(current-1); }
+
+  document.getElementById('nextBtn').addEventListener('click', next);
+  document.getElementById('prevBtn').addEventListener('click', prev);
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === ' ') next();
+    if (e.key === 'ArrowLeft') prev();
+    if (e.key === 'Escape') document.getElementById('menuPanel').classList.remove('open');
+  });
+
+  var touchX = null;
+  document.getElementById('app').addEventListener('touchstart', function(e){ touchX = e.changedTouches[0].clientX; }, {passive:true});
+  document.getElementById('app').addEventListener('touchend', function(e){
+    if (touchX === null) return;
+    var dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+    touchX = null;
+  }, {passive:true});
+
+  document.getElementById('btnMenu').addEventListener('click', function(){
+    document.getElementById('menuPanel').classList.add('open');
+  });
+  document.getElementById('menuPanel').addEventListener('click', function(e){
+    if (e.target === this) this.classList.remove('open');
+  });
+  document.getElementById('btnFull').addEventListener('click', function(){
+    if (!document.fullscreenElement) { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+    else { document.exitFullscreen && document.exitFullscreen(); }
+  });
+
+  render();
+
+})();
+</script>
+</body>
+</html>
