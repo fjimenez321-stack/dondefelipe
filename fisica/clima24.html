@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad 3 · Sesión 2 · Cambio Climático</title>
+<style>
+:root{
+  --parchment:#f6f0e2;
+  --parchment-dk:#ece2c9;
+  --navy:#132436;
+  --navy-mid:#1c3550;
+  --teal:#0e7c7b;
+  --teal-l:#2aaea3;
+  --amber:#e2a12b;
+  --amber-l:#f4c869;
+  --red:#c0392b;
+  --green:#3c8a4a;
+  --ink:#2b2116;
+  --paper-line:#d9cba3;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{font-family:'Georgia','Times New Roman',serif;background:var(--navy);color:var(--ink);overflow:hidden;}
+#deck{position:relative;width:100vw;height:100vh;}
+.slide{position:absolute;inset:0;display:none;
+  background:radial-gradient(circle at 15% 10%, rgba(226,161,43,0.10), transparent 45%),linear-gradient(var(--parchment), var(--parchment-dk));
+  padding:5vh 6vw;flex-direction:column;}
+.slide.active{display:flex;animation:fadeIn .5s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.eyebrow{font-family:'Helvetica Neue',Arial,sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;color:var(--teal);font-weight:700;margin-bottom:.3rem;}
+h1{font-size:2.75rem;margin:.1rem 0 .3rem;color:var(--navy);line-height:1.15;}
+h2{font-size:2.1rem;color:var(--navy);margin:0 0 .6rem;}
+h3{font-size:1.35rem;color:var(--navy-mid);margin:0 0 .3rem;}
+p{line-height:1.55;font-size:1.2rem;}
+.sub{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.18rem;color:#5a4c33;margin-bottom:1rem;}
+.badge{display:inline-block;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.22rem .6rem;border-radius:999px;margin-right:.4rem;}
+.badge.bloom{background:var(--navy);color:var(--parchment);}
+.badge.oa{background:var(--teal);color:#fff;}
+.badge.cuaderno{background:var(--amber);color:var(--navy);}
+.badge.form{background:var(--red);color:#fff;}
+.grid{display:grid;gap:1rem;flex:1;min-height:0;align-items:start;}
+.cols-2{grid-template-columns:1fr 1fr;}
+.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.card{background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;padding:1rem 1.1rem;box-shadow:0 2px 6px rgba(43,33,22,.08);}
+.card h3{margin-top:0;}
+.card.teal{border-top:4px solid var(--teal);}
+.card.amber{border-top:4px solid var(--amber);}
+.card.navy{border-top:4px solid var(--navy);}
+.card.red{border-top:4px solid var(--red);}
+.hero-concept{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:820px;}
+.hero-concept .icon{font-size:3.4rem;margin-bottom:.4rem;}
+.hero-concept h2{font-size:2.5rem;}
+.hero-concept p{font-size:1.32rem;}
+.hero-concept .scale{margin-top:1rem;display:inline-block;background:#fffdf6;border:1px solid var(--paper-line);border-radius:8px;padding:.6rem 1rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.05rem;}
+.cuaderno-box{background:repeating-linear-gradient(#fffef9,#fffef9 27px,#e3dcc4 28px);border:1px solid var(--paper-line);border-left:5px solid var(--amber);border-radius:6px;padding:1rem 1.2rem;position:relative;}
+.cuaderno-box::before{content:"📓 REGISTRA EN TU CUADERNO";position:absolute;top:-11px;left:14px;background:var(--amber);color:var(--navy);font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;}
+.exit-box{background:#fdf3e9;border:1px solid var(--paper-line);border-left:5px solid var(--red);border-radius:6px;padding:1rem 1.2rem;position:relative;}
+.exit-box::before{content:"🎫 TICKET DE SALIDA";position:absolute;top:-11px;left:14px;background:var(--red);color:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;}
+.debate-box{background:#eef6f5;border:1px solid var(--paper-line);border-left:5px solid var(--teal);border-radius:6px;padding:1rem 1.2rem;position:relative;}
+.debate-box::before{content:"🗣️ DEBATE";position:absolute;top:-11px;left:14px;background:var(--teal);color:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;}
+.footer-nav{position:absolute;bottom:1.1rem;left:6vw;right:6vw;display:flex;align-items:center;justify-content:space-between;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.8rem;color:#7a6b4d;}
+.progress{flex:1;height:5px;background:#d9cba3;border-radius:3px;margin:0 1rem;overflow:hidden;}
+.progress-bar{height:100%;background:var(--teal);width:4%;transition:width .3s;}
+.navbtn{background:var(--navy);color:var(--parchment);border:none;border-radius:6px;width:34px;height:34px;cursor:pointer;font-size:1rem;}
+.navbtn:hover{background:var(--teal);}
+.navbtn:disabled{opacity:.3;cursor:default;}
+#soundBtn{position:absolute;top:1.1rem;right:6vw;background:none;border:1px solid var(--navy);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:1rem;color:var(--navy);z-index:5;}
+.opt{display:block;width:100%;text-align:left;background:#fffdf6;border:1.5px solid var(--paper-line);border-radius:8px;padding:.8rem 1rem;margin-bottom:.6rem;cursor:pointer;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.12rem;transition:.15s;}
+.opt:hover{border-color:var(--teal);background:#f0f8f7;}
+.opt.correct{background:#e6f4e6;border-color:var(--green);}
+.opt.wrong{background:#fbe9e7;border-color:var(--red);}
+.feedback{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.1rem;margin-top:.6rem;min-height:1.4rem;}
+.feedback.ok{color:var(--green);font-weight:700;}
+.feedback.bad{color:var(--red);font-weight:700;}
+input[type=range]{width:100%;accent-color:var(--teal);}
+.slidewrap{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.95rem;margin-bottom:.7rem;}
+.valpill{display:inline-block;background:var(--navy);color:#fff;padding:.1rem .5rem;border-radius:5px;font-size:.8rem;margin-left:.4rem;}
+.small{font-size:.96rem;color:#5a4c33;}
+.source{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.86rem;color:#8a7a58;font-style:italic;}
+ul{margin:.3rem 0;padding-left:1.2rem;}
+li{margin-bottom:.3rem;line-height:1.45;}
+.scroll{overflow-y:auto;padding-bottom:4.5rem;}
+.center-mid{justify-content:center;}
+.layer-stack{display:flex;flex-direction:column;gap:.55rem;flex:1;justify-content:center;max-width:920px;}
+.layer-row{display:flex;align-items:center;gap:1rem;padding:.7rem 1.1rem;border-radius:9px;background:#fffdf6;border:1px solid var(--paper-line);box-shadow:0 1px 4px rgba(43,33,22,.06);}
+.layer-row .num{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:.9rem;flex-shrink:0;}
+.layer-row .txt{flex:1;}
+.layer-row .txt b{display:block;font-family:Georgia,serif;color:var(--navy-mid);font-size:1.2rem;}
+.layer-row .txt span{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.96rem;color:#5a4c33;}
+.layer-row .alt{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.86rem;color:#8a7a58;flex-shrink:0;text-align:right;min-width:120px;}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:.6rem;}
+.stat{background:#fffdf6;border:1px solid var(--paper-line);border-radius:9px;padding:.75rem .9rem;}
+.stat b{display:block;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--teal);margin-bottom:.2rem;}
+.stat span{font-family:Georgia,serif;font-size:1.18rem;color:var(--navy);}
+.actcard{background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;align-items:flex-start;gap:.35rem;}
+.actcard .icon{font-size:1.7rem;}
+.actcard h3{margin:.1rem 0 0;}
+.rubric{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.92rem;}
+.rubric th,.rubric td{border:1px solid var(--paper-line);padding:.55rem .6rem;text-align:left;vertical-align:top;}
+.rubric th{background:var(--navy);color:var(--parchment);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;}
+.rubric td.crit{background:#f4ecd8;font-weight:700;font-family:Georgia,serif;font-size:1rem;color:var(--navy-mid);}
+.feedback-loop{display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap;margin:1rem 0;}
+.loop-node{background:#fffdf6;border:2px solid var(--teal);border-radius:10px;padding:.7rem 1rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1rem;text-align:center;max-width:150px;color:var(--navy);}
+.loop-arrow{font-size:1.4rem;color:var(--teal);}
+#slide-1{background:radial-gradient(ellipse at 70% 20%, rgba(226,161,43,.35), transparent 55%),linear-gradient(160deg,#132436 0%,#1c3550 55%,#0e7c7b 130%);color:var(--parchment);align-items:center;text-align:center;justify-content:center;cursor:pointer;}
+#slide-1 h1{color:#fff;font-size:3.1rem;}
+#slide-1 .sub{color:#cfe8e6;}
+#sky{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.ray{position:absolute;width:2px;background:linear-gradient(var(--amber-l),transparent);opacity:0;border-radius:2px;}
+.hint{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.95rem;color:#a8c8c6;margin-top:2rem;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- 1: APERTURA -->
+<div class="slide active" id="slide-1" onclick="rayBurst(event)">
+  <div id="sky"></div>
+  <div class="eyebrow" style="color:var(--amber-l)">Unidad 3 · Cambio Climático · Sesión 2</div>
+  <h1>Cuando el equilibrio se desplaza</h1>
+  <p class="sub" style="max-width:660px;margin:0 auto;">En la Sesión 1 comprendimos cómo la Tierra mantiene un equilibrio entre la energía que recibe y la que emite. Hoy indagamos qué ocurre cuando la actividad humana desplaza ese equilibrio — y si, como especie, somos realmente responsables.</p>
+  <div class="hint">☀️ Haz clic en cualquier parte del cielo</div>
+</div>
+
+<!-- 2: Cuaderno repaso sesión 1 -->
+<div class="slide" id="slide-2">
+  <div class="eyebrow">Inicio · Repaso</div>
+  <h2>Antes de seguir... ¿qué recuerdas de la Sesión 1?</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">Responde en tu cuaderno, sin mirar tus apuntes (luego los revisas para comprobar):</p>
+    <ul>
+      <li>En una frase, ¿qué es el <b>balance radiativo</b>?</li>
+      <li>Nombra al menos <b>un gas de efecto invernadero</b>.</li>
+      <li>En el simulador de la sesión pasada, ¿qué le ocurría a la temperatura de equilibrio cuando aumentaba el efecto invernadero?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 3: Efecto invernadero natural -->
+<div class="slide center-mid" id="slide-3">
+  <div class="eyebrow">Desarrollo · Concepto 1 de 2</div>
+  <div class="hero-concept">
+    <div class="icon">🌡️</div>
+    <h2>Efecto invernadero natural</h2>
+    <p>Sin gases de efecto invernadero en la atmósfera, la temperatura media de la Tierra rondaría los <b>-18 °C</b> — un planeta helado e inhóspito. El efecto invernadero natural retiene parte de la energía saliente y es lo que permite la temperatura templada que hace posible la vida tal como la conocemos.</p>
+    <div class="scale">Es un fenómeno <b>beneficioso</b>. El problema no es que exista, sino lo que veremos a continuación.</div>
+  </div>
+</div>
+
+<!-- 4: Efecto invernadero antropogénico -->
+<div class="slide center-mid" id="slide-4">
+  <div class="eyebrow">Desarrollo · Concepto 2 de 2</div>
+  <div class="hero-concept">
+    <div class="icon">🏭</div>
+    <h2>Efecto invernadero antropogénico</h2>
+    <p>La actividad humana —quema de combustibles fósiles, deforestación, ganadería intensiva, entre otras— ha aumentado la concentración de gases de efecto invernadero en la atmósfera, <b>intensificando</b> un fenómeno que ya existía de forma natural.</p>
+    <div class="scale">El resultado: el equilibrio térmico del planeta se desplaza hacia una temperatura más alta que la registrada históricamente antes de la era industrial.</div>
+  </div>
+</div>
+
+<!-- 5: Gases de efecto invernadero -->
+<div class="slide" id="slide-5">
+  <div class="eyebrow">Desarrollo · Gases de efecto invernadero</div>
+  <h2>¿Cuáles son los principales GEI?</h2>
+  <div class="layer-stack">
+    <div class="layer-row"><div class="num" style="background:#c0392b;">CO₂</div><div class="txt"><b>Dióxido de carbono</b><span>Principal GEI de origen humano. Fuente dominante: quema de combustibles fósiles (carbón, petróleo, gas) y deforestación.</span></div><div class="alt">~280 → ~420 ppm</div></div>
+    <div class="layer-row"><div class="num" style="background:#e2a12b;">CH₄</div><div class="txt"><b>Metano</b><span>Ganadería, cultivo de arroz, rellenos sanitarios y extracción de combustibles fósiles. Mucho más potente que el CO₂ por molécula, aunque en menor concentración.</span></div><div class="alt">Alta potencia, menor concentración</div></div>
+    <div class="layer-row"><div class="num" style="background:#2aaea3;">N₂O</div><div class="txt"><b>Óxido nitroso</b><span>Principalmente de fertilizantes agrícolas nitrogenados y algunos procesos industriales.</span></div><div class="alt">Menor concentración, alta potencia</div></div>
+    <div class="layer-row"><div class="num" style="background:#132436;">H₂O</div><div class="txt"><b>Vapor de agua</b><span>El GEI natural más abundante. No se emite directamente en grandes cantidades por el ser humano — actúa principalmente como retroalimentación (lo veremos a continuación).</span></div><div class="alt">Mayor abundancia natural</div></div>
+  </div>
+</div>
+
+<!-- 6: Esquema - Mecanismo del efecto invernadero -->
+<div class="slide" id="slide-6">
+  <div class="eyebrow">Desarrollo · Gases de efecto invernadero · Esquema 1</div>
+  <h2>¿Cómo retienen calor los GEI? El mecanismo</h2>
+  <div class="grid cols-2">
+    <div class="card teal">
+      <svg id="svgMecanismo" viewBox="0 0 320 260" style="width:100%;background:#fbf7ec;border-radius:6px;"></svg>
+      <p class="source">☀️ onda corta (entra) · 🔴 onda larga (sale) · 🟢 reemitida hacia la superficie</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Observa el esquema y, en tu cuaderno, describe con tus palabras los 3 pasos:</p>
+      <ul>
+        <li>La radiación solar (onda corta) atraviesa la atmósfera y calienta la superficie terrestre.</li>
+        <li>La superficie emite radiación infrarroja (onda larga) de vuelta hacia el espacio.</li>
+        <li>Las moléculas de GEI absorben parte de esa radiación infrarroja y la reemiten en todas direcciones — parte vuelve hacia la superficie, manteniéndola más cálida.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 7: Esquema - Potencial de calentamiento global -->
+<div class="slide" id="slide-7">
+  <div class="eyebrow">Desarrollo · Gases de efecto invernadero · Esquema 2</div>
+  <h2>Potencial de calentamiento global (GWP)</h2>
+  <div class="grid cols-2">
+    <div class="card amber">
+      <canvas id="cvGWP" width="480" height="260" style="width:100%;border-radius:6px;background:#fbf7ec;"></canvas>
+      <p class="source">Valores aproximados a 100 años, tomando CO₂ = 1 (IPCC AR5).</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">El GWP compara cuánto calor atrapa 1 tonelada de un gas frente a 1 tonelada de CO₂, en un horizonte de tiempo determinado.</p>
+      <p><b>En tu cuaderno</b>, responde: si el metano es tan potente por molécula, ¿por qué el CO₂ sigue siendo el gas más relevante para el cambio climático actual? (pista: revisa la slide anterior sobre concentración).</p>
+    </div>
+  </div>
+</div>
+
+<!-- 8: Simulador cuantitativo CO2 -->
+<div class="slide" id="slide-8">
+  <div class="eyebrow">Desarrollo · Simulador · Hilo cuantitativo</div>
+  <h2>De la concentración de CO₂ a la anomalía de temperatura</h2>
+  <div class="grid cols-2">
+    <div class="card amber">
+      <svg id="svgCO2" viewBox="0 0 300 220" style="width:100%;background:#fbf7ec;border-radius:6px;"></svg>
+      <div class="slidewrap" style="margin-top:.6rem;">
+        Concentración de CO₂ (ppm)<span class="valpill" id="lblCO2">280 ppm</span>
+        <input type="range" id="rngCO2" min="280" max="560" value="280" step="5">
+      </div>
+      <p class="small" id="txtCO2">Nivel preindustrial (~1850): 280 ppm → anomalía ≈ 0 °C.</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Mueve el deslizador hasta el valor actual aproximado (~420 ppm) y luego hasta un escenario futuro (~560 ppm, el doble del nivel preindustrial).</p>
+      <p><b>En tu cuaderno</b>, registra la anomalía de temperatura estimada en cada caso y describe la relación entre ambas variables (¿lineal, creciente, decreciente?).</p>
+      <p class="small">Modelo simplificado con fines didácticos: no reemplaza los modelos climáticos reales del IPCC, que consideran muchas variables adicionales.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 7: Retroalimentación positiva - vapor de agua -->
+<div class="slide" id="slide-9">
+  <div class="eyebrow">Desarrollo · Retroalimentaciones 1 de 2</div>
+  <h2>Retroalimentación positiva: el vapor de agua</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1rem;">
+  <div class="feedback-loop">
+    <div class="loop-node">🌡️ Aumenta la temperatura del aire</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">🌊 Aumenta la evaporación oceánica</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">💧 Más vapor de agua en la atmósfera (GEI)</div>
+    <div class="loop-arrow">→</div>
+    <div class="loop-node">🔥 Se intensifica el efecto invernadero</div>
+    <div class="loop-arrow">↻</div>
+  </div>
+  <div class="scale" style="align-self:center;">Este mecanismo se llama <b>retroalimentación positiva</b>: la perturbación original (más temperatura) se ve amplificada por el propio sistema, en lugar de compensarse.</div>
+  </div>
+</div>
+
+<!-- 8: Retroalimentación hielo-albedo (repaso) -->
+<div class="slide" id="slide-10">
+  <div class="eyebrow">Desarrollo · Retroalimentaciones 2 de 2 · Repaso</div>
+  <h2>¿Recuerdas la retroalimentación hielo-albedo?</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">La vimos en la Sesión 1, al estudiar la criosfera. En tu cuaderno, complétala sin mirar tus apuntes:</p>
+    <p style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.05rem;">Menos hielo → superficie ______ → ______ absorción de energía → ______ temperatura → ______ hielo</p>
+    <p class="small">Comparte tu respuesta con tu compañero de banco antes de continuar.</p>
+  </div>
+</div>
+
+<!-- 9: Gráfico 1 - Anomalía de temperatura -->
+<div class="slide" id="slide-11">
+  <div class="eyebrow">Desarrollo · Análisis de evidencia 1 de 3</div>
+  <h2>Gráfico 1: Anomalía de temperatura global</h2>
+  <div class="grid cols-2">
+    <div class="card navy">
+      <canvas id="cvGraf1" width="480" height="240" style="width:100%;border-radius:6px;background:#fbf7ec;"></canvas>
+      <p class="source">Esquema ilustrativo de la tendencia. Analizaremos el gráfico oficial del Informe IPCC (proyectado/impreso por el docente).</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Con el gráfico oficial a la vista, responde en tu cuaderno:</p>
+      <ul>
+        <li>¿Qué significa que el eje vertical muestre una <b>anomalía</b> y no una temperatura absoluta?</li>
+        <li>¿El ritmo de aumento es constante o se acelera con el tiempo? ¿Cómo lo identificas en la curva?</li>
+        <li>¿A partir de qué período la tendencia se vuelve claramente ascendente?</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 10: Gráfico 2 - Nivel del mar -->
+<div class="slide" id="slide-12">
+  <div class="eyebrow">Desarrollo · Análisis de evidencia 2 de 3</div>
+  <h2>Gráfico 2: Aumento del nivel del mar</h2>
+  <div class="grid cols-2">
+    <div class="card navy">
+      <canvas id="cvGraf2" width="480" height="240" style="width:100%;border-radius:6px;background:#fbf7ec;"></canvas>
+      <p class="source">Esquema ilustrativo de la tendencia. Analizaremos el gráfico oficial del Informe IPCC (proyectado/impreso por el docente).</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Con el gráfico oficial a la vista, responde en tu cuaderno:</p>
+      <ul>
+        <li>¿Qué dos mecanismos físicos explican el aumento del nivel del mar? (dilatación térmica del agua y derretimiento de hielo continental)</li>
+        <li>¿Por qué el derretimiento del hielo marino flotante (como el del Ártico) no sube directamente el nivel del mar, pero sí el de los glaciares continentales?</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 11: Gráfico 3 - Concentración de GEI -->
+<div class="slide" id="slide-13">
+  <div class="eyebrow">Desarrollo · Análisis de evidencia 3 de 3</div>
+  <h2>Gráfico 3: Concentración de gases de efecto invernadero</h2>
+  <div class="grid cols-2">
+    <div class="card navy">
+      <canvas id="cvGraf3" width="480" height="240" style="width:100%;border-radius:6px;background:#fbf7ec;"></canvas>
+      <p class="source">Esquema ilustrativo de la tendencia. Analizaremos el gráfico oficial del Informe IPCC (proyectado/impreso por el docente).</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Con el gráfico oficial a la vista, responde en tu cuaderno:</p>
+      <ul>
+        <li>¿Qué gas muestra el aumento más pronunciado desde el inicio de la era industrial?</li>
+        <li>¿El punto de inflexión de este gráfico coincide con el de la Revolución Industrial? ¿Qué sugiere esa coincidencia?</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 12: Cuaderno - correlación entre los 3 gráficos -->
+<div class="slide" id="slide-14">
+  <div class="eyebrow">Desarrollo · Síntesis de evidencia</div>
+  <h2>¿Cómo se relacionan los tres gráficos?</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">En tu cuaderno, con los tres gráficos a la vista:</p>
+    <ul>
+      <li>¿Observas correlación entre la concentración de GEI, la anomalía de temperatura y el nivel del mar? Descríbela.</li>
+      <li>De los tres fenómenos, ¿cuál propondrías como <b>causa</b> y cuáles como <b>consecuencia</b>? Justifica con un mecanismo físico.</li>
+      <li>Si la tendencia continúa, ¿qué consecuencias podría tener para la vida en el planeta?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 13: El debate - situación de Max -->
+<div class="slide" id="slide-15">
+  <div class="eyebrow">Desarrollo · El debate</div>
+  <h2>"Profe, ¿somos responsables del cambio climático?"</h2>
+  <div class="card navy" style="flex:1;overflow-y:auto;">
+    <p>Un profesor de ciencias presenta en una charla la postura del IPCC: que el calentamiento del sistema climático es inequívoco y que la evidencia proviene de miles de científicos de todo el mundo.</p>
+    <p>Al terminar, un estudiante de 17 años responde: <i>"Yo no creo que el cambio climático sea principalmente por nosotros. El clima de la Tierra siempre ha cambiado de forma natural, y como especie llevamos muy poco tiempo aquí a escala geológica. Confío en que el planeta se regulará solo, hagamos lo que hagamos."</i></p>
+    <p class="small">Situación adaptada con fines pedagógicos, inspirada en el programa de estudio de Física, Unidad 3 (MINEDUC).</p>
+  </div>
+</div>
+
+<!-- 14: Evidencia vs opinión sin respaldo -->
+<div class="slide" id="slide-16">
+  <div class="eyebrow">Desarrollo · Mirada crítica</div>
+  <h2>Evidencia científica ≠ opinión sin respaldo</h2>
+  <div class="grid cols-2">
+    <div class="card teal">
+      <h3>✅ Evidencia científica</h3>
+      <ul class="small">
+        <li>Proviene de mediciones, datos y modelos contrastables.</li>
+        <li>Ha sido revisada por pares y validada por comunidades científicas internacionales (ej. IPCC).</li>
+        <li>Se sostiene con múltiples líneas de evidencia independientes (temperatura, nivel del mar, GEI, glaciares).</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3>⚠️ Opinión sin respaldo</h3>
+      <ul class="small">
+        <li>Se basa en intuición, percepción personal o "sentido común".</li>
+        <li>No cita fuentes verificables ni datos contrastables.</li>
+        <li>Puede sonar razonable, pero no resiste el contraste con la evidencia disponible.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 15: Mirada crítica - falacia naturalista -->
+<div class="slide center-mid" id="slide-17">
+  <div class="eyebrow">Desarrollo · Mirada crítica</div>
+  <div class="hero-concept">
+    <h2>"El clima siempre ha cambiado" — ¿es un argumento válido?</h2>
+    <p>Es cierto que el clima ha cambiado naturalmente a lo largo de la historia geológica. Pero esa verdad parcial <b>no invalida</b> la atribución antropogénica del cambio climático actual: lo relevante no es que el clima cambie, sino la <b>velocidad</b> y la <b>causa</b> del cambio observado en el último siglo, que no se explica por los mecanismos naturales conocidos por sí solos.</p>
+    <div class="scale">En tu cuaderno: ¿por qué esta afirmación, aunque parcialmente cierta, no es suficiente para descartar la responsabilidad humana?</div>
+  </div>
+</div>
+
+<!-- 16: Actividad de debate estructurado - instrucciones -->
+<div class="slide" id="slide-18">
+  <div class="eyebrow">Desarrollo · Argumentación</div>
+  <h2>Debate estructurado: postura frente a la situación de Max</h2>
+  <div class="debate-box" style="flex:1;">
+    <p style="margin-top:.6rem;">El curso se organiza en grupos pequeños. Cada grupo prepara, con evidencia, una postura frente a la afirmación de Max.</p>
+    <ul>
+      <li><b>Reglas:</b> toda intervención debe apoyarse en evidencia o en un mecanismo físico — no en opiniones sin respaldo.</li>
+      <li><b>Tiempo de preparación:</b> 8 minutos, usando el marco AER (próxima diapositiva).</li>
+      <li><b>Tiempo de debate:</b> 10 minutos, con turnos breves y ordenados por el docente.</li>
+      <li>Se valora escuchar y responder al argumento contrario, no solo repetir el propio.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 17: Cuaderno - prepara tus argumentos AER -->
+<div class="slide" id="slide-19">
+  <div class="eyebrow">Desarrollo · Cuaderno · Preparación</div>
+  <h2>Prepara tus argumentos con el marco AER</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">En tu cuaderno, antes del debate:</p>
+    <ul>
+      <li><b>Afirmación:</b> ¿qué postura defenderá tu grupo frente a lo que plantea Max?</li>
+      <li><b>Evidencia:</b> ¿qué datos, gráficos o fuentes (IPCC, DMC, CR2) vas a usar para respaldarla?</li>
+      <li><b>Razonamiento:</b> ¿qué mecanismo físico conecta tu evidencia con tu afirmación? (efecto invernadero, retroalimentaciones, balance radiativo)</li>
+    </ul>
+    <p class="small">Prepara también una posible respuesta al argumento contrario.</p>
+  </div>
+</div>
+
+<!-- 18: Realización del debate -->
+<div class="slide" id="slide-20">
+  <div class="eyebrow">Desarrollo · Debate en curso</div>
+  <h2>Momento del debate</h2>
+  <div class="debate-box" style="flex:1;">
+    <p style="margin-top:.6rem;">El docente modera: otorga la palabra por turnos, controla el tiempo y recuerda las reglas si es necesario.</p>
+    <ul>
+      <li>Cada grupo tiene 1 minuto para presentar su postura inicial.</li>
+      <li>Ronda de réplicas: 30 segundos por grupo para responder a un argumento contrario específico.</li>
+      <li>Cierre: cada grupo resume su postura en una frase, incorporando algo aprendido de sus compañeros.</li>
+    </ul>
+    <p class="small">El objetivo no es "ganar" el debate, sino practicar la argumentación basada en evidencia.</p>
+  </div>
+</div>
+
+<!-- 19: MC 1 -->
+<div class="slide" id="slide-21">
+  <div class="eyebrow">Cierre · Comprobación 1 de 3</div>
+  <h2>Pregunta de alternativas</h2>
+  <div id="mcArea1"></div>
+</div>
+
+<!-- 20: MC 2 -->
+<div class="slide" id="slide-22">
+  <div class="eyebrow">Cierre · Comprobación 2 de 3</div>
+  <h2>Pregunta de alternativas</h2>
+  <div id="mcArea2"></div>
+</div>
+
+<!-- 21: MC 3 -->
+<div class="slide" id="slide-23">
+  <div class="eyebrow">Cierre · Comprobación 3 de 3</div>
+  <h2>Pregunta de alternativas</h2>
+  <div id="mcArea3"></div>
+</div>
+
+<!-- 22: Cuaderno mapa conceptual actualizado -->
+<div class="slide" id="slide-24">
+  <div class="eyebrow">Cierre · Cuaderno</div>
+  <h2>Síntesis — Actualiza tu mapa conceptual</h2>
+  <div class="grid cols-2">
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Retoma el mapa conceptual de "Sistema climático" de la Sesión 1 y agrega los nuevos conceptos de hoy, conectándolos donde corresponda.</p>
+    </div>
+    <div class="card teal">
+      <h3>Nuevos conceptos a incorporar</h3>
+      <p class="small">Efecto invernadero natural · Efecto invernadero antropogénico · CO₂ · CH₄ · N₂O · Retroalimentación positiva · Vapor de agua · Anomalía de temperatura · Nivel del mar · Atribución antropogénica · Evidencia vs. opinión</p>
+    </div>
+  </div>
+</div>
+
+<!-- 23: Ticket de salida instrucciones -->
+<div class="slide" id="slide-25">
+  <div class="eyebrow">Cierre · Evaluación Formativa 3</div>
+  <h2>Ticket de salida de la sesión</h2>
+  <div class="exit-box" style="flex:1;">
+    <p style="margin-top:.6rem;"><span class="badge form">Formativa 3</span><span class="badge bloom">Trabajo individual</span></p>
+    <p>Antes de salir de la sala, elige <b>una</b> de las cuatro opciones de la próxima diapositiva para demostrar lo que aprendiste hoy. Debes entregarlo al profesor antes del término de la clase.</p>
+    <ul>
+      <li>Tiempo estimado: <b>10 minutos</b>.</li>
+      <li>Puedes apoyarte en tu cuaderno de hoy y en tus argumentos del debate.</li>
+      <li>Debe incluir al menos <b>dos conceptos clave</b> de la sesión.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 24: Opciones de actividades -->
+<div class="slide" id="slide-26">
+  <div class="eyebrow">Cierre · Ticket de salida</div>
+  <h2>Elige tu formato</h2>
+  <div class="grid cols-2">
+    <div class="actcard">
+      <div class="icon">✉️</div>
+      <span class="badge bloom">Crear</span>
+      <h3>Carta a una autoridad</h3>
+      <p class="small">Escribe una breve carta a una autoridad local o nacional explicando, con al menos 2 conceptos y 1 evidencia, por qué el cambio climático requiere acción. <b>Al momento de entregarla, debes explicarla oralmente y de forma breve al curso o al docente</b> (30–45 segundos): qué escribiste y por qué.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">🖼️</div>
+      <span class="badge bloom">Comprender / Crear</span>
+      <h3>Infografía breve</h3>
+      <p class="small">Diseña una infografía simple que contraste el efecto invernadero natural con el antropogénico, usando texto breve, flechas y/o dibujos.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">🎙️</div>
+      <span class="badge bloom">Crear</span>
+      <h3>Guion de podcast</h3>
+      <p class="small">Escribe el guion de un audio breve (60–90 s) que explique una retroalimentación (vapor de agua o hielo-albedo) como si se lo contaras a un amigo.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">⚖️</div>
+      <span class="badge bloom">Analizar / Evaluar</span>
+      <h3>Postura y contraargumento</h3>
+      <p class="small">Redacta una respuesta escrita a la afirmación de Max, usando el marco AER, incorporando al menos una evidencia de los gráficos vistos hoy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 25: Criterios de evaluación -->
+<div class="slide scroll" id="slide-27">
+  <div class="eyebrow">Cierre · Rúbrica · Formativa 3</div>
+  <h2>Criterios de evaluación del ticket de salida</h2>
+  <p class="small">Los mismos cuatro criterios aplican sin importar el formato elegido.</p>
+  <table class="rubric">
+    <tr>
+      <th style="width:22%;">Criterio</th>
+      <th>Logro pleno</th>
+      <th>Logro parcial</th>
+      <th>En desarrollo</th>
+      <th>Inicial</th>
+    </tr>
+    <tr>
+      <td class="crit">Precisión conceptual</td>
+      <td>Usa correctamente los conceptos de la sesión (GEI, retroalimentaciones, atribución antropogénica) sin errores.</td>
+      <td>Usa los conceptos correctamente, con alguna imprecisión menor.</td>
+      <td>Mezcla o confunde conceptos clave.</td>
+      <td>No hay evidencia de comprensión de los conceptos trabajados.</td>
+    </tr>
+    <tr>
+      <td class="crit">Uso de evidencia</td>
+      <td>Incorpora un dato, gráfico o fuente (IPCC/DMC/CR2) pertinente y bien integrado.</td>
+      <td>Incorpora un ejemplo o dato, aunque poco desarrollado.</td>
+      <td>Menciona un ejemplo sin conectarlo claramente al concepto.</td>
+      <td>No incorpora evidencia.</td>
+    </tr>
+    <tr>
+      <td class="crit">Claridad y organización</td>
+      <td>El producto se entiende por sí solo, con secuencia lógica y clara.</td>
+      <td>Se entiende con algo de esfuerzo; falta orden en alguna parte.</td>
+      <td>Requiere explicación adicional para entenderse.</td>
+      <td>No es posible seguir la idea central.</td>
+    </tr>
+    <tr>
+      <td class="crit">Cumplimiento del formato elegido</td>
+      <td>Cumple todos los requisitos de la consigna elegida.</td>
+      <td>Cumple la mayoría de los requisitos.</td>
+      <td>Cumple parcialmente el formato solicitado.</td>
+      <td>No sigue el formato de la actividad elegida.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 26: Cierre -->
+<div class="slide" id="slide-28">
+  <div class="eyebrow">Cierre</div>
+  <h2>Síntesis de la sesión y próximo paso</h2>
+  <div class="grid cols-2">
+    <div class="card navy">
+      <h3>Lo que construimos hoy</h3>
+      <ul class="small">
+        <li>Efecto invernadero natural vs. antropogénico</li>
+        <li>Gases de efecto invernadero y sus fuentes principales</li>
+        <li>Retroalimentaciones positivas (vapor de agua, hielo-albedo)</li>
+        <li>Análisis de evidencia: temperatura, nivel del mar, concentración de GEI</li>
+        <li>Debate estructurado sobre atribución antropogénica</li>
+        <li>Ticket de salida — Evaluación Formativa 3</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>📎 Próximo paso</h3>
+      <p class="small">Con la comprensión del sistema climático y sus evidencias ya construida en las Sesiones 1 y 2, en la próxima sesión avanzaremos hacia las <b>consecuencias del cambio climático</b> y las posibles acciones de mitigación y adaptación, incluyendo el contexto chileno.</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<button id="soundBtn" onclick="toggleSound()">🔊</button>
+<div class="footer-nav">
+  <button class="navbtn" id="prevBtn" onclick="go(-1)">←</button>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+  <span id="slideLabel">1 / 28</span>
+  <button class="navbtn" id="nextBtn" onclick="go(1)">→</button>
+</div>
+
+<script>
+const TOTAL = 28;
+let cur = 1;
+let soundOn = true;
+function render(){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.getElementById('slide-'+cur).classList.add('active');
+  document.getElementById('slideLabel').textContent = cur+' / '+TOTAL;
+  document.getElementById('progressBar').style.width = (cur/TOTAL*100)+'%';
+  document.getElementById('prevBtn').disabled = cur===1;
+  document.getElementById('nextBtn').disabled = cur===TOTAL;
+}
+function go(d){ const n = cur+d; if(n<1||n>TOTAL) return; cur = n; render(); playClick(); }
+window.addEventListener('keydown',e=>{ if(e.key==='ArrowRight') go(1); if(e.key==='ArrowLeft') go(-1); });
+render();
+
+let actx;
+function ensureAudio(){ if(!actx){ actx = new (window.AudioContext||window.webkitAudioContext)(); } }
+function beep(freq, dur, type='sine', vol=.05){
+  if(!soundOn) return; ensureAudio();
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type=type; o.frequency.value=freq; g.gain.value=vol;
+  o.connect(g); g.connect(actx.destination); o.start();
+  g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime+dur);
+  o.stop(actx.currentTime+dur);
+}
+function playClick(){ beep(520,.08,'sine',.04); }
+function toggleSound(){ soundOn = !soundOn; document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+
+function rayBurst(e){
+  const sky = document.getElementById('sky');
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX-rect.left, y = e.clientY-rect.top;
+  for(let i=0;i<14;i++){
+    const ray = document.createElement('div'); ray.className='ray';
+    const len = 60+Math.random()*90; const ang = Math.random()*360;
+    ray.style.height=len+'px'; ray.style.left=x+'px'; ray.style.top=y+'px';
+    ray.style.transform=`rotate(${ang}deg)`; ray.style.transformOrigin='top center';
+    sky.appendChild(ray);
+    requestAnimationFrame(()=>{ ray.style.transition='opacity .9s ease, height .9s ease'; ray.style.opacity='.9'; });
+    setTimeout(()=>{ ray.style.opacity='0'; },500);
+    setTimeout(()=>ray.remove(),1400);
+  }
+  beep(700,.25,'sine',.03); beep(880,.3,'sine',.02);
+}
+
+/* Esquema: mecanismo del efecto invernadero */
+(function(){
+  const svg = document.getElementById('svgMecanismo');
+  if(!svg) return;
+  const nsvg = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){ const e=document.createElementNS(nsvg,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+  // ground
+  svg.appendChild(el('rect',{x:0,y:220,width:320,height:40,fill:'#8a7a58'}));
+  svg.appendChild(el('text',{x:10,y:245,'font-size':11,fill:'#fff','font-family':'Helvetica'})).textContent='Superficie terrestre';
+  // atmosphere band
+  svg.appendChild(el('rect',{x:0,y:40,width:320,height:180,fill:'#eaf5f3',opacity:.6}));
+  // sun
+  svg.appendChild(el('circle',{cx:40,cy:30,r:16,fill:'#e2a12b'}));
+  // incoming short-wave arrows (sun -> ground)
+  [70,150,230].forEach((x,i)=>{
+    const l = el('line',{x1:40+i*8,y1:40,x2:x,y2:215,stroke:'#e2a12b','stroke-width':2.5,'marker-end':'url(#arrowSun)'});
+    svg.appendChild(l);
+  });
+  // outgoing long-wave arrows (ground -> space), some escape, some absorbed/re-emitted
+  const lOut1 = el('line',{x1:110,y1:215,x2:100,y2:20,stroke:'#c0392b','stroke-width':2.5,'marker-end':'url(#arrowIR)'});
+  svg.appendChild(lOut1);
+  const lOut2 = el('line',{x1:190,y1:215,x2:230,y2:120,stroke:'#c0392b','stroke-width':2.5,'stroke-dasharray':'4,3','marker-end':'url(#arrowIR)'});
+  svg.appendChild(lOut2);
+  const lBack = el('line',{x1:230,y1:120,x2:170,y2:215,stroke:'#0e7c7b','stroke-width':2.5,'marker-end':'url(#arrowBack)'});
+  svg.appendChild(lBack);
+  // GEI molecule marker
+  const geiDot = el('circle',{cx:230,cy:120,r:9,fill:'#132436'});
+  svg.appendChild(geiDot);
+  svg.appendChild(el('text',{x:245,y:124,'font-size':11,fill:'#132436','font-family':'Helvetica'})).textContent='molécula GEI';
+  // defs markers
+  const defs = el('defs',{});
+  defs.innerHTML = `<marker id="arrowSun" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#e2a12b"/></marker>
+  <marker id="arrowIR" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#c0392b"/></marker>
+  <marker id="arrowBack" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0e7c7b"/></marker>`;
+  svg.appendChild(defs);
+  // (legend rendered as caption below the SVG, not inside it)
+})();
+
+/* Esquema: potencial de calentamiento global (GWP) */
+(function(){
+  const cv = document.getElementById('cvGWP');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const w=cv.width, h=cv.height, pad=50;
+  ctx.clearRect(0,0,w,h);
+  const data = [
+    {name:'CO₂', val:1, color:'#0e7c7b'},
+    {name:'CH₄', val:28, color:'#e2a12b'},
+    {name:'N₂O', val:265, color:'#c0392b'}
+  ];
+  const maxVal = 280;
+  const barW = 90;
+  ctx.strokeStyle='#d9cba3'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,10); ctx.lineTo(pad,h-40); ctx.lineTo(w-10,h-40); ctx.stroke();
+  ctx.fillStyle='#5a4c33'; ctx.font='11px Helvetica';
+  ctx.fillText('GWP (relativo a CO₂=1)', 6, 18);
+  data.forEach((d,i)=>{
+    const x = pad+30+i*(barW+40);
+    const barH = (d.val/maxVal)*(h-70);
+    ctx.fillStyle = d.color;
+    ctx.fillRect(x, h-40-barH, barW, barH);
+    ctx.fillStyle='#132436'; ctx.font='bold 13px Helvetica';
+    ctx.fillText(d.name, x+barW/2-14, h-20);
+    ctx.fillText('×'+d.val, x+barW/2-14, h-45-barH);
+  });
+})();
+
+/* Simulador CO2 -> anomalía */
+const svgNS = "http://www.w3.org/2000/svg";
+const svgCO2 = document.getElementById('svgCO2');
+function buildCO2Scene(){
+  svgCO2.innerHTML='';
+  const base = document.createElementNS(svgNS,'rect');
+  base.setAttribute('x',130); base.setAttribute('y',20); base.setAttribute('width',40); base.setAttribute('height',180);
+  base.setAttribute('rx',18); base.setAttribute('fill','#fff'); base.setAttribute('stroke','#9a8a63'); base.setAttribute('stroke-width',2);
+  svgCO2.appendChild(base);
+  const fill = document.createElementNS(svgNS,'rect');
+  fill.setAttribute('id','thermFill'); fill.setAttribute('x',134); fill.setAttribute('width',32);
+  fill.setAttribute('rx',14); fill.setAttribute('fill','#2aaea3');
+  svgCO2.appendChild(fill);
+  const bulb = document.createElementNS(svgNS,'circle');
+  bulb.setAttribute('id','thermBulb'); bulb.setAttribute('cx',150); bulb.setAttribute('cy',195); bulb.setAttribute('r',24);
+  bulb.setAttribute('fill','#2aaea3'); bulb.setAttribute('stroke','#9a8a63'); bulb.setAttribute('stroke-width',2);
+  svgCO2.appendChild(bulb);
+  const label = document.createElementNS(svgNS,'text');
+  label.setAttribute('id','co2AnomalyText'); label.setAttribute('x',150); label.setAttribute('y',150);
+  label.setAttribute('text-anchor','middle'); label.setAttribute('font-size',15); label.setAttribute('fill','#132436'); label.setAttribute('font-family','Helvetica');
+  label.textContent='+0.0°C';
+  svgCO2.appendChild(label);
+}
+buildCO2Scene();
+function updateCO2(){
+  const ppm = +document.getElementById('rngCO2').value;
+  document.getElementById('lblCO2').textContent = ppm+' ppm';
+  const anomaly = ((ppm-280)*0.008).toFixed(1);
+  document.getElementById('co2AnomalyText').textContent = '+'+anomaly+'°C';
+  const heat = Math.min(1,(ppm-280)/280);
+  const fillH = 20+heat*140;
+  const fill = document.getElementById('thermFill');
+  fill.setAttribute('y', 180-fillH+20);
+  fill.setAttribute('height', fillH);
+  const r = Math.round(42+heat*180), g = Math.round(174-heat*140), b = Math.round(163-heat*130);
+  const col = `rgb(${r},${g},${b})`;
+  fill.setAttribute('fill', col);
+  document.getElementById('thermBulb').setAttribute('fill', col);
+  const txt = document.getElementById('txtCO2');
+  if(ppm<=280) txt.textContent = 'Nivel preindustrial (~1850): 280 ppm → anomalía ≈ 0 °C.';
+  else if(ppm<430) txt.textContent = 'Rango actual aproximado (~415-425 ppm).';
+  else txt.textContent = 'Escenario futuro si continúan las emisiones actuales.';
+}
+document.getElementById('rngCO2').addEventListener('input',updateCO2);
+updateCO2();
+
+/* Gráficos ilustrativos (esquemáticos, no datos oficiales) */
+function drawTrendChart(canvasId, curveType, color, ylabel){
+  const cv = document.getElementById(canvasId);
+  const ctx = cv.getContext('2d');
+  const w = cv.width, h = cv.height, pad=36;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#d9cba3'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,10); ctx.lineTo(pad,h-pad); ctx.lineTo(w-10,h-pad); ctx.stroke();
+  ctx.fillStyle='#5a4c33'; ctx.font='11px Helvetica';
+  ctx.fillText(ylabel, 6, 18);
+  ctx.fillText('tiempo →', w-60, h-10);
+  ctx.strokeStyle=color; ctx.lineWidth=2.6; ctx.beginPath();
+  const n=100;
+  for(let i=0;i<=n;i++){
+    const t=i/n;
+    let y;
+    if(curveType==='accel') y = Math.pow(t,2.1);
+    else if(curveType==='linear-late') y = t<0.4? t*0.15 : 0.06 + (t-0.4)*1.4;
+    else y = Math.pow(t,1.6);
+    const px = pad + t*(w-pad-20);
+    const py = (h-pad) - y*(h-pad-30);
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+}
+drawTrendChart('cvGraf1','accel','#c0392b','Anomalía (°C)');
+drawTrendChart('cvGraf2','linear-late','#0e7c7b','Nivel del mar (mm)');
+drawTrendChart('cvGraf3','accel','#e2a12b','Concentración GEI (ppm)');
+
+/* MC questions */
+const mcData = [
+  {
+    area:'mcArea1',
+    q:"¿Cuál de las siguientes afirmaciones describe mejor el efecto invernadero NATURAL?",
+    opts:[
+      "Es un fenómeno dañino que deberíamos eliminar por completo.",
+      "Es un fenómeno beneficioso que permite una temperatura media habitable en la Tierra.",
+      "Solo existe desde la Revolución Industrial.",
+      "Es causado exclusivamente por el CO₂ de origen humano."
+    ],
+    correct:1,
+    fb_ok:"Correcto: sin efecto invernadero natural, la Tierra sería mucho más fría e inhóspita.",
+    fb_bad:"El efecto invernadero natural es beneficioso; el problema es su intensificación por actividad humana, no su existencia."
+  },
+  {
+    area:'mcArea2',
+    q:"En el mecanismo de retroalimentación del vapor de agua, ¿qué ocurre después de que aumenta la evaporación oceánica?",
+    opts:[
+      "La temperatura baja porque el vapor refleja la radiación solar.",
+      "El vapor de agua, al ser un gas de efecto invernadero, intensifica el calentamiento.",
+      "No hay ningún efecto adicional sobre la temperatura.",
+      "El vapor de agua reemplaza al CO₂ en la atmósfera."
+    ],
+    correct:1,
+    fb_ok:"Correcto: más vapor de agua intensifica el efecto invernadero, amplificando el calentamiento inicial.",
+    fb_bad:"Revisa el diagrama de retroalimentación: el vapor de agua es un GEI, por lo que intensifica —no reduce— el calentamiento."
+  },
+  {
+    area:'mcArea3',
+    q:"¿Por qué la afirmación 'el clima siempre ha cambiado de forma natural' no es suficiente para descartar la responsabilidad humana en el cambio climático actual?",
+    opts:[
+      "Porque es completamente falsa: el clima nunca había cambiado antes.",
+      "Porque lo relevante es la velocidad y la causa del cambio actual, que no se explican solo por mecanismos naturales.",
+      "Porque el IPCC prohíbe mencionar la variabilidad natural del clima.",
+      "Porque los científicos no consideran la historia geológica del planeta."
+    ],
+    correct:1,
+    fb_ok:"Correcto: el argumento es una verdad parcial que no aborda la velocidad y causa específicas del cambio reciente.",
+    fb_bad:"Esa opción no explica por qué el argumento, aunque parcialmente cierto, resulta insuficiente como refutación."
+  }
+];
+mcData.forEach((item)=>{
+  const mcArea = document.getElementById(item.area);
+  const wrap = document.createElement('div'); wrap.className='card navy';
+  wrap.innerHTML = `<span class="badge bloom">Aplicar</span><h3>${item.q}</h3>`;
+  const fb = document.createElement('div'); fb.className='feedback';
+  item.opts.forEach((opt,oi)=>{
+    const b = document.createElement('button'); b.className='opt'; b.textContent=opt;
+    b.onclick=()=>{
+      wrap.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+      if(oi===item.correct){ b.classList.add('correct'); fb.className='feedback ok'; fb.textContent='✔ '+item.fb_ok; beep(660,.15,'sine',.04);}
+      else{ b.classList.add('wrong'); wrap.querySelectorAll('.opt')[item.correct].classList.add('correct'); fb.className='feedback bad'; fb.textContent='✘ '+item.fb_bad; beep(220,.2,'sawtooth',.03);}
+    };
+    wrap.appendChild(b);
+  });
+  wrap.appendChild(fb);
+  mcArea.appendChild(wrap);
+});
+</script>
+</body>
+</html>
