@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad III · Sesión 3 — Ciencias para la Ciudadanía</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F7F8F4; --ink:#16261C; --ink-soft:#4A5A50;
+  --green:#2E7D4F; --green-deep:#1E5A38; --green-pale:#DCEAD8;
+  --amber:#C98A2B; --amber-pale:#F6ECD9;
+  --slate:#1C4E6B; --slate-pale:#DCE8F0;
+  --red:#C0392B; --red-pale:#F9E3E0;
+  --card:#FFFFFF; --line:#D8DED4;
+  --radius:18px; --shadow:0 10px 28px rgba(22,38,28,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+  background:
+    radial-gradient(circle at 1px 1px, rgba(22,38,28,.06) 1px, transparent 0) 0 0/24px 24px,
+    var(--bg);
+}
+h1,h2,h3,.display{font-family:'Sora',system-ui,sans-serif}
+:focus-visible{outline:3px solid var(--green);outline-offset:2px;border-radius:4px}
+p{line-height:1.55}
+
+/* ===== deck ===== */
+#deck{height:100%;width:100%;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(16px,4vw,64px);opacity:0;visibility:hidden;transform:translateX(40px);
+  transition:opacity .45s ease,transform .45s ease,visibility .45s;overflow-y:auto}
+.slide.active{opacity:1;visibility:visible;transform:translateX(0)}
+.slide.prev{transform:translateX(-40px)}
+.inner{width:100%;max-width:920px;text-align:center;margin:auto}
+.inner.wide{max-width:1080px}
+.inner.left{text-align:left}
+
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:700;color:var(--green-deep);background:var(--green-pale);padding:6px 14px;border-radius:999px;margin-bottom:18px}
+.eyebrow.amber{color:#8A5A15;background:var(--amber-pale)}
+.eyebrow.slate{color:var(--slate);background:var(--slate-pale)}
+
+h1.display{font-size:clamp(1.7rem,4.2vw,2.7rem);font-weight:800;line-height:1.12;margin-bottom:14px}
+h2.display{font-size:clamp(1.3rem,3vw,1.9rem);font-weight:700;margin-bottom:16px}
+.sub{color:var(--ink-soft);font-size:clamp(.95rem,1.6vw,1.08rem);max-width:680px;margin:0 auto 10px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:22px 24px;text-align:left}
+.card h3{font-size:1rem;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.badgebar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:14px 0 22px}
+.badge{font-size:.78rem;font-weight:600;padding:6px 12px;border-radius:10px;background:var(--slate-pale);color:var(--slate);border:1px solid #c3d8e3}
+.badge.oa{background:var(--green-pale);color:var(--green-deep);border-color:#bcdcc9}
+.badge.time{background:var(--amber-pale);color:#8A5A15;border-color:#ecd7ac}
+
+.clean{list-style:none}
+.clean li{position:relative;padding-left:22px;margin-bottom:8px;color:var(--ink-soft)}
+.clean li::before{content:"●";position:absolute;left:0;color:var(--green);font-size:.6rem;top:.45em}
+
+textarea,input[type=text]{width:100%;font-family:'Inter',sans-serif;font-size:.95rem;border:1.5px solid var(--line);
+  border-radius:12px;padding:12px 14px;background:#FCFDFB;color:var(--ink);resize:vertical}
+textarea:focus,input[type=text]:focus{border-color:var(--green)}
+label.field-label{display:block;font-weight:600;font-size:.85rem;color:var(--green-deep);margin-bottom:6px}
+.field{margin-bottom:16px}
+
+.cie-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}
+@media(max-width:900px){.cie-steps{grid-template-columns:repeat(2,1fr)}}
+.cie-step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:left}
+.cie-step .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;
+  background:var(--green);color:#fff;font-weight:700;font-size:.8rem;margin-bottom:8px}
+.cie-step h4{font-size:.88rem;margin-bottom:4px}
+.cie-step p{font-size:.8rem;color:var(--ink-soft)}
+.cie-step.current{border-color:var(--green);box-shadow:0 0 0 3px var(--green-pale)}
+
+.life-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0 22px}
+@media(max-width:980px){.life-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.life-grid{grid-template-columns:repeat(2,1fr)}}
+.life-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 12px;text-align:left;
+  position:relative;box-shadow:var(--shadow)}
+.life-card .icon{font-size:1.5rem;display:block;margin-bottom:6px}
+.life-card .step-n{position:absolute;top:10px;right:12px;font-size:.7rem;font-weight:800;color:var(--green);
+  background:var(--green-pale);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.life-card h4{font-size:.85rem;margin-bottom:4px;color:var(--green-deep)}
+.life-card p{font-size:.76rem;color:var(--ink-soft);line-height:1.4}
+.life-arrow{display:none}
+@media(min-width:981px){
+  .life-grid{position:relative}
+  .life-card:not(:last-child)::after{content:"→";position:absolute;right:-16px;top:50%;transform:translateY(-50%);
+    color:var(--green);font-weight:800;font-size:1rem;z-index:2}
+}
+
+.choice-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
+@media(max-width:900px){.choice-grid{grid-template-columns:repeat(2,1fr)}}
+.choice-card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:18px 16px;text-align:left;
+  cursor:pointer;transition:.18s;box-shadow:var(--shadow)}
+.choice-card:hover{border-color:var(--green);transform:translateY(-2px)}
+.choice-card.selected{border-color:var(--green);background:var(--green-pale)}
+.choice-card .icon{font-size:1.6rem;display:block;margin-bottom:8px}
+.choice-card h4{font-size:.95rem;margin-bottom:5px;color:var(--green-deep)}
+.choice-card p{font-size:.78rem;color:var(--ink-soft);line-height:1.4}
+.choice-card .pick{display:none;font-size:.72rem;font-weight:700;color:var(--green-deep);margin-top:8px}
+.choice-card.selected .pick{display:inline}
+
+/* ===== stage slides (ciclo ACV, una etapa por slide) ===== */
+.stage-slide{overflow:hidden}
+.stage-bg-num{position:absolute;font-family:'Sora',sans-serif;font-weight:800;font-size:min(52vw,560px);
+  line-height:1;color:var(--green-pale);opacity:.55;top:50%;left:50%;transform:translate(-50%,-46%);z-index:0;
+  user-select:none;pointer-events:none}
+.stage-content{position:relative;z-index:1}
+.stage-icon{font-size:clamp(3.5rem,9vw,6rem);display:block;margin-bottom:6px;filter:drop-shadow(0 6px 14px rgba(22,38,28,.15))}
+.stage-title{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(2.6rem,7vw,4.6rem);line-height:1.02;
+  color:var(--ink);margin:6px 0 18px;letter-spacing:-.01em}
+.stage-desc{font-size:clamp(1rem,2vw,1.2rem);color:var(--ink-soft);max-width:640px;margin:0 auto 20px;line-height:1.55}
+.stage-example{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:12px 20px;font-size:.88rem;color:var(--ink-soft);box-shadow:var(--shadow);max-width:560px}
+.stage-example strong{color:var(--green-deep)}
+.stage-progress{display:flex;gap:6px;justify-content:center;margin-bottom:18px}
+.stage-progress span{width:34px;height:5px;border-radius:3px;background:var(--line)}
+.stage-progress span.done{background:var(--green)}
+.stage-progress span.now{background:var(--amber)}
+
+table.cmp{width:100%;border-collapse:collapse;margin-top:14px;font-size:.85rem}
+table.cmp th{background:var(--green-deep);color:#fff;padding:9px 8px;text-align:left;font-weight:600}
+table.cmp td{border:1px solid var(--line);padding:6px;vertical-align:top}
+table.cmp td textarea{min-height:52px;font-size:.8rem;border:none;background:transparent;padding:6px}
+table.cmp tr:nth-child(odd) td{background:#FBFCFA}
+table.cmp th:first-child, table.cmp td:first-child{font-weight:700;background:var(--green-pale);color:var(--green-deep);width:130px}
+
+table.rubric{width:100%;border-collapse:collapse;margin-top:16px;font-size:.85rem}
+table.rubric th{background:var(--green-deep);color:#fff;padding:10px 10px;text-align:left;font-weight:600}
+table.rubric td{border:1px solid var(--line);padding:10px;vertical-align:top;color:var(--ink-soft)}
+table.rubric tr:nth-child(odd) td{background:#FBFCFA}
+table.rubric td:first-child{font-weight:700;color:var(--ink);background:var(--green-pale);width:24%}
+table.rubric th.lvl3{background:var(--green)}
+table.rubric th.lvl2{background:var(--amber)}
+table.rubric th.lvl1{background:#B0453A}
+.rubric-note{font-size:.8rem;color:var(--ink-soft);margin-top:10px;text-align:center}
+
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:'Sora',sans-serif;font-weight:700;font-size:.9rem;
+  color:#fff;background:var(--green);border:none;padding:13px 24px;border-radius:12px;cursor:pointer;
+  box-shadow:0 8px 18px rgba(46,125,79,.28);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 22px rgba(46,125,79,.34)}
+.btn.ghost{background:transparent;color:var(--green-deep);border:1.5px solid var(--green);box-shadow:none}
+.btn.ghost:hover{background:var(--green-pale)}
+.btn.amber{background:var(--amber)}
+
+/* ===== chrome (progress, nav, dots) ===== */
+#chrome{position:fixed;left:0;right:0;bottom:0;z-index:20;pointer-events:none}
+#bar-track{height:4px;background:var(--line)}
+#bar{height:100%;background:linear-gradient(90deg,var(--green),var(--green-deep));width:0%;transition:width .35s}
+#navbar{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;pointer-events:auto}
+#dots{display:flex;gap:7px}
+#dots span{width:8px;height:8px;border-radius:50%;background:var(--line);cursor:pointer;transition:.2s}
+#dots span.on{background:var(--green);width:22px;border-radius:5px}
+.navbtn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;
+  font-weight:700;color:var(--ink);box-shadow:var(--shadow);font-family:'Sora',sans-serif;font-size:.85rem}
+.navbtn:hover{background:var(--green-pale)}
+#counter{font-size:.78rem;color:var(--ink-soft);font-weight:600;background:var(--card);border:1px solid var(--line);
+  padding:8px 12px;border-radius:10px}
+
+#topchrome{position:fixed;top:14px;left:22px;right:22px;z-index:20;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:.85rem;color:var(--green-deep);background:var(--card);
+  border:1px solid var(--line);padding:8px 14px;border-radius:10px;box-shadow:var(--shadow)}
+.sessionid{font-size:.78rem;font-weight:600;color:var(--ink-soft);background:var(--card);border:1px solid var(--line);
+  padding:8px 14px;border-radius:10px;box-shadow:var(--shadow)}
+
+.footnote{margin-top:14px;font-size:.78rem;color:var(--ink-soft)}
+strong.hl{color:var(--green-deep)}
+</style>
+</head>
+<body>
+
+<div id="topchrome">
+  <span class="logo">🌱 Unidad III · Ambiente y Sostenibilidad</span>
+  <span class="sessionid">Sesión 3 / 8</span>
+</div>
+
+<div id="deck">
+
+<!-- 0 · PORTADA -->
+<section class="slide">
+  <div class="inner">
+    <span class="eyebrow">📘 Programa Mineduc · Actividad 1. Producción y consumo sostenible (cierre)</span>
+    <h1 class="display">El juicio del consumo:<br>reduce, reutiliza, recicla, rechaza</h1>
+    <p class="sub">Ciencias para la Ciudadanía · 3° Medio · Colegio San Agustín, Villa Alemana</p>
+    <div class="badgebar">
+      <span class="badge oa">OA1 · OAe · OAi</span>
+      <span class="badge time">⏱ 90 min (10 + 65 + 15)</span>
+      <span class="badge">🧭 Las 4R · Cultura del reciclaje · Compromiso personal</span>
+    </div>
+    <div class="field" style="max-width:420px;margin:22px auto 0">
+      <label class="field-label">✍️ Nombre de tu equipo</label>
+      <input type="text" id="teamName" placeholder="Ej: Los Recicladores del Marga Marga">
+    </div>
+    <p class="footnote">Guarda tus respuestas en cada diapositiva: al final podrás descargar tu guía completa en PDF.</p>
+  </div>
+</section>
+
+<!-- 1 · INICIO -->
+<section class="slide">
+  <div class="inner">
+    <span class="eyebrow amber">🚀 Inicio · 10 min</span>
+    <h2 class="display">¿La naturaleza genera "basura"?</h2>
+    <div class="card" style="max-width:640px;margin:0 auto">
+      <p style="margin-bottom:14px">En la naturaleza nada se desperdicia: una hoja caída alimenta al suelo, un animal muerto alimenta a otros. La "basura" es, en realidad, una invención humana.</p>
+      <p style="font-weight:700;color:var(--green-deep);margin-bottom:14px">Discute en parejas: ¿por qué lo que la naturaleza recicla en años, nuestra industria lo desecha en segundos?</p>
+      <div class="field">
+        <label class="field-label">Tu reflexión inicial</label>
+        <textarea id="reflexionInicial" rows="3" placeholder="Escribe lo que conversaron en pareja..."></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · TRANSICIÓN AL JUICIO -->
+<section class="slide">
+  <div class="inner">
+    <span class="eyebrow slate">⚖️ El caso de hoy</span>
+    <h2 class="display">Tu producto se sienta en el banquillo</h2>
+    <p class="sub">La semana pasada eligieron un producto y compararon materiales. Hoy ese producto es "acusado": generó impacto ambiental en algún punto de su historia. Ustedes son su defensa — y su juez.</p>
+    <div class="card" style="max-width:680px;margin:0 auto">
+      <p>Existen <strong class="hl">4 veredictos posibles</strong> para reducir el daño de cualquier producto. Conozcámoslos, uno por uno, antes de aplicarlos al caso.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · REDUCIR -->
+<section class="slide stage-slide">
+  <span class="stage-bg-num">1</span>
+  <div class="inner stage-content">
+    <div class="stage-progress"><span class="now"></span><span></span><span></span><span></span></div>
+    <span class="eyebrow">Veredicto 1 de 4</span>
+    <span class="stage-icon">📉</span>
+    <h1 class="stage-title">Reducir</h1>
+    <p class="stage-desc">El veredicto más poderoso: consumir menos desde el principio. Lo que nunca se compra, nunca genera impacto.</p>
+    <div class="stage-example">🛍️ Ejemplo: llevar bolsas propias al comercio de Villa Alemana en vez de pedir una nueva cada vez.</div>
+  </div>
+</section>
+
+<!-- 4 · REUTILIZAR -->
+<section class="slide stage-slide">
+  <span class="stage-bg-num">2</span>
+  <div class="inner stage-content">
+    <div class="stage-progress"><span class="done"></span><span class="now"></span><span></span><span></span></div>
+    <span class="eyebrow">Veredicto 2 de 4</span>
+    <span class="stage-icon">🔁</span>
+    <h1 class="stage-title">Reutilizar</h1>
+    <p class="stage-desc">Darle una segunda vida al mismo producto, sin transformarlo, antes de pensar en reciclarlo o desecharlo.</p>
+    <div class="stage-example">🫙 Ejemplo: usar un frasco de vidrio de la feria libre como guardador en vez de comprar uno nuevo.</div>
+  </div>
+</section>
+
+<!-- 5 · RECICLAR -->
+<section class="slide stage-slide">
+  <span class="stage-bg-num">3</span>
+  <div class="inner stage-content">
+    <div class="stage-progress"><span class="done"></span><span class="done"></span><span class="now"></span><span></span></div>
+    <span class="eyebrow">Veredicto 3 de 4</span>
+    <span class="stage-icon">♻️</span>
+    <h1 class="stage-title">Reciclar</h1>
+    <p class="stage-desc">Transformar el material en materia prima para un nuevo producto. Es mejor que desechar, pero requiere energía y no siempre es 100% posible.</p>
+    <div class="stage-example">📍 Dato real: Villa Alemana fue la primera comuna de la provincia de Marga Marga en tener un Punto Limpio municipal, con separación de papel, plástico, latas, cartón, PET y Tetrapak, los 7 días de la semana.</div>
+  </div>
+</section>
+
+<!-- 6 · RECHAZAR -->
+<section class="slide stage-slide">
+  <span class="stage-bg-num">4</span>
+  <div class="inner stage-content">
+    <div class="stage-progress"><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span></div>
+    <span class="eyebrow">Veredicto 4 de 4</span>
+    <span class="stage-icon">🙅</span>
+    <h1 class="stage-title">Rechazar</h1>
+    <p class="stage-desc">Decir "no" desde el principio a lo que no necesitamos, aunque sea gratis o esté de moda: el envase extra, el regalo publicitario, el plástico de un solo uso.</p>
+    <div class="stage-example">🚫 Ejemplo: rechazar la bolsa o el cubierto plástico cuando compras algo para llevar.</div>
+  </div>
+</section>
+
+<!-- 6.5 · CHILE EN CIFRAS -->
+<section class="slide">
+  <div class="inner wide">
+    <span class="eyebrow slate">📊 Antes de seguir: la evidencia real</span>
+    <h2 class="display">Chile en cifras: ¿cómo vamos con el reciclaje?</h2>
+    <div class="grid3" style="max-width:980px;margin:18px auto 0">
+      <div class="card">
+        <h3>📈 21%</h3>
+        <p>de los residuos se reciclaron en Chile durante 2024 según el Ministerio del Medio Ambiente — el doble que cuando partió la Ley REP.</p>
+      </div>
+      <div class="card">
+        <h3>⚖️ Ley REP</h3>
+        <p>La Ley N° 20.920 (2016) de Responsabilidad Extendida del Productor obliga a las empresas a hacerse cargo de la recolección y valorización de sus productos al final de su vida útil.</p>
+      </div>
+      <div class="card">
+        <h3>📦 49% vs. 10%</h3>
+        <p>El papel y cartón lidera la valorización (49%); el plástico de envases, en cambio, apenas alcanza un 10,3% — el gran desafío pendiente.</p>
+      </div>
+    </div>
+    <p class="footnote">Fuentes: Ministerio del Medio Ambiente (2024); Ley N° 20.920; ANIR-Kyklos, Estadísticas del Reciclaje en Chile (2024).</p>
+  </div>
+</section>
+
+<!-- 7 · EVIDENCIA DEL CASO (preguntas oficiales) -->
+<section class="slide">
+  <div class="inner wide">
+    <span class="eyebrow">📋 Tarea oficial Mineduc · Evidencia del caso</span>
+    <h2 class="display">Lo que sabemos sobre el reciclaje en Chile</h2>
+    <div class="grid2" style="max-width:900px;margin:0 auto">
+      <div class="field">
+        <label class="field-label">¿Se pueden reciclar todos los productos que utilizamos diariamente?</label>
+        <textarea id="q1" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">¿Qué etapas contempla el proceso de reciclaje en Chile?</label>
+        <textarea id="q2" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">¿Existe en Chile una cultura de reciclaje?</label>
+        <textarea id="q3" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">¿Cuál de las 4R deberíamos adoptar con más frecuencia? ¿Por qué?</label>
+        <textarea id="q4" rows="3"></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · ALEGATO DE DEFENSA (aplicar 4R al producto) -->
+<section class="slide">
+  <div class="inner">
+    <span class="eyebrow slate">🛡️ El alegato de defensa</span>
+    <h2 class="display">Aplica las 4R a tu producto</h2>
+    <p class="sub">Retoma el producto que eligieron en la Sesión 2. Este es el argumento con el que lo van a defender.</p>
+    <div class="card" style="max-width:680px;margin:0 auto">
+      <div class="field">
+        <label class="field-label">Producto en juicio</label>
+        <input type="text" id="productoJuicio" placeholder="Nombre del producto elegido en la Sesión 2">
+      </div>
+      <div class="field">
+        <label class="field-label">¿Cómo se podría Reducir su consumo?</label>
+        <textarea id="r1" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">¿Cómo se podría Reutilizar antes de desecharlo?</label>
+        <textarea id="r2" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label class="field-label">¿Cómo se podría Reciclar al final de su vida útil?</label>
+        <textarea id="r3" rows="2"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label class="field-label">¿Qué se podría Rechazar relacionado con este producto?</label>
+        <textarea id="r4" rows="2"></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · MINI-PREGUNTA: SENTENCIA PERSONAL -->
+<section class="slide">
+  <div class="inner">
+    <span class="eyebrow amber">⚖️ Tu sentencia personal</span>
+    <h2 class="display">Mini-Pregunta de la sesión</h2>
+    <div class="card" style="max-width:680px;margin:0 auto">
+      <p style="font-weight:700;color:var(--green-deep);margin-bottom:14px">¿Cuál sería tu compromiso personal en términos de las 4R, desde ahora y en tu futuro trabajo?</p>
+      <div class="field">
+        <label class="field-label">Tu compromiso (firma tu propia sentencia)</label>
+        <textarea id="miniP" rows="4" placeholder="Escribe tu compromiso personal..."></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · CIERRE: ALEGATO FINAL (choice board) -->
+<section class="slide">
+  <div class="inner wide">
+    <span class="eyebrow amber">🏁 Cierre · 15 min</span>
+    <h2 class="display">Presenta el alegato final de tu empresa</h2>
+    <p class="sub">Imaginen que son la empresa que fabrica su producto y deben defender, ante el "tribunal del consumo", su plan de las 4R. Elijan cómo van a presentar su alegato:</p>
+
+    <div class="choice-grid" id="choiceGrid">
+      <div class="choice-card" data-value="Video-alegato (30-60 seg)">
+        <span class="icon">🎥</span><h4>Video-alegato</h4>
+        <p>Graban 30-60 segundos defendiendo el plan de las 4R de su producto, como vocero de la empresa.</p>
+        <span class="pick">✓ Elegido</span>
+      </div>
+      <div class="choice-card" data-value="Mini-representación (juicio teatral)">
+        <span class="icon">🎭</span><h4>Mini-representación</h4>
+        <p>Actúan una escena breve de juicio: fiscal, defensa y juez debaten el destino del producto.</p>
+        <span class="pick">✓ Elegido</span>
+      </div>
+      <div class="choice-card" data-value="Disertación de la empresa">
+        <span class="icon">🎙️</span><h4>Disertación de la empresa</h4>
+        <p>Presentan de pie, en 1 minuto, el compromiso de su "empresa" con el consumo responsable.</p>
+        <span class="pick">✓ Elegido</span>
+      </div>
+      <div class="choice-card" data-value="Podcast / testimonio">
+        <span class="icon">🎧</span><h4>Podcast / testimonio</h4>
+        <p>Graban una nota de voz como testimonio de la empresa ante el tribunal del consumo.</p>
+        <span class="pick">✓ Elegido</span>
+      </div>
+    </div>
+
+    <div class="card" style="max-width:820px;margin:0 auto">
+      <div class="grid2">
+        <div class="field">
+          <label class="field-label">Formato elegido por el equipo</label>
+          <input type="text" id="formatoElegido" placeholder="Toca una tarjeta arriba" readonly>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label class="field-label">Idea central de tu alegato (1-2 frases)</label>
+          <textarea id="guionAlegato" rows="2" placeholder="¿Cuál es el mensaje principal que quieren transmitir?"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10.5 · PAUTA DE EVALUACIÓN -->
+<section class="slide">
+  <div class="inner wide">
+    <span class="eyebrow">📐 Pauta de evaluación</span>
+    <h2 class="display">Así evaluaremos tu alegato final</h2>
+    <table class="rubric">
+      <thead>
+        <tr>
+          <th>Criterio</th>
+          <th class="lvl3">Logrado</th>
+          <th class="lvl2">Medianamente logrado</th>
+          <th class="lvl1">Por lograr</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Aplicación de las 4R</td>
+          <td>Las 4 acciones (reducir, reutilizar, reciclar, rechazar) están bien aplicadas y justificadas para el producto elegido.</td>
+          <td>Aplica correctamente 2 o 3 de las 4R, con justificación parcial.</td>
+          <td>Aplica 1 o ninguna R, o sin justificación clara.</td>
+        </tr>
+        <tr>
+          <td>Ruta del producto</td>
+          <td>Conecta claramente el alegato con el ciclo de vida completo del producto (extracción → fin de vida).</td>
+          <td>Menciona parte del ciclo de vida, sin conectarlo del todo con las 4R.</td>
+          <td>No hace referencia a la ruta o historia del producto.</td>
+        </tr>
+        <tr>
+          <td>Compromiso y responsabilidad</td>
+          <td>El compromiso personal es concreto, realista y conectado con futuras decisiones de compra.</td>
+          <td>El compromiso es genérico o poco aplicable a la vida real.</td>
+          <td>No formula un compromiso personal claro.</td>
+        </tr>
+        <tr>
+          <td>Formato y creatividad</td>
+          <td>Aprovecha bien el formato elegido (video, representación, disertación o podcast) para comunicar con claridad y originalidad.</td>
+          <td>El formato se usa de forma básica, con poca elaboración.</td>
+          <td>El formato elegido no se llega a desarrollar.</td>
+        </tr>
+        <tr>
+          <td>Trabajo en equipo</td>
+          <td>Todos los integrantes participan y colaboran de forma equilibrada.</td>
+          <td>La participación es desigual entre los integrantes.</td>
+          <td>El trabajo lo desarrolla solo una persona del equipo.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="rubric-note">Indicadores Mineduc: justifican estrategias de consumo sostenible con evidencia · analizan implicancias sociales, económicas, éticas y ambientales del consumo (OA1, OAe, OAi).</p>
+  </div>
+</section>
+
+<!-- 11 · EVIDENCIAS Y HERRAMIENTAS -->
+<section class="slide">
+  <div class="inner">
+    <span class="eyebrow">📎 Evidencias y herramientas</span>
+    <h2 class="display">Lo que entregas hoy</h2>
+    <div class="grid2" style="max-width:820px;margin:0 auto">
+      <div class="card">
+        <h3>✅ Evidencias / Entregables</h3>
+        <ul class="clean">
+          <li>Respuestas al cuestionario oficial de las 4R.</li>
+          <li>Compromiso personal fundamentado, aplicado al producto elegido.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🛠️ Herramientas y evaluación formativa</h3>
+        <ul class="clean">
+          <li>Guion de preguntas Mineduc sobre reciclaje.</li>
+          <li>Checklist de argumentación.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="footnote">Próxima sesión (4): ¿Tengo conciencia territorial? Modelo ECOS y divulgación.</p>
+  </div>
+</section>
+
+<!-- 12 · DESCARGA -->
+<section class="slide">
+  <div class="inner">
+    <span class="eyebrow">🎉 ¡Buen trabajo!</span>
+    <h2 class="display">Guarda tu guía de la Sesión 3</h2>
+    <p class="sub">Descarga un PDF con todo lo que escribiste hoy: tu reflexión, el cuestionario de las 4R, tu alegato de defensa y tu compromiso personal.</p>
+    <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" onclick="downloadPDF()">⬇️ Descargar mi guía con mis respuestas (PDF)</button>
+      <button class="btn ghost" onclick="go(0)">↺ Volver al inicio</button>
+    </div>
+    <p class="footnote">El PDF incluye todo lo que escribiste en esta sesión, más espacio en blanco para lo que quede pendiente.</p>
+  </div>
+</section>
+
+</div>
+
+
+<div id="chrome">
+  <div id="bar-track"><div id="bar"></div></div>
+  <div id="navbar">
+    <button class="navbtn" id="prevB">← Anterior</button>
+    <div id="dots"></div>
+    <span id="counter">1 / 10</span>
+    <button class="navbtn" id="nextB">Siguiente →</button>
+  </div>
+</div>
+
+<script>
+/* ================= NAVEGACIÓN ================= */
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0;
+const dots=document.getElementById('dots');
+slides.forEach((_,i)=>{const d=document.createElement('span');d.onclick=()=>go(i);dots.appendChild(d)});
+function render(){
+  slides.forEach((s,i)=>{s.classList.toggle('active',i===cur);s.classList.toggle('prev',i<cur)});
+  document.getElementById('bar').style.width=((cur+1)/slides.length*100)+'%';
+  document.getElementById('counter').textContent=(cur+1)+' / '+slides.length;
+  [...dots.children].forEach((d,i)=>d.classList.toggle('on',i===cur));
+}
+function go(i){cur=Math.max(0,Math.min(slides.length-1,i));render()}
+document.getElementById('nextB').onclick=()=>go(cur+1);
+document.getElementById('prevB').onclick=()=>go(cur-1);
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ')go(cur+1);
+  if(e.key==='ArrowLeft'||e.key==='PageUp')go(cur-1);
+  if(e.key==='Home')go(0); if(e.key==='End')go(slides.length-1);
+});
+let tx=null,ty=null;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(tx===null)return;
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)){ dx<0?go(cur+1):go(cur-1); }
+  tx=null;ty=null;
+},{passive:true});
+render();
+
+/* ================= SELECCIÓN DE FORMATO (tarjetas de cierre) ================= */
+const choiceCards = document.querySelectorAll('.choice-card');
+choiceCards.forEach(c=>{
+  c.addEventListener('click', ()=>{
+    choiceCards.forEach(o=>o.classList.remove('selected'));
+    c.classList.add('selected');
+    document.getElementById('formatoElegido').value = c.dataset.value;
+  });
+});
+
+
+/* ================= PDF EXPORT ================= */
+function val(id){const el=document.getElementById(id); return el ? (el.value||'').trim() : '';}
+function downloadPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt', format:'a4'});
+  const W = doc.internal.pageSize.getWidth();
+  const M = 48; let y = 56;
+  const team = val('teamName') || '(equipo sin nombre)';
+
+  function h1(t){ doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(30,90,56);
+    if(y>760){doc.addPage(); y=56;} doc.text(t, M, y); y+=22; }
+  function h2(t){ doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.setTextColor(22,38,28);
+    if(y>770){doc.addPage(); y=56;} doc.text(t, M, y); y+=16; }
+  function body(t){
+    doc.setFont('helvetica','normal'); doc.setFontSize(10.5); doc.setTextColor(60,70,64);
+    const txt = t && t.length ? t : '(sin respuesta — completar)';
+    const lines = doc.splitTextToSize(txt, W-2*M);
+    lines.forEach(line=>{ if(y>790){doc.addPage(); y=56;} doc.text(line, M, y); y+=14; });
+    y+=8;
+  }
+  function rule(){ doc.setDrawColor(216,222,212); if(y>790){doc.addPage(); y=56;} doc.line(M,y,W-M,y); y+=16; }
+
+  h1('Unidad III · Sesión 3');
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(90,100,94);
+  doc.text('El juicio del consumo: reduce, reutiliza, recicla, rechaza', M, y); y+=14;
+  doc.text('Equipo: ' + team + '  ·  Ciencias para la Ciudadanía · 3° Medio · Colegio San Agustín, Villa Alemana', M, y); y+=20;
+  rule();
+
+  h2('1. Reflexión inicial: ¿la naturaleza genera basura?'); body(val('reflexionInicial'));
+
+  h2('2. Evidencia del caso: cuestionario oficial sobre reciclaje');
+  body('¿Se pueden reciclar todos los productos de uso diario? ' + (val('q1') ? '— ' + val('q1') : '(sin completar)'));
+  body('Etapas del proceso de reciclaje en Chile: ' + (val('q2') || '(sin completar)'));
+  body('¿Existe en Chile una cultura de reciclaje? ' + (val('q3') || '(sin completar)'));
+  body('¿Cuál R deberíamos adoptar con más frecuencia? ' + (val('q4') || '(sin completar)'));
+  rule();
+
+  h2('3. Alegato de defensa: las 4R aplicadas a tu producto');
+  body('Producto en juicio: ' + (val('productoJuicio') || '(sin completar)'));
+  body('Reducir: ' + (val('r1') || '(sin completar)'));
+  body('Reutilizar: ' + (val('r2') || '(sin completar)'));
+  body('Reciclar: ' + (val('r3') || '(sin completar)'));
+  body('Rechazar: ' + (val('r4') || '(sin completar)'));
+  rule();
+
+  h2('4. Mini-Pregunta: tu compromiso personal con las 4R'); body(val('miniP'));
+
+  h2('5. Alegato final de tu empresa');
+  body('Formato elegido: ' + (val('formatoElegido') || '(sin completar)'));
+  body('Idea central: ' + (val('guionAlegato') || '(sin completar)'));
+
+  rule();
+  doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(120,130,124);
+  if(y>780){doc.addPage(); y=56;}
+  doc.text('Programa Mineduc: Actividad 1. Producción y consumo sostenible (cierre) · OA1, OAe, OAi', M, y);
+
+  doc.save('Unidad3_Sesion3_' + team.replace(/[^a-zA-Z0-9]+/g,'_') + '.pdf');
+}
+</script>
+</body>
+</html>
