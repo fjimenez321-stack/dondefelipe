@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad 3 · Sesión 3 · Cambio Climático</title>
+<style>
+:root{
+  --parchment:#f6f0e2;
+  --parchment-dk:#ece2c9;
+  --navy:#132436;
+  --navy-mid:#1c3550;
+  --teal:#0e7c7b;
+  --teal-l:#2aaea3;
+  --amber:#e2a12b;
+  --amber-l:#f4c869;
+  --red:#c0392b;
+  --green:#3c8a4a;
+  --ink:#2b2116;
+  --paper-line:#d9cba3;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{font-family:'Georgia','Times New Roman',serif;background:var(--navy);color:var(--ink);overflow:hidden;}
+#deck{position:relative;width:100vw;height:100vh;}
+.slide{position:absolute;inset:0;display:none;
+  background:radial-gradient(circle at 15% 10%, rgba(226,161,43,0.10), transparent 45%),linear-gradient(var(--parchment), var(--parchment-dk));
+  padding:5vh 6vw;flex-direction:column;}
+.slide.active{display:flex;animation:fadeIn .5s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.eyebrow{font-family:'Helvetica Neue',Arial,sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;color:var(--teal);font-weight:700;margin-bottom:.3rem;}
+h1{font-size:2.75rem;margin:.1rem 0 .3rem;color:var(--navy);line-height:1.15;}
+h2{font-size:2.1rem;color:var(--navy);margin:0 0 .6rem;}
+h3{font-size:1.35rem;color:var(--navy-mid);margin:0 0 .3rem;}
+p{line-height:1.55;font-size:1.2rem;}
+.sub{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.18rem;color:#5a4c33;margin-bottom:1rem;}
+.badge{display:inline-block;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.22rem .6rem;border-radius:999px;margin-right:.4rem;}
+.badge.bloom{background:var(--navy);color:var(--parchment);}
+.badge.oa{background:var(--teal);color:#fff;}
+.badge.cuaderno{background:var(--amber);color:var(--navy);}
+.badge.form{background:var(--red);color:#fff;}
+.grid{display:grid;gap:1rem;flex:1;min-height:0;align-items:start;}
+.cols-2{grid-template-columns:1fr 1fr;}
+.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.card{background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;padding:1rem 1.1rem;box-shadow:0 2px 6px rgba(43,33,22,.08);}
+.card h3{margin-top:0;}
+.card.teal{border-top:4px solid var(--teal);}
+.card.amber{border-top:4px solid var(--amber);}
+.card.navy{border-top:4px solid var(--navy);}
+.card.red{border-top:4px solid var(--red);}
+.hero-concept{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:820px;}
+.hero-concept .icon{font-size:3.4rem;margin-bottom:.4rem;}
+.hero-concept h2{font-size:2.5rem;}
+.hero-concept p{font-size:1.32rem;}
+.scale{margin-top:1rem;display:inline-block;background:#fffdf6;border:1px solid var(--paper-line);border-radius:8px;padding:.6rem 1rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.05rem;}
+.hero-concept .scale{margin-top:1rem;display:inline-block;background:#fffdf6;border:1px solid var(--paper-line);border-radius:8px;padding:.6rem 1rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.05rem;}
+.cuaderno-box{background:repeating-linear-gradient(#fffef9,#fffef9 27px,#e3dcc4 28px);border:1px solid var(--paper-line);border-left:5px solid var(--amber);border-radius:6px;padding:1rem 1.2rem;position:relative;}
+.cuaderno-box::before{content:"📓 REGISTRA EN TU CUADERNO";position:absolute;top:-11px;left:14px;background:var(--amber);color:var(--navy);font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;}
+.exit-box{background:#fdf3e9;border:1px solid var(--paper-line);border-left:5px solid var(--red);border-radius:6px;padding:1rem 1.2rem;position:relative;}
+.exit-box::before{content:"🎫 TICKET DE SALIDA";position:absolute;top:-11px;left:14px;background:var(--red);color:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;}
+.footer-nav{position:absolute;bottom:1.1rem;left:6vw;right:6vw;display:flex;align-items:center;justify-content:space-between;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.8rem;color:#7a6b4d;}
+.progress{flex:1;height:5px;background:#d9cba3;border-radius:3px;margin:0 1rem;overflow:hidden;}
+.progress-bar{height:100%;background:var(--teal);width:4%;transition:width .3s;}
+.navbtn{background:var(--navy);color:var(--parchment);border:none;border-radius:6px;width:34px;height:34px;cursor:pointer;font-size:1rem;}
+.navbtn:hover{background:var(--teal);}
+.navbtn:disabled{opacity:.3;cursor:default;}
+#soundBtn{position:absolute;top:1.1rem;right:6vw;background:none;border:1px solid var(--navy);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:1rem;color:var(--navy);z-index:5;}
+.opt{display:block;width:100%;text-align:left;background:#fffdf6;border:1.5px solid var(--paper-line);border-radius:8px;padding:.8rem 1rem;margin-bottom:.6rem;cursor:pointer;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.12rem;transition:.15s;}
+.opt:hover{border-color:var(--teal);background:#f0f8f7;}
+.opt.correct{background:#e6f4e6;border-color:var(--green);}
+.opt.wrong{background:#fbe9e7;border-color:var(--red);}
+.feedback{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.1rem;margin-top:.6rem;min-height:1.4rem;}
+.feedback.ok{color:var(--green);font-weight:700;}
+.feedback.bad{color:var(--red);font-weight:700;}
+.small{font-size:.96rem;color:#5a4c33;}
+.source{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.86rem;color:#8a7a58;font-style:italic;}
+ul{margin:.3rem 0;padding-left:1.2rem;}
+li{margin-bottom:.3rem;line-height:1.45;}
+.scroll{overflow-y:auto;padding-bottom:4.5rem;}
+.center-mid{justify-content:center;}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:.6rem;}
+.stat{background:#fffdf6;border:1px solid var(--paper-line);border-radius:9px;padding:.75rem .9rem;}
+.stat b{display:block;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--teal);margin-bottom:.2rem;}
+.stat span{font-family:Georgia,serif;font-size:1.18rem;color:var(--navy);}
+.actcard{background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;align-items:flex-start;gap:.35rem;}
+.actcard .icon{font-size:1.7rem;}
+.actcard h3{margin:.1rem 0 0;}
+.rubric{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.92rem;}
+.rubric th,.rubric td{border:1px solid var(--paper-line);padding:.55rem .6rem;text-align:left;vertical-align:top;}
+.rubric th{background:var(--navy);color:var(--parchment);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;}
+.rubric td.crit{background:#f4ecd8;font-weight:700;font-family:Georgia,serif;font-size:1rem;color:var(--navy-mid);}
+#slide-1{background:radial-gradient(ellipse at 70% 20%, rgba(226,161,43,.35), transparent 55%),linear-gradient(160deg,#132436 0%,#1c3550 55%,#0e7c7b 130%);color:var(--parchment);align-items:center;text-align:center;justify-content:center;cursor:pointer;}
+#slide-1 h1{color:#fff;font-size:3.1rem;}
+#slide-1 .sub{color:#cfe8e6;}
+#sky{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.ray{position:absolute;width:2px;background:linear-gradient(var(--amber-l),transparent);opacity:0;border-radius:2px;}
+.hint{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.95rem;color:#a8c8c6;margin-top:2rem;letter-spacing:.04em;}
+.vs-wrap{display:flex;align-items:center;gap:1rem;flex:1;}
+.vs-col{flex:1;}
+.vs-divider{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:800;color:var(--paper-line);font-size:1.4rem;}
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- 1: APERTURA -->
+<div class="slide active" id="slide-1" onclick="rayBurst(event)">
+  <div id="sky"></div>
+  <div class="eyebrow" style="color:var(--amber-l)">Unidad 3 · Cambio Climático · Sesión 3</div>
+  <h1>De la comprensión a la acción</h1>
+  <p class="sub" style="max-width:660px;margin:0 auto;">Ya entendemos cómo funciona el sistema climático y por qué la actividad humana lo ha desequilibrado. Hoy damos el siguiente paso: ¿qué consecuencias trae esto, y qué podemos hacer al respecto?</p>
+  <div class="hint">☀️ Haz clic en cualquier parte del cielo</div>
+</div>
+
+<!-- 2: Cuaderno repaso sesión 2 -->
+<div class="slide" id="slide-2">
+  <div class="eyebrow">Inicio · Repaso</div>
+  <h2>Antes de seguir... ¿qué recuerdas de la Sesión 2?</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">Responde en tu cuaderno:</p>
+    <ul>
+      <li>Nombra un gas de efecto invernadero distinto al CO₂.</li>
+      <li>¿Qué distingue a la evidencia científica de una opinión sin respaldo?</li>
+      <li>En una frase, ¿por qué "el clima siempre ha cambiado" no basta para descartar la responsabilidad humana?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 3: Consecuencias - eventos extremos -->
+<div class="slide" id="slide-3">
+  <div class="eyebrow">Desarrollo · Consecuencias 1 de 4</div>
+  <h2>🌡️ Eventos climáticos extremos</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1rem;">
+  <p style="max-width:820px;">Olas de calor más frecuentes e intensas, sequías prolongadas y precipitaciones más concentradas e intensas cuando ocurren.</p>
+  <div class="statgrid" style="grid-template-columns:1fr 1fr;max-width:820px;">
+    <div class="stat"><b>Megasequía Chile central</b><span>&gt;13 años consecutivos de déficit hídrico</span></div>
+    <div class="stat"><b>Contexto histórico (CR2)</b><span>La más larga en al menos 1.000 años en la zona</span></div>
+  </div>
+  <div class="scale">📚 Analogía: 13 años sin lluvias suficientes equivalen a que un/a estudiante curse <b>toda su educación básica y media sin ver un año realmente lluvioso</b> en la zona central de Chile.</div>
+  </div>
+</div>
+
+<!-- 4: Consecuencias - nivel del mar -->
+<div class="slide" id="slide-4">
+  <div class="eyebrow">Desarrollo · Consecuencias 2 de 4</div>
+  <h2>🌊 Aumento del nivel del mar</h2>
+  <div class="grid cols-2">
+    <div class="card teal">
+      <svg id="svgMar" viewBox="0 0 300 200" style="width:100%;background:#fbf7ec;border-radius:6px;"></svg>
+      <p class="source">Esquema ilustrativo, no a escala real.</p>
+    </div>
+    <div>
+      <p>Mayor riesgo de inundación costera, erosión de playas y pérdida de infraestructura — relevante para un país con más de <b>6.000 km</b> de litoral como Chile.</p>
+      <div class="statgrid" style="grid-template-columns:1fr;">
+        <div class="stat"><b>Ritmo actual (satelital, últimos años)</b><span>≈4,5 mm/año</span></div>
+        <div class="stat"><b>Aumento acumulado desde 1900</b><span>≈20 cm</span></div>
+      </div>
+      <div class="scale">🐘 Analogía: en un escenario intermedio, el mar podría subir cerca de <b>1 metro para el año 2100</b> — casi un tercio de la altura de un elefante africano adulto (~3 m).</div>
+    </div>
+  </div>
+</div>
+
+<!-- 5: Consecuencias - biodiversidad -->
+<div class="slide" id="slide-5">
+  <div class="eyebrow">Desarrollo · Consecuencias 3 de 4</div>
+  <h2>🦋 Pérdida de biodiversidad</h2>
+  <div class="grid cols-2">
+    <div class="card amber">
+      <canvas id="cvBiodiv" width="480" height="240" style="width:100%;border-radius:6px;background:#fbf7ec;"></canvas>
+      <p class="source">% de especies amenazadas por grupo (IPBES, 2019).</p>
+    </div>
+    <div>
+      <p>Ecosistemas que no logran adaptarse a la velocidad del cambio, alteración de ciclos reproductivos y migratorios, y mayor riesgo de extinción en especies con poca capacidad de desplazamiento.</p>
+      <div class="statgrid" style="grid-template-columns:1fr;">
+        <div class="stat"><b>Especies amenazadas de extinción</b><span>≈1.000.000 (IPBES, 2019)</span></div>
+      </div>
+      <div class="scale">🏟️ Analogía: un millón de especies equivale a llenar el Estadio Nacional de Chile (≈48.000 personas) <b>más de 20 veces</b>.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 6: Consecuencias - sociales -->
+<div class="slide" id="slide-6">
+  <div class="eyebrow">Desarrollo · Consecuencias 4 de 4</div>
+  <h2>🏘️ Consecuencias sociales</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1rem;">
+  <p style="max-width:820px;">Inseguridad alimentaria e hídrica, desplazamiento de comunidades (migración climática) y mayor presión sobre poblaciones que ya son vulnerables — el cambio climático no afecta a todos por igual.</p>
+  <div class="statgrid" style="grid-template-columns:1fr;max-width:820px;">
+    <div class="stat"><b>Posibles migrantes climáticos internos al 2050</b><span>hasta 216 millones de personas (Banco Mundial, "Groundswell", 2021)</span></div>
+  </div>
+  <div class="scale" style="max-width:820px;">🌎 Analogía: 216 millones de personas es casi la <b>población total de Brasil</b>, o equivalente a que toda la población de Chile (≈19,5 millones) tuviera que desplazarse <b>más de 11 veces</b>.</div>
+  </div>
+</div>
+
+<!-- 7: Chile en cifras - CO2 per cápita -->
+<div class="slide" id="slide-7">
+  <div class="eyebrow">Desarrollo · Chile en cifras</div>
+  <h2>¿Cuánto CO₂ emitimos por persona?</h2>
+  <div class="grid cols-2">
+    <div class="card navy">
+      <canvas id="cvCO2percapita" width="480" height="260" style="width:100%;border-radius:6px;background:#fbf7ec;"></canvas>
+      <p class="source">Toneladas de CO₂ por persona al año (valores aproximados, fuentes: Worldometer/CR2).</p>
+    </div>
+    <div>
+      <p>Chile no es el mayor emisor total del mundo, pero su emisión <b>por persona</b> es una de las más altas de Sudamérica.</p>
+      <div class="statgrid" style="grid-template-columns:1fr;">
+        <div class="stat"><b>Chile</b><span>≈4,7 toneladas de CO₂ por persona al año</span></div>
+      </div>
+      <div class="scale">🐘 Analogía: cada chileno o chilena emite, en promedio, <b>casi el peso de un elefante africano adulto</b> (~6 toneladas) en CO₂ cada año.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 7: Cuaderno reflexión -->
+<div class="slide" id="slide-8">
+  <div class="eyebrow">Desarrollo · Reflexión</div>
+  <h2>Una pausa para pensar</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">Responde en tu cuaderno, con honestidad y sin apuro:</p>
+    <ul>
+      <li>Si hay tanta evidencia del cambio climático, ¿por qué crees que persisten las prácticas poco sostenibles?</li>
+      <li>¿En qué tipo de planeta te gustaría que vivan las próximas generaciones?</li>
+      <li>¿Qué opinas de la idea de que "la tecnología siempre encontrará una solución", sin que cambiemos nuestros hábitos?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 8: El llamado a la acción -->
+<div class="slide center-mid" id="slide-9">
+  <div class="eyebrow">Desarrollo · Urgencia</div>
+  <div class="hero-concept">
+    <div class="icon">📢</div>
+    <h2>Un llamado urgente a actuar</h2>
+    <p>Organismos internacionales, incluida la ONU, han hecho llamados reiterados a actuar frente al cambio climático, subrayando que la ventana de tiempo para limitar sus efectos más graves se reduce cada año.</p>
+    <div class="scale">En tu cuaderno: ¿tiene sentido para ti aportar "un granito de arena" individual frente a un problema de esta escala? ¿Por qué?</div>
+  </div>
+</div>
+
+<!-- 9: Concepto - Mitigación -->
+<div class="slide center-mid" id="slide-10">
+  <div class="eyebrow">Desarrollo · Concepto 1 de 2</div>
+  <div class="hero-concept">
+    <div class="icon">⬇️</div>
+    <h2>Mitigación</h2>
+    <p>Conjunto de acciones orientadas a <b>reducir o evitar</b> las emisiones de gases de efecto invernadero, o a aumentar su captura (por ejemplo, mediante bosques y océanos).</p>
+    <div class="scale">Ejemplos: energías renovables, eficiencia energética, transporte eléctrico, reforestación.</div>
+  </div>
+</div>
+
+<!-- 10: Concepto - Adaptación -->
+<div class="slide center-mid" id="slide-11">
+  <div class="eyebrow">Desarrollo · Concepto 2 de 2</div>
+  <div class="hero-concept">
+    <div class="icon">🔧</div>
+    <h2>Adaptación</h2>
+    <p>Conjunto de acciones orientadas a <b>ajustar sistemas naturales o humanos</b> frente a los efectos del cambio climático que ya son inevitables, reduciendo daños o aprovechando oportunidades.</p>
+    <div class="scale">Ejemplos: gestión del agua en zonas de sequía, infraestructura costera, cultivos más resistentes.</div>
+  </div>
+</div>
+
+<!-- 11: Mitigación vs Adaptación comparación -->
+<div class="slide" id="slide-12">
+  <div class="eyebrow">Desarrollo · Comparación</div>
+  <h2>Mitigación y adaptación: dos respuestas complementarias</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1rem;">
+  <div class="vs-wrap" style="flex:none;">
+    <div class="vs-col card teal">
+      <h3>⬇️ Mitigación</h3>
+      <p class="small">Ataca la <b>causa</b>: reduce la cantidad de GEI que se emite o aumenta su captura.</p>
+      <p class="small">Pregunta clave: ¿cómo evitamos que el problema empeore?</p>
+    </div>
+    <div class="vs-divider">+</div>
+    <div class="vs-col card amber">
+      <h3>🔧 Adaptación</h3>
+      <p class="small">Ataca el <b>efecto</b>: ajusta nuestros sistemas a los cambios que ya están ocurriendo.</p>
+      <p class="small">Pregunta clave: ¿cómo convivimos con lo que ya no se puede evitar?</p>
+    </div>
+  </div>
+  <div class="scale" style="align-self:center;">Ninguna de las dos es suficiente por sí sola: necesitamos ambas al mismo tiempo.</div>
+  </div>
+</div>
+
+<!-- 12: Chile en acción - mitigación -->
+<div class="slide" id="slide-13">
+  <div class="eyebrow">Desarrollo · Chile en acción 1 de 2</div>
+  <h2>Mitigación en Chile</h2>
+  <div class="grid cols-3">
+    <div class="card teal"><h3>☀️ Energía renovable</h3><p class="small">Fuerte crecimiento de la energía solar en el norte de Chile y eólica en distintas zonas del país.</p></div>
+    <div class="card teal"><h3>🚌 Electromovilidad</h3><p class="small">Incorporación de buses eléctricos en el transporte público de varias ciudades chilenas.</p></div>
+    <div class="card teal"><h3>🌲 Ley REP y forestación</h3><p class="small">Normativas de responsabilidad extendida del productor y programas de recuperación de bosques.</p></div>
+  </div>
+</div>
+
+<!-- 13: Chile en acción - adaptación -->
+<div class="slide" id="slide-14">
+  <div class="eyebrow">Desarrollo · Chile en acción 2 de 2</div>
+  <h2>Adaptación en Chile</h2>
+  <div class="grid cols-3">
+    <div class="card amber"><h3>💧 Gestión hídrica</h3><p class="small">Planes de gestión de recursos hídricos en zonas afectadas por la megasequía de Chile central.</p></div>
+    <div class="card amber"><h3>🏖️ Infraestructura costera</h3><p class="small">Evaluación de riesgo costero ante el aumento del nivel del mar en ciudades como Valparaíso y Viña del Mar.</p></div>
+    <div class="card amber"><h3>🌾 Agricultura de secano</h3><p class="small">Investigación en cultivos y técnicas más resistentes a la escasez hídrica.</p></div>
+  </div>
+</div>
+
+<!-- 14: El rol de la física -->
+<div class="slide center-mid" id="slide-15">
+  <div class="eyebrow">Desarrollo · El rol de la física</div>
+  <div class="hero-concept">
+    <div class="icon">⚛️</div>
+    <h2>¿Qué aporta la física a la mitigación y adaptación?</h2>
+    <p>Comprender la <b>termodinámica</b> permite diseñar sistemas energéticos más eficientes. Comprender el <b>electromagnetismo</b> es clave para tecnologías como paneles solares y motores eléctricos. Comprender la <b>mecánica de fluidos</b> ayuda a entender el comportamiento del agua, el viento y el océano.</p>
+    <div class="scale">La física no resuelve el cambio climático sola, pero es una herramienta indispensable para diseñar soluciones reales.</div>
+  </div>
+</div>
+
+<!-- 15: Hilo cuantitativo - fórmulas -->
+<div class="slide" id="slide-16">
+  <div class="eyebrow">Desarrollo · Hilo cuantitativo</div>
+  <h2>Un poco de termodinámica: energía y eficiencia</h2>
+  <div class="grid cols-2">
+    <div class="card teal">
+      <h3>Eficiencia energética</h3>
+      <p style="font-family:Georgia,serif;font-size:1.3rem;text-align:center;margin:.6rem 0;">η = (E<sub>útil</sub> / E<sub>consumida</sub>) × 100%</p>
+      <p class="small">η: eficiencia (%, sin unidad propia) · E<sub>útil</sub> y E<sub>consumida</sub>: energía, en <b>joules (J)</b> o <b>kilowatt-hora (kWh)</b>.</p>
+      <h3 style="margin-top:1rem;">Energía, potencia y tiempo</h3>
+      <p style="font-family:Georgia,serif;font-size:1.3rem;text-align:center;margin:.6rem 0;">E = P × t</p>
+      <p class="small">E: energía, en <b>kWh</b> o <b>J</b> · P: potencia, en <b>watts (W)</b> o <b>kilowatts (kW)</b> · t: tiempo, en <b>horas (h)</b> o <b>segundos (s)</b>.</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Un panel solar residencial tiene una potencia nominal de <b>330 W</b>. En un día recibe en promedio <b>5 horas</b> de sol efectivas.</p>
+      <ul>
+        <li>Calcula la energía generada en un día, en <b>kWh</b>.</li>
+        <li>Si el sistema tiene una eficiencia real de conversión del <b>85%</b>, ¿cuánta energía útil se aprovecha finalmente, en <b>kWh</b>?</li>
+      </ul>
+      <p class="small">Recuerda: 1 kW = 1.000 W. Expresa siempre tu resultado con su unidad.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 17: Conversión de temperaturas -->
+<div class="slide" id="slide-17">
+  <div class="eyebrow">Desarrollo · Hilo cuantitativo · Contexto</div>
+  <h2>Temperatura: tres escalas, un mismo fenómeno</h2>
+  <div class="grid cols-2">
+    <div class="card amber">
+      <h3>Conversión entre escalas</h3>
+      <p style="font-family:Georgia,serif;font-size:1.25rem;text-align:center;margin:.5rem 0;">°F = (°C × 9/5) + 32</p>
+      <p class="small" style="text-align:center;">Grados Celsius (°C) → grados Fahrenheit (°F)</p>
+      <p style="font-family:Georgia,serif;font-size:1.25rem;text-align:center;margin:.8rem 0 .5rem;">K = °C + 273,15</p>
+      <p class="small" style="text-align:center;">Grados Celsius (°C) → kelvin (K), la unidad de temperatura del Sistema Internacional</p>
+      <div class="scale" style="display:block;margin-top:.8rem;">⚠️ Ojo: una <b>diferencia</b> de 1 °C equivale a una diferencia de 1 K, pero equivale a <b>1,8 °F</b>. Por eso "+1,5 °C de calentamiento global" no es lo mismo que "+1,5 °F".</div>
+    </div>
+    <div class="card navy">
+      <h3>Puntos de referencia</h3>
+      <table class="rubric" style="font-size:.95rem;">
+        <tr><th>Referencia</th><th>°C</th><th>°F</th><th>K</th></tr>
+        <tr><td class="crit">Congelación del agua</td><td>0 °C</td><td>32 °F</td><td>273,15 K</td></tr>
+        <tr><td class="crit">Ebullición del agua (nivel del mar)</td><td>100 °C</td><td>212 °F</td><td>373,15 K</td></tr>
+        <tr><td class="crit">Temperatura corporal</td><td>≈37 °C</td><td>≈98,6 °F</td><td>≈310 K</td></tr>
+        <tr><td class="crit">Temp. media global actual</td><td>≈15 °C</td><td>≈59 °F</td><td>≈288 K</td></tr>
+      </table>
+      <p class="small" style="margin-top:.6rem;">En tu cuaderno: convierte la anomalía de temperatura vista en la Sesión 2 (por ejemplo, +1,5 °C) a °F. ¿Por qué el resultado no es "+1,5 °F"?</p>
+    </div>
+  </div>
+</div>
+
+<!-- 18: Equilibrio térmico y eventos extremos -->
+<div class="slide" id="slide-18">
+  <div class="eyebrow">Desarrollo · Hilo cuantitativo · Equilibrio térmico</div>
+  <h2>Del equilibrio térmico a los eventos extremos</h2>
+  <div class="grid cols-2">
+    <div class="card teal">
+      <h3>Recordando la Sesión 1 y 2</h3>
+      <p class="small">El planeta está en <b>equilibrio térmico</b> cuando la energía que absorbe es igual a la energía que emite. Al intensificarse el efecto invernadero, ese equilibrio se desplaza hacia una <b>temperatura media más alta</b> — como vimos en el simulador de balance radiativo.</p>
+      <p class="small">Pero "equilibrio" no significa "estabilidad tranquila": significa que, en promedio, la energía entra y sale en la misma cantidad. Localmente, esa energía extra se traduce en <b>más variabilidad</b>, no menos.</p>
+    </div>
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Conecta el concepto con lo que vimos al inicio de la sesión (eventos climáticos extremos):</p>
+      <ul>
+        <li>Un sistema con más energía interna tiene más energía disponible para <b>olas de calor</b> más intensas.</li>
+        <li>Un aire más cálido retiene más vapor de agua, lo que favorece <b>precipitaciones más concentradas</b> cuando ocurren (y sequías más largas entre medio, como la megasequía).</li>
+        <li>En tu cuaderno: explica, con tus palabras, por qué "el planeta está en un nuevo equilibrio térmico" no significa "el clima ya se estabilizó".</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 19: Cuaderno clasificación -->
+<div class="slide" id="slide-19">
+  <div class="eyebrow">Desarrollo · Cuaderno · Clasificación</div>
+  <h2>¿Mitigación o adaptación?</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">En tu cuaderno, clasifica cada acción como <b>Mitigación (M)</b> o <b>Adaptación (A)</b>, y justifica una de ellas en una frase:</p>
+    <ul>
+      <li>Instalar paneles solares en un colegio.</li>
+      <li>Construir un muro de contención costero en una ciudad con riesgo de inundación.</li>
+      <li>Cambiar a variedades de trigo más resistentes a la sequía.</li>
+      <li>Reemplazar buses a diésel por buses eléctricos.</li>
+      <li>Diseñar un sistema de alerta temprana para olas de calor.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 17: Hacia un proyecto de acción local -->
+<div class="slide center-mid" id="slide-20">
+  <div class="eyebrow">Desarrollo · Hacia el proyecto</div>
+  <div class="hero-concept">
+    <div class="icon">🗺️</div>
+    <h2>Hacia un proyecto de acción local</h2>
+    <p>En las próximas sesiones diseñaremos, en grupos, un <b>proyecto de mitigación o adaptación</b> frente a un problema ambiental real de nuestro entorno — Villa Alemana, la comuna o el colegio.</p>
+    <div class="scale">Hoy damos el primer paso: identificar posibles problemas y pensar quiénes se verían beneficiados por una solución.</div>
+  </div>
+</div>
+
+<!-- 17: Cuaderno diagnóstico -->
+<div class="slide" id="slide-21">
+  <div class="eyebrow">Desarrollo · Cuaderno · Diagnóstico</div>
+  <h2>Primeras ideas para tu proyecto</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">En tu cuaderno, esboza respuestas iniciales (las retomaremos en la próxima sesión):</p>
+    <ul>
+      <li>¿Qué problema ambiental local (de tu barrio, comuna o colegio) relacionarías con el cambio climático?</li>
+      <li>¿Quiénes se beneficiarían directamente si ese problema se abordara?</li>
+      <li>¿El proyecto sería principalmente de mitigación, de adaptación, o de ambas?</li>
+      <li>¿Qué conocimiento de física crees que podría ser útil para abordarlo?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 18: Comprobación -->
+<div class="slide" id="slide-22">
+  <div class="eyebrow">Cierre · Comprobación</div>
+  <h2>Pregunta de alternativas</h2>
+  <div id="mcArea1"></div>
+</div>
+
+<!-- 19: Cuaderno síntesis mapa conceptual -->
+<div class="slide" id="slide-23">
+  <div class="eyebrow">Cierre · Cuaderno</div>
+  <h2>Síntesis — Actualiza tu mapa conceptual</h2>
+  <div class="grid cols-2">
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Retoma tu mapa conceptual de las sesiones anteriores y agrega los nuevos conceptos de hoy.</p>
+    </div>
+    <div class="card teal">
+      <h3>Nuevos conceptos a incorporar</h3>
+      <p class="small">Consecuencias del cambio climático · Mitigación · Adaptación · Eficiencia energética (η) · Energía = Potencia × tiempo · Conversión °C/°F/K · Equilibrio térmico · Energía renovable · Gestión hídrica · Proyecto de acción local</p>
+    </div>
+  </div>
+</div>
+
+<!-- 20: Ticket de salida instrucciones -->
+<div class="slide" id="slide-24">
+  <div class="eyebrow">Cierre · Evaluación Formativa 4</div>
+  <h2>Ticket de salida de la sesión</h2>
+  <div class="exit-box" style="flex:1;">
+    <p style="margin-top:.6rem;"><span class="badge form">Formativa 4</span><span class="badge bloom">Trabajo individual</span></p>
+    <p>Antes de salir de la sala, elige <b>una</b> de las opciones de la próxima diapositiva para demostrar lo que aprendiste hoy. Debes entregarlo al profesor antes del término de la clase.</p>
+    <ul>
+      <li>Tiempo estimado: <b>10 minutos</b>.</li>
+      <li>Debe incluir al menos <b>dos conceptos clave</b> de la sesión.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 21: Opciones de actividades -->
+<div class="slide" id="slide-25">
+  <div class="eyebrow">Cierre · Ticket de salida</div>
+  <h2>Elige tu formato</h2>
+  <div class="grid cols-3">
+    <div class="actcard">
+      <div class="icon">💡</div>
+      <span class="badge bloom">Crear</span>
+      <h3>Propuesta de acción</h3>
+      <p class="small">Describe brevemente una acción de mitigación o adaptación factible en tu entorno cercano (barrio, comuna o colegio), indicando el problema que aborda.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">🗂️</div>
+      <span class="badge bloom">Analizar</span>
+      <h3>Ficha clasificadora</h3>
+      <p class="small">Elige 3 acciones (propias o del banco visto hoy) y clasifícalas como mitigación o adaptación, justificando cada una en una frase.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">🎨</div>
+      <span class="badge bloom">Crear</span>
+      <h3>Afiche de sensibilización</h3>
+      <p class="small">Diseña un afiche breve con una consigna o llamado a la acción y al menos un concepto de la sesión que lo respalde.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 22: Criterios de evaluación -->
+<div class="slide scroll" id="slide-26">
+  <div class="eyebrow">Cierre · Rúbrica · Formativa 4</div>
+  <h2>Criterios de evaluación del ticket de salida</h2>
+  <p class="small">Los mismos cuatro criterios aplican sin importar el formato elegido.</p>
+  <table class="rubric">
+    <tr>
+      <th style="width:22%;">Criterio</th>
+      <th>Logro pleno</th>
+      <th>Logro parcial</th>
+      <th>En desarrollo</th>
+      <th>Inicial</th>
+    </tr>
+    <tr>
+      <td class="crit">Precisión conceptual</td>
+      <td>Distingue correctamente mitigación de adaptación y las aplica sin errores.</td>
+      <td>Distingue los conceptos, con alguna imprecisión menor.</td>
+      <td>Confunde mitigación con adaptación en algún punto.</td>
+      <td>No hay evidencia de comprensión de los conceptos.</td>
+    </tr>
+    <tr>
+      <td class="crit">Uso de evidencia o contexto chileno</td>
+      <td>Incorpora un ejemplo local o chileno pertinente y bien integrado.</td>
+      <td>Incorpora un ejemplo, aunque poco desarrollado.</td>
+      <td>Menciona un ejemplo sin conectarlo claramente.</td>
+      <td>No incorpora ejemplos ni contexto.</td>
+    </tr>
+    <tr>
+      <td class="crit">Claridad y organización</td>
+      <td>El producto se entiende por sí solo, con secuencia lógica y clara.</td>
+      <td>Se entiende con algo de esfuerzo.</td>
+      <td>Requiere explicación adicional para entenderse.</td>
+      <td>No es posible seguir la idea central.</td>
+    </tr>
+    <tr>
+      <td class="crit">Cumplimiento del formato elegido</td>
+      <td>Cumple todos los requisitos de la consigna elegida.</td>
+      <td>Cumple la mayoría de los requisitos.</td>
+      <td>Cumple parcialmente el formato solicitado.</td>
+      <td>No sigue el formato de la actividad elegida.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 23: Cierre -->
+<div class="slide" id="slide-27">
+  <div class="eyebrow">Cierre</div>
+  <h2>Síntesis de la sesión y próximo paso</h2>
+  <div class="grid cols-2">
+    <div class="card navy">
+      <h3>Lo que construimos hoy</h3>
+      <ul class="small">
+        <li>Consecuencias del cambio climático (extremos, mar, biodiversidad, sociedad)</li>
+        <li>Mitigación y adaptación: definiciones y ejemplos chilenos</li>
+        <li>El rol de la física en las soluciones — eficiencia energética y E = P·t</li>
+        <li>Conversión de temperaturas (°C, °F, K) y equilibrio térmico</li>
+        <li>Primeras ideas para un proyecto de acción local</li>
+        <li>Ticket de salida — Evaluación Formativa 4</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>📎 Próximo paso</h3>
+      <p class="small">En las próximas sesiones trabajaremos en equipos en el diseño de un <b>proyecto de acción por el cambio climático</b>, aplicando lo aprendido en las Sesiones 1, 2 y 3 a un problema real de nuestro entorno.</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<button id="soundBtn" onclick="toggleSound()">🔊</button>
+<div class="footer-nav">
+  <button class="navbtn" id="prevBtn" onclick="go(-1)">←</button>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+  <span id="slideLabel">1 / 27</span>
+  <button class="navbtn" id="nextBtn" onclick="go(1)">→</button>
+</div>
+
+<script>
+const TOTAL = 27;
+let cur = 1;
+let soundOn = true;
+function render(){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.getElementById('slide-'+cur).classList.add('active');
+  document.getElementById('slideLabel').textContent = cur+' / '+TOTAL;
+  document.getElementById('progressBar').style.width = (cur/TOTAL*100)+'%';
+  document.getElementById('prevBtn').disabled = cur===1;
+  document.getElementById('nextBtn').disabled = cur===TOTAL;
+}
+function go(d){ const n = cur+d; if(n<1||n>TOTAL) return; cur = n; render(); playClick(); }
+window.addEventListener('keydown',e=>{ if(e.key==='ArrowRight') go(1); if(e.key==='ArrowLeft') go(-1); });
+render();
+
+let actx;
+function ensureAudio(){ if(!actx){ actx = new (window.AudioContext||window.webkitAudioContext)(); } }
+function beep(freq, dur, type='sine', vol=.05){
+  if(!soundOn) return; ensureAudio();
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type=type; o.frequency.value=freq; g.gain.value=vol;
+  o.connect(g); g.connect(actx.destination); o.start();
+  g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime+dur);
+  o.stop(actx.currentTime+dur);
+}
+function playClick(){ beep(520,.08,'sine',.04); }
+function toggleSound(){ soundOn = !soundOn; document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+
+function rayBurst(e){
+  const sky = document.getElementById('sky');
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX-rect.left, y = e.clientY-rect.top;
+  for(let i=0;i<14;i++){
+    const ray = document.createElement('div'); ray.className='ray';
+    const len = 60+Math.random()*90; const ang = Math.random()*360;
+    ray.style.height=len+'px'; ray.style.left=x+'px'; ray.style.top=y+'px';
+    ray.style.transform=`rotate(${ang}deg)`; ray.style.transformOrigin='top center';
+    sky.appendChild(ray);
+    requestAnimationFrame(()=>{ ray.style.transition='opacity .9s ease, height .9s ease'; ray.style.opacity='.9'; });
+    setTimeout(()=>{ ray.style.opacity='0'; },500);
+    setTimeout(()=>ray.remove(),1400);
+  }
+  beep(700,.25,'sine',.03); beep(880,.3,'sine',.02);
+}
+
+/* Esquema: nivel del mar (ilustrativo) */
+(function(){
+  const svg = document.getElementById('svgMar');
+  if(!svg) return;
+  const ns = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){ const e=document.createElementNS(ns,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+  // sky
+  svg.appendChild(el('rect',{x:0,y:0,width:300,height:200,fill:'#eaf5f3'}));
+  // old sea level (dashed line)
+  svg.appendChild(el('line',{x1:10,y1:150,x2:290,y2:150,stroke:'#9a8a63','stroke-width':1.5,'stroke-dasharray':'5,4'}));
+  svg.appendChild(el('text',{x:14,y:144,'font-size':10,fill:'#5a4c33','font-family':'Helvetica'})).textContent='Nivel del mar ~1900';
+  // water new level
+  svg.appendChild(el('rect',{x:0,y:120,width:300,height:80,fill:'#2aaea3',opacity:.75}));
+  svg.appendChild(el('text',{x:14,y:114,'font-size':10,fill:'#0e7c7b','font-family':'Helvetica','font-weight':'bold'})).textContent='Nivel actual (+20 cm aprox.)';
+  // coastline / building
+  svg.appendChild(el('rect',{x:210,y:70,width:22,height:80,fill:'#8a7a58'}));
+  svg.appendChild(el('rect',{x:238,y:90,width:18,height:60,fill:'#8a7a58'}));
+  svg.appendChild(el('rect',{x:180,y:100,width:20,height:50,fill:'#8a7a58'}));
+  // sun
+  svg.appendChild(el('circle',{cx:40,cy:35,r:14,fill:'#e2a12b'}));
+})();
+
+/* Esquema: biodiversidad amenazada (barras) */
+(function(){
+  const cv = document.getElementById('cvBiodiv');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const w=cv.width, h=cv.height, pad=50;
+  ctx.clearRect(0,0,w,h);
+  const data = [
+    {name:'Anfibios', val:40, color:'#0e7c7b'},
+    {name:'Corales', val:33, color:'#2aaea3'},
+    {name:'Vert. terr./marinos', val:25, color:'#e2a12b'},
+    {name:'Insectos', val:10, color:'#c0392b'}
+  ];
+  const maxVal = 45;
+  const barW = 75;
+  ctx.strokeStyle='#d9cba3'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,10); ctx.lineTo(pad,h-50); ctx.lineTo(w-10,h-50); ctx.stroke();
+  ctx.fillStyle='#5a4c33'; ctx.font='11px Helvetica';
+  ctx.fillText('% especies amenazadas del grupo', 6, 18);
+  data.forEach((d,i)=>{
+    const x = pad+18+i*(barW+18);
+    const barH = (d.val/maxVal)*(h-90);
+    ctx.fillStyle = d.color;
+    ctx.fillRect(x, h-50-barH, barW, barH);
+    ctx.fillStyle='#132436'; ctx.font='bold 13px Helvetica';
+    ctx.fillText(d.val+'%', x+barW/2-14, h-55-barH);
+    ctx.font='11px Helvetica';
+    ctx.fillText(d.name, x, h-32);
+  });
+})();
+
+/* Esquema: CO2 per cápita comparativo */
+(function(){
+  const cv = document.getElementById('cvCO2percapita');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const w=cv.width, h=cv.height, pad=50;
+  ctx.clearRect(0,0,w,h);
+  const data = [
+    {name:'Colombia', val:1.6, color:'#2aaea3'},
+    {name:'Brasil', val:2.2, color:'#2aaea3'},
+    {name:'Argentina', val:4.5, color:'#e2a12b'},
+    {name:'Chile', val:4.7, color:'#c0392b'},
+    {name:'Prom. mundial', val:5.9, color:'#132436'}
+  ];
+  const maxVal = 7;
+  const barW = 58;
+  ctx.strokeStyle='#d9cba3'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,10); ctx.lineTo(pad,h-50); ctx.lineTo(w-10,h-50); ctx.stroke();
+  ctx.fillStyle='#5a4c33'; ctx.font='11px Helvetica';
+  ctx.fillText('Toneladas de CO₂ / persona / año', 6, 18);
+  data.forEach((d,i)=>{
+    const x = pad+12+i*(barW+12);
+    const barH = (d.val/maxVal)*(h-90);
+    ctx.fillStyle = d.color;
+    ctx.fillRect(x, h-50-barH, barW, barH);
+    ctx.fillStyle='#132436'; ctx.font='bold 12px Helvetica';
+    ctx.fillText(d.val+' t', x+barW/2-14, h-55-barH);
+    ctx.font='10.5px Helvetica';
+    ctx.fillText(d.name, x, h-32);
+  });
+})();
+
+/* MC questions */
+const mcData = [
+  {
+    area:'mcArea1',
+    q:"Una comuna costera construye un muro de contención para protegerse de la subida del nivel del mar. ¿Esta acción corresponde a mitigación o adaptación?",
+    opts:[
+      "Mitigación, porque reduce las emisiones de GEI de la comuna.",
+      "Adaptación, porque ajusta la infraestructura a un efecto del cambio climático que ya está ocurriendo.",
+      "Ninguna de las dos, porque no está relacionada con el cambio climático.",
+      "Ambas al mismo tiempo, en igual medida."
+    ],
+    correct:1,
+    fb_ok:"Correcto: el muro no reduce emisiones, ajusta la infraestructura frente a un efecto ya en curso — eso es adaptación.",
+    fb_bad:"Revisa la diferencia: mitigación ataca la causa (emisiones), adaptación ajusta nuestros sistemas frente a los efectos."
+  }
+];
+mcData.forEach((item)=>{
+  const mcArea = document.getElementById(item.area);
+  const wrap = document.createElement('div'); wrap.className='card navy';
+  wrap.innerHTML = `<span class="badge bloom">Aplicar</span><h3>${item.q}</h3>`;
+  const fb = document.createElement('div'); fb.className='feedback';
+  item.opts.forEach((opt,oi)=>{
+    const b = document.createElement('button'); b.className='opt'; b.textContent=opt;
+    b.onclick=()=>{
+      wrap.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+      if(oi===item.correct){ b.classList.add('correct'); fb.className='feedback ok'; fb.textContent='✔ '+item.fb_ok; beep(660,.15,'sine',.04);}
+      else{ b.classList.add('wrong'); wrap.querySelectorAll('.opt')[item.correct].classList.add('correct'); fb.className='feedback bad'; fb.textContent='✘ '+item.fb_bad; beep(220,.2,'sawtooth',.03);}
+    };
+    wrap.appendChild(b);
+  });
+  wrap.appendChild(fb);
+  mcArea.appendChild(wrap);
+});
+</script>
+</body>
+</html>
