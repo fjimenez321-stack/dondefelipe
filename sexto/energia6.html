@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Unidad 3 · Energía · Sesiones 7 y 8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================= TOKENS ============================= */
+:root{
+  --bg:#0a1728;
+  --bg-soft:#0e2038;
+  --card:#132c49;
+  --card-hi:#1a3a5e;
+  --line:rgba(244,185,66,.16);
+  --gold:#f4b942;
+  --gold-soft:#ffd873;
+  --teal:#2ed3bd;
+  --ember:#ff8a5c;
+  --boss:#b98bff;
+  --bad:#ff5d6c;
+  --good:#3ddc84;
+  --ink:#eef3f9;
+  --muted:#87a0bd;
+  --muted-2:#5c7292;
+  --radius:18px;
+  --disp:'Space Grotesk',sans-serif;
+  --body:'Inter',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:
+    radial-gradient(1100px 620px at 12% -8%, rgba(244,185,66,.10), transparent 60%),
+    radial-gradient(900px 700px at 105% 10%, rgba(46,211,189,.10), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  overflow:hidden;
+  height:100dvh;
+}
+h1,h2,h3,.disp{font-family:var(--disp);}
+::selection{background:var(--gold);color:#0a1728;}
+button{font-family:var(--body);}
+a{color:var(--teal);}
+
+/* scrollbar for slide bodies */
+.slide-body::-webkit-scrollbar{width:8px;}
+.slide-body::-webkit-scrollbar-thumb{background:var(--card-hi);border-radius:8px;}
+
+/* ============================= APP SHELL ============================= */
+#app{
+  display:flex;
+  flex-direction:column;
+  height:100dvh;
+  width:100vw;
+}
+
+/* ---- topbar ---- */
+#topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:8px clamp(14px,3vw,28px);
+  padding-top:max(8px, env(safe-area-inset-top));
+  padding-left:max(14px, env(safe-area-inset-left));
+  padding-right:max(14px, env(safe-area-inset-right));
+  border-bottom:1px solid var(--line);
+  background:rgba(10,23,40,.75);
+  backdrop-filter:blur(6px);
+  z-index:30;
+  flex-shrink:0;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.brand-badge{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),var(--ember));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  box-shadow:0 4px 14px rgba(244,138,92,.35);
+  animation:sunPulse 4s ease-in-out infinite;
+}
+@keyframes sunPulse{
+  0%,100%{box-shadow:0 4px 14px rgba(244,138,92,.35);}
+  50%{box-shadow:0 4px 20px rgba(244,138,92,.55);}
+}
+.brand-text{line-height:1.15;min-width:0;}
+.brand-text b{font-family:var(--disp);font-size:14px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.brand-text span{font-size:11px;color:var(--muted);white-space:nowrap;}
+
+#progress-dots{
+  display:flex;gap:5px;flex:1;justify-content:center;
+  overflow-x:auto;padding:0 6px;
+  -webkit-overflow-scrolling:touch;
+}
+#progress-dots::-webkit-scrollbar{display:none;}
+.dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--card-hi);
+  border:1px solid transparent;
+  cursor:pointer;flex-shrink:0;
+  transition:transform .2s, width .25s, background .25s;
+}
+.dot:hover{transform:scale(1.35);}
+.dot.done{background:var(--teal);}
+.dot.active{background:var(--gold);width:22px;border-radius:6px;}
+.dot.section-start{margin-left:8px;}
+
+#xp-wrap{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+#pdf-btn{padding:8px 14px;font-size:13px;}
+#sound-btn{padding:8px 11px;font-size:15px;}
+#pdf-btn:active{transform:scale(.96);}
+#xp-badge{
+  display:flex;align-items:center;gap:6px;
+  background:var(--card);border:1px solid var(--line);
+  padding:6px 12px;border-radius:999px;
+  font-family:var(--mono);font-weight:700;font-size:13px;
+  color:var(--gold-soft);position:relative;
+  box-shadow:0 2px 10px rgba(244,185,66,.08);
+  transition:box-shadow .3s, transform .3s;
+}
+#xp-badge.bump{animation:xpBump .4s ease;}
+@keyframes xpBump{
+  0%{transform:scale(1);}
+  35%{transform:scale(1.14);box-shadow:0 4px 18px rgba(244,185,66,.35);}
+  100%{transform:scale(1);}
+}
+#xp-toast{
+  position:absolute;top:-6px;right:8px;
+  font-family:var(--mono);font-weight:700;color:var(--good);
+  font-size:12px;opacity:0;pointer-events:none;
+}
+#xp-toast.show{animation:floatUp 1s ease-out forwards;}
+@keyframes floatUp{
+  0%{opacity:0;transform:translateY(0);}
+  15%{opacity:1;}
+  100%{opacity:0;transform:translateY(-22px);}
+}
+
+/* ============================= DECK ============================= */
+#deck{
+  position:relative;
+  flex:1;
+  min-height:0;
+}
+.slide{
+  position:absolute;inset:0;
+  display:none;
+  flex-direction:column;
+  padding:clamp(10px,2.2vh,28px) clamp(18px,5vw,72px);
+  overflow:hidden;
+}
+.slide.active{
+  display:flex;
+  animation:slideIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes slideIn{
+  from{opacity:0;transform:translateY(18px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.slide-body{
+  flex:1;min-height:0;overflow-y:auto;
+  padding-right:4px;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.eyebrow{
+  font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--teal);font-weight:700;
+  margin:0 0 6px;
+}
+.slide h2.title{
+  font-size:clamp(22px,3.6vw,38px);
+  margin:0 0 6px;line-height:1.08;
+}
+.subtitle{color:var(--muted);font-size:clamp(13px,1.6vw,16px);margin:0 0 12px;max-width:70ch;}
+
+/* ============================= COVER ============================= */
+#slide-cover{justify-content:center;}
+.cover-grid{
+  display:grid;grid-template-columns:1.3fr .8fr;gap:36px;align-items:center;
+  max-width:1180px;margin:0 auto;width:100%;
+}
+.cover-kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:12.5px;letter-spacing:.12em;
+  color:var(--gold-soft);background:rgba(244,185,66,.1);
+  border:1px solid var(--line);padding:6px 12px;border-radius:999px;
+  margin-bottom:18px;text-transform:uppercase;
+}
+.cover-title{
+  font-size:clamp(30px,5.4vw,58px);line-height:1.03;margin:0 0 14px;
+  background:linear-gradient(100deg,#fff 10%,var(--gold-soft) 55%,var(--ember) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.cover-sub{color:var(--muted);font-size:clamp(14px,1.8vw,18px);max-width:52ch;margin:0 0 22px;}
+.cover-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px;}
+.chip{
+  font-family:var(--mono);font-size:12.5px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--line);color:var(--ink);background:var(--card);
+  display:inline-flex;align-items:center;gap:6px;
+}
+.chip b{color:var(--gold-soft);}
+.cover-hint{font-size:12.5px;color:var(--muted-2);}
+
+/* ============================= HOOK / GANCHO SLIDE ============================= */
+.gancho-wrap{max-width:760px;margin:0 auto;text-align:center;}
+.gancho-title{
+  font-size:clamp(24px,4.2vw,42px);line-height:1.15;margin:18px 0 14px;
+  background:linear-gradient(100deg,#fff 10%,var(--ember) 60%,var(--gold-soft) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.gancho-sub{color:var(--muted);font-size:clamp(14px,1.8vw,17px);max-width:60ch;margin:0 auto 18px;}
+.gancho-question{
+  font-family:var(--disp);font-weight:600;font-size:clamp(15px,2vw,19px);
+  color:var(--gold-soft);margin:0 0 18px;
+}
+.gancho-opts{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+.gancho-btn{
+  font-family:var(--disp);font-weight:600;font-size:14.5px;
+  background:var(--card);border:1px solid var(--line);color:var(--ink);
+  padding:14px 22px;border-radius:14px;cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+  transition:transform .2s, box-shadow .2s, border-color .2s;
+  position:relative;overflow:hidden;
+}
+.gancho-btn:active:not(:disabled){transform:translateY(0) scale(.96);}
+.gancho-btn:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 12px 26px rgba(0,0,0,.3);}
+.gancho-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.gancho-btn.chosen{border-color:var(--gold);background:var(--card-hi);}
+.gancho-feedback{
+  margin-top:20px;font-size:15px;min-height:24px;color:var(--good);
+  opacity:0;transition:opacity .4s;
+}
+.gancho-feedback.show{opacity:1;}
+
+/* ============================= MOOD CHECK-IN ============================= */
+.mood-checkin{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 18px;margin-bottom:20px;text-align:center;
+}
+.mood-label{display:block;font-size:13px;color:var(--muted);margin-bottom:10px;}
+.mood-opts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.mood-btn{
+  font-size:26px;background:var(--bg-soft);border:1px solid var(--line);border-radius:14px;
+  padding:8px 14px;cursor:pointer;transition:transform .18s, border-color .18s, background .18s;
+  position:relative;overflow:hidden;
+}
+.mood-btn:hover:not(:disabled){transform:translateY(-3px);border-color:var(--gold);}
+.mood-btn:active:not(:disabled){transform:translateY(0) scale(.92);}
+.mood-btn.chosen{border-color:var(--gold);background:var(--card-hi);}
+.mood-btn:disabled{opacity:.4;cursor:not-allowed;}
+.mood-feedback{
+  margin:10px 0 0;font-size:13px;color:var(--good);min-height:18px;
+  opacity:0;transition:opacity .4s;
+}
+.mood-feedback.show{opacity:1;}
+
+.qr-box{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+.qr-box img{width:150px;height:150px;border-radius:10px;background:#fff;padding:8px;display:block;margin:0 auto 10px;}
+.qr-box p{margin:0;font-size:12.5px;color:var(--muted);}
+.qr-box a{word-break:break-all;font-size:11.5px;}
+.qr-label{font-family:var(--mono);font-size:12px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:block;}
+@media (max-width:900px){
+  .desktop-only{display:none !important;}
+  .cover-grid{grid-template-columns:1fr;}
+}
+
+/* ============================= GENERIC BLOCKS ============================= */
+.card-grid{display:grid;gap:14px;}
+.g2{grid-template-columns:repeat(2,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+@media (max-width:760px){ .g2,.g3{grid-template-columns:1fr;} .g4{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:420px){ .g4{grid-template-columns:1fr;} }
+
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 18px;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.card:hover{transform:translateY(-2px);border-color:rgba(244,185,66,.35);box-shadow:0 10px 26px rgba(0,0,0,.28);}
+.card:active{transform:translateY(0) scale(.985);}
+.card h4{margin:0 0 8px;font-family:var(--disp);font-size:15.5px;}
+.card p, .card li{color:var(--muted);font-size:13.6px;line-height:1.5;}
+.card .ico{font-size:22px;margin-bottom:8px;display:block;}
+
+/* timeline / agenda */
+.timeline{display:flex;flex-direction:column;gap:10px;}
+.tl-row{display:flex;align-items:stretch;gap:14px;}
+.tl-time{
+  font-family:var(--mono);font-size:12.5px;color:var(--gold-soft);
+  width:74px;flex-shrink:0;padding-top:12px;
+}
+.tl-body{
+  flex:1;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--teal);
+  border-radius:12px;padding:12px 16px;
+}
+.tl-body.ember{border-left-color:var(--ember);}
+.tl-body.boss{border-left-color:var(--boss);}
+.tl-body h4{margin:0 0 4px;font-size:14.5px;}
+.tl-body p{margin:0;color:var(--muted);font-size:13px;}
+.session-divider{
+  display:flex;align-items:center;gap:12px;margin:18px 0 8px;
+  color:var(--muted-2);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.1em;
+}
+.session-divider::before,.session-divider::after{content:"";flex:1;height:1px;background:var(--line);}
+
+/* OA / objective */
+.oa-box{
+  background:linear-gradient(135deg,rgba(244,185,66,.12),rgba(46,211,189,.06));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 22px;margin-bottom:16px;
+}
+.oa-box .tag{font-family:var(--mono);font-size:12px;color:var(--gold-soft);letter-spacing:.08em;}
+.oa-box p{font-size:clamp(14px,1.8vw,17px);margin:8px 0 0;line-height:1.5;}
+.question-box{
+  background:var(--card-hi);border-radius:14px;padding:16px 20px;
+  display:flex;align-items:center;gap:14px;
+}
+.question-box .qmark{font-size:26px;flex-shrink:0;}
+.question-box p{margin:0;font-size:clamp(15px,2vw,19px);font-family:var(--disp);}
+
+/* pill / skill tags OA a-f */
+.skills-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.skill-pill{
+  font-family:var(--mono);font-size:11.5px;background:rgba(46,211,189,.12);
+  border:1px solid rgba(46,211,189,.3);color:var(--teal);
+  padding:4px 10px;border-radius:999px;cursor:default;
+}
+
+/* buttons */
+.btn{
+  font-family:var(--disp);font-weight:600;font-size:14px;
+  border:none;border-radius:12px;padding:11px 20px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;transition:transform .18s, box-shadow .18s, background .18s;
+  position:relative;overflow:hidden;
+}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--ember));color:#12233b;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(244,138,92,.3);}
+.btn-primary:active{transform:translateY(0) scale(.98);}
+.btn-ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);}
+.btn-ghost:hover{background:var(--card-hi);border-color:var(--gold);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none !important;box-shadow:none !important;}
+button:focus-visible, .quiz-opt:focus-visible, .dot:focus-visible, .game-card:focus-visible, .mem-card:focus-visible, .classify-chip:focus-visible{
+  outline:2px solid var(--teal);outline-offset:2px;
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+}
+
+/* ============================= RIPPLE INTERACTION ============================= */
+.ripple-el{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,.45);
+  transform:scale(0);
+  animation:rippleAnim .55s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes rippleAnim{
+  to{transform:scale(2.8);opacity:0;}
+}
+
+/* ============================= SIGNATURE FLOW DIAGRAM ============================= */
+.flow-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 18px 10px;margin:6px 0 18px;}
+.flow-svg{width:100%;height:auto;display:block;}
+.flow-dash{stroke-dasharray:10 8;animation:flowmove 1.6s linear infinite;}
+@keyframes flowmove{to{stroke-dashoffset:-36;}}
+.flow-node-label{font-size:11px;fill:var(--muted);font-family:'Inter',sans-serif;}
+.flow-node-title{font-size:12.5px;fill:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:600;}
+
+/* mobile flow: compact vertical version, swapped in below 620px where the horizontal SVG gets too small to read */
+.flow-mobile{display:none;flex-direction:column;align-items:stretch;gap:2px;margin:6px 0 18px;}
+
+/* ============================= ACCORDION (BLOOM BANK) ============================= */
+.acc-item{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  margin-bottom:10px;overflow:hidden;
+}
+.acc-item.boss{border-color:rgba(185,139,255,.4);}
+.acc-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;cursor:pointer;gap:10px;
+}
+.acc-head .lvl{display:flex;align-items:center;gap:10px;}
+.acc-num{
+  font-family:var(--mono);font-weight:700;font-size:12.5px;
+  background:var(--card-hi);color:var(--gold-soft);
+  padding:3px 9px;border-radius:8px;
+}
+.boss .acc-num{background:rgba(185,139,255,.18);color:var(--boss);}
+.acc-head h4{margin:0;font-size:14.5px;}
+.acc-head .boss-tag{
+  font-family:var(--mono);font-size:10.5px;color:var(--boss);
+  border:1px solid rgba(185,139,255,.4);padding:2px 8px;border-radius:999px;
+}
+.acc-chevron{transition:.25s;color:var(--muted);}
+.acc-item.open .acc-chevron{transform:rotate(180deg);}
+.acc-panel{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.acc-item.open .acc-panel{max-height:400px;}
+.acc-panel-inner{padding:0 16px 16px;}
+.acc-panel-inner ul{margin:0;padding-left:18px;}
+.acc-panel-inner li{margin-bottom:6px;font-size:13.5px;color:var(--ink);opacity:.9;}
+
+/* ============================= QUIZ COMPONENT ============================= */
+.quiz-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;}
+.quiz-q{font-family:var(--disp);font-size:15.5px;margin:0 0 12px;}
+.quiz-opts{display:grid;gap:9px;}
+.quiz-opt{
+  text-align:left;background:var(--bg-soft);border:1px solid var(--line);
+  color:var(--ink);border-radius:10px;padding:10px 14px;cursor:pointer;font-size:13.6px;
+  transition:transform .15s, border-color .15s, background .15s;
+  position:relative;overflow:hidden;
+}
+.quiz-opt:hover:not(:disabled){border-color:var(--teal);transform:translateX(3px);}
+.quiz-opt:active:not(:disabled){transform:translateX(3px) scale(.98);}
+.quiz-opt.correct{background:rgba(61,220,132,.16);border-color:var(--good);}
+.quiz-opt.wrong{background:rgba(255,93,108,.14);border-color:var(--bad);}
+.quiz-feedback{margin-top:10px;font-size:13px;color:var(--muted);display:none;}
+.quiz-feedback.show{display:block;}
+.timer-bar-wrap{height:5px;background:var(--bg-soft);border-radius:4px;overflow:hidden;margin-bottom:12px;}
+.timer-bar{height:100%;background:linear-gradient(90deg,var(--good),var(--gold));width:100%;transform-origin:left;}
+
+/* ============================= GAMES HUB ============================= */
+.game-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;display:flex;flex-direction:column;gap:10px;cursor:pointer;
+  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+  position:relative;overflow:hidden;
+}
+.game-card:hover{transform:translateY(-4px);border-color:var(--gold);box-shadow:0 14px 30px rgba(0,0,0,.32);}
+.game-card:active{transform:translateY(-1px) scale(.98);}
+.game-card .ico{font-size:30px;}
+.game-card h4{margin:0;font-family:var(--disp);}
+.game-card p{margin:0;color:var(--muted);font-size:13px;}
+.game-card .reward{font-family:var(--mono);font-size:11.5px;color:var(--gold-soft);}
+
+/* memory game */
+#memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:640px;perspective:1000px;}
+@media (max-width:600px){ #memory-grid{grid-template-columns:repeat(3,1fr);} }
+.mem-card{
+  aspect-ratio:1/1;border-radius:12px;background:var(--card);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;
+  user-select:none;transition:transform .2s, border-color .2s, box-shadow .2s;position:relative;overflow:hidden;
+}
+.mem-card:not(.flipped):not(.matched):hover{transform:translateY(-2px);border-color:var(--teal);box-shadow:0 8px 18px rgba(0,0,0,.25);}
+.mem-card:not(.flipped):not(.matched):active{transform:translateY(0) scale(.95);}
+.mem-card .face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:12px;backface-visibility:hidden;transition:.3s;}
+.mem-card .back{background:linear-gradient(135deg,var(--card-hi),var(--card));font-size:20px;color:var(--muted);}
+.mem-card .front{background:var(--bg-soft);transform:rotateY(180deg);flex-direction:column;gap:2px;padding:4px;}
+.mem-card .front span.lbl{font-size:9.5px;font-family:var(--mono);color:var(--muted);text-align:center;}
+.mem-card.flipped .back{transform:rotateY(180deg);}
+.mem-card.flipped .front{transform:rotateY(0deg);}
+.mem-card.matched{border-color:var(--good);opacity:.55;}
+.mem-card{transform-style:preserve-3d;}
+
+/* classify game */
+.classify-pool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.classify-chip{
+  font-family:var(--mono);font-size:12.5px;background:var(--card-hi);border:1px solid var(--line);
+  padding:7px 13px;border-radius:999px;cursor:pointer;transition:transform .15s, border-color .15s, background .15s;
+  position:relative;overflow:hidden;
+}
+.classify-chip:hover:not(.placed){border-color:var(--gold);transform:translateY(-2px);}
+.classify-chip:active:not(.placed){transform:translateY(0) scale(.95);}
+.classify-chip.selected{background:var(--gold);color:#12233b;font-weight:700;}
+.classify-chip.placed{opacity:.35;pointer-events:none;}
+.classify-zones{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media (max-width:600px){ .classify-zones{grid-template-columns:1fr;} }
+.zone-list{display:flex;flex-direction:column;gap:10px;}
+.zone{min-height:64px;border:2px dashed var(--line);border-left:4px solid var(--teal);border-radius:14px;padding:12px 14px;cursor:pointer;transition:background .2s, border-color .2s;}
+.zone:hover{background:var(--card);}
+.zone h4{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:6px;}
+.zone.renovable{border-color:rgba(61,220,132,.4);}
+.zone.no-renovable{border-color:rgba(255,93,108,.4);}
+.zone-chip{
+  display:inline-block;font-family:var(--mono);font-size:12px;margin:3px;padding:5px 10px;border-radius:8px;
+}
+.zone-chip.ok{background:rgba(61,220,132,.18);color:var(--good);}
+.zone-chip.bad{background:rgba(255,93,108,.18);color:var(--bad);}
+
+/* badges */
+.badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+.badge-pill{
+  display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);
+  padding:8px 14px;border-radius:999px;font-size:12.8px;opacity:.35;transition:.3s;
+}
+.badge-pill.earned{opacity:1;border-color:var(--gold);background:rgba(244,185,66,.1);}
+
+/* exit ticket */
+.exit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media (max-width:760px){ .exit-grid{grid-template-columns:1fr;} }
+textarea.exit-input{
+  width:100%;min-height:70px;resize:vertical;background:var(--bg-soft);
+  border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:10px;font-family:var(--body);font-size:13px;
+}
+
+/* ============================= FOOTER NAV ============================= */
+#controls{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px clamp(14px,3vw,28px);
+  padding-bottom:max(8px, env(safe-area-inset-bottom));
+  padding-left:max(14px, env(safe-area-inset-left));
+  padding-right:max(14px, env(safe-area-inset-right));
+  border-top:1px solid var(--line);
+  background:rgba(10,23,40,.75);backdrop-filter:blur(6px);
+  flex-shrink:0;
+}
+.nav-btn{
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:.2s;
+  flex-shrink:0;position:relative;overflow:hidden;
+}
+.nav-btn:hover:not(:disabled){background:var(--card-hi);border-color:var(--gold);}
+.nav-btn:active:not(:disabled){transform:scale(.9);}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed;}
+#slide-counter{font-family:var(--mono);font-size:12.5px;color:var(--muted);}
+
+@media (max-width:600px){
+  .slide{padding:14px 16px;}
+  .brand-text span{display:none;}
+  .pdf-btn-label{display:none;}
+  #pdf-btn{padding:8px 10px;}
+  .quiz-opt{padding:12px 14px;font-size:14px;}
+  .classify-chip{padding:9px 15px;font-size:13px;}
+  .zone{min-height:56px;padding:10px;}
+  .card{padding:14px 15px;}
+  .oa-box{padding:16px 16px;}
+  .question-box{padding:14px 16px;gap:10px;}
+  .cover-chips{gap:8px;}
+  .acc-head{flex-wrap:wrap;row-gap:6px;padding:12px 14px;}
+  .acc-head .lvl{flex-wrap:wrap;row-gap:4px;}
+  .tl-row{gap:10px;}
+  #xp-badge{font-size:12px;padding:6px 10px;}
+}
+@media (max-width:480px){
+  .tl-row{flex-direction:column;gap:3px;}
+  .tl-time{width:auto;padding-top:0;font-size:11.5px;}
+  .tl-body{border-left-width:3px;padding:10px 13px;}
+  .dot{width:9px;height:9px;}
+  .dot.active{width:24px;}
+  .exit-grid, .classify-zones{gap:10px;}
+  .badge-pill{font-size:11.5px;padding:7px 11px;}
+}
+/* ============================= ENERGY MIX SIMULATOR ============================= */
+.heat-sim{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px;max-width:980px;margin:0 auto;
+  display:grid;grid-template-columns:1.05fr 1fr;gap:20px;align-items:start;
+}
+.mix-visual{
+  display:flex;flex-direction:column;justify-content:center;gap:18px;
+  background:linear-gradient(180deg,#0d1c30,#0a1626);
+  border-radius:14px;padding:26px 18px;
+  align-self:stretch;
+}
+.mix-icons{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
+.mix-ico{font-size:26px;opacity:.3;transition:opacity .3s, transform .3s;}
+.mix-ico.active{opacity:1;transform:scale(1.18);}
+.mix-bar-wrap{display:flex;height:26px;border-radius:13px;overflow:hidden;border:1px solid var(--line);}
+.mix-bar-renew{background:linear-gradient(90deg,#2ed3bd,#3ddc84);transition:width .3s;}
+.mix-bar-nonrenew{background:linear-gradient(90deg,#8a6a4f,#6b5644);transition:width .3s;}
+.mix-bar-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);}
+
+.hydro-side{display:flex;flex-direction:column;gap:12px;min-width:0;}
+.hydro-controls{display:flex;flex-direction:column;gap:12px;}
+.hydro-control label{font-family:var(--mono);font-size:12px;color:var(--ink);display:block;margin-bottom:5px;}
+.hydro-control input[type=range]{
+  width:100%;height:6px;border-radius:4px;appearance:none;-webkit-appearance:none;
+  background:linear-gradient(90deg,var(--teal),var(--gold));outline:none;cursor:pointer;
+}
+.hydro-control input[type=range]::-webkit-slider-thumb{
+  appearance:none;-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:#fff;border:3px solid var(--gold);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.hydro-control input[type=range]::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--gold);cursor:pointer;
+}
+.hydro-readouts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hydro-readout-card{
+  background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+}
+.hydro-readout-card .ico{font-size:17px;display:block;margin-bottom:2px;}
+.hydro-readout-card h4{margin:0 0 2px;font-family:var(--disp);font-size:12px;color:var(--muted);font-weight:600;}
+.hydro-readout{font-family:var(--mono);font-size:18px;color:var(--gold-soft);margin:0;}
+.hydro-goal{font-size:12px;color:var(--muted);margin:0;}
+.hydro-goal b{color:var(--gold-soft);}
+.hydro-feedback{
+  font-size:12.5px;color:var(--good);min-height:18px;opacity:0;transition:opacity .4s;margin:0;
+}
+.hydro-feedback.show{opacity:1;}
+@media (max-width:860px){
+  .heat-sim{grid-template-columns:1fr;max-width:620px;}
+}
+
+/* ============================= PRINT / PDF EXPORT ============================= */
+#print-sheet{display:none;}
+@media print{
+  @page{ margin:16mm; }
+  html,body{height:auto;overflow:visible;background:#fff !important;}
+  #app{display:none !important;}
+  #print-sheet{
+    display:block !important;
+    background:#fff;color:#1a2230;
+    font-family:var(--body);
+    max-width:100%;
+  }
+  #print-sheet *{box-shadow:none !important;}
+  .p-header{border-bottom:3px solid #12233b;padding-bottom:10px;margin-bottom:14px;}
+  .p-header h1{font-family:var(--disp);font-size:22px;margin:0 0 4px;color:#12233b;}
+  .p-header .p-meta{font-size:11.5px;color:#4a5a72;display:flex;gap:18px;flex-wrap:wrap;margin-top:6px;}
+  .p-felipesos{
+    display:inline-block;margin-top:8px;font-family:var(--mono);font-weight:700;
+    background:#fdf1d6;border:1px solid #e8b93d;color:#8a5a00;
+    padding:5px 12px;border-radius:8px;font-size:12.5px;
+  }
+  .p-section{margin:16px 0;break-inside:avoid;}
+  .p-section h2{font-family:var(--disp);font-size:15px;color:#12233b;border-left:4px solid #f4b942;padding-left:8px;margin:0 0 8px;}
+  .p-section p, .p-section li{font-size:11.8px;line-height:1.55;color:#222;}
+  .p-oa{background:#f4f6f9;border:1px solid #d8e0ea;border-radius:8px;padding:10px 12px;font-size:11.8px;margin-bottom:8px;}
+  .p-bloom-lvl{margin-bottom:8px;}
+  .p-bloom-lvl b{font-family:var(--mono);font-size:11px;color:#8a5a00;}
+  .p-bloom-lvl.boss b{color:#6a3fb5;}
+  .p-qa{border:1px solid #dfe6ee;border-radius:8px;padding:8px 10px;margin-bottom:7px;break-inside:avoid;}
+  .p-qa .pq{font-weight:600;font-size:12px;margin:0 0 4px;}
+  .p-qa .pa{font-size:11.5px;color:#1a7a3d;margin:0;}
+  .p-qa .po{font-size:11px;color:#555;margin:0 0 4px;}
+  .p-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px;}
+  .p-table th,.p-table td{border:1px solid #d8e0ea;padding:5px 8px;text-align:left;}
+  .p-table th{background:#f4f6f9;}
+  .p-footer{margin-top:18px;padding-top:10px;border-top:1px solid #d8e0ea;font-size:10.5px;color:#6a7a90;}
+  .p-page-break{break-before:page;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header id="topbar">
+    <div class="brand">
+      <div class="brand-badge">☀️</div>
+      <div class="brand-text">
+        <b>Unidad 3 · Energía</b>
+        <span>Sesiones 7 y 8 · 6° Básico · Villa Alemana</span>
+      </div>
+    </div>
+    <div id="progress-dots"></div>
+    <div id="xp-wrap">
+      <button id="sound-btn" class="btn btn-ghost" title="Activar o silenciar sonidos">🔊</button>
+      <button id="pdf-btn" class="btn btn-ghost" title="Exportar guía compilada en PDF">📄 <span class="pdf-btn-label">Exportar PDF</span></button>
+      <div id="xp-badge">🪙 <span id="xp-count">0</span> Felipesos<span id="xp-toast">+10</span></div>
+    </div>
+  </header>
+
+  <main id="deck">
+    <!-- 1. COVER -->
+    <section class="slide" id="slide-cover" data-title="Portada">
+      <div class="slide-body" style="display:flex;align-items:center;">
+        <div class="cover-grid">
+          <div>
+            <span class="cover-kicker">🔬 Ciencias Naturales · 6° Básico</span>
+            <h1 class="cover-title">Misión final:<br>energía para siempre</h1>
+            <p class="cover-sub">Unidad 3: Energía — Sesiones 7 y 8. Clasificamos los recursos energéticos en renovables y no renovables, y proponemos medidas para usar la energía de forma responsable en Villa Alemana.</p>
+            <div class="cover-chips">
+              <span class="chip">OA <b>11</b></span>
+              <span class="chip">Bloom <b>N1→N6</b></span>
+              <span class="chip">Prof. <b>Felipe Jiménez</b></span>
+              <span class="chip">📍 <b>Villa Alemana</b></span>
+            </div>
+            <p class="cover-hint">Avanza y retrocede con las flechas ← → o tocando los puntos de arriba.</p>
+          </div>
+          <div class="qr-box desktop-only">
+            <span class="qr-label">Ábrelo en tu celular</span>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=https%3A%2F%2Ffjimenez321-stack.github.io%2Fdondefelipe%2Ffisica%2Fenergia.html" alt="Código QR de acceso" loading="lazy">
+            <p>Escanea con la cámara de tu celular para seguir la clase y jugar desde tu propio dispositivo.</p>
+            <a href="https://fjimenez321-stack.github.io/dondefelipe/fisica/energia.html" target="_blank" rel="noopener">fjimenez321-stack.github.io/dondefelipe/fisica/energia.html</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1B. GANCHO EMOCIONANTE -->
+    <section class="slide" id="slide-gancho" data-title="Pregunta inicial">
+      <div class="slide-body" style="display:flex;align-items:center;justify-content:center;">
+        <div class="gancho-wrap">
+          <div class="mood-checkin">
+            <span class="mood-label">Antes de empezar, ¿cómo llegas hoy a esta misión?</span>
+            <div class="mood-opts" id="mood-opts-start">
+              <button class="mood-btn" data-m="genial" title="Genial">😃</button>
+              <button class="mood-btn" data-m="tranquilo" title="Tranquilo/a">😌</button>
+              <button class="mood-btn" data-m="nervioso" title="Nervioso/a">😬</button>
+              <button class="mood-btn" data-m="cansado" title="Cansado/a">😴</button>
+            </div>
+            <p class="mood-feedback" id="mood-feedback-start"></p>
+          </div>
+          <span class="cover-kicker" style="background:rgba(255,138,92,.14);border-color:rgba(255,138,92,.3);color:var(--ember);">🕵️ Su primera misión como Consultores Energéticos</span>
+          <h2 class="gancho-title">El Sol lleva brillando 4.600 millones de años... ¿por qué seguimos comprando carbón, que algún día se acaba?</h2>
+          <p class="gancho-sub">Desde hoy son Consultores Energéticos de Villa Alemana: la comuna necesita su ayuda para decidir qué fuentes de energía usar. Antes de empezar, respondan esta primera pregunta.</p>
+          <p class="gancho-question">¿Cuál de estos recursos NUNCA se agotará, sin importar cuánto lo usemos?</p>
+          <div class="gancho-opts" id="gancho-opts">
+            <button class="gancho-btn" data-r="sol">☀️ El sol</button>
+            <button class="gancho-btn" data-r="carbon">⛏️ El carbón</button>
+            <button class="gancho-btn" data-r="ambos">🤷 Los dos se acaban igual</button>
+          </div>
+          <p class="gancho-feedback" id="gancho-feedback"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. AGENDA -->
+
+    <section class="slide" id="slide-agenda" data-title="Agenda">
+      <p class="eyebrow">Cómo se organiza esta clase</p>
+      <h2 class="title">Dos sesiones, un mismo hilo conductor</h2>
+      <p class="subtitle">Sesión 7 desarrolla el contenido y el proyecto final (90 min). Sesión 8 refuerza, retroalimenta y cierra la Unidad 3.</p>
+      <div class="slide-body">
+        <div class="session-divider">Sesión 7 · Clase 7 · 90 minutos</div>
+        <div class="timeline">
+          <div class="tl-row"><div class="tl-time">0–8 min</div><div class="tl-body"><h4>🕵️ Gancho + Activación</h4><p>Primera misión como Consultores Energéticos: ¿qué recurso nunca se agota?</p></div></div>
+          <div class="tl-row"><div class="tl-time">8–20 min</div><div class="tl-body"><h4>📚 Desarrollo de contenido</h4><p>Renovables y no renovables + mini-juego de clasificación relámpago.</p></div></div>
+          <div class="tl-row"><div class="tl-time">20–32 min</div><div class="tl-body"><h4>📍 Contexto local</h4><p>Sol y viento en Villa Alemana, agua del Aconcagua, y la minería no renovable de Mina El Soldado.</p></div></div>
+          <div class="tl-row"><div class="tl-time">32–45 min</div><div class="tl-body"><h4>🎮 Simulador: mezcla energética</h4><p>Diseñan la combinación de energías de Villa Alemana y ven su impacto.</p></div></div>
+          <div class="tl-row"><div class="tl-time">45–85 min</div><div class="tl-body ember"><h4>🏗️ Proyecto final: construcción de maqueta (OA a–f)</h4><p>En equipos, construyen una maqueta que responda una pregunta de investigación de la unidad.</p></div></div>
+          <div class="tl-row"><div class="tl-time">85–90 min</div><div class="tl-body"><h4>🎟️ Cierre + Exit Ticket</h4><p>Síntesis y banco de preguntas Bloom N1–N6.</p></div></div>
+        </div>
+        <div class="session-divider">Sesión 8 · Clase 8 · 30 minutos</div>
+        <div class="timeline">
+          <div class="tl-row"><div class="tl-time">0–10 min</div><div class="tl-body"><h4>🎮 Retroalimentación gamificada</h4><p>Quiz relámpago con lo aprendido en la Clase 7.</p></div></div>
+          <div class="tl-row"><div class="tl-time">10–22 min</div><div class="tl-body"><h4>🎪 Feria de la Energía</h4><p>Cada equipo presenta su maqueta en 1 minuto + Desafío Boss individual.</p></div></div>
+          <div class="tl-row"><div class="tl-time">22–30 min</div><div class="tl-body boss"><h4>🎟️ Exit Ticket + cierre de unidad</h4><p>3-2-1 y síntesis final de la Unidad 3: Energía.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. OBJETIVO -->
+
+    <section class="slide" id="slide-objetivo" data-title="Objetivo">
+      <p class="eyebrow">Objetivo de aprendizaje · OA11</p>
+      <h2 class="title">Recursos que se acaban, recursos que no</h2>
+      <div class="slide-body">
+        <div class="oa-box">
+          <span class="tag">OA 11 — Eje: Ciencias Físicas y Químicas</span>
+          <p>Clasificar los recursos naturales energéticos en no renovables y renovables, y proponer medidas para el uso responsable de la energía.</p>
+          <div class="skills-row">
+            <span class="skill-pill">OA a · Predicción e investigación</span>
+            <span class="skill-pill">OA b · Indagar en fuentes confiables</span>
+            <span class="skill-pill">OA c · Medir y registrar</span>
+            <span class="skill-pill">OA d · Uso seguro de materiales</span>
+            <span class="skill-pill">OA e · Formular conclusiones</span>
+            <span class="skill-pill">OA f · Comunicar resultados</span>
+          </div>
+        </div>
+        <div class="question-box">
+          <span class="qmark">💭</span>
+          <p>Pregunta de inicio: si Villa Alemana pudiera elegir solo dos fuentes de energía para los próximos 100 años, ¿cuáles recomendarían ustedes, como Consultores Energéticos, y por qué?</p>
+        </div>
+        <div class="card-grid g3" style="margin-top:16px;">
+          <div class="card"><span class="ico">🎯</span><h4>Meta de la clase</h4><p>Clasificar recursos energéticos en renovables y no renovables, y construir una maqueta que responda una pregunta de investigación.</p></div>
+          <div class="card"><span class="ico">🧠</span><h4>Lo que ya sabes</h4><p>El Sol como fuente de energía, sus transformaciones, y cómo el calor fluye entre objetos.</p></div>
+          <div class="card"><span class="ico">🏆</span><h4>Actitudes a desarrollar</h4><p>Conciencia ambiental y responsabilidad, además de compromiso social con el uso sostenible de la energía.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CONTENIDO -->
+
+    <section class="slide" id="slide-contenido" data-title="Contenido">
+      <p class="eyebrow">Desarrollo · Recursos energéticos</p>
+      <h2 class="title">Renovables vs. no renovables</h2>
+      <div class="slide-body">
+        <div class="card-grid g2">
+          <div class="card"><span class="ico">🔄</span><h4>Renovables</h4><p>La naturaleza los repone constantemente, casi tan rápido como los usamos. Ejemplos: sol, viento, agua, biomasa.</p></div>
+          <div class="card"><span class="ico">⏳</span><h4>No renovables</h4><p>Se agotan porque la naturaleza tarda muchísimo tiempo (millones de años) en volver a formarlos. Ejemplos: petróleo, carbón, gas natural.</p></div>
+        </div>
+        <div class="oa-box" style="margin-top:14px;">
+          <span class="tag">Idea clave</span>
+          <p>No se trata de que unos sean "buenos" y otros "malos": se trata de <b>disponibilidad</b> y <b>capacidad de renovación</b>. Por eso es importante usar todos los recursos de forma responsable.</p>
+        </div>
+        <p class="eyebrow" style="margin-top:16px;">⚡ Clasificación relámpago</p>
+        <p class="subtitle" style="margin-bottom:8px;">Toca cada recurso y luego la categoría correcta. ¡Rapidez de Consultor Energético!</p>
+        <div class="classify-pool" id="mini-classify-pool"></div>
+        <div class="zone-list" id="mini-classify-zones"></div>
+      </div>
+    </section>
+
+    <!-- 5. CONTEXTO LOCAL / SIGNATURE FLOW -->
+
+    <section class="slide" id="slide-contexto" data-title="Contexto local">
+      <p class="eyebrow">Anclaje territorial</p>
+      <h2 class="title">Los recursos energéticos de nuestra comuna</h2>
+      <div class="slide-body">
+        <div class="session-divider">🔄 Recursos renovables cerca de nosotros</div>
+        <div class="card-grid g2">
+          <div class="card"><span class="ico">☀️🌬️</span><h4>Sol y viento en Villa Alemana</h4><p>Muchos techos y campos de la comuna reciben suficiente sol y viento como para instalar paneles solares o pequeños generadores eólicos.</p></div>
+          <div class="card"><span class="ico">🌊</span><h4>Agua del río Aconcagua</h4><p>El mismo caudal que ya conocemos en la Central Chacabuquito es un recurso renovable: el ciclo del agua lo repone constantemente.</p></div>
+        </div>
+        <div class="session-divider">⏳ Recursos no renovables cerca de nosotros</div>
+        <div class="card-grid g2">
+          <div class="card"><span class="ico">⛏️</span><h4>Mina El Soldado</h4><p>La extracción de cobre depende de maquinaria pesada que funciona con combustibles fósiles, un recurso no renovable que tomó millones de años en formarse.</p></div>
+          <div class="card"><span class="ico">🚗</span><h4>Bencina y transporte</h4><p>Los vehículos que circulan por la comuna, incluyendo el transporte escolar, dependen mayoritariamente de combustibles no renovables.</p></div>
+        </div>
+        <div class="oa-box" style="margin-top:14px;">
+          <span class="tag">Por qué importa</span>
+          <p>Villa Alemana tiene sol, viento y agua en abundancia: recursos renovables que hoy usamos poco. Como Consultores Energéticos, su misión es proponer cómo aprovecharlos mejor.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5B. SIMULADOR MEZCLA ENERGÉTICA -->
+    <section class="slide" id="slide-simulador" data-title="Simulador">
+      <p class="eyebrow">Simulador · Diseña la mezcla energética</p>
+      <h2 class="title">🎮 La mezcla energética de Villa Alemana</h2>
+      <p class="subtitle">Como Consultores Energéticos, ajusten cuánta energía renovable usaría la comuna y observen el impacto.</p>
+      <div class="slide-body">
+        <div class="heat-sim">
+          <div class="mix-visual">
+            <div class="mix-icons">
+              <span class="mix-ico" id="ico-sol">☀️</span>
+              <span class="mix-ico" id="ico-viento">🌬️</span>
+              <span class="mix-ico" id="ico-agua">🌊</span>
+              <span class="mix-ico" id="ico-fabrica">🏭</span>
+              <span class="mix-ico" id="ico-mina">⛏️</span>
+            </div>
+            <div class="mix-bar-wrap">
+              <div class="mix-bar-renew" id="mix-bar-renew"></div>
+              <div class="mix-bar-nonrenew" id="mix-bar-nonrenew"></div>
+            </div>
+            <div class="mix-bar-labels">
+              <span id="mix-renew-label">50% renovable</span>
+              <span id="mix-nonrenew-label">50% no renovable</span>
+            </div>
+          </div>
+          <div class="hydro-side">
+            <div class="hydro-controls">
+              <div class="hydro-control">
+                <label>🔋 Energía renovable en la mezcla: <b id="mix-val">50</b>%</label>
+                <input type="range" id="mix-slider" min="0" max="100" value="50" step="5">
+              </div>
+            </div>
+            <div class="hydro-readouts">
+              <div class="hydro-readout-card"><span class="ico">🌍</span><h4>Impacto ambiental</h4><p class="hydro-readout" id="mix-impact" style="font-size:14px;">Medio</p></div>
+              <div class="hydro-readout-card"><span class="ico">📊</span><h4>Sostenibilidad</h4><p class="hydro-readout" id="mix-score">50 / 100</p></div>
+            </div>
+            <p class="hydro-goal">🏆 Meta: logra al menos 70% de energía renovable en la mezcla.</p>
+            <p class="hydro-feedback" id="mix-feedback"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. ACTIVIDAD INVESTIGACION -->
+
+    <section class="slide" id="slide-actividad" data-title="Proyecto final">
+      <p class="eyebrow">Proyecto final · Construcción de una maqueta</p>
+      <h2 class="title">🏗️ Construyan su propuesta para Villa Alemana</h2>
+      <div class="slide-body">
+        <div class="oa-box">
+          <span class="tag">OA a, OA b, OA c, OA d, OA e, OA f</span>
+          <p>Como Consultores Energéticos, cada equipo elige una pregunta de investigación relacionada con lo visto en la unidad, formula una predicción, y construye una <b>maqueta</b> que la responda. Al final, la presentan en la Feria de la Energía de la Sesión 8.</p>
+        </div>
+
+        <p class="eyebrow" style="margin-top:16px;">👥 Roles del equipo</p>
+        <div class="card-grid g4">
+          <div class="card"><span class="ico">🔬</span><h4>Investigador/a</h4><p>Reúne la información científica y redacta la predicción del equipo.</p></div>
+          <div class="card"><span class="ico">🏗️</span><h4>Ingeniero/a</h4><p>Lidera la construcción y decide los materiales de la maqueta.</p></div>
+          <div class="card"><span class="ico">🎨</span><h4>Diseñador/a</h4><p>Cuida que la maqueta sea prolija, clara y visualmente atractiva.</p></div>
+          <div class="card"><span class="ico">🎤</span><h4>Comunicador/a</h4><p>Prepara la explicación de 1 minuto para la Feria de la Energía.</p></div>
+        </div>
+
+        <p class="eyebrow" style="margin-top:16px;">❓ Elijan su pregunta de investigación</p>
+        <div class="card-grid g4">
+          <div class="card"><span class="ico">☀️</span><h4>Energía solar</h4><p>¿Cómo podríamos usar paneles solares para reducir el consumo eléctrico de nuestra escuela?</p></div>
+          <div class="card"><span class="ico">🏭</span><h4>Transformación</h4><p>¿Cómo transforma la Central Chacabuquito el agua del Aconcagua en electricidad?</p></div>
+          <div class="card"><span class="ico">🌡️</span><h4>Flujo de calor</h4><p>¿Cómo podríamos aprovechar mejor el calor del sol para calefaccionar una casa?</p></div>
+          <div class="card"><span class="ico">🔋</span><h4>Recursos renovables</h4><p>¿Qué combinación de energías renovables sería mejor para Villa Alemana?</p></div>
+        </div>
+
+        <p class="eyebrow" style="margin-top:16px;">🧰 Materiales y pasos sugeridos</p>
+        <div class="card-grid g2">
+          <div class="card">
+            <span class="ico">🧰</span><h4>Materiales</h4>
+            <ul>
+              <li>Cartón, palitos de helado, papel aluminio</li>
+              <li>Plastilina o greda para el terreno</li>
+              <li>Témperas o plumones para pintar</li>
+              <li>Opcional: motorcito pequeño, LED, pilas</li>
+            </ul>
+          </div>
+          <div class="card">
+            <span class="ico">📋</span><h4>Pasos</h4>
+            <ul>
+              <li>1. Elijan su pregunta y formulen una predicción.</li>
+              <li>2. Planifiquen qué mostrará la maqueta (OA b).</li>
+              <li>3. Construyan con materiales seguros (OA d).</li>
+              <li>4. Preparen una explicación de 1 minuto (OA f).</li>
+            </ul>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-maqueta" style="margin-top:16px;">🏗️ Marcar maqueta iniciada</button>
+        <p class="hydro-feedback" id="maqueta-feedback"></p>
+      </div>
+    </section>
+
+    <!-- 7. BANCO BLOOM -->
+
+    <section class="slide" id="slide-bloom" data-title="Banco de preguntas">
+      <p class="eyebrow">Banco de preguntas · Taxonomía de Bloom</p>
+      <h2 class="title">De Recordar a Crear: sube de nivel</h2>
+      <p class="subtitle">Toca cada nivel para ver sus preguntas. Los niveles 5 y 6 son <b style="color:var(--boss);">Desafío Boss</b>.</p>
+      <div class="slide-body" id="bloom-accordion"></div>
+    </section>
+
+    <!-- 8. EXIT CLASE 1 -->
+    <section class="slide" id="slide-exit1" data-title="Exit Ticket 1">
+      <p class="eyebrow">Cierre · Sesión 7 · Metacognición</p>
+      <h2 class="title">Antes de irnos, pensemos en cómo pensamos... 🎟️</h2>
+      <div class="slide-body">
+        <div class="exit-grid">
+          <div class="card"><h4>1. Su estrategia</h4><textarea class="exit-input" placeholder="¿Qué estrategia usó tu equipo para elegir la pregunta de investigación?"></textarea></div>
+          <div class="card"><h4>2. Un desafío</h4><textarea class="exit-input" placeholder="¿Qué fue lo más difícil hoy, y cómo lo resolviste?"></textarea></div>
+          <div class="card"><h4>3. Tu evidencia</h4><textarea class="exit-input" placeholder="¿Cómo sabes que aprendiste algo nuevo hoy?"></textarea></div>
+        </div>
+        <div class="oa-box" style="margin-top:16px;">
+          <span class="tag">Para la próxima sesión</span>
+          <p>En la Sesión 8 revisaremos lo aprendido con un juego relámpago y cerraremos la Unidad 3 completa.</p>
+        </div>
+        <button class="btn btn-primary" id="btn-complete-exit1" style="margin-top:10px;">Marcar cierre completado 🪙 +10 Felipesos</button>
+      </div>
+    </section>
+
+    <!-- 9. RETRO CLASE 2 -->
+    <section class="slide" id="slide-retro" data-title="Retroalimentación">
+      <p class="eyebrow">Sesión 8 · Clase 8 (30 min)</p>
+      <h2 class="title">🎮 Retroalimentación gamificada</h2>
+      <p class="subtitle">Responde para repasar lo visto en la Sesión 7. Cada acierto suma Felipesos.</p>
+      <div class="slide-body" id="retro-quiz-container"></div>
+    </section>
+
+    <!-- 10. REFUERZO -->
+    <section class="slide" id="slide-refuerzo" data-title="Refuerzo">
+      <p class="eyebrow">🎪 Feria de la Energía</p>
+      <h2 class="title">¡Es hora de mostrar sus maquetas!</h2>
+      <div class="slide-body">
+        <div class="oa-box">
+          <span class="tag">Cómo funciona</span>
+          <p>Cada equipo tiene <b>1 minuto</b> para mostrar su maqueta al curso: cuál era su pregunta de investigación, qué predijeron, y cómo su maqueta la responde. El Comunicador/a del equipo presenta, ¡pero todos pueden ayudar a explicar!</p>
+        </div>
+        <div class="card-grid g2">
+          <div class="card boss" style="border-color:rgba(185,139,255,.4);">
+            <span class="ico">👑</span><h4 style="color:var(--boss);">Desafío Boss (individual)</h4>
+            <p>Evalúa y jerarquiza qué medida de uso responsable de la energía sería más efectiva y viable para Villa Alemana, fundamentando tus criterios con lo aprendido en la unidad.</p>
+          </div>
+          <div class="card">
+            <span class="ico">✅</span><h4>Repaso rápido</h4>
+            <ul>
+              <li>Renovable: la naturaleza lo repone constantemente (sol, viento, agua).</li>
+              <li>No renovable: tarda millones de años en formarse (petróleo, carbón, gas).</li>
+              <li>Usar la energía de forma responsable es tarea de todos, no solo del gobierno.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. EXIT CLASE 2 -->
+
+    <section class="slide" id="slide-exit2" data-title="Exit Ticket 2">
+      <p class="eyebrow">Cierre · Sesión 8 · Metacognición</p>
+      <h2 class="title">3-2-1 sobre tu propio aprendizaje</h2>
+      <div class="slide-body">
+        <div class="card-grid g3">
+          <div class="card"><h4>3 cosas que aprendiste sobre ti como estudiante</h4><textarea class="exit-input" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea></div>
+          <div class="card"><h4>2 estrategias que usarías de nuevo</h4><textarea class="exit-input" placeholder="1. ...&#10;2. ..."></textarea></div>
+          <div class="card"><h4>1 cosa que te enorgullece de tu trabajo</h4><textarea class="exit-input" placeholder="..."></textarea></div>
+        </div>
+        <button class="btn btn-primary" id="btn-complete-exit2" style="margin-top:14px;">Marcar cierre completado 🪙 +10 Felipesos</button>
+      </div>
+    </section>
+
+    <!-- 12. JUEGOS HUB -->
+    <section class="slide" id="slide-juegos" data-title="Juegos">
+      <p class="eyebrow">Zona de juegos</p>
+      <h2 class="title">🎮 Pon a prueba lo que aprendiste</h2>
+      <p class="subtitle">Elige un juego. Cada uno entrega Felipesos y una insignia al completarlo.</p>
+      <div class="slide-body">
+        <div class="card-grid g3">
+          <div class="game-card" data-goto="slide-memorama"><span class="ico">🧠</span><h4>Memorama energético</h4><p>Encuentra los pares entre fuentes de energía renovables y no renovables.</p><span class="reward">Insignia: Memoria de Energía</span></div>
+          <div class="game-card" data-goto="slide-relampago"><span class="ico">⚡</span><h4>Quiz relámpago</h4><p>6 preguntas contra el reloj sobre las Sesiones 7 y 8.</p><span class="reward">Insignia: Rayo Veloz</span></div>
+          <div class="game-card" data-goto="slide-clasifica"><span class="ico">🔀</span><h4>Clasifica y gana</h4><p>Ordena recursos energéticos en renovables y no renovables.</p><span class="reward">Insignia: Clasificador Experto</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. MEMORAMA -->
+    <section class="slide" id="slide-memorama" data-title="Memorama">
+      <p class="eyebrow">Juego 1 · Memorama</p>
+      <h2 class="title">🧠 Encuentra los pares</h2>
+      <p class="subtitle">Toca dos cartas para revelarlas. Empareja cada fuente de energía consigo misma.</p>
+      <div class="slide-body">
+        <div id="memory-grid"></div>
+        <p style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:12px;" id="memory-status">Pares encontrados: 0 / 6</p>
+      </div>
+    </section>
+
+    <!-- 14. RELAMPAGO -->
+    <section class="slide" id="slide-relampago" data-title="Quiz relámpago">
+      <p class="eyebrow">Juego 2 · Quiz relámpago</p>
+      <h2 class="title">⚡ Responde antes que se acabe el tiempo</h2>
+      <div class="slide-body" id="lightning-container"></div>
+    </section>
+
+    <!-- 15. CLASIFICA -->
+    <section class="slide" id="slide-clasifica" data-title="Clasifica y gana">
+      <p class="eyebrow">Juego 3 · Clasifica y gana</p>
+      <h2 class="title">🔀 Renovable o no renovable</h2>
+      <p class="subtitle">Toca un recurso y luego toca la categoría a la que corresponde.</p>
+      <div class="slide-body">
+        <div class="classify-pool" id="classify-pool"></div>
+        <div class="zone-list" id="classify-zones-container"></div>
+        <p style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:12px;" id="classify-status">Clasificados: 0 / 8</p>
+      </div>
+    </section>
+
+
+    <!-- 16. CIERRE -->
+    <section class="slide" id="slide-cierre" data-title="Cierre">
+      <p class="eyebrow">Cierre general · Fin de la Unidad 3</p>
+      <h2 class="title">🏆 ¡Felicitaciones, Consultores Energéticos!</h2>
+      <div class="slide-body">
+        <div class="oa-box">
+          <p>Hace algunas semanas, la energía era solo una palabra en la pizarra. Hoy diseñaron, construyeron y defendieron una propuesta real para Villa Alemana — eso es exactamente lo que hacen los científicos e ingenieros de verdad. Estén orgullosos no solo del resultado, sino del esfuerzo, la paciencia y el trabajo en equipo que pusieron en el camino.</p>
+        </div>
+        <div class="mood-checkin" style="margin-top:14px;">
+          <span class="mood-label">¿Cómo te sientes ahora, al terminar esta misión?</span>
+          <div class="mood-opts" id="mood-opts-end">
+            <button class="mood-btn" data-m="orgulloso" title="Orgulloso/a">🥳</button>
+            <button class="mood-btn" data-m="satisfecho" title="Satisfecho/a">😌</button>
+            <button class="mood-btn" data-m="aliviado" title="Aliviado/a">😅</button>
+            <button class="mood-btn" data-m="ganas" title="Con ganas de más">💪</button>
+          </div>
+          <p class="mood-feedback" id="mood-feedback-end"></p>
+        </div>
+        <p class="eyebrow" style="margin-top:14px;">Tus insignias</p>
+        <div class="badge-row" id="badge-row"></div>
+        <div class="card-grid g2" style="margin-top:18px;">
+          <div class="card"><span class="ico">⚡</span><h4>Felipesos ganados</h4><p style="font-family:var(--mono);font-size:22px;color:var(--gold-soft);" id="final-xp">0 Felipesos</p></div>
+          <div class="card"><span class="ico">🔭</span><h4>Lo que viene</h4><p>Presentación final de las maquetas y comienzo de la Unidad 4: Cambios de Estado.</p></div>
+        </div>
+        <button class="btn btn-primary" id="btn-pdf-cierre" style="margin-top:18px;">📄 Descargar guía compilada en PDF</button>
+      </div>
+    </section>
+
+  </main>
+
+
+  <nav id="controls">
+    <button class="nav-btn" id="btn-prev" aria-label="Anterior">←</button>
+    <span id="slide-counter">1 / 18</span>
+    <button class="nav-btn" id="btn-next" aria-label="Siguiente">→</button>
+  </nav>
+</div>
+
+<!-- Printable compiled guide, populated by JS just before export. Hidden on screen, shown only when printing. -->
+<div id="print-sheet"></div>
+
+<script>
+/* ===================== DATA ===================== */
+const bloomData = [
+  { lvl:'N1', label:'Recordar', boss:false, items:[
+    'Identifica y define los conceptos de recursos energéticos renovables y no renovables.',
+    'Enumera ejemplos de recursos renovables y no renovables presentes en la Región de Valparaíso: sol y viento en Villa Alemana, agua del río Aconcagua, y la actividad minera no renovable de Mina El Soldado.'
+  ]},
+  { lvl:'N2', label:'Comprender', boss:false, items:[
+    'Explica la diferencia entre disponibilidad y capacidad de renovación de los recursos energéticos.',
+    'Describe la importancia de utilizar de manera responsable y sostenible los recursos energéticos de la comuna y la región.'
+  ]},
+  { lvl:'N3', label:'Aplicar', boss:false, items:[
+    'Clasifica un conjunto de fuentes de energía, incluidas las de uso local, en renovables y no renovables mediante una tabla o diagrama.',
+    'Indaga en fuentes confiables (OA b) sobre el consumo energético asociado a una actividad productiva de la zona, como la minería del cobre en Mina El Soldado o la agricultura del Valle del Aconcagua.'
+  ]},
+  { lvl:'N4', label:'Analizar', boss:false, items:[
+    'Analiza críticamente las consecuencias ambientales del uso de fuentes de energía no renovables en la región, comparándolas con alternativas renovables locales (sol, viento, agua).',
+    'Compara ventajas y desventajas de distintas estrategias para el uso responsable de la energía en el hogar, la escuela y la comunidad de Villa Alemana.'
+  ]},
+  { lvl:'N5', label:'Evaluar', boss:true, items:[
+    'Evalúa y jerarquiza medidas de uso responsable de la energía según su efectividad y viabilidad para la realidad de Villa Alemana, fundamentando sus criterios.',
+    'Argumenta, con evidencia de su indagación, qué combinación de fuentes energéticas renovables sería más adecuada para la Región de Valparaíso.'
+  ]},
+  { lvl:'N6', label:'Crear', boss:true, items:[
+    'Diseña una campaña o afiche de uso responsable de la energía dirigida a la comunidad escolar, comunicando sus propuestas con apoyo de TIC (OA f).',
+    'Propone un proyecto de transición energética a pequeña escala para el establecimiento (por ejemplo, paneles solares o mejor aislación térmica), fundamentado en los datos recopilados durante la unidad.'
+  ]}
+];
+
+const retroQuestions = [
+  { q:'¿Qué diferencia principal hay entre un recurso renovable y uno no renovable?', opts:['El color', 'La capacidad de la naturaleza para reponerlo', 'El precio', 'Ninguna diferencia real'], correct:1 },
+  { q:'¿Cuál de estos recursos es no renovable?', opts:['Viento', 'Agua del río', 'Petróleo', 'Sol'], correct:2 },
+  { q:'Verdadero o falso: usar energía de forma responsable solo depende del gobierno, no de las personas.', opts:['Verdadero', 'Falso'], correct:1 },
+  { q:'¿Qué actividad productiva de la zona depende fuertemente de recursos no renovables?', opts:['La agricultura del Valle del Aconcagua', 'La minería de Mina El Soldado', 'La pesca artesanal', 'El turismo de montaña'], correct:1 },
+  { q:'¿Cuál de estas es una medida de uso responsable de la energía?', opts:['Dejar las luces encendidas todo el día', 'Apagar aparatos que no se están usando', 'Usar siempre el auto en trayectos cortos', 'Ninguna de las anteriores'], correct:1 }
+];
+
+const lightningQuestions = [
+  { q:'¿Cuál de estos recursos es renovable?', opts:['Carbón', 'Gas natural', 'Viento', 'Petróleo'], correct:2 },
+  { q:'El agua del río Aconcagua es un recurso energético:', opts:['No renovable', 'Renovable', 'Ninguno de los dos', 'Depende del año'], correct:1 },
+  { q:'¿Por qué el petróleo es un recurso no renovable?', opts:['Porque es líquido', 'Porque la naturaleza tarda millones de años en formarlo', 'Porque es caro', 'Porque contamina'], correct:1 },
+  { q:'¿Qué recurso no renovable se extrae en Mina El Soldado?', opts:['Oro', 'Cobre', 'Carbón', 'Litio'], correct:1 },
+  { q:'Antes de proponer una medida de uso responsable, ¿qué deberían hacer como Consultores Energéticos?', opts:['Adivinar al azar', 'Indagar en fuentes confiables', 'Copiar lo que hace otro país sin analizar', 'Nada, no es necesario'], correct:1 },
+  { q:'¿Cuál sería una buena medida de uso responsable para una escuela?', opts:['Instalar paneles solares en el techo', 'Dejar los computadores encendidos toda la noche', 'Usar más calefacción a gas sin medir consumo', 'Ninguna de las anteriores'], correct:0 }
+];
+
+const memoryPairs = [
+  { id:'panel', icon:'☀️', label:'Panel solar' },
+  { id:'viento', icon:'🌬️', label:'Turbina eólica' },
+  { id:'agua', icon:'🌊', label:'Agua del Aconcagua' },
+  { id:'petroleo', icon:'🛢️', label:'Petróleo' },
+  { id:'mina', icon:'⛏️', label:'Mina El Soldado' },
+  { id:'carbon', icon:'⚫', label:'Carbón' }
+];
+
+const classifyZones = [
+  { id:'renovable', label:'🔄 Renovable' },
+  { id:'no-renovable', label:'⏳ No renovable' }
+];
+const classifyItems = [
+  { name:'Paneles solares fotovoltaicos', zone:'renovable' },
+  { name:'Turbinas eólicas', zone:'renovable' },
+  { name:'Agua del río Aconcagua', zone:'renovable' },
+  { name:'Biomasa (leña de manejo sostenible)', zone:'renovable' },
+  { name:'Petróleo', zone:'no-renovable' },
+  { name:'Carbón (como el extraído en minas de la zona)', zone:'no-renovable' },
+  { name:'Gas natural', zone:'no-renovable' },
+  { name:'Cobre de Mina El Soldado (uso energético asociado)', zone:'no-renovable' }
+];
+
+const badgeDefs = [
+  { id:'exit1', label:'🎟️ Cierre Sesión 7' },
+  { id:'exit2', label:'🎟️ Cierre Sesión 8' },
+  { id:'mezcla', label:'🔋 Ingeniero Energético' },
+  { id:'maqueta', label:'🏗️ Arquitecto de la Energía' },
+  { id:'memorama', label:'🧠 Memoria de Energía' },
+  { id:'relampago', label:'⚡ Rayo Veloz' },
+  { id:'clasifica', label:'🔀 Clasificador Experto' }
+];
+
+/* ===================== STATE ===================== */
+const state = { xp:0, badges:new Set(), current:0 };
+const slideEls = Array.from(document.querySelectorAll('#deck .slide'));
+const slideIds = slideEls.map(s=>s.id);
+
+/* ===================== SOUND EFFECTS (synthesized, no external files) ===================== */
+let soundEnabled = true;
+const AudioFX = (function(){
+  let ctx = null;
+  function getCtx(){
+    if(!ctx){ ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if(ctx.state === 'suspended'){ ctx.resume(); }
+    return ctx;
+  }
+  function tone(freq, startOffset, dur, type, gainPeak){
+    const ac = getCtx();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = type || 'sine';
+    const t0 = ac.currentTime + startOffset;
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(gainPeak, t0 + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+  return {
+    premio(){ if(!soundEnabled) return; tone(523.25,0,.13,'sine',.16); tone(659.25,.09,.13,'sine',.16); tone(783.99,.18,.24,'sine',.18); },
+    castigo(){ if(!soundEnabled) return; tone(220,0,.16,'sawtooth',.12); tone(164,.1,.24,'sawtooth',.12); },
+    slide(){ if(!soundEnabled) return; tone(520,0,.06,'sine',.05); },
+    pregunta(){ if(!soundEnabled) return; tone(659,0,.08,'triangle',.09); tone(880,.07,.11,'triangle',.08); }
+  };
+})();
+document.getElementById('sound-btn').addEventListener('click', (e)=>{
+  soundEnabled = !soundEnabled;
+  e.target.textContent = soundEnabled ? '🔊' : '🔇';
+});
+
+/* ===================== XP / BADGES ===================== */
+function addXP(n){
+  state.xp += n;
+  document.getElementById('xp-count').textContent = state.xp;
+  const toast = document.getElementById('xp-toast');
+  toast.textContent = '+' + n;
+  toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show');
+  const badge = document.getElementById('xp-badge');
+  badge.classList.remove('bump'); void badge.offsetWidth; badge.classList.add('bump');
+  AudioFX.premio();
+}
+function earnBadge(id){
+  if(state.badges.has(id)) return;
+  state.badges.add(id);
+  renderBadges();
+}
+function renderBadges(){
+  const row = document.getElementById('badge-row');
+  if(!row) return;
+  row.innerHTML = badgeDefs.map(b=>
+    `<span class="badge-pill ${state.badges.has(b.id)?'earned':''}">${b.label}</span>`
+  ).join('');
+  const finalXp = document.getElementById('final-xp');
+  if(finalXp) finalXp.textContent = state.xp + ' Felipesos';
+}
+
+/* ===================== NAVIGATION ===================== */
+function buildDots(){
+  const wrap = document.getElementById('progress-dots');
+  const sectionStarts = new Set(['slide-cover','slide-retro','slide-juegos']);
+  wrap.innerHTML = slideIds.map((id,i)=>
+    `<span class="dot ${sectionStarts.has(id)?'section-start':''}" data-idx="${i}" title="${slideEls[i].dataset.title||''}"></span>`
+  ).join('');
+  wrap.querySelectorAll('.dot').forEach(d=>{
+    d.addEventListener('click', ()=>goTo(parseInt(d.dataset.idx,10)));
+  });
+}
+function goTo(idx){
+  if(idx<0 || idx>=slideEls.length) return;
+  const questionSlides = ['slide-gancho','slide-objetivo','slide-retro','slide-relampago'];
+  slideEls[state.current].classList.remove('active');
+  state.current = idx;
+  slideEls[idx].classList.add('active');
+  document.getElementById('slide-counter').textContent = (idx+1)+' / '+slideEls.length;
+  document.getElementById('btn-prev').disabled = idx===0;
+  document.getElementById('btn-next').disabled = idx===slideEls.length-1;
+  document.querySelectorAll('#progress-dots .dot').forEach((d,i)=>{
+    d.classList.toggle('active', i===idx);
+    d.classList.toggle('done', i<idx);
+  });
+  slideEls[idx].querySelector('.slide-body')?.scrollTo(0,0);
+  if(questionSlides.includes(slideIds[idx])){ AudioFX.pregunta(); } else { AudioFX.slide(); }
+}
+document.getElementById('btn-prev').addEventListener('click', ()=>goTo(state.current-1));
+document.getElementById('btn-next').addEventListener('click', ()=>goTo(state.current+1));
+// Navigation is intentionally limited to the ← → buttons and the progress bubbles below.
+// Keyboard arrow keys and touch-swipe are disabled so that scrolling through card content,
+// sliders, or quiz options can never accidentally change the slide.
+document.querySelectorAll('.game-card[data-goto]').forEach(card=>{
+  card.addEventListener('click', ()=> goTo(slideIds.indexOf(card.dataset.goto)));
+});
+
+/* ===================== BLOOM ACCORDION ===================== */
+function renderBloom(){
+  const wrap = document.getElementById('bloom-accordion');
+  wrap.innerHTML = bloomData.map((lvl,i)=>`
+    <div class="acc-item ${lvl.boss?'boss':''}" data-idx="${i}">
+      <div class="acc-head">
+        <div class="lvl">
+          <span class="acc-num">${lvl.lvl}</span>
+          <h4>${lvl.label}</h4>
+          ${lvl.boss?'<span class="boss-tag">👑 Desafío Boss</span>':''}
+        </div>
+        <span class="acc-chevron">▾</span>
+      </div>
+      <div class="acc-panel"><div class="acc-panel-inner"><ul>
+        ${lvl.items.map(it=>`<li>${it}</li>`).join('')}
+      </ul></div></div>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('.acc-item').forEach(item=>{
+    item.querySelector('.acc-head').addEventListener('click', ()=>{
+      const wasOpen = item.classList.contains('open');
+      wrap.querySelectorAll('.acc-item').forEach(x=>x.classList.remove('open'));
+      if(!wasOpen) item.classList.add('open');
+    });
+  });
+}
+
+/* ===================== GENERIC QUIZ RENDERER ===================== */
+function renderQuiz(containerId, questions, opts){
+  opts = opts || {};
+  const container = document.getElementById(containerId);
+  container.innerHTML = questions.map((q,qi)=>`
+    <div class="quiz-card" data-qi="${qi}">
+      ${opts.timed?'<div class="timer-bar-wrap"><div class="timer-bar" data-timer></div></div>':''}
+      <p class="quiz-q">${qi+1}. ${q.q}</p>
+      <div class="quiz-opts">
+        ${q.opts.map((o,oi)=>`<button class="quiz-opt" data-oi="${oi}">${o}</button>`).join('')}
+      </div>
+      <p class="quiz-feedback"></p>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.quiz-card').forEach(card=>{
+    const qi = parseInt(card.dataset.qi,10);
+    const q = questions[qi];
+    const buttons = card.querySelectorAll('.quiz-opt');
+    let answered = false;
+    let timerInterval = null;
+
+    function lockAndScore(chosenIdx, viaTimeout){
+      if(answered) return;
+      answered = true;
+      if(timerInterval) clearInterval(timerInterval);
+      buttons.forEach((b,oi)=>{
+        b.disabled = true;
+        if(oi===q.correct) b.classList.add('correct');
+        else if(oi===chosenIdx) b.classList.add('wrong');
+      });
+      const fb = card.querySelector('.quiz-feedback');
+      fb.classList.add('show');
+      if(!viaTimeout && chosenIdx===q.correct){
+        fb.textContent = '¡Correcto! ' + (opts.timed ? '+15 Felipesos' : '+10 Felipesos');
+        addXP(opts.timed?15:10);
+      } else {
+        fb.textContent = viaTimeout ? '⏱️ Se acabó el tiempo. La respuesta correcta era: "'+q.opts[q.correct]+'".' : 'Casi. La respuesta correcta era: "'+q.opts[q.correct]+'".';
+        AudioFX.castigo();
+      }
+      if(opts.onAnswered) opts.onAnswered(qi, chosenIdx===q.correct);
+    }
+    buttons.forEach((b,oi)=>{
+      b.addEventListener('click', ()=> lockAndScore(oi, false));
+    });
+    if(opts.timed){
+      const bar = card.querySelector('[data-timer]');
+      let duration = 15, elapsed = 0;
+      bar.style.transition = 'none';
+      timerInterval = setInterval(()=>{
+        elapsed += 0.2;
+        const pct = Math.max(0, 100 - (elapsed/duration*100));
+        bar.style.width = pct+'%';
+        if(elapsed>=duration){ clearInterval(timerInterval); lockAndScore(-1, true); }
+      }, 200);
+    }
+  });
+}
+
+/* ===================== MEMORY GAME ===================== */
+function renderMemory(){
+  const grid = document.getElementById('memory-grid');
+  const cards = [];
+  memoryPairs.forEach((p,i)=>{
+    cards.push({pairId:i, icon:p.icon, label:p.label});
+    cards.push({pairId:i, icon:p.icon, label:p.label});
+  });
+  // shuffle
+  for(let i=cards.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [cards[i],cards[j]] = [cards[j],cards[i]];
+  }
+  grid.innerHTML = cards.map((c,i)=>`
+    <div class="mem-card" data-idx="${i}" data-pair="${c.pairId}">
+      <div class="face back">❓</div>
+      <div class="face front"><span>${c.icon}</span><span class="lbl">${c.label}</span></div>
+    </div>
+  `).join('');
+
+  let first = null, lock = false, matched = 0;
+  const statusEl = document.getElementById('memory-status');
+  grid.querySelectorAll('.mem-card').forEach(cardEl=>{
+    cardEl.addEventListener('click', ()=>{
+      if(lock || cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+      cardEl.classList.add('flipped');
+      if(first===null){ first = cardEl; return; }
+      lock = true;
+      const same = first.dataset.pair === cardEl.dataset.pair;
+      if(same){
+        first.classList.add('matched'); cardEl.classList.add('matched');
+        matched++;
+        statusEl.textContent = 'Pares encontrados: '+matched+' / '+memoryPairs.length;
+        addXP(8);
+        first = null; lock = false;
+        if(matched===memoryPairs.length){
+          earnBadge('memorama');
+          statusEl.textContent = '¡Completado! Todos los pares encontrados. +25 Felipesos bono';
+          addXP(25);
+        }
+      } else {
+        setTimeout(()=>{
+          first.classList.remove('flipped'); cardEl.classList.remove('flipped');
+          first = null; lock = false;
+        }, 800);
+      }
+    });
+  });
+}
+
+/* ===================== CLASSIFY GAME ===================== */
+function renderClassify(){
+  const pool = document.getElementById('classify-pool');
+  const zonesContainer = document.getElementById('classify-zones-container');
+  const statusEl = document.getElementById('classify-status');
+  let selected = null, placed = 0;
+
+  pool.innerHTML = classifyItems.map((it,i)=>
+    `<span class="classify-chip" data-idx="${i}">${it.name}</span>`
+  ).join('');
+
+  zonesContainer.innerHTML = classifyZones.map(z=>
+    `<div class="zone" data-zone="${z.id}"><h4>${z.label}</h4><div class="zone-contents"></div></div>`
+  ).join('');
+
+  function selectChip(chip){
+    pool.querySelectorAll('.classify-chip').forEach(c=>c.classList.remove('selected'));
+    if(chip.classList.contains('placed')) return;
+    chip.classList.add('selected');
+    selected = chip;
+  }
+  function placeInZone(zoneId, zoneEl){
+    if(!selected) return;
+    const idx = parseInt(selected.dataset.idx,10);
+    const item = classifyItems[idx];
+    const correct = item.zone === zoneId;
+    const correctLabel = classifyZones.find(z=>z.id===item.zone).label;
+    const tag = document.createElement('span');
+    tag.className = 'zone-chip ' + (correct?'ok':'bad');
+    tag.textContent = item.name + (correct?' ✓':' ✕ (era: '+correctLabel+')');
+    zoneEl.querySelector('.zone-contents').appendChild(tag);
+    selected.classList.add('placed');
+    selected.classList.remove('selected');
+    selected = null;
+    placed++;
+    if(correct) addXP(6); else AudioFX.castigo();
+    statusEl.textContent = 'Clasificados: '+placed+' / '+classifyItems.length;
+    if(placed===classifyItems.length){
+      earnBadge('clasifica');
+      statusEl.textContent += ' · ¡Completado! +20 Felipesos bono';
+      addXP(20);
+    }
+  }
+  pool.querySelectorAll('.classify-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>selectChip(chip));
+  });
+  zonesContainer.querySelectorAll('.zone').forEach(zoneEl=>{
+    zoneEl.addEventListener('click', ()=> placeInZone(zoneEl.dataset.zone, zoneEl));
+  });
+}
+
+/* ===================== GANCHO / HOOK POLL ===================== */
+const gsFeedback = {
+  sol: '☀️ ¡Correcto! El sol, el viento y el agua son recursos renovables: la naturaleza los repone constantemente, mucho más rápido de lo que los usamos.',
+  carbon: '⛏️ ¡Casi! El carbón es un recurso no renovable: la Tierra tardó millones de años en formarlo y no se repone a la velocidad en que lo consumimos.',
+  ambos: '🤷 ¡Buena pregunta para investigar! Como verán hoy, no todos los recursos energéticos se agotan de la misma forma.'
+};
+document.querySelectorAll('.gancho-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.gancho-btn').forEach(b=>{ b.disabled = true; });
+    btn.classList.add('chosen');
+    const fb = document.getElementById('gancho-feedback');
+    fb.textContent = gsFeedback[btn.dataset.r] + ' 🪙 +5 Felipesos por participar.';
+    fb.classList.add('show');
+    addXP(5);
+  });
+});
+
+/* ===================== MOOD CHECK-IN (INICIO Y FINAL) ===================== */
+let moodStart = null;
+const moodStartLabels = { genial:'con muchas ganas 😃', tranquilo:'tranquilo/a 😌', nervioso:'un poco nervioso/a 😬', cansado:'cansado/a 😴' };
+const moodStartFeedback = {
+  genial: '😃 ¡Esa energía se nota! Aprovéchenla para esta misión.',
+  tranquilo: '😌 Perfecto estado de ánimo para pensar con claridad.',
+  nervioso: '😬 Es totalmente normal sentir nervios ante un desafío nuevo. Vamos paso a paso.',
+  cansado: '😴 Gracias por estar aquí igual. Iremos con calma.'
+};
+const moodStartOpts = document.getElementById('mood-opts-start');
+if(moodStartOpts){
+  moodStartOpts.querySelectorAll('.mood-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      moodStartOpts.querySelectorAll('.mood-btn').forEach(b=>{ b.disabled = true; });
+      btn.classList.add('chosen');
+      moodStart = btn.dataset.m;
+      const fb = document.getElementById('mood-feedback-start');
+      fb.textContent = moodStartFeedback[moodStart] + ' 🪙 +5 Felipesos';
+      fb.classList.add('show');
+      addXP(5);
+    });
+  });
+}
+
+const moodEndLabels = { orgulloso:'orgulloso/a 🥳', satisfecho:'satisfecho/a 😌', aliviado:'aliviado/a 😅', ganas:'con ganas de más 💪' };
+const moodEndFeedback = {
+  orgulloso: '🥳 ¡Se lo merecen! Construyeron algo real con sus propias manos.',
+  satisfecho: '😌 Ese es el sentimiento de un trabajo bien hecho.',
+  aliviado: '😅 Terminar un proyecto grande también se siente así, ¡y está bien!',
+  ganas: '💪 ¡Esa actitud los va a llevar lejos en la próxima unidad!'
+};
+const moodEndOpts = document.getElementById('mood-opts-end');
+if(moodEndOpts){
+  moodEndOpts.querySelectorAll('.mood-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      moodEndOpts.querySelectorAll('.mood-btn').forEach(b=>{ b.disabled = true; });
+      btn.classList.add('chosen');
+      const moodEnd = btn.dataset.m;
+      const fb = document.getElementById('mood-feedback-end');
+      let text = moodEndFeedback[moodEnd];
+      if(moodStart){
+        text += ' Al empezar te sentías ' + moodStartLabels[moodStart] + ' — así se ve el recorrido de hoy.';
+      }
+      fb.textContent = text + ' 🪙 +5 Felipesos';
+      fb.classList.add('show');
+      addXP(5);
+    });
+  });
+}
+
+/* ===================== MAQUETA BUTTON ===================== */
+document.getElementById('btn-maqueta').addEventListener('click', (e)=>{
+  earnBadge('maqueta'); addXP(15);
+  e.target.disabled = true; e.target.textContent = '✔ ¡A construir!';
+  const fb = document.getElementById('maqueta-feedback');
+  fb.textContent = '🏗️ ¡Manos a la obra! Recuerden: la maqueta debe responder su pregunta de investigación con evidencia, no solo verse bonita.';
+  fb.classList.add('show');
+});
+
+/* ===================== EXIT TICKET BUTTONS ===================== */
+document.getElementById('btn-complete-exit1').addEventListener('click', (e)=>{
+  earnBadge('exit1'); addXP(10);
+  e.target.disabled = true; e.target.textContent = '✔ Completado';
+});
+document.getElementById('btn-complete-exit2').addEventListener('click', (e)=>{
+  earnBadge('exit2'); addXP(10);
+  e.target.disabled = true; e.target.textContent = '✔ Completado';
+});
+
+/* ===================== PDF EXPORT (compiled guide via print) ===================== */
+function buildPrintSheet(){
+  const today = new Date().toLocaleDateString('es-CL', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+  const bloomHtml = bloomData.map(lvl => `
+    <div class="p-bloom-lvl ${lvl.boss?'boss':''}">
+      <b>${lvl.lvl} · ${lvl.label}${lvl.boss?' — Desafío Boss':''}</b>
+      <ul>${lvl.items.map(it=>`<li>${it}</li>`).join('')}</ul>
+    </div>
+  `).join('');
+
+  function qaBlock(list){
+    return list.map((q,i)=>`
+      <div class="p-qa">
+        <p class="pq">${i+1}. ${q.q}</p>
+        <p class="po">Opciones: ${q.opts.join(' · ')}</p>
+        <p class="pa">Respuesta correcta: ${q.opts[q.correct]}</p>
+      </div>
+    `).join('');
+  }
+
+  const classifyRows = classifyItems.map(it=>`
+    <tr><td>${it.name}</td><td>${classifyZones.find(z=>z.id===it.zone).label}</td></tr>
+  `).join('');
+
+  const memoryRows = memoryPairs.map(p=>`<tr><td>${p.icon} ${p.label}</td></tr>`).join('');
+
+  document.getElementById('print-sheet').innerHTML = `
+    <div class="p-header">
+      <h1>Unidad 3 · Energía — Guía compilada (Sesiones 7 y 8)</h1>
+      <div class="p-meta">
+        <span>Profesor: Felipe Jiménez</span>
+        <span>Curso: 6° Básico</span>
+        <span>Fecha: ${today}</span>
+        <span>Nombre estudiante: _______________________</span>
+      </div>
+      <span class="p-felipesos">🪙 Felipesos acumulados en esta sesión: ${state.xp}</span>
+    </div>
+
+    <div class="p-section">
+      <h2>Objetivo de aprendizaje · OA11</h2>
+      <div class="p-oa">Clasificar los recursos naturales energéticos en no renovables y renovables, y proponer medidas para el uso responsable de la energía.</div>
+      <p><b>Habilidades de investigación:</b> OA a (predicción) · OA b (indagar en fuentes confiables) · OA c (medir y registrar) · OA d (uso seguro de materiales) · OA e (conclusiones) · OA f (comunicar resultados)</p>
+    </div>
+
+    <div class="p-section">
+      <h2>Contenido: renovables y no renovables</h2>
+      <p>Renovable: la naturaleza lo repone constantemente (sol, viento, agua, biomasa). No renovable: la naturaleza tarda millones de años en formarlo (petróleo, carbón, gas natural).</p>
+      <p>No se trata de que unos sean "buenos" y otros "malos": se trata de disponibilidad y capacidad de renovación.</p>
+    </div>
+
+    <div class="p-section">
+      <h2>Contexto local: los recursos energéticos de Villa Alemana</h2>
+      <p><b>Renovables:</b> sol y viento en Villa Alemana, agua del río Aconcagua. <b>No renovables:</b> combustibles fósiles usados en la maquinaria de Mina El Soldado y en el transporte de la comuna.</p>
+    </div>
+
+    <div class="p-section">
+      <h2>Simulador: mezcla energética de Villa Alemana</h2>
+      <p>Al aumentar el porcentaje de energía renovable en la mezcla (sol, viento, agua), baja el impacto ambiental estimado y sube el puntaje de sostenibilidad. Meta: alcanzar 70% o más de energía renovable.</p>
+    </div>
+
+    <div class="p-section p-page-break">
+      <h2>Proyecto final: construcción de una maqueta</h2>
+      <p>En equipos de 4, con roles de Investigador/a, Ingeniero/a, Diseñador/a y Comunicador/a, cada grupo elige una pregunta de investigación de la unidad, formula una predicción y construye una maqueta que la responda, para presentarla en la Feria de la Energía.</p>
+      <p><b>Preguntas disponibles:</b> energía solar en la escuela · transformación de energía en la Central Chacabuquito · aprovechamiento del calor solar en una casa · mejor combinación de energías renovables para Villa Alemana.</p>
+    </div>
+
+    <div class="p-section p-page-break">
+      <h2>Banco de preguntas · Taxonomía de Bloom (N1–N6)</h2>
+      ${bloomHtml}
+    </div>
+
+    <div class="p-section p-page-break">
+      <h2>Preguntas y respuestas · Retroalimentación (Sesión 8)</h2>
+      ${qaBlock(retroQuestions)}
+    </div>
+
+    <div class="p-section">
+      <h2>Preguntas y respuestas · Quiz relámpago</h2>
+      ${qaBlock(lightningQuestions)}
+    </div>
+
+    <div class="p-section p-page-break">
+      <h2>Juego Clasifica y gana · Pauta de respuestas</h2>
+      <table class="p-table"><tr><th>Recurso</th><th>Clasificación correcta</th></tr>${classifyRows}</table>
+    </div>
+
+    <div class="p-section">
+      <h2>Juego Memorama · Pares (referencia docente)</h2>
+      <table class="p-table"><tr><th>Elemento</th></tr>${memoryRows}</table>
+    </div>
+
+    <div class="p-footer">Unidad 3: Energía — 6° Básico · Prof. Felipe Jiménez · Villa Alemana. Fin de la Unidad 3: presentación de maquetas y comienzo de la Unidad 4.</div>
+  `;
+}
+function exportPDF(){
+  buildPrintSheet();
+  window.print();
+}
+document.getElementById('pdf-btn').addEventListener('click', exportPDF);
+document.getElementById('btn-pdf-cierre').addEventListener('click', exportPDF);
+
+/* ===================== MINI CLASIFICACIÓN RELÁMPAGO (embedded in Contenido) ===================== */
+const miniClassifyItems = [
+  { name:'Panel solar', zone:'renovable' },
+  { name:'Petróleo', zone:'no-renovable' },
+  { name:'Viento (eólica)', zone:'renovable' },
+  { name:'Carbón', zone:'no-renovable' },
+  { name:'Agua del río Aconcagua', zone:'renovable' },
+  { name:'Gas natural', zone:'no-renovable' }
+];
+function initMiniClassify(){
+  const pool = document.getElementById('mini-classify-pool');
+  const zonesContainer = document.getElementById('mini-classify-zones');
+  if(!pool || !zonesContainer) return;
+  let selected = null, placed = 0;
+
+  pool.innerHTML = miniClassifyItems.map((it,i)=>
+    `<span class="classify-chip" data-idx="${i}">${it.name}</span>`
+  ).join('');
+  zonesContainer.innerHTML = `
+    <div class="zone" data-zone="renovable"><h4>🔄 Renovable</h4><div class="zone-contents"></div></div>
+    <div class="zone" data-zone="no-renovable"><h4>⏳ No renovable</h4><div class="zone-contents"></div></div>
+  `;
+  pool.querySelectorAll('.classify-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      pool.querySelectorAll('.classify-chip').forEach(c=>c.classList.remove('selected'));
+      if(chip.classList.contains('placed')) return;
+      chip.classList.add('selected');
+      selected = chip;
+    });
+  });
+  zonesContainer.querySelectorAll('.zone').forEach(zoneEl=>{
+    zoneEl.addEventListener('click', ()=>{
+      if(!selected) return;
+      const idx = parseInt(selected.dataset.idx, 10);
+      const item = miniClassifyItems[idx];
+      const correct = item.zone === zoneEl.dataset.zone;
+      const tag = document.createElement('span');
+      tag.className = 'zone-chip ' + (correct ? 'ok' : 'bad');
+      tag.textContent = item.name + (correct ? ' ✓' : ' ✕');
+      zoneEl.querySelector('.zone-contents').appendChild(tag);
+      selected.classList.add('placed');
+      selected.classList.remove('selected');
+      selected = null;
+      if(correct){ addXP(4); } else { AudioFX.castigo(); }
+      placed++;
+      if(placed === miniClassifyItems.length){
+        addXP(10);
+      }
+    });
+  });
+}
+
+/* ===================== ENERGY MIX SIMULATOR ===================== */
+let mixChallengeMet = false;
+function initMixSim(){
+  const slider = document.getElementById('mix-slider');
+  const val = document.getElementById('mix-val');
+  const barRenew = document.getElementById('mix-bar-renew');
+  const barNonrenew = document.getElementById('mix-bar-nonrenew');
+  const renewLabel = document.getElementById('mix-renew-label');
+  const nonrenewLabel = document.getElementById('mix-nonrenew-label');
+  const impactOut = document.getElementById('mix-impact');
+  const scoreOut = document.getElementById('mix-score');
+  const feedback = document.getElementById('mix-feedback');
+  const icoSol = document.getElementById('ico-sol');
+  const icoViento = document.getElementById('ico-viento');
+  const icoAgua = document.getElementById('ico-agua');
+  const icoFabrica = document.getElementById('ico-fabrica');
+  const icoMina = document.getElementById('ico-mina');
+
+  function update(){
+    const renew = parseInt(slider.value, 10);
+    const nonrenew = 100 - renew;
+    val.textContent = renew;
+    barRenew.style.width = renew + '%';
+    barNonrenew.style.width = nonrenew + '%';
+    renewLabel.textContent = renew + '% renovable';
+    nonrenewLabel.textContent = nonrenew + '% no renovable';
+    icoSol.classList.toggle('active', renew >= 20);
+    icoViento.classList.toggle('active', renew >= 45);
+    icoAgua.classList.toggle('active', renew >= 70);
+    icoFabrica.classList.toggle('active', nonrenew >= 30);
+    icoMina.classList.toggle('active', nonrenew >= 60);
+    impactOut.textContent = renew >= 70 ? 'Bajo' : (renew >= 40 ? 'Medio' : 'Alto');
+    scoreOut.textContent = renew + ' / 100';
+    if(renew >= 70 && !mixChallengeMet){
+      mixChallengeMet = true;
+      feedback.textContent = '🔋 ¡Excelente mezcla energética! Con 70% o más de energía renovable, el impacto ambiental de Villa Alemana bajaría muchísimo. +15 Felipesos';
+      feedback.classList.add('show');
+      addXP(15);
+      earnBadge('mezcla');
+    }
+  }
+  slider.addEventListener('input', update);
+  update();
+}
+
+/* ===================== RIPPLE INTERACTION ===================== */
+const RIPPLE_SELECTOR = '.btn, .game-card, .quiz-opt, .classify-chip, .gancho-btn, .mem-card, .nav-btn, .material-btn, .mood-btn';
+document.addEventListener('click', (e)=>{
+  const el = e.target.closest(RIPPLE_SELECTOR);
+  if(!el || el.disabled) return;
+  const rect = el.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 1.4;
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple-el';
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+  ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+  el.appendChild(ripple);
+  setTimeout(()=> ripple.remove(), 600);
+});
+
+/* ===================== INIT ===================== */
+buildDots();
+goTo(0);
+renderBloom();
+renderQuiz('retro-quiz-container', retroQuestions, {timed:false});
+renderQuiz('lightning-container', lightningQuestions, {timed:true, onAnswered:(qi, ok)=>{
+  const allCards = document.querySelectorAll('#lightning-container .quiz-card');
+  const allAnswered = Array.from(allCards).every(c=>c.querySelectorAll('.quiz-opt:disabled').length>0);
+  if(allAnswered){ earnBadge('relampago'); }
+}});
+renderMemory();
+renderClassify();
+initMiniClassify();
+initMixSim();
+renderBadges();
+</script>
+</body>
+</html>
