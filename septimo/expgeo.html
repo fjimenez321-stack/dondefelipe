@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROTOCOLO 06 · Expedición Geocientífica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070c;
+  --panel:#0f0f17;
+  --panel-alt:#15151f;
+  --line: rgba(255,255,255,.08);
+  --nerv-orange:#ff6a1a;
+  --nerv-red:#d1342b;
+  --warn:#ffcc33;
+  --cyan:#3ec6e0;
+  --earth:#c07d3f;
+  --purple:#9b6bff;
+  --text:#f1f1f6;
+  --dim:#8d8d9c;
+  --dimmer:#5a5a68;
+  --squad: var(--nerv-orange);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; overflow:hidden;}
+h1,h2,h3,.mono{font-family:'Chakra Petch',sans-serif;}
+.code{font-family:'JetBrains Mono',monospace;}
+
+body{
+  background-image:
+    radial-gradient(ellipse at 20% -10%, rgba(255,106,26,.08), transparent 50%),
+    radial-gradient(ellipse at 90% 110%, rgba(62,198,224,.06), transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,.015) 40px);
+}
+
+/* HUD */
+#hud{
+  position:fixed; top:0; left:0; right:0; height:52px; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 18px; background:rgba(10,10,15,.85); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+}
+#hud .brand{display:flex; align-items:center; gap:10px; font-size:13px; letter-spacing:.12em; color:var(--dim);}
+#hud .brand b{color:var(--text); font-weight:700;}
+.hexmark{width:20px; height:20px; position:relative; display:inline-block;}
+.hexmark svg{width:100%; height:100%;}
+#hud .stats{display:flex; align-items:center; gap:16px; font-size:12px;}
+.stat{display:flex; align-items:center; gap:6px; color:var(--dim);}
+.stat b{color:var(--warn); font-family:'JetBrains Mono',monospace;}
+#hud .agent{font-size:12px; color:var(--squad); font-weight:600; letter-spacing:.05em;}
+
+/* SLIDES */
+#deck{position:fixed; top:52px; bottom:64px; left:0; right:0; overflow:hidden;}
+.slide{
+  position:absolute; inset:0; padding:40px 8vw 20px;
+  display:flex; flex-direction:column; justify-content:center;
+  opacity:0; transform:translateX(40px); pointer-events:none;
+  transition:opacity .45s ease, transform .45s ease;
+  overflow-y:auto;
+}
+.slide.active{opacity:1; transform:translateX(0); pointer-events:auto;}
+.slide::-webkit-scrollbar{width:6px;}
+.slide::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
+
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace;
+  font-size:11px; letter-spacing:.18em; color:var(--squad); margin-bottom:14px; text-transform:uppercase;
+}
+.eyebrow::before{content:''; width:22px; height:1px; background:var(--squad);}
+h2.title{font-size:clamp(26px,4vw,44px); font-weight:700; margin-bottom:10px; line-height:1.1;}
+p.lead{font-size:16px; color:var(--dim); max-width:760px; line-height:1.6; margin-bottom:20px;}
+
+.grid{display:grid; gap:14px;}
+.grid.cols-2{grid-template-columns:1fr 1fr;}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+.grid.cols-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:900px){.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr;}}
+
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel-alt));
+  border:1px solid var(--line); border-radius:10px; padding:18px 20px; position:relative;
+  transition:border-color .2s, transform .2s;
+}
+.card:hover{border-color:var(--squad);}
+.card .tag{font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; color:var(--dimmer); text-transform:uppercase;}
+.card h3{font-size:16px; margin:6px 0 8px; color:var(--text);}
+.card p{font-size:13.5px; color:var(--dim); line-height:1.55;}
+.card ul{margin:8px 0 0 16px; font-size:13px; color:var(--dim); line-height:1.6;}
+
+/* corner accent on cards */
+.card::before{content:''; position:absolute; top:0; left:0; width:26px; height:26px;
+  border-top:2px solid var(--squad); border-left:2px solid var(--squad); border-radius:10px 0 0 0; opacity:.7;}
+
+/* squad selector cards */
+.squad-card{cursor:pointer; --squad-local:var(--nerv-orange);}
+.squad-card::before{border-color:var(--squad-local);}
+.squad-card .tag{color:var(--squad-local);}
+.squad-card.selected{border-color:var(--squad-local); box-shadow:0 0 0 1px var(--squad-local), 0 0 24px -8px var(--squad-local);}
+.squad-card .pick-btn{margin-top:10px; font-size:11px; padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:transparent; color:var(--dim); font-family:'JetBrains Mono',monospace; cursor:pointer;}
+.squad-card.selected .pick-btn{background:var(--squad-local); color:#0a0a0f; border-color:var(--squad-local); font-weight:700;}
+
+/* role cards */
+.role-card{cursor:pointer;}
+.role-card .icon{font-size:26px; margin-bottom:4px; display:block;}
+.role-card.selected{border-color:var(--warn); box-shadow:0 0 0 1px var(--warn);}
+
+/* badges */
+#badgebar{position:fixed; right:14px; top:60px; z-index:40; display:flex; flex-direction:column; gap:6px;}
+.badge{width:30px; height:30px; border-radius:50%; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:14px; opacity:.25; transition:.3s;}
+.badge.unlocked{opacity:1; border-color:var(--warn); box-shadow:0 0 10px -2px var(--warn);}
+
+/* nav */
+#navbar{position:fixed; bottom:0; left:0; right:0; height:64px; z-index:50;
+  display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+  background:rgba(10,10,15,.85); backdrop-filter:blur(8px); border-top:1px solid var(--line);}
+#dots{display:flex; gap:7px;}
+.dot{width:7px; height:7px; border-radius:50%; background:var(--line); cursor:pointer; transition:.2s;}
+.dot.active{background:var(--squad); width:20px; border-radius:4px;}
+.navbtn{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.08em; padding:9px 16px;
+  background:var(--panel-alt); border:1px solid var(--line); color:var(--text); border-radius:7px; cursor:pointer; display:flex; align-items:center; gap:6px;}
+.navbtn:hover{border-color:var(--squad);}
+.navbtn:disabled{opacity:.3; cursor:not-allowed;}
+#slidelabel{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--dim);}
+
+/* overlay (name registration) */
+#overlay{position:fixed; inset:0; background:#07070c; z-index:100; display:flex; align-items:center; justify-content:center; flex-direction:column; padding:20px;}
+#overlay .hexbg{position:absolute; inset:0; opacity:.15; background-image:radial-gradient(circle at 50% 40%, rgba(255,106,26,.25), transparent 60%);}
+#overlay-box{position:relative; z-index:2; width:min(460px,92vw); text-align:center;}
+#overlay-box h1{font-size:22px; letter-spacing:.06em; margin-bottom:6px;}
+#overlay-box p{color:var(--dim); font-size:13.5px; margin-bottom:22px; line-height:1.55;}
+#overlay-box input{width:100%; padding:13px 14px; background:var(--panel); border:1px solid var(--line); border-radius:8px; color:var(--text); font-size:14px; margin-bottom:14px; font-family:'JetBrains Mono',monospace;}
+#overlay-box input:focus{outline:none; border-color:var(--nerv-orange);}
+#overlay-box button{width:100%; padding:13px; background:var(--nerv-orange); border:none; border-radius:8px; color:#0a0a0f; font-weight:700; font-family:'Chakra Petch',sans-serif; letter-spacing:.05em; cursor:pointer; font-size:14px;}
+#overlay-box button:disabled{opacity:.35; cursor:not-allowed;}
+.scanline{position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--nerv-orange),transparent); animation:scan 3s linear infinite;}
+@keyframes scan{0%{top:0%;}100%{top:100%;}}
+
+/* elements/checklist chips */
+.chip-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+.chip{font-family:'JetBrains Mono',monospace; font-size:11px; padding:5px 10px; border:1px solid var(--line); border-radius:20px; color:var(--dim);}
+
+/* rubric table */
+.rubric{width:100%; border-collapse:collapse; font-size:13px;}
+.rubric th,.rubric td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+.rubric th{color:var(--dim); font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;}
+.rubric td.w{color:var(--warn); font-family:'JetBrains Mono',monospace; white-space:nowrap;}
+.semaforo{display:flex; gap:5px;}
+.semaforo span{width:10px; height:10px; border-radius:50%; display:inline-block;}
+.semaforo .g{background:#3ecf6a;} .semaforo .y{background:var(--warn);} .semaforo .r{background:var(--nerv-red);}
+
+.emowheel{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+.emo{font-size:12px; padding:7px 12px; border-radius:20px; border:1px solid var(--line); color:var(--dim); font-family:'JetBrains Mono',monospace;}
+
+.footer-note{margin-top:18px; font-size:12px; color:var(--dimmer); font-family:'JetBrains Mono',monospace;}
+
+.timeline{display:flex; flex-direction:column; gap:0;}
+.tstep{display:grid; grid-template-columns:130px 1fr; gap:16px; padding:14px 0; border-bottom:1px dashed var(--line);}
+.tstep:last-child{border-bottom:none;}
+.tstep .phase{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em; color:var(--squad); text-transform:uppercase;}
+.tstep h4{font-size:14.5px; margin-bottom:4px;}
+.tstep p{font-size:13px; color:var(--dim); line-height:1.5;}
+
+@media(max-width:720px){
+  #hud .stats{gap:10px; font-size:10.5px;}
+  .slide{padding:70px 6vw 20px;}
+  .rubric{font-size:11.5px;}
+}
+</style>
+</head>
+<body>
+
+<!-- OVERLAY: registro de agente -->
+<div id="overlay">
+  <div class="hexbg"></div>
+  <div class="scanline"></div>
+  <div id="overlay-box">
+    <div class="eyebrow" style="justify-content:center;">PROTOCOLO 06 · ACCESO RESTRINGIDO</div>
+    <h1 class="mono">EXPEDICIÓN GEOCIENTÍFICA</h1>
+    <p>Estás a punto de recibir el briefing de misión sobre la estructura interna de la Tierra. Regístrate como agente de campo para comenzar.</p>
+    <input id="nameInput" type="text" placeholder="Tu nombre completo" maxlength="30" class="code">
+    <button id="startBtn" disabled>INICIAR BRIEFING →</button>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="brand">
+    <span class="hexmark"><svg viewBox="0 0 24 24"><polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="none" stroke="#ff6a1a" stroke-width="1.4"/></svg></span>
+    <span><b>PROTOCOLO 06</b> · Expedición Geocientífica</span>
+  </div>
+  <div class="stats">
+    <span class="agent" id="hudAgent"></span>
+    <div class="stat">🪙 <b id="hudCoins">0</b></div>
+    <div class="stat">RANGO <b id="hudRank">Cadete</b></div>
+  </div>
+</div>
+
+<div id="badgebar"></div>
+
+<!-- DECK -->
+<div id="deck"></div>
+
+<!-- NAV -->
+<div id="navbar">
+  <button class="navbtn" id="prevBtn">← ANTERIOR</button>
+  <div id="dots"></div>
+  <span id="slidelabel"></span>
+  <button class="navbtn" id="nextBtn">SIGUIENTE →</button>
+</div>
+
+<script>
+/* ============== DATA ============== */
+const SQUADS = [
+  {id:'volcan', name:'Escuadrón Vulcanología', icon:'🌋', color:'#ff6a1a',
+   question:'¿Cómo la estructura interna de la Tierra explica la formación y la actividad de los volcanes?',
+   elements:['Cámara magmática','Conducto volcánico','Tipo de magma según viscosidad','Relación con zona de subducción'],
+   fact:'La lava más fluida (basáltica) viene de un magma con menos sílice; la más viscosa es la que genera erupciones explosivas.'},
+  {id:'sismo', name:'Escuadrón Sismología', icon:'📈', color:'#ffcc33',
+   question:'¿Cómo la propagación de las ondas sísmicas a través de las capas terrestres nos permite "ver" el interior sin excavarlo?',
+   elements:['Hipocentro y epicentro','Ondas P (primarias)','Ondas S (secundarias)','Zona de sombra sísmica'],
+   fact:'Las ondas S no atraviesan líquidos: por eso sabemos que el núcleo externo es líquido, ¡sin haberlo visto nunca!'},
+  {id:'magnet', name:'Escuadrón Geomagnetismo', icon:'🧭', color:'#3ec6e0',
+   question:'¿Cómo el movimiento del núcleo externo genera el campo magnético que protege a la Tierra?',
+   elements:['Núcleo externo líquido (hierro-níquel)','Corrientes de convección','Magnetosfera','Polos magnéticos vs. geográficos'],
+   fact:'El campo magnético desvía el viento solar; sin él, la atmósfera terrestre se habría erosionado como la de Marte.'},
+  {id:'rocas', name:'Escuadrón Ciclo de las Rocas', icon:'🪨', color:'#c07d3f',
+   question:'¿Cómo el calor interno de la Tierra impulsa el ciclo de las rocas, desde el magma hasta la roca metamórfica?',
+   elements:['Magma → roca ígnea','Meteorización → sedimentos','Presión/calor → roca metamórfica','Fusión de retorno al manto'],
+   fact:'Una misma roca puede pasar por los tres tipos —ígnea, sedimentaria, metamórfica— y volver a fundirse: el ciclo no tiene principio ni fin.'},
+  {id:'tecton', name:'Escuadrón Tectónica', icon:'🗺️', color:'#9b6bff',
+   question:'¿Cómo el manto en movimiento provoca el desplazamiento de las placas tectónicas?',
+   elements:['Corrientes de convección del manto','Litósfera vs. astenósfera','Límites de placa (3 tipos)','Evidencia de desplazamiento'],
+   fact:'Las placas se mueven a la velocidad aproximada en que crecen tus uñas: unos centímetros al año.'}
+];
+
+const ROLES = [
+  {id:'ing', name:'Ingeniero/a de Materiales', icon:'🔧',
+   desc:'Decide qué materiales representan cada capa (densidad, color, textura) y por qué son buenas analogías. Responsable de la construcción física.',
+   tasks:['Justifica cada material elegido con una propiedad real de la capa','Verifica proporciones y resistencia de la maqueta','Lleva el registro de materiales usados en la bitácora']},
+  {id:'coord', name:'Coordinador/a de Misión', icon:'📋',
+   desc:'Gestiona tiempos, asigna tareas, lleva el registro grupal y modera la presentación ante el comité.',
+   tasks:['Define y vigila el cronograma del equipo','Media desacuerdos y reparte tareas equitativamente','Mantiene actualizada la bitácora grupal']},
+  {id:'dis', name:'Diseñador/a Visual', icon:'🎨',
+   desc:'A cargo de la escala, proporciones, rotulación y la puesta en escena de la presentación.',
+   tasks:['Cuida que la maqueta esté correctamente rotulada','Diseña la ambientación de la estación de presentación','Prepara apoyos visuales (carteles, esquema de escala)']},
+  {id:'inv', name:'Investigador/a Geocientífico/a', icon:'🔬',
+   desc:'Busca fuentes confiables, redacta la hipótesis y prepara las respuestas a la pregunta de investigación.',
+   tasks:['Formula la hipótesis con el esquema Si/Entonces/Porque','Selecciona y cita fuentes confiables','Anticipa y responde preguntas del comité evaluador']}
+];
+
+/* ============== STATE ============== */
+let state = {
+  agent:'', coins:0, badges:new Set(), squad:null, role:null, slide:0, unlockedNav:0
+};
+
+const BADGE_LIST = [
+  {id:'reg', icon:'🪪', label:'Agente Registrado'},
+  {id:'sq', icon:'🎯', label:'Escuadrón Asignado'},
+  {id:'rl', icon:'🎭', label:'Rol Confirmado'},
+  {id:'br', icon:'🗓️', label:'Briefing Completo'},
+  {id:'mat', icon:'🧪', label:'Protocolo de Materiales'},
+  {id:'exp', icon:'🏕️', label:'Modo Expedición'},
+  {id:'ev', icon:'📊', label:'Pauta Comprendida'}
+];
+
+/* ============== AUDIO ============== */
+let actx;
+function blip(freq=520, dur=.06){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type='square'; o.frequency.value=freq;
+    g.gain.setValueAtTime(.05, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime+dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+
+function award(coins, badgeId){
+  state.coins += coins;
+  document.getElementById('hudCoins').textContent = state.coins;
+  updateRank();
+  if(badgeId && !state.badges.has(badgeId)){
+    state.badges.add(badgeId);
+    renderBadges();
+    blip(760,.09);
+  } else {
+    blip(420,.05);
+  }
+}
+function updateRank(){
+  const r = state.coins>=350?'Comandante de Expedición': state.coins>=250?'Especialista': state.coins>=100?'Explorador/a':'Cadete';
+  document.getElementById('hudRank').textContent = r;
+}
+function renderBadges(){
+  const bar = document.getElementById('badgebar');
+  bar.innerHTML = BADGE_LIST.map(b=>`<div class="badge ${state.badges.has(b.id)?'unlocked':''}" title="${b.label}">${b.icon}</div>`).join('');
+}
+
+/* ============== SLIDES CONTENT ============== */
+function squadCardsHTML(selectable){
+  return SQUADS.map(s=>`
+    <div class="card squad-card" style="--squad-local:${s.color}" data-squad="${s.id}">
+      <div class="tag">${s.id.toUpperCase()}</div>
+      <h3>${s.icon} ${s.name}</h3>
+      <p>${s.question}</p>
+      <div class="chip-row">${s.elements.map(e=>`<span class="chip">${e}</span>`).join('')}</div>
+      ${selectable?`<button class="pick-btn">ELEGIR ESCUADRÓN</button>`:''}
+    </div>`).join('');
+}
+
+function roleCardsHTML(){
+  return ROLES.map(r=>`
+    <div class="card role-card" data-role="${r.id}">
+      <span class="icon">${r.icon}</span>
+      <h3>${r.name}</h3>
+      <p>${r.desc}</p>
+      <ul>${r.tasks.map(t=>`<li>${t}</li>`).join('')}</ul>
+    </div>`).join('');
+}
+
+const SLIDES = [
+{
+  id:'portada',
+  html:`
+  <div class="eyebrow">Protocolo 06 · Briefing de misión</div>
+  <h2 class="title">No podemos viajar al centro de la Tierra.<br>Vamos a construirlo.</h2>
+  <p class="lead">Durante esta unidad reunimos evidencia sobre placas tectónicas, volcanes y sismos. Ahora activamos el protocolo final: cada escuadrón diseñará y construirá un modelo físico de la estructura interna de la Tierra capaz de <b style="color:var(--text)">responder una pregunta de investigación real</b> — no una maqueta decorativa, sino un instrumento explicativo.</p>
+  <div class="grid cols-3">
+    <div class="card"><div class="tag">Fase 1</div><h3>Investigar</h3><p>Formular hipótesis y reunir evidencia sobre el fenómeno asignado.</p></div>
+    <div class="card"><div class="tag">Fase 2</div><h3>Construir</h3><p>Traducir la evidencia en un modelo físico a escala.</p></div>
+    <div class="card"><div class="tag">Fase 3</div><h3>Defender</h3><p>Presentar el modelo ante un comité en la Expedición Geocientífica.</p></div>
+  </div>`
+},
+{
+  id:'pregunta',
+  html:`
+  <div class="eyebrow">Pregunta central de la misión</div>
+  <h2 class="title">¿Cómo influye la estructura interna de la Tierra en los fenómenos que observamos en la superficie?</h2>
+  <p class="lead">Cada equipo se especializa en un <b style="color:var(--text)">escuadrón</b>, con su propia variante de la pregunta y elementos obligatorios en su maqueta. Elige el tuyo — quedará registrado en tu ficha de agente.</p>
+  <div class="grid cols-3" id="squadGrid">${squadCardsHTML(true)}</div>`
+},
+{
+  id:'dato',
+  html:`
+  <div class="eyebrow">Dato de tu escuadrón</div>
+  <h2 class="title" id="squadFactTitle">Selecciona un escuadrón primero</h2>
+  <p class="lead" id="squadFactBody">Vuelve a la pantalla anterior y elige tu especialidad para desbloquear este dato.</p>
+  <div class="card" id="squadElementsCard" style="max-width:640px;"></div>`
+},
+{
+  id:'roles',
+  html:`
+  <div class="eyebrow">Roles del equipo</div>
+  <h2 class="title">Cuatro roles, una misión</h2>
+  <p class="lead">La inmersión funciona porque cada rol tiene una función real, no solo un disfraz. Elige el rol que asumirás en tu equipo — tu evaluación individual se basará en tus responsabilidades específicas.</p>
+  <div class="grid cols-4" id="roleGrid">${roleCardsHTML()}</div>`
+},
+{
+  id:'etapas',
+  html:`
+  <div class="eyebrow">Cronograma de la expedición</div>
+  <h2 class="title">Del observar al comunicar</h2>
+  <div class="timeline">
+    <div class="tstep"><div class="phase">Observar</div><div><h4>Evidencia indirecta</h4><p>Analizan imágenes y videos de cortes sísmicos y discuten: si nadie ha visto el interior de la Tierra, ¿qué evidencia tenemos de sus capas?</p></div></div>
+    <div class="tstep"><div class="phase">Explorar</div><div><h4>Investigación guiada</h4><p>Investigan las capas —corteza, manto, núcleo externo e interno— y el fenómeno específico de su escuadrón, usando fuentes confiables.</p></div></div>
+    <div class="tstep"><div class="phase">Investigar</div><div><h4>Hipótesis Si/Entonces/Porque</h4><p>Formulan su hipótesis sobre cómo la estructura interna explica el fenómeno elegido, usando el andamiaje habitual del curso.</p></div></div>
+    <div class="tstep"><div class="phase">Analizar</div><div><h4>Construcción del modelo</h4><p>Diseñan y construyen la maqueta como modelo explicativo: cada elección de material o proporción debe poder justificarse.</p></div></div>
+    <div class="tstep"><div class="phase">Concluir</div><div><h4>Respuesta fundamentada</h4><p>Responden la pregunta de investigación de su escuadrón usando la maqueta como evidencia central.</p></div></div>
+    <div class="tstep"><div class="phase">Comunicar</div><div><h4>Expedición Geocientífica</h4><p>Presentan ante un comité evaluador en la feria por estaciones, en el rol asumido.</p></div></div>
+  </div>`
+},
+{
+  id:'materiales',
+  html:`
+  <div class="eyebrow">Protocolo de materiales</div>
+  <h2 class="title">Cada material representa una propiedad real</h2>
+  <p class="lead">No se trata de "decorar" capas: cada elección debe justificarse con una propiedad de la Tierra (densidad, estado, temperatura, composición). Algunas ideas de partida:</p>
+  <div class="grid cols-2">
+    <div class="card"><div class="tag">Corteza</div><h3>Delgada y sólida</h3><p>Cartón, cartulina o una capa fina de plastilina endurecida — debe ser notoriamente la capa más delgada de todas.</p></div>
+    <div class="card"><div class="tag">Manto</div><h3>Sólido pero dúctil</h3><p>Plastilina o masa moldeable de dos tonos (superior/inferior), para mostrar el movimiento por convección.</p></div>
+    <div class="card"><div class="tag">Núcleo externo</div><h3>Líquido metálico</h3><p>Témpera espesa, gel o silicona líquida de color metálico — debe "fluir" a diferencia del resto.</p></div>
+    <div class="card"><div class="tag">Núcleo interno</div><h3>Sólido por presión</h3><p>Una esfera dura y densa (bolita de vidrio, plasticina muy compactada) en el centro exacto de la maqueta.</p></div>
+  </div>
+  <p class="footer-note">💡 El Ingeniero/a de Materiales de cada equipo debe poder explicar, para cada capa, por qué ese material y no otro.</p>`
+},
+{
+  id:'inmersion',
+  html:`
+  <div class="eyebrow">Expedición Geocientífica</div>
+  <h2 class="title">La presentación es una misión, no una exposición</h2>
+  <p class="lead">El curso se transforma en una feria por estaciones. Cada equipo instala su estación y recibe la visita de un comité evaluador — el resto del curso rota como visitantes/evaluadores con una pauta simple.</p>
+  <div class="grid cols-3">
+    <div class="card"><div class="tag">Ambientación</div><h3>Elemento distintivo por rol</h3><p>No es necesario un disfraz completo: un chaleco, casco de campo o credencial colgante por rol es suficiente y accesible para todas las familias.</p></div>
+    <div class="card"><div class="tag">Formato</div><h3>Feria por estaciones</h3><p>Los equipos se instalan en puntos fijos; el resto del curso rota en grupos pequeños como "visitantes de la expedición".</p></div>
+    <div class="card"><div class="tag">Credencial</div><h3>Gafete de misión</h3><p>Cada estudiante porta su rol impreso — conecta con la identidad visual del curso y define su función durante la visita del comité.</p></div>
+  </div>`
+},
+{
+  id:'evaluacion',
+  html:`
+  <div class="eyebrow">Pauta de evaluación</div>
+  <h2 class="title">Se evalúa el modelo, el rol, el equipo y la reflexión</h2>
+  <p class="lead">La pauta pondera cuatro dimensiones. El desempeño de rol y la coevaluación pesan tanto como el producto final, porque el trabajo colaborativo es parte del aprendizaje evaluado.</p>
+  <table class="rubric">
+    <tr><th>Dimensión</th><th>Peso</th><th>Qué se observa</th></tr>
+    <tr><td><b>A. Modelo explicativo</b></td><td class="w">40%</td><td>Precisión conceptual, uso correcto de propiedades de cada capa, y si la maqueta responde efectivamente la pregunta del escuadrón. <span class="semaforo"><span class="g"></span><span class="y"></span><span class="r"></span></span></td></tr>
+    <tr><td><b>B. Desempeño de rol</b></td><td class="w">25%</td><td>Cumplimiento individual de las tareas específicas de su rol (ver checklist por rol de la diapositiva anterior).</td></tr>
+    <tr><td><b>C. Coevaluación de equipo</b></td><td class="w">15%</td><td>Cada integrante evalúa a sus compañeros/as en responsabilidad, comunicación y aporte a la construcción.</td></tr>
+    <tr><td><b>D. Metacognición y reflexión</b></td><td class="w">20%</td><td>Bitácora final individual, incluyendo una dimensión emocional del proceso.</td></tr>
+  </table>
+  <div class="footer-note">Escala: 🟢 Logrado &nbsp;·&nbsp; 🟡 Medianamente logrado &nbsp;·&nbsp; 🔴 Por lograr — coherente con el semáforo usado en sesiones anteriores.</div>`
+},
+{
+  id:'coeval',
+  html:`
+  <div class="eyebrow">Instrumento C · Coevaluación</div>
+  <h2 class="title">Cada agente evalúa a su equipo</h2>
+  <p class="lead">Al cerrar el proyecto, cada estudiante completa esta ficha para cada compañero/a de equipo (escala 1 a 4: Nunca · A veces · Casi siempre · Siempre).</p>
+  <div class="grid cols-2">
+    <div class="card"><h3>Responsabilidad</h3><p>Cumplió las tareas asignadas a su rol dentro de los plazos acordados por el equipo.</p></div>
+    <div class="card"><h3>Comunicación y respeto</h3><p>Se comunicó de forma efectiva y respetuosa, incluso ante desacuerdos.</p></div>
+    <div class="card"><h3>Aporte a la construcción</h3><p>Contribuyó activamente al diseño o construcción de la maqueta, no solo a su rol formal.</p></div>
+    <div class="card"><h3>Actitud colaborativa</h3><p>Ayudó a resolver dificultades del equipo en vez de delegar o evadir el problema.</p></div>
+  </div>
+  <p class="footer-note">El promedio de la coevaluación recibida ajusta —no reemplaza— la nota individual de desempeño de rol.</p>`
+},
+{
+  id:'metacog',
+  html:`
+  <div class="eyebrow">Instrumento D · Metacognición</div>
+  <h2 class="title">Bitácora final: pensar el proceso, no solo el resultado</h2>
+  <p class="lead">Preguntas de cierre individuales para la bitácora de cada agente:</p>
+  <div class="grid cols-2">
+    <div class="card"><div class="tag">Rol</div><p>¿Qué fue lo más desafiante de asumir tu rol y cómo lo resolviste?</p></div>
+    <div class="card"><div class="tag">Aprendizaje</div><p>¿Qué aprendiste sobre el interior de la Tierra que no sabías antes de este proyecto?</p></div>
+    <div class="card"><div class="tag">Equipo</div><p>¿Qué aprendiste sobre trabajar en equipo que te gustaría aplicar en el próximo proyecto?</p></div>
+    <div class="card"><div class="tag">Autoevaluación</div><p>Con el semáforo: ¿tu equipo logró responder la pregunta de investigación? ¿Por qué?</p></div>
+  </div>
+  <h3 style="margin-top:22px; font-size:15px; color:var(--dim);">¿Qué emoción predominó...</h3>
+  <p class="footer-note" style="margin-top:2px;">...durante la construcción, y cuál durante la presentación? Marca una de cada momento.</p>
+  <div class="emowheel">
+    <span class="emo">😊 Orgullo</span><span class="emo">😅 Nerviosismo</span><span class="emo">🤔 Curiosidad</span>
+    <span class="emo">😤 Frustración</span><span class="emo">😌 Alivio</span><span class="emo">😲 Sorpresa</span>
+    <span class="emo">😐 Indiferencia</span><span class="emo">🥳 Entusiasmo</span>
+  </div>`
+},
+{
+  id:'cierre',
+  html:`
+  <div class="eyebrow">Fin del briefing</div>
+  <h2 class="title">Protocolo 06 activado</h2>
+  <p class="lead">Tu ficha de agente ha sido registrada. Revisa tu escuadrón y rol seleccionados antes de comenzar la fase de investigación.</p>
+  <div class="card" id="summaryCard" style="max-width:620px;"></div>
+  <p class="footer-note">Recuerda: la maqueta debe poder responder la pregunta de tu escuadrón. Si tu modelo no puede explicarla, aún no está terminado.</p>`
+}
+];
+
+/* ============== RENDER ============== */
+function renderDeck(){
+  const deck = document.getElementById('deck');
+  deck.innerHTML = SLIDES.map((s,i)=>`<section class="slide" data-i="${i}">${s.html}</section>`).join('');
+  document.getElementById('dots').innerHTML = SLIDES.map((s,i)=>`<span class="dot" data-i="${i}"></span>`).join('');
+  attachSlideEvents();
+  goTo(0, true);
+}
+
+function attachSlideEvents(){
+  document.querySelectorAll('#squadGrid .squad-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const id = card.dataset.squad;
+      state.squad = SQUADS.find(s=>s.id===id);
+      document.querySelectorAll('#squadGrid .squad-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      document.documentElement.style.setProperty('--squad', state.squad.color);
+      award(30,'sq');
+      renderSquadFact();
+      renderSummary();
+    });
+  });
+  document.querySelectorAll('#roleGrid .role-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const id = card.dataset.role;
+      state.role = ROLES.find(r=>r.id===id);
+      document.querySelectorAll('#roleGrid .role-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      award(30,'rl');
+      renderSummary();
+    });
+  });
+  document.querySelectorAll('.dot').forEach(d=>d.addEventListener('click', ()=>goTo(parseInt(d.dataset.i))));
+}
+
+function renderSquadFact(){
+  if(!state.squad) return;
+  document.getElementById('squadFactTitle').textContent = `${state.squad.icon} ${state.squad.name}`;
+  document.getElementById('squadFactBody').textContent = state.squad.fact;
+  document.getElementById('squadElementsCard').innerHTML = `
+    <div class="tag">ELEMENTOS OBLIGATORIOS EN TU MAQUETA</div>
+    <ul>${state.squad.elements.map(e=>`<li>${e}</li>`).join('')}</ul>
+    <p style="margin-top:10px;"><b style="color:var(--text)">Pregunta de tu escuadrón:</b> ${state.squad.question}</p>`;
+}
+
+function renderSummary(){
+  const box = document.getElementById('summaryCard');
+  if(!box) return;
+  box.innerHTML = `
+    <div class="tag">FICHA DE AGENTE</div>
+    <h3>${state.agent || '—'}</h3>
+    <p><b style="color:var(--text)">Escuadrón:</b> ${state.squad? state.squad.icon+' '+state.squad.name : 'Sin asignar'}</p>
+    <p><b style="color:var(--text)">Rol:</b> ${state.role? state.role.icon+' '+state.role.name : 'Sin asignar'}</p>
+    <p><b style="color:var(--text)">Felipesos acumulados:</b> 🪙 ${state.coins}</p>`;
+}
+
+/* ============== NAV ============== */
+function goTo(i, silent){
+  i = Math.max(0, Math.min(SLIDES.length-1, i));
+  state.slide = i;
+  document.querySelectorAll('.slide').forEach(s=> s.classList.toggle('active', parseInt(s.dataset.i)===i));
+  document.querySelectorAll('.dot').forEach(d=> d.classList.toggle('active', parseInt(d.dataset.i)===i));
+  document.getElementById('slidelabel').textContent = `${i+1} / ${SLIDES.length}`;
+  document.getElementById('prevBtn').disabled = i===0;
+  document.getElementById('nextBtn').textContent = i===SLIDES.length-1 ? 'REINICIAR ⟲' : 'SIGUIENTE →';
+  if(!silent){
+    blip(560,.05);
+    const badgeMap = {4:'br',5:'mat',6:'exp',7:'ev'};
+    if(badgeMap[i]) award(25, badgeMap[i]);
+  }
+  if(SLIDES[i].id==='dato') renderSquadFact();
+  if(SLIDES[i].id==='cierre') renderSummary();
+}
+
+document.getElementById('prevBtn').addEventListener('click', ()=> goTo(state.slide-1));
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  if(state.slide===SLIDES.length-1){ goTo(0); } else { goTo(state.slide+1); }
+});
+document.addEventListener('keydown', e=>{
+  if(document.getElementById('overlay').style.display==='none' || document.getElementById('overlay').style.opacity=='0'){
+    if(e.key==='ArrowRight') goTo(state.slide+1);
+    if(e.key==='ArrowLeft') goTo(state.slide-1);
+  }
+});
+
+/* ============== REGISTRO ============== */
+const nameInput = document.getElementById('nameInput');
+const startBtn = document.getElementById('startBtn');
+nameInput.addEventListener('input', ()=>{ startBtn.disabled = nameInput.value.trim().length<2; });
+nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter' && !startBtn.disabled) startBtn.click(); });
+startBtn.addEventListener('click', ()=>{
+  state.agent = nameInput.value.trim();
+  document.getElementById('hudAgent').textContent = state.agent;
+  const ov = document.getElementById('overlay');
+  ov.style.transition='opacity .5s'; ov.style.opacity='0';
+  setTimeout(()=>{ ov.style.display='none'; }, 500);
+  award(20,'reg');
+  renderDeck();
+  renderBadges();
+});
+
+renderBadges();
+</script>
+</body>
+</html>
