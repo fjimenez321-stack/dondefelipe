@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad 3 · Sesión 6 · Cambio Climático</title>
+<style>
+:root{
+  --parchment:#f6f0e2;
+  --parchment-dk:#ece2c9;
+  --navy:#132436;
+  --navy-mid:#1c3550;
+  --teal:#0e7c7b;
+  --teal-l:#2aaea3;
+  --amber:#e2a12b;
+  --amber-l:#f4c869;
+  --red:#c0392b;
+  --green:#3c8a4a;
+  --ink:#2b2116;
+  --paper-line:#d9cba3;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{font-family:'Georgia','Times New Roman',serif;background:var(--navy);color:var(--ink);overflow:hidden;}
+#deck{position:relative;width:100vw;height:100vh;}
+.slide{position:absolute;inset:0;display:none;
+  background:radial-gradient(circle at 15% 10%, rgba(226,161,43,0.10), transparent 45%),linear-gradient(var(--parchment), var(--parchment-dk));
+  padding:5vh 6vw;flex-direction:column;}
+.slide.active{display:flex;animation:fadeIn .5s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.eyebrow{font-family:'Helvetica Neue',Arial,sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;color:var(--teal);font-weight:700;margin-bottom:.3rem;}
+h1{font-size:2.75rem;margin:.1rem 0 .3rem;color:var(--navy);line-height:1.15;}
+h2{font-size:2.1rem;color:var(--navy);margin:0 0 .6rem;}
+h3{font-size:1.35rem;color:var(--navy-mid);margin:0 0 .3rem;}
+p{line-height:1.55;font-size:1.2rem;}
+.sub{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.18rem;color:#5a4c33;margin-bottom:1rem;}
+.badge{display:inline-block;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.22rem .6rem;border-radius:999px;margin-right:.4rem;}
+.badge.bloom{background:var(--navy);color:var(--parchment);}
+.badge.oa{background:var(--teal);color:#fff;}
+.badge.cuaderno{background:var(--amber);color:var(--navy);}
+.badge.form{background:var(--red);color:#fff;}
+.grid{display:grid;gap:1rem;flex:1;min-height:0;align-items:start;}
+.cols-2{grid-template-columns:1fr 1fr;}
+.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.cols-5{grid-template-columns:repeat(5,1fr);}
+.card{background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;padding:1rem 1.1rem;box-shadow:0 2px 6px rgba(43,33,22,.08);}
+.card h3{margin-top:0;}
+.card.teal{border-top:4px solid var(--teal);}
+.card.amber{border-top:4px solid var(--amber);}
+.card.navy{border-top:4px solid var(--navy);}
+.card.red{border-top:4px solid var(--red);}
+.hero-concept{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:820px;}
+.hero-concept .icon{font-size:3.4rem;margin-bottom:.4rem;}
+.hero-concept h2{font-size:2.5rem;}
+.hero-concept p{font-size:1.32rem;}
+.scale{margin-top:1rem;display:inline-block;background:#fffdf6;border:1px solid var(--paper-line);border-radius:8px;padding:.6rem 1rem;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.05rem;}
+.cuaderno-box{background:repeating-linear-gradient(#fffef9,#fffef9 27px,#e3dcc4 28px);border:1px solid var(--paper-line);border-left:5px solid var(--amber);border-radius:6px;padding:1rem 1.2rem;position:relative;}
+.cuaderno-box::before{content:"📓 REGISTRA EN TU CUADERNO";position:absolute;top:-11px;left:14px;background:var(--amber);color:var(--navy);font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;}
+.exit-box{background:#fdf3e9;border:1px solid var(--paper-line);border-left:5px solid var(--red);border-radius:6px;padding:1rem 1.2rem;position:relative;}
+.exit-box::before{content:"🎫 TICKET DE SALIDA";position:absolute;top:-11px;left:14px;background:var(--red);color:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.68rem;font-weight:800;letter-spacing:.06em;padding:.15rem .5rem;border-radius:5px;}
+.footer-nav{position:absolute;bottom:1.1rem;left:6vw;right:6vw;display:flex;align-items:center;justify-content:space-between;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.8rem;color:#7a6b4d;}
+.progress{flex:1;height:5px;background:#d9cba3;border-radius:3px;margin:0 1rem;overflow:hidden;}
+.progress-bar{height:100%;background:var(--teal);width:4%;transition:width .3s;}
+.navbtn{background:var(--navy);color:var(--parchment);border:none;border-radius:6px;width:34px;height:34px;cursor:pointer;font-size:1rem;}
+.navbtn:hover{background:var(--teal);}
+.navbtn:disabled{opacity:.3;cursor:default;}
+#soundBtn{position:absolute;top:1.1rem;right:6vw;background:none;border:1px solid var(--navy);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:1rem;color:var(--navy);z-index:5;}
+.opt{display:block;width:100%;text-align:left;background:#fffdf6;border:1.5px solid var(--paper-line);border-radius:8px;padding:.8rem 1rem;margin-bottom:.6rem;cursor:pointer;font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.12rem;transition:.15s;}
+.opt:hover{border-color:var(--teal);background:#f0f8f7;}
+.opt.correct{background:#e6f4e6;border-color:var(--green);}
+.opt.wrong{background:#fbe9e7;border-color:var(--red);}
+.feedback{font-family:'Helvetica Neue',Arial,sans-serif;font-size:1.1rem;margin-top:.6rem;min-height:1.4rem;}
+.feedback.ok{color:var(--green);font-weight:700;}
+.feedback.bad{color:var(--red);font-weight:700;}
+.small{font-size:.96rem;color:#5a4c33;}
+.source{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.86rem;color:#8a7a58;font-style:italic;}
+ul{margin:.3rem 0;padding-left:1.2rem;}
+li{margin-bottom:.3rem;line-height:1.45;}
+.scroll{overflow-y:auto;padding-bottom:4.5rem;}
+.center-mid{justify-content:center;}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:.6rem;}
+.stat{background:#fffdf6;border:1px solid var(--paper-line);border-radius:9px;padding:.75rem .9rem;}
+.stat b{display:block;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--teal);margin-bottom:.2rem;}
+.stat span{font-family:Georgia,serif;font-size:1.18rem;color:var(--navy);}
+.actcard{background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;align-items:flex-start;gap:.35rem;}
+.actcard .icon{font-size:1.7rem;}
+.actcard h3{margin:.1rem 0 0;}
+.rubric{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:.92rem;}
+.rubric th,.rubric td{border:1px solid var(--paper-line);padding:.55rem .6rem;text-align:left;vertical-align:top;}
+.rubric th{background:var(--navy);color:var(--parchment);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;}
+.rubric td.crit{background:#f4ecd8;font-weight:700;font-family:Georgia,serif;font-size:1rem;color:var(--navy-mid);}
+#slide-1{background:radial-gradient(ellipse at 70% 20%, rgba(226,161,43,.35), transparent 55%),linear-gradient(160deg,#132436 0%,#1c3550 55%,#0e7c7b 130%);color:var(--parchment);align-items:center;text-align:center;justify-content:center;cursor:pointer;}
+#slide-1 h1{color:#fff;font-size:3.1rem;}
+#slide-1 .sub{color:#cfe8e6;}
+#sky{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.ray{position:absolute;width:2px;background:linear-gradient(var(--amber-l),transparent);opacity:0;border-radius:2px;}
+.hint{font-family:'Helvetica Neue',Arial,sans-serif;font-size:.95rem;color:#a8c8c6;margin-top:2rem;letter-spacing:.04em;}
+.zonecard{background:#fffdf6;border:1px solid var(--paper-line);border-radius:10px;padding:.85rem .9rem;text-align:center;}
+.zonecard .icon{font-size:1.7rem;}
+.zonecard h3{font-size:.98rem;margin:.3rem 0 .2rem;}
+</style>
+</head>
+<body>
+<div id="deck">
+
+<!-- 1: APERTURA -->
+<div class="slide active" id="slide-1" onclick="rayBurst(event)">
+  <div id="sky"></div>
+  <div class="eyebrow" style="color:var(--amber-l)">Unidad 3 · Cambio Climático · Sesión 6</div>
+  <h1>Los elementos y factores del clima</h1>
+  <p class="sub" style="max-width:660px;margin:0 auto;">Antes de seguir avanzando con nuestros proyectos, volvemos a las bases: ¿qué variables describen el clima de un lugar, y qué lo hace distinto de otro? Hoy afirmamos ese conocimiento de fondo.</p>
+  <div class="hint">☀️ Haz clic en cualquier parte del cielo</div>
+</div>
+
+<!-- 2: Cuaderno repaso -->
+<div class="slide" id="slide-2">
+  <div class="eyebrow">Inicio · Repaso</div>
+  <h2>Antes de seguir... ¿qué recuerdas?</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">Responde en tu cuaderno:</p>
+    <ul>
+      <li>En una frase, ¿qué diferencia al tiempo atmosférico del clima?</li>
+      <li>¿Qué es una zona climática? (aunque no la hayamos definido formalmente, ¿qué crees que significa?)</li>
+      <li>Nombra una variable que creas que se usa para describir el clima de un lugar.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 3: Concepto elementos del clima -->
+<div class="slide center-mid" id="slide-3">
+  <div class="eyebrow">Desarrollo · Concepto</div>
+  <div class="hero-concept">
+    <div class="icon">📊</div>
+    <h2>¿Qué son los elementos del clima?</h2>
+    <p>Son las <b>variables medibles</b> que describen el estado de la atmósfera: temperatura, precipitación, humedad, presión atmosférica y viento. Son los datos que los climatólogos y meteorólogos registran día a día.</p>
+    <div class="scale">Distinto de los <b>factores</b> del clima, que veremos más adelante: los factores explican <i>por qué</i> los elementos toman ciertos valores en un lugar determinado.</div>
+  </div>
+</div>
+
+<!-- 4: Elemento - Temperatura -->
+<div class="slide center-mid" id="slide-4">
+  <div class="eyebrow">Desarrollo · Elemento 1 de 5</div>
+  <div class="hero-concept">
+    <div class="icon">🌡️</div>
+    <h2>Temperatura</h2>
+    <p>Mide el grado de agitación térmica del aire. Ya trabajamos sus escalas (°C, °F, K) y su rol central en el balance radiativo y el efecto invernadero.</p>
+    <div class="scale">Unidad habitual: <b>°C</b> (también K o °F).</div>
+  </div>
+</div>
+
+<!-- 5: Elemento - Precipitación -->
+<div class="slide center-mid" id="slide-5">
+  <div class="eyebrow">Desarrollo · Elemento 2 de 5</div>
+  <div class="hero-concept">
+    <div class="icon">🌧️</div>
+    <h2>Precipitación</h2>
+    <p>Agua que cae desde la atmósfera hacia la superficie: lluvia, nieve, granizo. Ocurre cuando el vapor de agua se condensa en la atmósfera y las gotas o cristales se vuelven demasiado pesados para permanecer suspendidos.</p>
+    <div class="scale">Unidad habitual: <b>milímetros (mm)</b> de agua caída — 1 mm equivale a 1 litro de agua por m² de superficie.</div>
+  </div>
+</div>
+
+<!-- 6: Elemento - Humedad -->
+<div class="slide center-mid" id="slide-6">
+  <div class="eyebrow">Desarrollo · Elemento 3 de 5</div>
+  <div class="hero-concept">
+    <div class="icon">💧</div>
+    <h2>Humedad</h2>
+    <p>Cantidad de vapor de agua presente en el aire. La <b>humedad relativa</b> (la más usada en meteorología) compara el vapor de agua actual con el máximo que el aire podría contener a esa temperatura.</p>
+    <div class="scale">Unidad habitual: <b>% (humedad relativa)</b>. Al 100%, el aire está saturado y ocurre condensación.</div>
+  </div>
+</div>
+
+<!-- 7: Elemento - Presión atmosférica -->
+<div class="slide center-mid" id="slide-7">
+  <div class="eyebrow">Desarrollo · Elemento 4 de 5</div>
+  <div class="hero-concept">
+    <div class="icon">📉</div>
+    <h2>Presión atmosférica</h2>
+    <p>Peso del aire sobre una superficie. Disminuye con la altitud (por eso cuesta más respirar en la alta montaña) y sus variaciones horizontales son las que generan el viento.</p>
+    <div class="scale">Unidad habitual: <b>hectopascales (hPa)</b> — la presión media a nivel del mar es de aproximadamente 1.013 hPa.</div>
+  </div>
+</div>
+
+<!-- 8: Elemento - Viento -->
+<div class="slide center-mid" id="slide-8">
+  <div class="eyebrow">Desarrollo · Elemento 5 de 5</div>
+  <div class="hero-concept">
+    <div class="icon">🍃</div>
+    <h2>Viento</h2>
+    <p>Aire en movimiento horizontal, generado por diferencias de presión atmosférica: el aire se desplaza desde zonas de alta presión hacia zonas de baja presión.</p>
+    <div class="scale">Unidad habitual: <b>km/h</b> o <b>m/s</b> para la velocidad, y puntos cardinales para la dirección.</div>
+  </div>
+</div>
+
+<!-- 9: Cuaderno tabla resumen elementos -->
+<div class="slide" id="slide-9">
+  <div class="eyebrow">Desarrollo · Cuaderno · Síntesis</div>
+  <h2>Los 5 elementos del clima, con sus unidades</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">Copia y completa esta tabla en tu cuaderno:</p>
+    <table class="rubric">
+      <tr><th>Elemento</th><th>¿Qué mide?</th><th>Unidad habitual</th></tr>
+      <tr><td>Temperatura</td><td></td><td></td></tr>
+      <tr><td>Precipitación</td><td></td><td></td></tr>
+      <tr><td>Humedad</td><td></td><td></td></tr>
+      <tr><td>Presión atmosférica</td><td></td><td></td></tr>
+      <tr><td>Viento</td><td></td><td></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 10: Concepto factores del clima -->
+<div class="slide center-mid" id="slide-10">
+  <div class="eyebrow">Desarrollo · Concepto</div>
+  <div class="hero-concept">
+    <div class="icon">🧭</div>
+    <h2>¿Qué son los factores del clima?</h2>
+    <p>Son las <b>condiciones geográficas y astronómicas</b> que explican por qué los elementos del clima toman valores distintos en cada lugar: por qué Antofagasta es árida y Valdivia es lluviosa, aunque ambas estén en Chile.</p>
+    <div class="scale">Los principales son: latitud, altitud, corrientes marinas, relieve y continentalidad.</div>
+  </div>
+</div>
+
+<!-- 11: Factor - Latitud -->
+<div class="slide center-mid" id="slide-11">
+  <div class="eyebrow">Desarrollo · Factor 1 de 4</div>
+  <div class="hero-concept">
+    <div class="icon">🌐</div>
+    <h2>Latitud</h2>
+    <p>La distancia angular al ecuador determina el ángulo con que llega la radiación solar. Cerca del ecuador, la radiación incide de forma más directa (más energía por m²); cerca de los polos, incide de forma más oblicua (menos energía por m²).</p>
+    <div class="scale">Es el factor que más influye en la temperatura media de una zona, y define las grandes zonas climáticas del planeta.</div>
+  </div>
+</div>
+
+<!-- 12: Factor - Altitud -->
+<div class="slide center-mid" id="slide-12">
+  <div class="eyebrow">Desarrollo · Factor 2 de 4</div>
+  <div class="hero-concept">
+    <div class="icon">⛰️</div>
+    <h2>Altitud</h2>
+    <p>La temperatura disminuye con la altura (recuerda el gradiente térmico de la tropósfera: ≈ -6,5 °C cada 1.000 m). Por eso la cordillera de los Andes tiene nieve incluso en zonas de latitud baja, donde a nivel del mar hace calor.</p>
+    <div class="scale">Explica por qué en Chile podemos esquiar y estar en la playa el mismo día, en algunas zonas del país.</div>
+  </div>
+</div>
+
+<!-- 13: Factor - Corrientes marinas -->
+<div class="slide center-mid" id="slide-13">
+  <div class="eyebrow">Desarrollo · Factor 3 de 4</div>
+  <div class="hero-concept">
+    <div class="icon">🌊</div>
+    <h2>Corrientes marinas</h2>
+    <p>Las corrientes oceánicas transportan agua fría o cálida entre zonas del planeta, modificando la temperatura y la humedad del aire costero. La <b>Corriente de Humboldt</b> trae aguas frías desde la Antártica hacia el norte de Chile, enfriando y secando el aire de nuestra costa.</p>
+    <div class="scale">Es una de las razones por las que el desierto de Atacama, pese a su baja latitud, es uno de los más áridos del mundo.</div>
+  </div>
+</div>
+
+<!-- 14: Factor - Relieve y continentalidad -->
+<div class="slide center-mid" id="slide-14">
+  <div class="eyebrow">Desarrollo · Factor 4 de 4</div>
+  <div class="hero-concept">
+    <div class="icon">🏔️</div>
+    <h2>Relieve y continentalidad</h2>
+    <p>Las cordilleras actúan como barreras que modifican la circulación del aire y la distribución de las lluvias. La <b>continentalidad</b> (distancia al mar) también influye: el mar modera la temperatura, por lo que las zonas costeras tienen climas más templados que las zonas del interior, a igual latitud.</p>
+    <div class="scale">En tu cuaderno: ¿cómo influyen la Cordillera de los Andes y la Cordillera de la Costa en el clima de la zona central de Chile?</div>
+  </div>
+</div>
+
+<!-- 15: Origen de las estaciones -->
+<div class="slide" id="slide-15">
+  <div class="eyebrow">Desarrollo · Mirada crítica</div>
+  <h2>¿Por qué existen las estaciones del año?</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1rem;">
+  <div class="grid cols-2" style="flex:none;">
+    <div class="card red">
+      <h3>❌ Idea errónea frecuente</h3>
+      <p class="small">"Es verano cuando la Tierra está más cerca del Sol, e invierno cuando está más lejos."</p>
+      <p class="small">Esto no explica por qué en el hemisferio norte y sur las estaciones ocurren en fechas opuestas al mismo tiempo.</p>
+    </div>
+    <div class="card teal">
+      <h3>✅ Explicación correcta</h3>
+      <p class="small">Las estaciones se deben a la <b>inclinación del eje de rotación terrestre</b> (≈23,5°) respecto al plano de su órbita. Según la época del año, cada hemisferio recibe la radiación solar con un ángulo más o menos directo.</p>
+    </div>
+  </div>
+  <div class="scale" style="align-self:center;">La distancia Tierra-Sol varía muy poco durante el año y no es la causa de las estaciones.</div>
+  </div>
+</div>
+
+<!-- 16: Zonas climáticas de Chile -->
+<div class="slide" id="slide-16">
+  <div class="eyebrow">Desarrollo · Contexto chileno</div>
+  <h2>La diversidad climática de Chile</h2>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:1rem;">
+  <div class="grid cols-5" style="flex:none;">
+    <div class="zonecard"><div class="icon">🏜️</div><h3>Desértico</h3><p class="small">Norte Grande. Extrema aridez.</p></div>
+    <div class="zonecard"><div class="icon">🌵</div><h3>Semiárido</h3><p class="small">Norte Chico. Transición hacia el sur.</p></div>
+    <div class="zonecard"><div class="icon">🍇</div><h3>Mediterráneo</h3><p class="small">Zona central. Veranos secos, inviernos lluviosos.</p></div>
+    <div class="zonecard"><div class="icon">🌲</div><h3>Templado lluvioso</h3><p class="small">Zona sur. Alta pluviometría todo el año.</p></div>
+    <div class="zonecard"><div class="icon">🧊</div><h3>Frío / Polar</h3><p class="small">Patagonia y Antártica. Bajas temperaturas.</p></div>
+  </div>
+  <div class="scale" style="align-self:center;">Chile atraviesa casi 39° de latitud — por eso concentra una variedad climática poco común para un solo país.</div>
+  </div>
+</div>
+
+<!-- 17: Cuaderno AER aplicación -->
+<div class="slide" id="slide-17">
+  <div class="eyebrow">Desarrollo · Argumentación</div>
+  <h2>Aplicación AER: el clima de Villa Alemana</h2>
+  <div class="cuaderno-box" style="flex:1;">
+    <p style="margin-top:.6rem;">Trabaja en tu cuaderno usando el marco AER:</p>
+    <p><b>Afirmación:</b> Villa Alemana tiene clima mediterráneo (veranos secos, inviernos lluviosos).</p>
+    <ul>
+      <li><b>Evidencia:</b> ¿qué elementos del clima (temperatura, precipitación) respaldan esta afirmación en tu experiencia?</li>
+      <li><b>Razonamiento:</b> ¿qué factores del clima (latitud, corrientes marinas, relieve, continentalidad) explican por qué Villa Alemana tiene este clima y no otro?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 18: MC comprobación -->
+<div class="slide" id="slide-18">
+  <div class="eyebrow">Cierre · Comprobación</div>
+  <h2>Pregunta de alternativas</h2>
+  <div id="mcArea1"></div>
+</div>
+
+<!-- 19: Cuaderno síntesis mapa conceptual -->
+<div class="slide" id="slide-19">
+  <div class="eyebrow">Cierre · Cuaderno</div>
+  <h2>Síntesis — Mapa conceptual: elementos y factores</h2>
+  <div class="grid cols-2">
+    <div class="cuaderno-box">
+      <p style="margin-top:.6rem;">Construye un mapa conceptual que distinga claramente <b>elementos</b> de <b>factores</b> del clima, y cómo se conectan con "clima" como concepto central.</p>
+    </div>
+    <div class="card teal">
+      <h3>Banco de conceptos</h3>
+      <p class="small">Clima · Elementos del clima · Temperatura · Precipitación · Humedad · Presión atmosférica · Viento · Factores del clima · Latitud · Altitud · Corrientes marinas · Relieve · Continentalidad · Estaciones del año · Zonas climáticas</p>
+    </div>
+  </div>
+</div>
+
+<!-- 20: Ticket de salida instrucciones -->
+<div class="slide" id="slide-20">
+  <div class="eyebrow">Cierre · Evaluación Formativa 7</div>
+  <h2>Ticket de salida de la sesión</h2>
+  <div class="exit-box" style="flex:1;">
+    <p style="margin-top:.6rem;"><span class="badge form">Formativa 7</span><span class="badge bloom">Trabajo individual</span></p>
+    <p>Antes de salir de la sala, elige <b>una</b> de las opciones de la próxima diapositiva para demostrar lo que aprendiste hoy.</p>
+    <ul>
+      <li>Tiempo estimado: <b>10 minutos</b>.</li>
+      <li>Debe incluir al menos <b>dos elementos</b> y <b>un factor</b> del clima trabajados hoy.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 21: Opciones de actividades -->
+<div class="slide" id="slide-21">
+  <div class="eyebrow">Cierre · Ticket de salida</div>
+  <h2>Elige tu formato</h2>
+  <div class="grid cols-3">
+    <div class="actcard">
+      <div class="icon">🗺️</div>
+      <span class="badge bloom">Crear</span>
+      <h3>Postal climática</h3>
+      <p class="small">Diseña una postal de una zona climática de Chile (a elección) que describa, con datos aproximados, sus elementos del clima típicos y los factores que la explican.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">🎙️</div>
+      <span class="badge bloom">Crear</span>
+      <h3>Guion: por qué hay estaciones</h3>
+      <p class="small">Escribe el guion de una explicación breve (60 s) que desmienta el mito de "la distancia al Sol" y explique la causa real de las estaciones.</p>
+    </div>
+    <div class="actcard">
+      <div class="icon">📋</div>
+      <span class="badge bloom">Analizar</span>
+      <h3>Ficha comparativa</h3>
+      <p class="small">Elige dos zonas climáticas de Chile y compáralas en una tabla: elementos del clima típicos y factores que explican sus diferencias.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 22: Rúbrica -->
+<div class="slide scroll" id="slide-22">
+  <div class="eyebrow">Cierre · Rúbrica · Formativa 7</div>
+  <h2>Criterios de evaluación del ticket de salida</h2>
+  <table class="rubric">
+    <tr>
+      <th style="width:22%;">Criterio</th>
+      <th>Logro pleno</th>
+      <th>Logro parcial</th>
+      <th>En desarrollo</th>
+      <th>Inicial</th>
+    </tr>
+    <tr>
+      <td class="crit">Precisión conceptual</td>
+      <td>Distingue correctamente elementos de factores del clima y los usa sin errores.</td>
+      <td>Distingue los conceptos, con alguna imprecisión menor.</td>
+      <td>Confunde elementos con factores en algún punto.</td>
+      <td>No hay evidencia de comprensión de los conceptos.</td>
+    </tr>
+    <tr>
+      <td class="crit">Uso de contexto chileno</td>
+      <td>Incorpora una zona climática o ejemplo chileno pertinente y bien integrado.</td>
+      <td>Incorpora un ejemplo, aunque poco desarrollado.</td>
+      <td>Menciona un ejemplo sin conectarlo claramente.</td>
+      <td>No incorpora contexto chileno.</td>
+    </tr>
+    <tr>
+      <td class="crit">Claridad y organización</td>
+      <td>El producto se entiende por sí solo, con secuencia lógica y clara.</td>
+      <td>Se entiende con algo de esfuerzo.</td>
+      <td>Requiere explicación adicional para entenderse.</td>
+      <td>No es posible seguir la idea central.</td>
+    </tr>
+    <tr>
+      <td class="crit">Cumplimiento del formato elegido</td>
+      <td>Cumple todos los requisitos de la consigna elegida.</td>
+      <td>Cumple la mayoría de los requisitos.</td>
+      <td>Cumple parcialmente el formato solicitado.</td>
+      <td>No sigue el formato de la actividad elegida.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 23: Cierre -->
+<div class="slide" id="slide-23">
+  <div class="eyebrow">Cierre</div>
+  <h2>Síntesis de la sesión y próximo paso</h2>
+  <div class="grid cols-2">
+    <div class="card navy">
+      <h3>Lo que construimos hoy</h3>
+      <ul class="small">
+        <li>Los 5 elementos del clima, con sus unidades de medida</li>
+        <li>Los 4 factores que explican las diferencias climáticas</li>
+        <li>El origen real de las estaciones del año</li>
+        <li>La diversidad de zonas climáticas de Chile</li>
+        <li>Ticket de salida — Evaluación Formativa 7</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>📎 Próximo paso</h3>
+      <p class="small">Con esta base conceptual reforzada, en la próxima sesión retomamos el trabajo en equipo de nuestros <b>proyectos de acción climática</b>, continuando la fase de ejecución.</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<button id="soundBtn" onclick="toggleSound()">🔊</button>
+<div class="footer-nav">
+  <button class="navbtn" id="prevBtn" onclick="go(-1)">←</button>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+  <span id="slideLabel">1 / 23</span>
+  <button class="navbtn" id="nextBtn" onclick="go(1)">→</button>
+</div>
+
+<script>
+const TOTAL = 23;
+let cur = 1;
+let soundOn = true;
+function render(){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.getElementById('slide-'+cur).classList.add('active');
+  document.getElementById('slideLabel').textContent = cur+' / '+TOTAL;
+  document.getElementById('progressBar').style.width = (cur/TOTAL*100)+'%';
+  document.getElementById('prevBtn').disabled = cur===1;
+  document.getElementById('nextBtn').disabled = cur===TOTAL;
+}
+function go(d){ const n = cur+d; if(n<1||n>TOTAL) return; cur = n; render(); playClick(); }
+window.addEventListener('keydown',e=>{ if(e.key==='ArrowRight') go(1); if(e.key==='ArrowLeft') go(-1); });
+render();
+
+let actx;
+function ensureAudio(){ if(!actx){ actx = new (window.AudioContext||window.webkitAudioContext)(); } }
+function beep(freq, dur, type='sine', vol=.05){
+  if(!soundOn) return; ensureAudio();
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type=type; o.frequency.value=freq; g.gain.value=vol;
+  o.connect(g); g.connect(actx.destination); o.start();
+  g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime+dur);
+  o.stop(actx.currentTime+dur);
+}
+function playClick(){ beep(520,.08,'sine',.04); }
+function toggleSound(){ soundOn = !soundOn; document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇'; }
+
+function rayBurst(e){
+  const sky = document.getElementById('sky');
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX-rect.left, y = e.clientY-rect.top;
+  for(let i=0;i<14;i++){
+    const ray = document.createElement('div'); ray.className='ray';
+    const len = 60+Math.random()*90; const ang = Math.random()*360;
+    ray.style.height=len+'px'; ray.style.left=x+'px'; ray.style.top=y+'px';
+    ray.style.transform=`rotate(${ang}deg)`; ray.style.transformOrigin='top center';
+    sky.appendChild(ray);
+    requestAnimationFrame(()=>{ ray.style.transition='opacity .9s ease, height .9s ease'; ray.style.opacity='.9'; });
+    setTimeout(()=>{ ray.style.opacity='0'; },500);
+    setTimeout(()=>ray.remove(),1400);
+  }
+  beep(700,.25,'sine',.03); beep(880,.3,'sine',.02);
+}
+
+/* MC questions */
+const mcData = [
+  {
+    area:'mcArea1',
+    q:"El norte de Chile es muy árido a pesar de su baja latitud (cerca del ecuador, donde debería llover más). ¿Qué factor del clima explica mejor esta aridez?",
+    opts:[
+      "La altitud, porque el norte de Chile está a nivel del mar.",
+      "Las corrientes marinas, porque la Corriente de Humboldt enfría y seca el aire costero.",
+      "La continentalidad, porque el norte de Chile está lejos del mar.",
+      "La latitud, porque a esa latitud siempre es árido en cualquier lugar del planeta."
+    ],
+    correct:1,
+    fb_ok:"Correcto: la Corriente de Humboldt trae aguas frías que enfrían el aire y dificultan la formación de nubes de lluvia en la costa norte.",
+    fb_bad:"Revisa el factor de las corrientes marinas: la Corriente de Humboldt es clave para explicar la aridez del norte de Chile."
+  }
+];
+mcData.forEach((item)=>{
+  const mcArea = document.getElementById(item.area);
+  const wrap = document.createElement('div'); wrap.className='card navy';
+  wrap.innerHTML = `<span class="badge bloom">Aplicar</span><h3>${item.q}</h3>`;
+  const fb = document.createElement('div'); fb.className='feedback';
+  item.opts.forEach((opt,oi)=>{
+    const b = document.createElement('button'); b.className='opt'; b.textContent=opt;
+    b.onclick=()=>{
+      wrap.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+      if(oi===item.correct){ b.classList.add('correct'); fb.className='feedback ok'; fb.textContent='✔ '+item.fb_ok; beep(660,.15,'sine',.04);}
+      else{ b.classList.add('wrong'); wrap.querySelectorAll('.opt')[item.correct].classList.add('correct'); fb.className='feedback bad'; fb.textContent='✘ '+item.fb_bad; beep(220,.2,'sawtooth',.03);}
+    };
+    wrap.appendChild(b);
+  });
+  wrap.appendChild(fb);
+  mcArea.appendChild(wrap);
+});
+</script>
+</body>
+</html>
