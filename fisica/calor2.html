@@ -29,7 +29,7 @@
     color:var(--text);
     overflow:hidden;
   }
-  .deck{position:relative;width:100vw;height:100vh;display:flex;flex-direction:column;background:var(--navy-dark);}
+  .deck{position:relative;width:100vw;height:100vh;height:calc(var(--vh, 1vh) * 100);height:100dvh;display:flex;flex-direction:column;background:var(--navy-dark);}
 
   /* ---------- TOP BAR ---------- */
   .topbar{
@@ -82,11 +82,12 @@
   footer.oa-strip{flex:0 0 auto;font-size:12.5px;color:var(--navy);opacity:.75;padding-top:8px;margin-top:auto;border-top:1px dashed #C7D2DC;}
 
   /* ---------- NAV CONTROLS (mejorado para móvil) ---------- */
-  .controls{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:16px;padding:12px 10px;background:var(--navy);border-top:1px solid rgba(255,255,255,.08);}
+  .controls{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:16px;padding:12px 10px calc(12px + env(safe-area-inset-bottom)) 10px;background:var(--navy);border-top:1px solid rgba(255,255,255,.08);position:relative;z-index:20;touch-action:manipulation;}
   .nav-btn{
     background:var(--amber);color:var(--navy-dark);border:none;width:46px;height:46px;border-radius:50%;
     font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:transform .15s ease, background .15s ease;flex:0 0 auto;
+    transition:transform .15s ease, background .15s ease;flex:0 0 auto;touch-action:manipulation;
+    -webkit-user-select:none;user-select:none;
   }
   .nav-btn:hover{background:var(--amber-light);transform:scale(1.06);}
   .nav-btn:active{transform:scale(.92);}
@@ -232,7 +233,7 @@
     .card{padding:14px 15px;}
     .card h3{font-size:15.5px;}
     .card li, .callout, .closing-q{font-size:14.5px;}
-    .controls{padding:10px 8px;gap:12px;}
+    .controls{padding:10px 8px calc(10px + env(safe-area-inset-bottom)) 8px;gap:12px;}
     .nav-btn{width:52px;height:52px;font-size:24px;}
     .dots{max-width:38vw;}
   }
@@ -596,6 +597,22 @@
    Ver instrucciones en el archivo "Instrucciones_AppsScript.txt".
    ===================================================================== */
 const SCRIPT_URL = "PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT";
+
+/* ---------------- FIX DE ALTURA DE VIEWPORT (Safari iOS / Chrome móvil) ----------------
+   En Safari (y algunos Chrome móviles) 100vh no coincide con el alto realmente visible,
+   por la barra de direcciones dinámica. Esto puede empujar la barra de controles
+   (con el botón "siguiente") fuera de la pantalla. Se corrige con una variable CSS
+   calculada en JS a partir de window.innerHeight, actualizada en resize/orientationchange. */
+function setViewportHeight(){
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', vh + 'px');
+}
+setViewportHeight();
+window.addEventListener('resize', setViewportHeight);
+window.addEventListener('orientationchange', ()=> setTimeout(setViewportHeight, 100));
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', setViewportHeight);
+}
 
 /* ---------------- NAVEGACIÓN ---------------- */
 const slides = document.querySelectorAll('.slide');
