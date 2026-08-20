@@ -173,6 +173,23 @@
   .resource-embed iframe{ width:100%; height:calc(100dvh - 260px); min-height:280px; max-height:680px; display:block; border:0; }
   .resource-fallback{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
 
+  /* actividad de cierre: opciones */
+  .option-grid{ display:grid; grid-template-columns:1fr 1fr; gap:.9rem; max-width:1000px; }
+  @media (max-width:760px){ .option-grid{ grid-template-columns:1fr; } }
+  .option-card{ background:var(--surface); border:1px solid var(--surface-3); border-radius:14px; padding:1rem 1.15rem; display:flex; flex-direction:column; gap:.4rem; }
+  .option-card .opt-tag{ font-family:var(--font-mono); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:var(--amber-deep); }
+  .option-card h3{ font-family:var(--font-display); font-style:italic; margin:0; font-size:1.05rem; color:var(--deep); }
+  .option-card p{ margin:0; font-size:.85rem; line-height:1.5; color:var(--text-dim); }
+  .option-card ul{ margin:.2rem 0 0 0; padding-left:1.1rem; font-size:.82rem; line-height:1.5; color:var(--text-dim); }
+  .option-card ul li{ margin-bottom:.15rem; }
+
+  /* pauta de evaluación */
+  .rubric-scroll{ max-width:1000px; width:100%; overflow-x:auto; border-radius:10px; }
+  .rubric-table{ display:grid; grid-template-columns:1.3fr 1fr 1fr 1fr; gap:2px; background:var(--surface-3); min-width:640px; border-radius:10px; overflow:hidden; }
+  .rubric-cell{ background:var(--surface); padding:.55rem .7rem; font-size:.78rem; line-height:1.4; color:var(--text-dim); }
+  .rubric-cell.header{ background:var(--surface-2); font-weight:700; color:var(--amber-deep); font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; }
+  .rubric-cell.criterion{ font-weight:700; color:var(--deep); background:var(--surface-2); }
+
   /* mapa de flujo de energía */
   .flow-map{ display:flex; align-items:stretch; gap:.5rem; flex-wrap:wrap; max-width:1080px; }
   .flow-box{
@@ -604,7 +621,102 @@
       </div>
     </section>
 
+    <!-- 16. ACTIVIDAD DE CIERRE: ELIGE TU FORMATO -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 4 <span class="badge sintesis">Actividad de cierre</span></p>
+      <h2 class="title" style="font-size:clamp(1.2rem,3.6vw,2.1rem);">Elige cómo vas a contar la fotosíntesis</h2>
+      <p class="body-text">Para la próxima clase, demuestra lo que aprendiste hoy eligiendo <b>uno</b> de estos cuatro formatos. Todos se evalúan con la misma pauta.</p>
+      <div class="option-grid">
+        <div class="option-card">
+          <span class="opt-tag">Opción 1</span>
+          <h3>El flujo</h3>
+          <p>Un diagrama de flujo que muestre el recorrido de la energía y la materia desde la luz solar hasta la glucosa.</p>
+          <ul>
+            <li>Incluye los reactivos y productos de la fotosíntesis</li>
+            <li>Muestra las dos fases y dónde ocurren en el cloroplasto</li>
+            <li>Usa flechas que indiquen la dirección del flujo</li>
+            <li>Conecta el resultado con el resto del ecosistema</li>
+          </ul>
+        </div>
+        <div class="option-card">
+          <span class="opt-tag">Opción 2</span>
+          <h3>La carta</h3>
+          <p>Una carta narrada en primera persona por una molécula de CO₂, de glucosa o un fotón de luz, contando su "viaje".</p>
+          <ul>
+            <li>Narrada en primera persona desde la molécula elegida</li>
+            <li>Menciona con precisión las estructuras del cloroplasto que atraviesa</li>
+            <li>Explica correctamente su transformación química</li>
+            <li>Cierra conectando con la importancia ecológica del proceso</li>
+          </ul>
+        </div>
+        <div class="option-card">
+          <span class="opt-tag">Opción 3</span>
+          <h3>El cómic</h3>
+          <p>Una tira cómica de al menos 6 viñetas que cuente la historia de la fotosíntesis con personajes propios.</p>
+          <ul>
+            <li>Mínimo 6 viñetas con secuencia lógica</li>
+            <li>Los personajes representan correctamente los conceptos científicos</li>
+            <li>Incluye diálogos o texto explicativo en cada viñeta</li>
+            <li>Muestra tanto la fase luminosa como la fase oscura</li>
+          </ul>
+        </div>
+        <div class="option-card">
+          <span class="opt-tag">Opción 4</span>
+          <h3>Esquema detallado</h3>
+          <p>Un esquema rotulado del cloroplasto y el proceso de fotosíntesis, construido por ti.</p>
+          <ul>
+            <li>Rotula al menos 6 estructuras del cloroplasto</li>
+            <li>Indica dónde ocurre cada fase de la fotosíntesis</li>
+            <li>Incluye la ecuación química del proceso</li>
+            <li>Usa colores o símbolos para diferenciar reactivos de productos</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 17. PAUTA DE EVALUACIÓN -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 4 <span class="badge sintesis">Actividad de cierre</span></p>
+      <h2 class="title" style="font-size:clamp(1.2rem,3.6vw,2.1rem);">Pauta de evaluación</h2>
+      <p class="body-text">La misma pauta aplica a las cuatro opciones — solo cambia cómo se ve cumplido cada criterio según el formato que elijas.</p>
+      <div class="rubric-scroll">
+        <div class="rubric-table">
+          <div class="rubric-cell header">Criterio</div>
+          <div class="rubric-cell header">Logrado (3)</div>
+          <div class="rubric-cell header">Parcialmente logrado (2)</div>
+          <div class="rubric-cell header">Por lograr (1)</div>
+
+          <div class="rubric-cell criterion">1. Precisión científica</div>
+          <div class="rubric-cell">Todos los conceptos (ecuación, estructuras, fases) son correctos.</div>
+          <div class="rubric-cell">La mayoría son correctos, con 1 o 2 errores menores.</div>
+          <div class="rubric-cell">Hay errores conceptuales importantes o conceptos ausentes.</div>
+
+          <div class="rubric-cell criterion">2. Completitud</div>
+          <div class="rubric-cell">Incluye todos los elementos requeridos para el formato elegido.</div>
+          <div class="rubric-cell">Incluye la mayoría de los elementos, falta alguno.</div>
+          <div class="rubric-cell">Faltan varios elementos requeridos.</div>
+
+          <div class="rubric-cell criterion">3. Claridad y organización</div>
+          <div class="rubric-cell">La secuencia es lógica y fácil de seguir de principio a fin.</div>
+          <div class="rubric-cell">Mayormente clara, con algunos saltos confusos.</div>
+          <div class="rubric-cell">Es difícil seguir la secuencia o el orden de las ideas.</div>
+
+          <div class="rubric-cell criterion">4. Conexión con el ecosistema</div>
+          <div class="rubric-cell">Explica claramente por qué la fotosíntesis es la base energética del ecosistema.</div>
+          <div class="rubric-cell">Menciona la conexión, pero de forma superficial.</div>
+          <div class="rubric-cell">No conecta el proceso con su importancia ecológica.</div>
+
+          <div class="rubric-cell criterion">5. Cumplimiento del formato</div>
+          <div class="rubric-cell">Cumple todos los requisitos específicos del formato elegido.</div>
+          <div class="rubric-cell">Cumple la mayoría de los requisitos específicos.</div>
+          <div class="rubric-cell">Cumple pocos requisitos específicos del formato.</div>
+        </div>
+      </div>
+      <p class="hint">Puntaje total: 15 puntos.</p>
+    </section>
+
   </div>
+
 </div>
 
 <nav class="controls">
