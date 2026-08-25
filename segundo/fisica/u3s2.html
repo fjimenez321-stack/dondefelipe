@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesión 2 · Energía potencial y energía mecánica · Física 2° Medio</title>
+<style>
+  :root{
+    --navy:#1F3A44;
+    --navy-soft:#3F5C67;
+    --teal:#2E7D82;
+    --amber:#C98A2E;
+    --amber-soft:#F2E3C8;
+    --panel:#F4F7F7;
+    --panel-soft:#EAF1F1;
+    --text-dark:#1F2937;
+    --text-gray:#5B6B72;
+    --line:#D8E0E1;
+    --green:#3F8A5C;
+    --green-soft:#E3F0E7;
+    --plum:#6B4C7A;
+    --plum-soft:#EDE6F0;
+    --white:#FFFFFF;
+    --red:#B5473F;
+    --red-soft:#F7E6E4;
+    --stage:#10191C;
+    --font-head:Cambria, Georgia, 'Times New Roman', serif;
+    --font-body:Calibri, 'Segoe UI', Roboto, Arial, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--stage);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- STAGE / DECK ---------- */
+  .stage{
+    height:100vh; height:100dvh;
+    display:flex; align-items:center; justify-content:center;
+    padding:2.2vh 2vw;
+    position:relative;
+  }
+  .deck{
+    position:relative;
+    width:min(96vw, calc((100vh - 4.4vh) * 16 / 9));
+    aspect-ratio:16/9;
+    background:var(--white);
+    border-radius:10px;
+    box-shadow:0 30px 70px rgba(0,0,0,0.55), 0 2px 0 rgba(255,255,255,0.03) inset;
+    overflow:hidden;
+  }
+
+  .slide{
+    position:absolute; inset:0;
+    display:none;
+    padding:4.2% 4.6%;
+    color:var(--text-dark);
+    background:var(--white);
+  }
+  .slide.active{ display:flex; flex-direction:column; justify-content:center; }
+  .slide[data-dark="true"]{ background:var(--navy); color:var(--white); }
+  .slide.no-pad{ padding:0; }
+  .slide.no-pad.active{ display:block; }
+
+  /* fluid type: scales with deck width */
+  .deck{ font-size:clamp(9px, 1.55vw, 19px); }
+
+  /* ---------- TEXT PRIMITIVES ---------- */
+  .kicker{
+    font-family:var(--font-body); font-weight:700; font-size:0.62em;
+    letter-spacing:0.14em; color:var(--amber); text-transform:uppercase;
+    margin:0 0 0.9em 0;
+  }
+  .dark .kicker{ color:var(--amber); }
+  h1.title{
+    font-family:var(--font-head); font-weight:700; font-size:1.55em;
+    color:var(--navy); margin:0 0 0.5em 0; line-height:1.15;
+  }
+  .dark h1.title{ color:var(--white); }
+  p.lede{
+    font-size:0.72em; color:var(--text-gray); margin:0 0 1.1em 0; line-height:1.4;
+    max-width:92%;
+  }
+  p.lede.italic{ font-style:italic; }
+
+  .footer{
+    position:absolute; left:4.6%; right:4.6%; bottom:3.6%;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:0.5em; color:var(--text-gray);
+    border-top:1px solid var(--line); padding-top:0.6em;
+  }
+  .dark .footer{ color:#8FA2A8; border-top-color:rgba(255,255,255,0.12); }
+
+  /* ---------- PANELS / CARDS ---------- */
+  .panel{
+    background:var(--panel); border-radius:10px; padding:0.9em 1.1em;
+  }
+  .panel.soft{ background:var(--panel-soft); }
+  .panel.amber{ background:var(--amber-soft); }
+  .panel.shadow{ box-shadow:0 10px 20px rgba(31,58,68,0.08); }
+
+  .badge-circle{
+    width:2em; height:2em; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--white); font-weight:700; font-size:0.85em;
+    flex:none;
+  }
+
+  .formula-box{
+    font-family:var(--font-head); font-weight:700; color:var(--navy);
+  }
+
+  /* ---------- PORTADA (slide 1) ---------- */
+  .cover{ display:grid; grid-template-columns:63% 37%; grid-template-rows:100%; width:100%; height:100%; }
+  .cover-left{ padding:8% 6% 6% 7%; display:flex; flex-direction:column; justify-content:flex-start; }
+  .cover-right{ background:var(--panel); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6%; text-align:center; }
+  .cover-eyebrow{ font-size:0.68em; font-weight:700; letter-spacing:0.1em; color:var(--amber); text-transform:uppercase; margin-bottom:1.2em; }
+  .cover-title{ font-family:var(--font-head); font-weight:700; font-size:2.6em; color:var(--navy); line-height:1.12; margin:0 0 0.5em 0; }
+  .cover-sub{ font-style:italic; color:var(--text-gray); font-size:0.95em; margin-bottom:1em; }
+  .cover-badge{ display:inline-block; background:var(--amber-soft); color:var(--amber); font-weight:700; font-size:0.72em; padding:0.55em 1.1em; border-radius:8px; margin-bottom:1.6em; }
+  .cover-meta{ display:flex; gap:2.2em; margin-bottom:1.8em; }
+  .cover-meta div span.lbl{ display:block; font-size:0.6em; font-weight:700; letter-spacing:0.05em; color:var(--teal); text-transform:uppercase; margin-bottom:0.3em; }
+  .cover-meta div span.val{ font-size:0.85em; color:var(--text-dark); }
+  .cover-school{ font-size:0.68em; color:var(--text-gray); margin-top:auto; }
+  .cover-formula-big{ font-family:var(--font-head); font-weight:700; font-size:3.2em; color:var(--navy); line-height:1; }
+  .cover-formula-line{ font-family:var(--font-head); font-size:1.15em; color:var(--teal); margin:0.25em 0; }
+  .cover-rule{ width:70%; border:none; border-top:1px solid var(--line); margin:0.9em 0; }
+  .cover-em{ font-family:var(--font-head); font-weight:700; font-size:1.5em; color:var(--navy); margin-bottom:0.5em;}
+  .cover-caption{ font-style:italic; font-size:0.68em; color:var(--text-gray); max-width:85%; }
+
+  /* ---------- STAT ROW ---------- */
+  .stat-row{ display:flex; gap:0.7em; margin-bottom:1em; }
+  .stat-box{ flex:1; background:var(--panel); border-radius:10px; padding:1em 0.5em; text-align:center; }
+  .stat-big{ font-family:var(--font-head); font-weight:700; font-size:1.5em; color:var(--navy); }
+  .stat-small{ font-size:0.62em; color:var(--text-gray); margin-top:0.3em; }
+
+  /* ---------- GENERIC CARD ROW ---------- */
+  .row{ display:flex; gap:0.8em; }
+  .row.gap-sm{ gap:0.65em; }
+  .col{ flex:1; }
+
+  .card{ background:var(--panel); border-radius:10px; padding:1em 1.1em; }
+  .card.soft{ background:var(--panel-soft); }
+  .card.bordered{ background:var(--white); border:1px solid var(--line); }
+  .card.shadow{ box-shadow:0 10px 20px rgba(31,58,68,0.08); }
+  .card h3{ font-family:var(--font-head); font-size:1.05em; color:var(--navy); margin:0.2em 0 0.15em 0; }
+  .card .eyebrow{ font-size:0.62em; font-weight:700; color:var(--teal); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.4em;}
+  .card p{ font-size:0.68em; line-height:1.35; margin:0.3em 0; color:var(--text-dark); }
+  .card-head{ display:flex; align-items:center; gap:0.6em; margin-bottom:0.5em; }
+
+  ul.clean{ list-style:none; margin:0; padding:0; }
+  ul.clean li{ margin-bottom:0.5em; font-size:0.7em; line-height:1.35; }
+
+  .dot{ width:0.9em; height:0.9em; border-radius:50%; flex:none; }
+
+  /* ---------- FASE CARDS (hoja de ruta) ---------- */
+  .fase-card{ border-radius:10px; padding:1em 1.1em 1.2em; display:flex; flex-direction:column; box-shadow:0 10px 20px rgba(31,58,68,0.06); }
+  .fase-time{ display:inline-flex; align-items:center; justify-content:center; width:fit-content; padding:0.4em 0.85em; border-radius:999px; color:var(--white); font-weight:700; font-size:0.62em; white-space:nowrap; margin-bottom:0.9em; }
+  .fase-name{ font-family:var(--font-head); font-weight:700; font-size:1.15em; color:var(--navy); margin-bottom:0.7em; }
+  .fase-desc{ font-size:0.68em; line-height:1.35; color:var(--text-dark); }
+
+  /* ---------- Numbered tip cards ---------- */
+  .tip-card{ background:var(--panel); border-radius:10px; padding:0.85em 1em; display:flex; gap:0.6em; }
+  .tip-card .num{ width:1.7em; height:1.7em; border-radius:50%; background:var(--teal); color:var(--white); font-weight:700; font-size:0.7em; display:flex; align-items:center; justify-content:center; flex:none; }
+  .tip-card h4{ font-family:var(--font-head); font-size:0.85em; color:var(--navy); margin:0 0 0.25em 0; }
+  .tip-card p{ font-size:0.63em; line-height:1.3; margin:0; color:var(--text-dark); }
+
+  /* ---------- Checkbox / bullet formula lines ---------- */
+  .formula-line{ display:flex; align-items:baseline; gap:0.5em; font-size:0.72em; margin-bottom:0.55em; }
+  .formula-line .f{ font-family:var(--font-head); font-weight:700; color:var(--teal); }
+
+  /* ---------- utility ---------- */
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:0.7em; }
+  .grid-2{ display:grid; grid-template-columns:repeat(2,1fr); gap:0.7em; }
+  .mt{ margin-top:0.9em; }
+  .mb{ margin-bottom:0.9em; }
+  strong.hl{ color:var(--amber); }
+  strong.hlteal{ color:var(--teal); }
+
+  /* ---------- CIERRE ---------- */
+  .cierre-grid{ display:grid; grid-template-columns:63% 37%; gap:1.4em; margin-top:1.6em; }
+  .cierre-panel{ background:var(--navy-soft); border-radius:10px; padding:1.1em 1.2em; }
+  .cierre-panel .eyebrow{ color:var(--amber); font-size:0.6em; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.6em;}
+  .cierre-panel h3{ font-family:var(--font-head); font-size:1.1em; color:var(--white); margin:0 0 0.6em 0; line-height:1.25; }
+  .cierre-panel p{ font-size:0.65em; color:#C9D3D6; line-height:1.35; margin:0.4em 0; }
+  .cierre-panel p.tarea{ font-style:italic; margin-top:0.8em; }
+
+  /* ---------- NAV CONTROLS ---------- */
+  .nav-btn{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:50%;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18);
+    color:#fff; font-size:20px; cursor:pointer; z-index:20;
+    display:flex; align-items:center; justify-content:center;
+    transition:background 0.15s ease;
+  }
+  .nav-btn:hover{ background:rgba(255,255,255,0.18); }
+  .nav-prev{ left:1.2vw; }
+  .nav-next{ right:1.2vw; }
+  .nav-btn:disabled{ opacity:0.25; cursor:default; }
+  .nav-btn:disabled:hover{ background:rgba(255,255,255,0.08); }
+
+  .hud{
+    position:fixed; left:0; right:0; bottom:1vh;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    z-index:20; pointer-events:none;
+  }
+  .hud > *{ pointer-events:auto; }
+  .dots{ display:flex; gap:6px; background:rgba(255,255,255,0.06); padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.1); }
+  .dots button{
+    width:7px; height:7px; border-radius:50%; border:none; padding:0;
+    background:rgba(255,255,255,0.3); cursor:pointer;
+  }
+  .dots button.active{ background:var(--amber); width:16px; border-radius:5px; }
+  .counter{ font-family:var(--font-body); color:rgba(255,255,255,0.55); font-size:12px; letter-spacing:0.03em; min-width:40px; text-align:center; }
+  .fs-btn{
+    position:fixed; top:16px; right:16px; z-index:20;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18);
+    color:#fff; font-size:12px; padding:7px 12px; border-radius:8px; cursor:pointer;
+    font-family:var(--font-body);
+  }
+  .fs-btn:hover{ background:rgba(255,255,255,0.18); }
+
+  @media (max-width:700px){
+    .cover{ grid-template-columns:1fr; }
+    .cover-right{ display:none; }
+    .nav-btn{ width:36px; height:36px; font-size:16px; }
+  }
+
+  @media print{
+    body{ background:#fff; }
+    .stage{ padding:0; height:auto; }
+    .nav-btn, .hud, .fs-btn{ display:none !important; }
+    .deck{ box-shadow:none; border-radius:0; width:100%; aspect-ratio:auto; }
+    .slide{ position:relative; display:block !important; page-break-after:always; height:100vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="deck" id="deck">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1 — PORTADA -->
+    <!-- ============================================================ -->
+    <section class="slide active no-pad" data-index="0">
+      <div class="cover">
+        <div class="cover-left">
+          <div class="cover-eyebrow">Unidad 3 · Energía mecánica y cantidad de movimiento</div>
+          <h1 class="cover-title">Energía potencial y<br>energía mecánica</h1>
+          <div class="cover-sub">Sesión 2 de 8 · Semana 2</div>
+          <div class="cover-badge">+ Incluye orientación PAES Ciencias</div>
+          <div class="cover-meta">
+            <div><span class="lbl">Duración</span><span class="val">90 minutos</span></div>
+            <div><span class="lbl">OA trabajado</span><span class="val">OA 11 (continuación)</span></div>
+            <div><span class="lbl">Nivel Bloom</span><span class="val">Comprender</span></div>
+          </div>
+          <div class="cover-school">Colegio San Agustín de Villa Alemana · Física · Prof. Felipe Jiménez</div>
+        </div>
+        <div class="cover-right">
+          <div class="cover-formula-big">Ep</div>
+          <div class="cover-formula-line">= m · g · h</div>
+          <div class="cover-formula-line">= ½ · k · x²</div>
+          <hr class="cover-rule">
+          <div class="cover-em">Em = Ec + Ep</div>
+          <div class="cover-caption">cuando una baja, la otra sube: la energía mecánica se conserva</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2 — PAES: ESTRUCTURA -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="1">
+      <div class="kicker">Orientación PAES · 1 de 3</div>
+      <h1 class="title">La PAES de Ciencias: cómo se organiza</h1>
+      <p class="lede italic">Lo que estás aprendiendo hoy es evaluable en el eje Mecánica de esta prueba.</p>
+
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-big">80</div><div class="stat-small">preguntas</div></div>
+        <div class="stat-box"><div class="stat-big">2 h 40 min</div><div class="stat-small">de duración</div></div>
+        <div class="stat-box"><div class="stat-big">75 de 80</div><div class="stat-small">puntúan (5 piloto)</div></div>
+      </div>
+
+      <div class="row mb">
+        <div class="col card soft shadow">
+          <div class="card-head"><span class="dot" style="background:var(--teal)"></span><div><h3 style="margin:0;">Módulo Común</h3><div class="eyebrow" style="margin:0;">54 preguntas</div></div></div>
+          <p>18 de Biología, 18 de Física y 18 de Química. Contenidos trabajados hasta 2° medio: lo que hemos visto en Unidades 1 a 3.</p>
+        </div>
+        <div class="col card soft shadow">
+          <div class="card-head"><span class="dot" style="background:var(--navy)"></span><div><h3 style="margin:0;">Módulo Electivo</h3><div class="eyebrow" style="margin:0;">26 preguntas</div></div></div>
+          <p>De la mención que elijas al inscribirte: Biología, Física o Química. Contenidos de 3° y 4° medio.</p>
+        </div>
+      </div>
+
+      <div class="panel amber">
+        <span style="font-size:0.7em;"><strong class="hl">Ejes de Física evaluados:</strong> Mecánica (lo que vemos hoy), Ondas, Energía-Tierra y Electricidad.</span>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>2</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3 — PAES: ESTRATEGIAS -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="2">
+      <div class="kicker">Orientación PAES · 2 de 3</div>
+      <h1 class="title">Estrategias para rendirla con criterio</h1>
+
+      <div class="grid-2">
+        <div class="tip-card"><div class="num">1</div><div><h4>Dos pasadas</h4><p>Resuelve primero lo que manejas con fluidez. Vuelve después a lo difícil con el tiempo que quede.</p></div></div>
+        <div class="tip-card"><div class="num">2</div><div><h4>Lee antes de mirar las alternativas</h4><p>Entiende bien qué te preguntan antes de revisar las opciones de respuesta.</p></div></div>
+        <div class="tip-card"><div class="num">3</div><div><h4>Elimina distractores</h4><p>Descarta alternativas con errores conceptuales o absurdas antes de decidir entre las que quedan.</p></div></div>
+        <div class="tip-card"><div class="num">4</div><div><h4>Administra el tiempo</h4><p>En promedio dispones de unos 2 minutos por pregunta. Si una te toma mucho más, márcala y sigue.</p></div></div>
+        <div class="tip-card"><div class="num">5</div><div><h4>Responde todo</h4><p>No hay descuento por respuesta incorrecta: ninguna pregunta debería quedar en blanco.</p></div></div>
+        <div class="tip-card"><div class="num">6</div><div><h4>Entrena resistencia</h4><p>Es la prueba más larga del proceso (2 h 40). Haz ensayos cronometrados para acostumbrar cuerpo y mente.</p></div></div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>3</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4 — PAES: CARRERAS Y PONDERACIÓN -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="3">
+      <div class="kicker">Orientación PAES · 3 de 3</div>
+      <h1 class="title">¿A quién le sirve un buen puntaje en Ciencias?</h1>
+
+      <div class="grid-3 mb">
+        <div class="card shadow">
+          <div class="card-head"><span class="dot" style="background:var(--teal)"></span><h3 style="margin:0;">Salud</h3></div>
+          <p>Medicina, Odontología, Enfermería, Kinesiología, Nutrición y Dietética, Obstetricia.</p>
+        </div>
+        <div class="card shadow">
+          <div class="card-head"><span class="dot" style="background:var(--navy)"></span><h3 style="margin:0;">Ingenierías</h3></div>
+          <p>Civil, Industrial, Informática, Ambiental y otras menciones de ingeniería.</p>
+        </div>
+        <div class="card shadow">
+          <div class="card-head"><span class="dot" style="background:var(--plum)"></span><h3 style="margin:0;">Ciencias exactas</h3></div>
+          <p>Química, Bioquímica, Química y Farmacia.</p>
+        </div>
+      </div>
+
+      <div class="panel amber">
+        <div style="font-size:0.68em; font-weight:700; color:var(--amber); margin-bottom:0.4em;">Dato para tu postulación</div>
+        <div style="font-size:0.68em; line-height:1.4;">En varias universidades el postulante rinde el mejor puntaje entre Ciencias e Historia como electivo, pero las carreras de esta lista casi siempre exigen o priorizan Ciencias específicamente. Las ponderaciones típicas van del 20% al 30% del puntaje final, según la universidad y la carrera.</div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>4</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5 — HOJA DE RUTA -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="4">
+      <div class="kicker">Estructura de la clase</div>
+      <h1 class="title">Hoja de ruta — Jardinero Pedagógico</h1>
+      <p class="lede">Después de la orientación PAES, 80 minutos organizados en tres momentos.</p>
+
+      <div class="row gap-sm">
+        <div class="col fase-card" style="background:var(--green-soft);">
+          <div class="fase-time" style="background:var(--green);">10 min</div>
+          <div class="fase-name">SIEMBRA</div>
+          <div class="fase-desc">Activación con una pelota elevada y un resorte comprimido: ¿qué tienen en común antes de soltarlos?</div>
+        </div>
+        <div class="col fase-card" style="background:var(--panel-soft);">
+          <div class="fase-time" style="background:var(--teal);">45 min</div>
+          <div class="fase-name">RIEGO</div>
+          <div class="fase-desc">Energía potencial gravitatoria y elástica (repaso de la ley de Hooke), esquema Ec–Ep–Em y ejercicios diferenciados.</div>
+        </div>
+        <div class="col fase-card" style="background:var(--amber-soft);">
+          <div class="fase-time" style="background:var(--amber);">25 min</div>
+          <div class="fase-name">COSECHA</div>
+          <div class="fase-desc">Kahoot diagnóstico de cierre y semáforo pedagógico de autoevaluación metacognitiva.</div>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>5</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6 — SIEMBRA: ACTIVACIÓN -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="5">
+      <div class="kicker">Siembra · 10 min</div>
+      <h1 class="title">Activación: pelota elevada y resorte comprimido</h1>
+
+      <div class="panel mb">
+        <div style="font-size:0.68em; font-weight:700; color:var(--teal); margin-bottom:0.5em;">Situación detonante</div>
+        <div style="font-size:0.78em; font-style:italic; line-height:1.4;">Levantas una pelota a 2 metros de altura y la sostienes quieta. Por otro lado, comprimes el resorte de un juguete y lo sostienes comprimido. ¿Qué tienen en común ambas situaciones, incluso antes de soltar los objetos?</div>
+      </div>
+
+      <div class="row gap-sm">
+        <div class="col card bordered">
+          <div class="card-head"><div class="badge-circle" style="background:var(--navy);">1</div><h3 style="margin:0;">Think</h3></div>
+          <div style="font-size:0.62em; font-weight:700; color:var(--amber); margin-bottom:0.4em;">2 min</div>
+          <p>Cada estudiante anota su propia hipótesis: ¿qué energía tienen estos objetos antes de soltarlos?</p>
+        </div>
+        <div class="col card bordered">
+          <div class="card-head"><div class="badge-circle" style="background:var(--navy);">2</div><h3 style="margin:0;">Pair</h3></div>
+          <div style="font-size:0.62em; font-weight:700; color:var(--amber); margin-bottom:0.4em;">3 min</div>
+          <p>En parejas, comparan sus hipótesis y buscan una palabra en común para describirla.</p>
+        </div>
+        <div class="col card bordered">
+          <div class="card-head"><div class="badge-circle" style="background:var(--navy);">3</div><h3 style="margin:0;">Share</h3></div>
+          <div style="font-size:0.62em; font-weight:700; color:var(--amber); margin-bottom:0.4em;">5 min</div>
+          <p>2 a 3 parejas comparten. El docente anota las ideas en la pizarra sin corregir aún.</p>
+        </div>
+      </div>
+
+      <p style="font-size:0.6em; font-style:italic; color:var(--text-gray); margin-top:1em;">Nota docente: la palabra clave que buscamos es "energía potencial" — ambos objetos la almacenan por su posición o deformación, lista para liberarse.</p>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>6</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7 — RIEGO: ENERGÍA POTENCIAL GRAVITATORIA -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="6">
+      <div class="kicker">Riego · concepto 1</div>
+      <h1 class="title">Energía potencial gravitatoria (Ep)</h1>
+
+      <div class="row gap-sm">
+        <div class="col" style="flex:1.8;">
+          <p style="font-size:0.78em; line-height:1.4;">Es la energía que almacena un cuerpo debido a su altura respecto a un nivel de referencia. A mayor altura, mayor capacidad de realizar trabajo al caer.</p>
+
+          <div class="panel mt mb">
+            <div class="formula-box" style="font-size:1.5em;">Ep = m · g · h</div>
+            <div style="font-size:0.6em; color:var(--text-gray); margin-top:0.4em;">m: masa (kg) &nbsp; g: 9,8 m/s² &nbsp; h: altura (m) &nbsp;→&nbsp; unidad: Joule (J)</div>
+          </div>
+
+          <div class="panel amber">
+            <div style="font-size:0.65em; font-weight:700; color:var(--amber); margin-bottom:0.4em;">Idea clave</div>
+            <div style="font-size:0.68em; line-height:1.4;">El nivel de referencia (h = 0) es una elección arbitraria del observador, pero una vez fijado debe mantenerse constante durante todo el análisis del problema.</div>
+          </div>
+        </div>
+
+        <div class="col panel soft shadow" style="flex:1;">
+          <div style="font-size:0.68em; font-weight:700; color:var(--navy); margin-bottom:0.6em;">Ejemplo resuelto</div>
+          <div style="font-size:0.65em; line-height:1.4; margin-bottom:0.7em;">Un libro de 2 kg está sobre un estante a 1,5 m del suelo.</div>
+          <div style="font-family:var(--font-head); font-weight:700; color:var(--teal); font-size:0.95em; margin-bottom:0.35em;">Ep = m·g·h</div>
+          <div style="font-size:0.75em; margin-bottom:0.35em;">Ep = 2 · 9,8 · 1,5</div>
+          <div style="font-family:var(--font-head); font-weight:700; color:var(--navy); font-size:1.15em;">Ep = 29,4 J</div>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>7</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8 — RIEGO: ENERGÍA POTENCIAL ELÁSTICA -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="7">
+      <div class="kicker">Riego · concepto 2</div>
+      <h1 class="title">Energía potencial elástica (Ep) y Ley de Hooke</h1>
+
+      <div class="row gap-sm">
+        <div class="col" style="flex:1.8;">
+          <p style="font-size:0.78em; line-height:1.4;">Es la energía que almacena un cuerpo elástico —como un resorte— al ser comprimido o estirado desde su posición de equilibrio.</p>
+
+          <div class="panel mt" style="margin-bottom:0.6em;">
+            <div style="font-family:var(--font-head); font-weight:700; font-size:1.1em; color:var(--navy);">Repaso Unidad 2 — Ley de Hooke: &nbsp;F = k · x</div>
+            <div style="font-size:0.6em; color:var(--text-gray); margin-top:0.35em;">k: constante elástica (N/m) &nbsp; x: deformación (m)</div>
+          </div>
+
+          <div class="panel mb">
+            <div class="formula-box" style="font-size:1.5em;">Ep = ½ · k · x²</div>
+            <div style="font-size:0.6em; color:var(--text-gray); margin-top:0.35em;">unidad resultante: Joule (J)</div>
+          </div>
+
+          <p style="font-size:0.7em; line-height:1.4;"><strong class="hl">Idea clave:</strong> igual que en Ec, la relación es cuadrática — comprimir el doble un resorte almacena 4 veces más energía.</p>
+        </div>
+
+        <div class="col panel soft shadow" style="flex:1;">
+          <div style="font-size:0.68em; font-weight:700; color:var(--navy); margin-bottom:0.7em;">¿Dónde lo vemos?</div>
+          <div style="font-size:0.68em; font-weight:700; color:var(--teal); margin-bottom:0.25em;">Trampolín</div>
+          <div style="font-size:0.6em; line-height:1.35; margin-bottom:0.6em;">almacena Ep elástica al hundirse y la libera como Ec al impulsar.</div>
+          <div style="font-size:0.68em; font-weight:700; color:var(--teal); margin-bottom:0.25em;">Amortiguador de auto</div>
+          <div style="font-size:0.6em; line-height:1.35; margin-bottom:0.6em;">absorbe energía del impacto comprimiendo un resorte interno.</div>
+          <div style="font-size:0.68em; font-weight:700; color:var(--teal); margin-bottom:0.25em;">Arco y flecha</div>
+          <div style="font-size:0.6em; line-height:1.35;">la cuerda tensa guarda Ep elástica que se transforma en Ec de la flecha.</div>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>8</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9 — RIEGO: ESQUEMA Ec-Ep-Em -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="8">
+      <div class="kicker">Riego · concepto 3</div>
+      <h1 class="title">Construyendo el esquema Ec–Ep–Em</h1>
+      <p class="lede">En un sistema sin roce, lo que una forma de energía pierde, la otra lo gana en la misma medida.</p>
+
+      <div class="grid-3 mb">
+        <div class="card shadow" style="text-align:center;">
+          <div class="dot" style="background:var(--teal); margin:0 auto 0.6em;"></div>
+          <h3>Punto más alto</h3>
+          <div style="font-size:0.68em; color:var(--teal); margin-bottom:0.2em;">Ep máxima</div>
+          <div style="font-size:0.62em; font-style:italic; color:var(--text-gray);">Ec = 0</div>
+        </div>
+        <div class="card shadow" style="text-align:center;">
+          <div class="dot" style="background:var(--navy); margin:0 auto 0.6em;"></div>
+          <h3>Punto medio</h3>
+          <div style="font-size:0.68em; color:var(--navy); margin-bottom:0.2em;">Ep y Ec parciales</div>
+          <div style="font-size:0.62em; font-style:italic; color:var(--text-gray);">Em = Ec + Ep</div>
+        </div>
+        <div class="card shadow" style="text-align:center;">
+          <div class="dot" style="background:var(--amber); margin:0 auto 0.6em;"></div>
+          <h3>Punto más bajo</h3>
+          <div style="font-size:0.68em; color:var(--amber); margin-bottom:0.2em;">Ec máxima</div>
+          <div style="font-size:0.62em; font-style:italic; color:var(--text-gray);">Ep = 0</div>
+        </div>
+      </div>
+
+      <div class="panel amber">
+        <div style="font-family:var(--font-head); font-weight:700; font-size:1.1em; color:var(--navy);">Em = Ec + Ep = constante &nbsp;(sin roce)</div>
+        <div style="font-size:0.62em; font-style:italic; margin-top:0.4em;">Profundizaremos esta idea con el experimento de caída libre y la simulación "Energy Skate Park" en la Sesión 3.</div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>9</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10 — GUÍA DIFERENCIADA -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="9">
+      <div class="kicker">Riego · práctica · 15 min</div>
+      <h1 class="title">Guía de ejercicios diferenciada</h1>
+
+      <div class="row gap-sm">
+        <div class="col card shadow" style="background:var(--green-soft);">
+          <div class="card-head"><span class="dot" style="background:var(--green);"></span><h3 style="margin:0;">Básico</h3></div>
+          <div style="font-size:0.6em; font-weight:700; color:var(--green); margin-bottom:0.3em;">Objetivo</div>
+          <p>Calcula Ep gravitatoria conociendo masa, altura y g.</p>
+          <div style="font-size:0.6em; font-weight:700; color:var(--green); margin:0.6em 0 0.3em;">Ejercicio</div>
+          <p style="font-style:italic;">Una maceta de 3 kg está en una repisa a 2 m de altura. Calcula su energía potencial gravitatoria.</p>
+        </div>
+        <div class="col card shadow" style="background:var(--amber-soft);">
+          <div class="card-head"><span class="dot" style="background:var(--amber);"></span><h3 style="margin:0;">Intermedio</h3></div>
+          <div style="font-size:0.6em; font-weight:700; color:var(--amber); margin-bottom:0.3em;">Objetivo</div>
+          <p>Calcula Ep elástica y compárala con la Ep gravitatoria de otro cuerpo.</p>
+          <div style="font-size:0.6em; font-weight:700; color:var(--amber); margin:0.6em 0 0.3em;">Ejercicio</div>
+          <p style="font-style:italic;">Un resorte de k = 200 N/m se comprime 0,1 m. Calcula su Ep elástica y compárala con la Ep de una pelota de 0,5 kg a 4 m de altura.</p>
+        </div>
+        <div class="col card shadow" style="background:var(--plum-soft);">
+          <div class="card-head"><span class="dot" style="background:var(--plum);"></span><h3 style="margin:0;">Desafío</h3></div>
+          <div style="font-size:0.6em; font-weight:700; color:var(--plum); margin-bottom:0.3em;">Objetivo</div>
+          <p>Aplica el esquema Ec–Ep–Em para predecir energía en un punto intermedio de la trayectoria.</p>
+          <div style="font-size:0.6em; font-weight:700; color:var(--plum); margin:0.6em 0 0.3em;">Ejercicio</div>
+          <p style="font-style:italic;">Una pelota de 1 kg cae desde 5 m. En el punto donde ha descendido 2 m, ¿cuánta Ep y cuánta Ec tiene? Usa Em = Ec + Ep = constante.</p>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>10</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11 — COSECHA: KAHOOT -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="10">
+      <div class="kicker">Cosecha · 10 min</div>
+      <h1 class="title">Kahoot diagnóstico</h1>
+      <p class="lede">5 preguntas conceptuales de alternativas. Proyectar en Kahoot o responder en papel si no hay dispositivos suficientes.</p>
+
+      <div class="panel" style="padding:1.3em 1.6em;">
+        <ul class="clean">
+          <li>1. La energía potencial gravitatoria de un cuerpo depende de…</li>
+          <li>2. Si se duplica la deformación de un resorte, su energía potencial elástica…</li>
+          <li>3. En el punto más alto de un péndulo, la energía cinética es…</li>
+          <li>4. La energía mecánica de un sistema sin roce se mantiene…</li>
+          <li style="margin-bottom:0;">5. Elegir un nivel de referencia distinto para h = 0 cambia…</li>
+        </ul>
+      </div>
+
+      <p style="font-size:0.6em; font-style:italic; color:var(--text-gray); margin-top:1em;">Nota docente: usar los resultados del Kahoot como diagnóstico de entrada para calibrar el nivel de la Sesión 3.</p>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>11</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12 — COSECHA: SEMÁFORO -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="11">
+      <div class="kicker">Cosecha · cierre · 5 min</div>
+      <h1 class="title">Semáforo pedagógico</h1>
+      <p class="lede">Cada estudiante marca su nivel de comprensión antes de salir de la clase.</p>
+
+      <div class="row gap-sm">
+        <div class="col card shadow" style="background:var(--green-soft);">
+          <div class="card-head"><span class="dot" style="background:var(--green);"></span><h3 style="margin:0;">Verde</h3></div>
+          <p>Entiendo Ep gravitatoria, Ep elástica y cómo se relacionan con Em. Podría resolver los tres niveles de ejercicios.</p>
+        </div>
+        <div class="col card shadow" style="background:var(--amber-soft);">
+          <div class="card-head"><span class="dot" style="background:var(--amber);"></span><h3 style="margin:0;">Amarillo</h3></div>
+          <p>Entiendo las ideas generales, pero tengo dudas al aplicar las fórmulas o el esquema Ec–Ep–Em.</p>
+        </div>
+        <div class="col card shadow" style="background:var(--red-soft);">
+          <div class="card-head"><span class="dot" style="background:var(--red);"></span><h3 style="margin:0;">Rojo</h3></div>
+          <p>Todavía confundo Ep gravitatoria con Ep elástica, o no entiendo por qué Em se mantiene constante.</p>
+        </div>
+      </div>
+
+      <p style="font-size:0.62em; font-style:italic; color:var(--text-gray); margin-top:1.1em;">3 preguntas de reflexión: ¿qué aprendí hoy? ¿qué me costó más? ¿qué necesito repasar antes de la próxima clase?</p>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 2 · Prof. Felipe Jiménez</span><span>12</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13 — CIERRE -->
+    <!-- ============================================================ -->
+    <section class="slide dark" data-index="12" data-dark="true">
+      <div class="kicker">Síntesis de la sesión</div>
+      <h1 class="title">Lo esencial de hoy</h1>
+
+      <div class="cierre-grid">
+        <ul class="clean" style="margin-top:0.6em;">
+          <li style="display:flex; gap:0.5em;"><span style="color:var(--white);">▸</span><span>La energía potencial gravitatoria depende de la masa y la altura: Ep = mgh.</span></li>
+          <li style="display:flex; gap:0.5em;"><span style="color:var(--white);">▸</span><span>La energía potencial elástica depende de la deformación de un resorte: Ep = ½kx².</span></li>
+          <li style="display:flex; gap:0.5em;"><span style="color:var(--white);">▸</span><span>En un sistema sin roce, la energía mecánica se conserva: Em = Ec + Ep = constante.</span></li>
+          <li style="display:flex; gap:0.5em;"><span style="color:var(--white);">▸</span><span>La PAES de Ciencias evalúa estos contenidos en el eje Mecánica: vale la pena dominarlos ahora.</span></li>
+        </ul>
+
+        <div class="cierre-panel">
+          <div class="eyebrow">Próxima sesión</div>
+          <h3>Conservación de la energía mecánica</h3>
+          <p>Experimento de caída libre y simulación PhET "Energy Skate Park" para verificar Em constante.</p>
+          <p class="tarea">Tarea: repasar las fórmulas de Ep, Ec y Em vistas hasta hoy.</p>
+        </div>
+      </div>
+
+      <div class="footer" style="border-top-color:rgba(255,255,255,0.12);"><span>Física 2° Medio · Unidad 3 · Prof. Felipe Jiménez</span><span></span></div>
+    </section>
+
+  </div>
+
+  <button class="nav-btn nav-prev" id="prevBtn" aria-label="Diapositiva anterior">&#8249;</button>
+  <button class="nav-btn nav-next" id="nextBtn" aria-label="Siguiente diapositiva">&#8250;</button>
+</div>
+
+<button class="fs-btn" id="fsBtn">Pantalla completa</button>
+<div class="hud">
+  <div class="dots" id="dots"></div>
+  <div class="counter" id="counter">1 / 13</div>
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const dotsWrap = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(b);
+  });
+  const dots = Array.from(dotsWrap.children);
+  const counter = document.getElementById('counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  function render(){
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    counter.textContent = (current + 1) + ' / ' + total;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+  }
+
+  function goTo(i){
+    current = Math.max(0, Math.min(total - 1, i));
+    render();
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { goTo(current + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { goTo(current - 1); e.preventDefault(); }
+    else if (e.key === 'Home') { goTo(0); }
+    else if (e.key === 'End') { goTo(total - 1); }
+  });
+
+  // touch swipe
+  let touchX = null;
+  const deck = document.getElementById('deck');
+  deck.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, {passive:true});
+  deck.addEventListener('touchend', (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) { dx < 0 ? goTo(current + 1) : goTo(current - 1); }
+    touchX = null;
+  }, {passive:true});
+
+  // fullscreen
+  document.getElementById('fsBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen();
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
