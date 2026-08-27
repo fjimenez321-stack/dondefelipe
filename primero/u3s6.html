@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Unidad 3 · Sesión 6 — Cierre de unidad: un solo sistema de materia y energía</title>
+<style>
+  :root{
+    --bg:#F4FAEF;
+    --surface:#E6F2DA;
+    --surface-2:#D7EAC2;
+    --surface-3:#B7DB98;
+    --deep:#1E3B1D;
+    --text-dim:#55694C;
+    --moss:#4C7A4A;
+    --moss-light:#A8D89A;
+    --amber:#E0A83E;
+    --amber-light:#F3D18C;
+    --amber-deep:#7A4E10;
+    --rust:#A84E30;
+    --rust-light:#E0A17E;
+    --analizar:#E0954F;
+    --sky:#BFE3F2;
+    --sky-deep:#1D5C7A;
+    --water:#AEE0E2;
+    --water-deep:#146873;
+    --semaforo-verde:#4C9A4A;
+    --semaforo-amarillo:#E0C23E;
+    --semaforo-rojo:#C24B3E;
+    --font-display: Georgia, 'Times New Roman', serif;
+    --font-body: 'Trebuchet MS', Verdana, sans-serif;
+    --font-mono: 'Courier New', monospace;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg); color:var(--deep);
+    font-family:var(--font-body);
+    overflow:hidden;
+  }
+
+  .flow-line{
+    position:fixed; top:0; left:0; width:100%; height:5px;
+    background-image:repeating-linear-gradient(90deg, var(--amber) 0 22px, transparent 22px 46px);
+    background-size:200% 100%;
+    animation:flow 5s linear infinite;
+    opacity:.8; z-index:60; pointer-events:none;
+  }
+  @keyframes flow{ from{background-position-x:0;} to{background-position-x:-92px;} }
+
+  @media (prefers-reduced-motion: reduce){
+    .flow-line{animation:none;}
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+  }
+
+  .viewport{ width:100%; height:100dvh; overflow:hidden; }
+  .deck{ display:flex; height:100%; width:100%; transition:transform .55s cubic-bezier(.65,0,.35,1); }
+  .slide{
+    min-width:100%; height:100%;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:clamp(20px,5vw,70px) clamp(20px,7vw,110px);
+    gap:1.05rem; overflow-y:auto;
+  }
+
+  .eyebrow{
+    font-family:var(--font-mono); letter-spacing:.14em; text-transform:uppercase;
+    color:var(--amber-deep); font-size:clamp(.68rem,1.4vw,.85rem);
+    display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
+  }
+  .badge{
+    font-family:var(--font-body); text-transform:none; letter-spacing:0;
+    padding:.15rem .6rem; border-radius:999px; font-size:.72rem; font-weight:700;
+    color:var(--deep);
+  }
+  .badge.comprender{background:var(--moss-light);}
+  .badge.aplicar{background:var(--amber-light);}
+  .badge.analizar{background:var(--analizar);}
+  .badge.sintesis{background:var(--rust-light);}
+  .badge.evaluar{background:var(--rust); color:var(--bg);}
+
+  .title{
+    font-family:var(--font-display); font-style:italic; font-weight:700;
+    font-size:clamp(1.5rem,4.4vw,2.9rem); line-height:1.14; max-width:940px; margin:0;
+    color:var(--deep);
+  }
+  .subtitle{ font-family:var(--font-body); color:var(--text-dim); font-size:clamp(.95rem,2vw,1.2rem); max-width:780px; margin:0; }
+  .body-text{ font-size:clamp(.92rem,1.8vw,1.06rem); line-height:1.55; max-width:800px; color:var(--deep); }
+  .hint{ font-family:var(--font-mono); font-size:.75rem; color:var(--text-dim); opacity:.9; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; max-width:1100px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; max-width:1100px; }
+  @media (max-width:760px){ .grid-2, .grid-3{grid-template-columns:1fr;} }
+
+  .card{ background:var(--surface); border:1px solid var(--surface-3); border-radius:14px; padding:1.1rem 1.3rem; }
+  .card h3{ font-family:var(--font-display); font-style:italic; margin:0 0 .4rem 0; font-size:1.1rem; color:var(--amber-deep); }
+  .card p{ margin:.3rem 0; font-size:.9rem; line-height:1.5; color:var(--text-dim); }
+  .card p b{ color:var(--deep); }
+
+  .btn{
+    font-family:var(--font-body); font-size:.88rem; font-weight:700;
+    background:var(--surface-2); color:var(--deep); border:1px solid var(--surface-3);
+    padding:.55rem .95rem; border-radius:10px; cursor:pointer; transition:.2s background,.2s transform;
+  }
+  .btn:hover{ background:var(--surface-3); }
+  .btn:focus-visible{ outline:3px solid var(--amber); outline-offset:2px; }
+  .btn-primary{ background:var(--amber); color:var(--deep); border:1px solid var(--amber); }
+  .btn-primary:hover{ background:var(--amber-light); }
+  .btn.active{ background:var(--moss); color:var(--bg); border-color:var(--moss); }
+
+  textarea{
+    width:100%; max-width:720px; min-height:70px; resize:vertical;
+    font-family:var(--font-body); font-size:.92rem; padding:.7rem;
+    background:var(--surface); color:var(--deep); border:1px solid var(--surface-3); border-radius:10px;
+  }
+  textarea:focus-visible{ outline:3px solid var(--amber); }
+
+  input[type="text"]{
+    font-family:var(--font-body); font-size:.92rem; padding:.55rem .7rem; width:100%; max-width:360px;
+    background:var(--surface); color:var(--deep); border:1px solid var(--surface-3); border-radius:8px;
+  }
+  input[type="text"]:focus-visible{ outline:3px solid var(--amber); }
+
+  .poll-options{ display:flex; flex-direction:column; gap:.55rem; max-width:600px; }
+  .poll-option{ text-align:left; }
+  .poll-option.selected{ background:var(--moss); color:var(--bg); border-color:var(--moss); }
+  .poll-feedback{
+    max-width:620px; background:var(--surface-2); border-left:4px solid var(--amber);
+    padding:.8rem 1rem; border-radius:8px; font-size:.9rem; line-height:1.5; min-height:1.2em; display:none;
+  }
+  .poll-feedback.show{ display:block; }
+
+  .breadcrumb{ display:flex; gap:.6rem; flex-wrap:wrap; max-width:1000px; }
+  .crumb{ flex:1; min-width:180px; background:var(--surface); border:1px solid var(--surface-3); border-radius:12px; padding:.8rem 1rem; }
+  .crumb.now{ background:var(--surface-2); border-color:var(--rust); }
+  .crumb.done{ opacity:.75; }
+  .crumb .k{ font-family:var(--font-mono); font-size:.7rem; color:var(--amber-deep); text-transform:uppercase; letter-spacing:.08em; }
+  .crumb .v{ font-size:.85rem; color:var(--text-dim); margin-top:.25rem; }
+  .crumb.now .v{ color:var(--deep); }
+
+  .chip-row{ display:flex; gap:.5rem; flex-wrap:wrap; max-width:900px; }
+  .chip{
+    font-family:var(--font-mono); font-size:.76rem; background:var(--surface-2); border:1px solid var(--surface-3);
+    padding:.4rem .8rem; border-radius:999px; cursor:pointer; color:var(--text-dim);
+  }
+  .chip.active{ background:var(--rust); color:var(--bg); border-color:var(--rust); }
+  .chip-desc{ max-width:820px; font-size:.86rem; color:var(--text-dim); line-height:1.5; min-height:1.4em; }
+
+  .aer-block{ display:flex; flex-direction:column; gap:.65rem; max-width:780px; }
+  .aer-field{ display:flex; flex-direction:column; gap:.3rem; }
+  .aer-field .tag{ font-family:var(--font-mono); font-size:.75rem; color:var(--amber-deep); letter-spacing:.08em; text-transform:uppercase; }
+  .aer-fixed{ background:var(--surface); border:1px solid var(--surface-3); border-radius:8px; padding:.7rem 1rem; font-size:.9rem; }
+  .aer-reveal-box{ display:none; background:var(--surface-2); border-left:4px solid var(--moss); padding:.8rem 1rem; border-radius:8px; font-size:.9rem; line-height:1.5; }
+  .aer-reveal-box.show{ display:block; }
+
+  .checklist{ display:flex; flex-direction:column; gap:.5rem; max-width:660px; }
+  .check-item{ display:flex; align-items:center; gap:.6rem; font-size:.9rem; color:var(--deep); cursor:pointer; }
+  .check-item input[type="checkbox"]{ width:18px; height:18px; accent-color:var(--moss); cursor:pointer; flex-shrink:0; }
+
+  .disclaimer{ font-size:.75rem; color:var(--text-dim); opacity:.85; max-width:800px; }
+
+  .plan-table{ display:grid; grid-template-columns:190px 1fr; gap:2px; background:var(--surface-3); border-radius:10px; overflow:hidden; max-width:920px; }
+  .plan-cell{ background:var(--surface); padding:.6rem .9rem; font-size:.85rem; color:var(--deep); line-height:1.55; }
+  .plan-cell.label{ background:var(--surface-2); font-weight:700; color:var(--amber-deep); font-family:var(--font-mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; display:flex; align-items:center; }
+
+  .kahoot-box{
+    max-width:820px; background:var(--surface); border:2px dashed var(--rust);
+    border-radius:16px; padding:1.4rem 1.6rem;
+  }
+  .kahoot-box h3{ margin:0 0 .5rem 0; font-family:var(--font-display); font-style:italic; color:var(--amber-deep); font-size:1.3rem; }
+  .kahoot-box p{ margin:.3rem 0; font-size:.92rem; color:var(--text-dim); line-height:1.5; }
+  .ie-chips{ display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem; }
+  .ie-chip{ font-family:var(--font-mono); font-size:.72rem; background:var(--surface-2); border:1px solid var(--surface-3); padding:.25rem .6rem; border-radius:999px; color:var(--text-dim); }
+
+  /* semáforo de metacognición */
+  .traffic-block{ display:flex; flex-direction:column; gap:.4rem; max-width:820px; }
+  .traffic-block .oa-label{ font-family:var(--font-mono); font-size:.78rem; color:var(--amber-deep); text-transform:uppercase; letter-spacing:.04em; }
+  .traffic-row{ display:flex; gap:.8rem; align-items:center; }
+  .traffic-light{
+    width:56px; height:56px; border-radius:50%; border:2px solid var(--surface-3); cursor:pointer;
+    opacity:.45; transition:.2s opacity, .2s transform; flex-shrink:0;
+  }
+  .traffic-light:hover{ opacity:.75; }
+  .traffic-light.selected{ opacity:1; transform:scale(1.08); border-color:var(--deep); }
+  .traffic-light.verde{ background:var(--semaforo-verde); }
+  .traffic-light.amarillo{ background:var(--semaforo-amarillo); }
+  .traffic-light.rojo{ background:var(--semaforo-rojo); }
+  .traffic-caption{ font-size:.78rem; color:var(--text-dim); }
+
+  /* felipesos (gamificación) */
+  .felipesos-hud{
+    position:fixed; top:16px; left:20px; z-index:70; display:flex; align-items:center; gap:.4rem;
+    font-family:var(--font-mono); font-size:.8rem; font-weight:700; color:var(--amber-deep);
+    background:var(--surface); border:1px solid var(--surface-3); padding:.3rem .7rem .3rem .35rem; border-radius:999px;
+  }
+  .felipesos-hud .coin{
+    width:18px; height:18px; border-radius:50%; background:var(--amber); color:var(--deep);
+    display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:700; font-family:var(--font-body);
+  }
+  .felipesos-toast{
+    position:fixed; top:54px; left:20px; z-index:70; font-family:var(--font-mono); font-size:.78rem; font-weight:700;
+    color:var(--deep); background:var(--moss-light); border:1px solid var(--moss); padding:.25rem .6rem; border-radius:999px;
+    opacity:0; transform:translateY(-6px); transition:opacity .3s, transform .3s; pointer-events:none;
+  }
+  .felipesos-toast.show{ opacity:1; transform:translateY(0); }
+
+  .controls{ position:fixed; bottom:18px; left:0; width:100%; display:flex; align-items:center; justify-content:center; gap:1rem; z-index:70; }
+  .nav-btn{ width:42px; height:42px; border-radius:50%; background:var(--surface-2); color:var(--deep); border:1px solid var(--surface-3); font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .nav-btn:hover{ background:var(--surface-3); }
+  .nav-btn:focus-visible{ outline:3px solid var(--amber); outline-offset:2px; }
+  .nav-btn:disabled{ opacity:.3; cursor:default; }
+  .dots{ display:flex; gap:.4rem; }
+  .dot{ width:9px; height:9px; border-radius:50%; background:var(--surface-3); border:none; cursor:pointer; padding:0; }
+  .dot.active{ background:var(--amber); width:22px; border-radius:5px; transition:.25s; }
+  .counter{ position:fixed; top:16px; right:20px; font-family:var(--font-mono); font-size:.75rem; color:var(--text-dim); z-index:70; }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--surface-3); border-radius:4px; }
+
+  .print-only{ display:none; }
+  @media print{
+    body *{ visibility:hidden; }
+    #printArea, #printArea *{ visibility:visible; }
+    #printArea{
+      display:block !important; position:absolute; top:0; left:0; width:100%; padding:24px;
+      font-family:var(--font-body); color:#000;
+    }
+    #printArea h2{ font-family:var(--font-display); }
+  }
+</style>
+</head>
+<body>
+
+<div class="flow-line" aria-hidden="true"></div>
+<div class="counter" id="counter"></div>
+<div class="felipesos-hud"><span class="coin">F</span><span id="felipesosCount">0</span> felipesos</div>
+<div class="felipesos-toast" id="felipesosToast"></div>
+<div class="print-only" id="printArea"></div>
+
+<div class="viewport">
+  <div class="deck" id="deck">
+
+    <!-- 0. PORTADA -->
+    <section class="slide">
+      <p class="eyebrow">Biología · 1° Medio · Unidad 3 <span class="badge evaluar">Evaluar / Crear</span></p>
+      <h1 class="title">Cierre de unidad: un solo sistema de materia y energía</h1>
+      <p class="subtitle">Sesión 6 — Junio · Cierre de la Unidad 3 · Prof. Felipe Jiménez</p>
+      <p class="body-text">Hoy integramos todo lo visto: ciclos biogeoquímicos, redes tróficas, fotosíntesis y respiración celular, como un solo sistema.</p>
+      <p class="hint">Usa las flechas ← → del teclado, desliza en pantallas táctiles, o los puntos de abajo para navegar.</p>
+    </section>
+
+    <!-- 1. FICHA DE PLANIFICACIÓN -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 6 <span class="badge evaluar">Ficha de planificación</span></p>
+      <h2 class="title" style="font-size:clamp(1.15rem,3.4vw,1.9rem);">Lo que dice la planificación de la Unidad 3</h2>
+      <div class="plan-table">
+        <div class="plan-cell label">Semana</div>
+        <div class="plan-cell">6 (Junio)</div>
+
+        <div class="plan-cell label">OA</div>
+        <div class="plan-cell">OA 6 + OA 7 — cierre integrador de ambos objetivos de la unidad.</div>
+
+        <div class="plan-cell label">Indicadores</div>
+        <div class="plan-cell"><b>IE5-IE6 (OA7):</b> Argumentan el rol de la producción primaria y debaten sobre factores bióticos y abióticos que la afectan en Chile.</div>
+
+        <div class="plan-cell label">Nivel Bloom</div>
+        <div class="plan-cell">Evaluar / Crear</div>
+
+        <div class="plan-cell label">Actividad clásica</div>
+        <div class="plan-cell">Debate AER sobre cómo sequías, erupciones volcánicas o plagas afectan la producción primaria de un ecosistema chileno.</div>
+
+        <div class="plan-cell label">Actividad STEAM</div>
+        <div class="plan-cell">Crean un modelo integrador (infografía o diagrama de flujo) que conecte ciclos biogeoquímicos, redes tróficas, fotosíntesis y respiración celular como un solo sistema — evaluación sumativa de cierre.</div>
+
+        <div class="plan-cell label">Cierre de bloque</div>
+        <div class="plan-cell">Kahoot integrador de OA 7 · Semáforo de metacognición de cierre de unidad (logro de OA 6 y OA 7).</div>
+
+        <div class="plan-cell label">Materiales</div>
+        <div class="plan-cell">Prueba/rúbrica sumativa (ZipGrade) · formato para el modelo integrador · semáforo de metacognición impreso.</div>
+
+        <div class="plan-cell label">Evaluación</div>
+        <div class="plan-cell">Kahoot de cierre + semáforo de metacognición + evaluación sumativa de cierre con rúbrica AER.</div>
+      </div>
+    </section>
+
+    <!-- 2. TRANSICIÓN -->
+    <section class="slide">
+      <p class="eyebrow">Antes de continuar</p>
+      <h2 class="title" style="font-size:clamp(1.2rem,3.6vw,2rem);">El cierre de un recorrido de seis sesiones</h2>
+      <div class="breadcrumb">
+        <div class="crumb done">
+          <div class="k">OA 6 · Sesiones 1-3 (cerrado)</div>
+          <div class="v">Ciclos biogeoquímicos, redes tróficas y qué pasa cuando un ciclo se rompe.</div>
+        </div>
+        <div class="crumb done">
+          <div class="k">OA 7 · Sesiones 4-5 (cerrado)</div>
+          <div class="v">Cómo la fotosíntesis y la respiración celular son procesos complementarios.</div>
+        </div>
+        <div class="crumb now">
+          <div class="k">OA 6+7 · Sesión 6 · Hoy</div>
+          <div class="v">Todo es un solo sistema: materia que circula y energía que se transforma.</div>
+        </div>
+      </div>
+      <p class="body-text" style="margin-top:.2rem;">Todo lo que un ecosistema es capaz de sostener —sus redes tróficas, sus ciclos, su capacidad de recuperarse— depende de un solo punto de partida: cuánta energía logran fijar sus productores.</p>
+    </section>
+
+    <!-- 3. INICIO: PREGUNTA -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 6 <span class="badge evaluar">Inicio</span></p>
+      <h2 class="title" style="font-size:clamp(1.15rem,3.6vw,2.1rem);">¿Qué pasaría si un factor externo redujera bruscamente la producción primaria?</h2>
+      <div class="poll-options" id="poll1">
+        <button class="btn poll-option" data-i="0">a) Nada, los demás niveles tróficos no dependen de los productores</button>
+        <button class="btn poll-option" data-i="1">b) Todo el ecosistema se vería afectado, porque los productores son la base de la energía y materia que circula</button>
+        <button class="btn poll-option" data-i="2">c) Solo afectaría a los herbívoros directos, el resto seguiría igual</button>
+        <button class="btn poll-option" data-i="3">d) El ecosistema se recuperaría de inmediato, sin cambios</button>
+      </div>
+      <div class="poll-feedback" id="poll1-feedback"></div>
+    </section>
+
+    <!-- 4. DESARROLLO 1: DEBATE AER -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 6 <span class="badge evaluar">Desarrollo</span></p>
+      <h2 class="title" style="font-size:clamp(1.15rem,3.4vw,2rem);">¿Qué factores alteran la producción primaria en Chile?</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Sequía</h3>
+          <p>Chile central enfrenta una megasequía sostenida desde 2010, con años de precipitaciones muy por debajo del promedio histórico. Menos agua disponible limita directamente la fotosíntesis de los productores.</p>
+        </div>
+        <div class="card">
+          <h3>Erupción volcánica</h3>
+          <p>La erupción del volcán Calbuco en 2015 cubrió de ceniza bosques y praderas del sur de Chile, bloqueando temporalmente la luz solar y alterando el suelo disponible para las plantas.</p>
+        </div>
+        <div class="card">
+          <h3>Plaga</h3>
+          <p>Brotes de insectos defoliadores pueden arrasar con el follaje de bosques o plantaciones completas en pocas semanas, reduciendo drásticamente la superficie fotosintética disponible.</p>
+        </div>
+      </div>
+      <div class="aer-block" style="margin-top:.3rem;">
+        <div class="aer-field">
+          <span class="tag">Debate AER</span>
+          <p class="body-text" style="margin:.2rem 0 .4rem 0;">Elige uno de estos factores y argumenta cómo afecta la producción primaria de un ecosistema chileno.</p>
+          <textarea id="debateAER" placeholder="Afirmación, evidencia y razonamiento sobre el factor que elegiste..."></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. DESARROLLO STEAM: MODELO INTEGRADOR -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 6 <span class="badge evaluar">Desarrollo · STEAM</span></p>
+      <h2 class="title" style="font-size:clamp(1.1rem,3.2vw,1.9rem);">Diseña tu modelo integrador</h2>
+      <p class="body-text">Toca cada pieza del sistema para recordarla, y luego construye tu infografía o diagrama de flujo conectando las cuatro.</p>
+      <div class="chip-row" id="integradorRow">
+        <button class="chip" data-int="ciclos">Ciclos biogeoquímicos</button>
+        <button class="chip" data-int="redes">Redes tróficas</button>
+        <button class="chip" data-int="foto">Fotosíntesis</button>
+        <button class="chip" data-int="resp">Respiración celular</button>
+      </div>
+      <div class="chip-desc" id="integradorDesc">Toca una pieza del sistema para ver cómo se conecta con la producción primaria.</div>
+      <div class="card" style="max-width:820px; margin-top:.3rem;">
+        <h3>Tu modelo debe incluir</h3>
+        <div class="checklist">
+          <label class="check-item"><input type="checkbox"> Al menos un ciclo biogeoquímico y su rol en aportar materia a los productores</label>
+          <label class="check-item"><input type="checkbox"> Una red o pirámide trófica que muestre el flujo de energía desde los productores</label>
+          <label class="check-item"><input type="checkbox"> La fotosíntesis como el proceso que fija la energía inicial</label>
+          <label class="check-item"><input type="checkbox"> La respiración celular como el proceso que libera esa energía en cada nivel</label>
+          <label class="check-item"><input type="checkbox"> Flechas o conexiones que muestren cómo un cambio en la producción primaria afecta a todo el sistema</label>
+        </div>
+      </div>
+      <p class="disclaimer">Este modelo es tu evaluación sumativa de cierre — constrúyelo en el formato (infografía o diagrama de flujo) que tu profesor entregue.</p>
+    </section>
+
+    <!-- 6. CIERRE DE BLOQUE: KAHOOT -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 6 <span class="badge evaluar">Cierre de bloque</span></p>
+      <h2 class="title" style="font-size:clamp(1.15rem,3.6vw,2.1rem);">Momento Kahoot: cierre del bloque «Fotosíntesis y respiración celular»</h2>
+      <div class="kahoot-box">
+        <h3>Este es el momento de lanzar el Kahoot integrador de OA 7</h3>
+        <p>Cubre fotosíntesis, cloroplastos, respiración celular y producción primaria — el bloque completo de OA 7.</p>
+        <p>Cada estudiante ingresa el PIN en su dispositivo cuando el docente lo proyecte.</p>
+        <div class="ie-chips">
+          <span class="ie-chip">IE1</span><span class="ie-chip">IE2</span><span class="ie-chip">IE3</span>
+          <span class="ie-chip">IE4</span><span class="ie-chip">IE5</span><span class="ie-chip">IE6</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. SEMÁFORO DE METACOGNICIÓN -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 6 <span class="badge evaluar">Metacognición de cierre</span></p>
+      <h2 class="title" style="font-size:clamp(1.15rem,3.6vw,2.1rem);">Semáforo de metacognición: cierre de la Unidad 3</h2>
+      <p class="body-text">Esta es la única sesión de la unidad con semáforo de metacognición — marca con honestidad tu nivel de logro en cada objetivo.</p>
+      <div class="traffic-block">
+        <span class="oa-label">OA 6 — Ciclos, redes tróficas y su alteración</span>
+        <div class="traffic-row" id="oa6Row">
+          <button class="traffic-light verde" data-l="verde" aria-label="Logrado"></button>
+          <button class="traffic-light amarillo" data-l="amarillo" aria-label="Parcialmente logrado"></button>
+          <button class="traffic-light rojo" data-l="rojo" aria-label="Aún no logrado"></button>
+          <span class="traffic-caption" id="oa6Caption">Verde = logrado · Amarillo = parcialmente logrado · Rojo = aún no logrado</span>
+        </div>
+      </div>
+      <div class="traffic-block" style="margin-top:.5rem;">
+        <span class="oa-label">OA 7 — Fotosíntesis y respiración celular</span>
+        <div class="traffic-row" id="oa7Row">
+          <button class="traffic-light verde" data-l="verde" aria-label="Logrado"></button>
+          <button class="traffic-light amarillo" data-l="amarillo" aria-label="Parcialmente logrado"></button>
+          <button class="traffic-light rojo" data-l="rojo" aria-label="Aún no logrado"></button>
+          <span class="traffic-caption" id="oa7Caption">Verde = logrado · Amarillo = parcialmente logrado · Rojo = aún no logrado</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. SÍNTESIS -->
+    <section class="slide">
+      <p class="eyebrow"><span class="badge sintesis">Síntesis</span></p>
+      <h2 class="title">Un ecosistema es un solo sistema</h2>
+      <p class="body-text">Los ciclos biogeoquímicos aportan la materia; la fotosíntesis fija la energía inicial; las redes tróficas la transfieren; la respiración celular la libera en cada nivel. Ningún proceso de la unidad ocurre aislado — y por eso, cuando uno se altera, todos los demás lo sienten.</p>
+      <p class="hint">Sigue al ticket de salida →</p>
+    </section>
+
+    <!-- 9. TICKET DE SALIDA -->
+    <section class="slide">
+      <p class="eyebrow">Sesión 6 <span class="badge sintesis">Ticket de salida</span></p>
+      <h2 class="title" style="font-size:clamp(1.3rem,3.8vw,2.2rem);">Antes de salir…</h2>
+      <div class="card" style="max-width:820px;">
+        <div style="display:flex; flex-direction:column; gap:.9rem;">
+          <div>
+            <label class="hint" for="ticketName" style="display:block; margin-bottom:.3rem; opacity:1;">Nombre</label>
+            <input type="text" id="ticketName" placeholder="Tu nombre">
+          </div>
+          <div>
+            <label class="hint" style="display:block; margin-bottom:.3rem; opacity:1;">1. En una frase, resume cómo se conectan los ciclos biogeoquímicos, las redes tróficas, la fotosíntesis y la respiración celular.</label>
+            <textarea id="ticketQ1" placeholder="Escribe tu respuesta..." style="min-height:60px;"></textarea>
+          </div>
+          <div>
+            <label class="hint" style="display:block; margin-bottom:.3rem; opacity:1;">2. De todo lo visto en la Unidad 3, ¿qué es lo que más te costó entender, y qué harías para reforzarlo?</label>
+            <textarea id="ticketQ2" placeholder="Escribe tu respuesta..." style="min-height:60px;"></textarea>
+          </div>
+          <button class="btn btn-primary" id="genPdfBtn">Generar PDF</button>
+          <p class="hint">Se abrirá el diálogo de impresión — elige "Guardar como PDF" como destino.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<nav class="controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Diapositiva anterior">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav-btn" id="nextBtn" aria-label="Diapositiva siguiente">›</button>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= NAVIGATION ================= */
+  var deck = document.getElementById('deck');
+  var slides = document.querySelectorAll('.slide');
+  var dotsWrap = document.getElementById('dots');
+  var counterEl = document.getElementById('counter');
+  var idx = 0;
+
+  slides.forEach(function(_, i){
+    var d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Ir a la diapositiva ' + (i+1));
+    d.addEventListener('click', function(){ goTo(i); });
+    dotsWrap.appendChild(d);
+  });
+
+  function updateUI(){
+    deck.style.transform = 'translateX(-' + (idx * 100) + '%)';
+    Array.prototype.forEach.call(dotsWrap.children, function(d, i){
+      d.classList.toggle('active', i === idx);
+    });
+    counterEl.textContent = (idx + 1) + ' / ' + slides.length;
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').disabled = idx === slides.length - 1;
+  }
+
+  function goTo(i){
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    updateUI();
+  }
+  function next(){ goTo(idx + 1); }
+  function prev(){ goTo(idx - 1); }
+
+  document.getElementById('nextBtn').addEventListener('click', next);
+  document.getElementById('prevBtn').addEventListener('click', prev);
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown'){ next(); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ prev(); }
+    else if(e.key === 'Home'){ goTo(0); }
+    else if(e.key === 'End'){ goTo(slides.length - 1); }
+  });
+
+  var touchStartX = 0, touchStartY = 0;
+  document.addEventListener('touchstart', function(e){
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - touchStartX;
+    var dy = e.changedTouches[0].screenY - touchStartY;
+    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){
+      if(dx < 0){ next(); } else { prev(); }
+    }
+  }, {passive:true});
+
+  updateUI();
+
+  /* ================= FELIPESOS (GAMIFICACIÓN) ================= */
+  var felipesosTotal = 0;
+  var felipesosAwarded = {};
+  var felipesosCountEl = document.getElementById('felipesosCount');
+  var felipesosToastEl = document.getElementById('felipesosToast');
+  var felipesosToastTimer = null;
+  function awardFelipesos(key, amount){
+    if(felipesosAwarded[key]) return;
+    felipesosAwarded[key] = true;
+    felipesosTotal += amount;
+    felipesosCountEl.textContent = felipesosTotal;
+    felipesosToastEl.textContent = '+' + amount + ' felipesos';
+    felipesosToastEl.classList.add('show');
+    clearTimeout(felipesosToastTimer);
+    felipesosToastTimer = setTimeout(function(){ felipesosToastEl.classList.remove('show'); }, 1800);
+  }
+
+  /* ================= POLL ================= */
+  var pollFeedback = [
+    'Los productores son la única puerta de entrada de energía nueva al ecosistema: sin ellos, nada aguas arriba puede compensarlo.',
+    'Correcto: los productores son la base de todo el sistema. Si su producción cae, hay menos materia y energía disponible para cada nivel trófico, cada ciclo y cada proceso que ya estudiaste.',
+    'El efecto no se detiene en los herbívoros: al recibir menos energía, ellos también transfieren menos a los niveles siguientes.',
+    'Los ecosistemas pueden recuperarse, pero no de inmediato — la recuperación de la producción primaria toma tiempo, como viste en sesiones anteriores.'
+  ];
+  (function(){
+    var wrap = document.getElementById('poll1');
+    var feedback = document.getElementById('poll1-feedback');
+    wrap.querySelectorAll('.poll-option').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        wrap.querySelectorAll('.poll-option').forEach(function(b){ b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        var i = parseInt(btn.getAttribute('data-i'), 10);
+        feedback.textContent = pollFeedback[i];
+        feedback.classList.add('show');
+        awardFelipesos('poll1', 20);
+      });
+    });
+  })();
+
+  /* ================= DEBATE AER ================= */
+  var debateEl = document.getElementById('debateAER');
+  if(debateEl){
+    debateEl.addEventListener('blur', function(){
+      if(debateEl.value.trim().length >= 15){
+        awardFelipesos('debate', 20);
+      }
+    });
+  }
+
+  /* ================= MODELO INTEGRADOR: CHIPS ================= */
+  var integradorInfo = {
+    ciclos: 'Los ciclos biogeoquímicos (carbono, nitrógeno, agua, fósforo) aportan la materia prima que los productores necesitan para fotosintetizar y crecer.',
+    redes: 'Las redes y pirámides tróficas transfieren la energía que los productores fijaron hacia todos los demás niveles del ecosistema, perdiendo cerca de un 90% en cada paso.',
+    foto: 'La fotosíntesis es el proceso que fija la energía solar en materia orgánica — es literalmente el punto de partida de la producción primaria.',
+    resp: 'La respiración celular libera, en cada nivel trófico, la energía que quedó almacenada en esa materia orgánica desde la fotosíntesis.'
+  };
+  var integradorDesc = document.getElementById('integradorDesc');
+  document.querySelectorAll('#integradorRow .chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('#integradorRow .chip').forEach(function(c){ c.classList.remove('active'); });
+      chip.classList.add('active');
+      integradorDesc.textContent = integradorInfo[chip.getAttribute('data-int')];
+      awardFelipesos('integrador', 20);
+    });
+  });
+
+  /* ================= SEMÁFORO DE METACOGNICIÓN ================= */
+  var semaforoState = { oa6: null, oa7: null };
+  function setupTrafficRow(rowId, captionId, oaKey){
+    var row = document.getElementById(rowId);
+    var caption = document.getElementById(captionId);
+    var labels = { verde: 'Marcaste: Logrado.', amarillo: 'Marcaste: Parcialmente logrado.', rojo: 'Marcaste: Aún no logrado — conversemos qué necesitas reforzar.' };
+    row.querySelectorAll('.traffic-light').forEach(function(light){
+      light.addEventListener('click', function(){
+        row.querySelectorAll('.traffic-light').forEach(function(l){ l.classList.remove('selected'); });
+        light.classList.add('selected');
+        var level = light.getAttribute('data-l');
+        caption.textContent = labels[level];
+        semaforoState[oaKey] = level;
+        if(semaforoState.oa6 && semaforoState.oa7){
+          awardFelipesos('semaforo', 20);
+        }
+      });
+    });
+  }
+  setupTrafficRow('oa6Row', 'oa6Caption', 'oa6');
+  setupTrafficRow('oa7Row', 'oa7Caption', 'oa7');
+
+  /* ================= TICKET DE SALIDA: GENERADOR DE PDF ================= */
+  function escapeHtml(s){
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML.replace(/\n/g, '<br>');
+  }
+  document.getElementById('genPdfBtn').addEventListener('click', function(){
+    var nombre = document.getElementById('ticketName').value.trim() || '(sin nombre)';
+    var q1 = document.getElementById('ticketQ1').value.trim() || '(sin respuesta)';
+    var q2 = document.getElementById('ticketQ2').value.trim() || '(sin respuesta)';
+    var fecha = new Date().toLocaleDateString('es-CL', {year:'numeric', month:'long', day:'numeric'});
+    var semaforoTxt = 'OA 6: ' + (semaforoState.oa6 || 'sin marcar') + ' · OA 7: ' + (semaforoState.oa7 || 'sin marcar');
+
+    var html = '<h2>Ticket de salida — Unidad 3, Sesión 6 (cierre de unidad)</h2>' +
+      '<p><b>Nombre:</b> ' + escapeHtml(nombre) + '</p>' +
+      '<p><b>Fecha:</b> ' + fecha + '</p>' +
+      '<hr>' +
+      '<p><b>1. ¿Cómo se conectan ciclos, redes tróficas, fotosíntesis y respiración celular?</b><br>' + escapeHtml(q1) + '</p>' +
+      '<p><b>2. ¿Qué te costó más, y qué harías para reforzarlo?</b><br>' + escapeHtml(q2) + '</p>' +
+      '<p><b>Semáforo de metacognición:</b> ' + escapeHtml(semaforoTxt) + '</p>';
+
+    document.getElementById('printArea').innerHTML = html;
+    awardFelipesos('ticket', 20);
+    window.print();
+  });
+
+})();
+</script>
+</body>
+</html>
