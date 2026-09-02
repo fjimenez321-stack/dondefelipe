@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Unidad 3 · Sesión 5 — Monohibridismo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0B2340; --navy-2:#123054; --teal:#1F7A70; --teal-dark:#155F58;
+    --mint-tint:#EAF7F5; --page-bg:#F6FAF9; --cream-tint:#FDF6EC;
+    --text:#233238; --muted:#6B7A78; --line:#DCEAE7;
+    --baseA:#E4572E; --baseT:#2E86AB; --baseG:#1F7A70; --baseC:#E0A458;
+    --ok:#2E8B57; --bad:#C0392B;
+    --shadow: 0 10px 26px rgba(11,35,64,0.08); --radius: 18px;
+    --font-display:'Fraunces', Cambria, Georgia, serif;
+    --font-body:'Manrope', Calibri, Arial, sans-serif;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--page-bg); color:var(--text); font-family:var(--font-body); line-height:1.5; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  h1,h2,h3{ font-family:var(--font-display); margin:0; color:var(--navy); }
+  p{ margin:0; }
+  button{ font-family:var(--font-body); cursor:pointer; }
+  button:focus-visible, .prog-step:focus-visible{ outline:3px solid var(--baseC); outline-offset:2px; }
+
+  .app-shell{ min-height:100vh; display:flex; flex-direction:column; }
+
+  .progress-ladder{ position:fixed; top:0; left:0; right:0; z-index:40; display:flex; gap:4px; padding:10px 14px; background:rgba(246,250,249,0.9); backdrop-filter:blur(4px); border-bottom:1px solid var(--line); }
+  .prog-step{ flex:1; height:9px; border-radius:5px; border:1.5px solid #C9DEDA; background:#fff; padding:0; transition:background .25s ease, border-color .25s ease; }
+  .prog-step.done{ background:var(--teal); border-color:var(--teal); }
+  .prog-step.current{ border-color:var(--navy); box-shadow:0 0 0 2px rgba(11,35,64,0.15); }
+
+  .top-actions{ position:fixed; top:14px; right:14px; z-index:41; display:flex; gap:8px; }
+  .icon-btn{ background:var(--navy); color:#fff; border:none; border-radius:999px; padding:9px 16px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px; box-shadow:var(--shadow); }
+  .icon-btn:hover{ background:var(--teal-dark); }
+
+  .slide-viewport{ flex:1; padding-top:46px; padding-bottom:78px; }
+  .slide{ display:none; min-height:calc(100vh - 124px); align-items:center; justify-content:center; padding:32px 18px; }
+  .slide.active{ display:flex; }
+  .slide-inner{ width:100%; max-width:1080px; margin:0 auto; }
+
+  .eyebrow{ display:inline-block; font-size:12px; font-weight:800; letter-spacing:1.2px; color:var(--teal-dark); text-transform:uppercase; margin-bottom:10px; }
+  .slide h2.title{ font-size:clamp(24px,4vw,38px); font-weight:700; margin-bottom:8px; }
+  .slide .subtitle{ font-size:clamp(14px,2vw,17px); color:var(--muted); font-style:italic; font-family:var(--font-display); margin-bottom:22px; }
+
+  .card{ background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; border:1px solid var(--line); }
+  .card.tint-mint{ background:var(--mint-tint); }
+  .card.tint-cream{ background:var(--cream-tint); }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:760px){ .grid-2, .grid-3{ grid-template-columns:1fr; } }
+  .card-label{ font-size:11px; font-weight:800; letter-spacing:0.8px; color:var(--baseC); text-transform:uppercase; margin-bottom:8px; display:block; }
+  .card p, .card li{ font-size:14.5px; color:var(--text); }
+  .card ul, .card ol{ margin:0; padding-left:20px; }
+  .card li{ margin-bottom:6px; }
+  .tag{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; background:var(--mint-tint); color:var(--teal-dark); padding:6px 13px; border-radius:999px; border:1px solid #CCEAE5; }
+
+  .nav-fixed{ position:fixed; bottom:0; left:0; right:0; z-index:40; display:flex; align-items:center; justify-content:center; gap:14px; padding:12px 16px; background:rgba(246,250,249,0.92); backdrop-filter:blur(4px); border-top:1px solid var(--line); }
+  .nav-btn{ background:#fff; border:1.5px solid var(--teal); color:var(--teal-dark); border-radius:999px; padding:9px 16px; font-weight:700; font-size:13.5px; }
+  .nav-btn:disabled{ opacity:0.35; cursor:default; }
+  .nav-btn:not(:disabled):hover{ background:var(--teal); color:#fff; }
+  .nav-counter{ font-size:12.5px; color:var(--muted); font-weight:700; min-width:50px; text-align:center; }
+
+  /* portada */
+  .cover-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:30px; align-items:center; }
+  @media (max-width:900px){ .cover-grid{ grid-template-columns:1fr; } }
+  .cover-info{ display:flex; flex-wrap:wrap; gap:10px 20px; margin:16px 0 20px; }
+  .cover-info span{ font-size:13px; color:var(--muted); }
+  .cover-info b{ color:var(--navy); }
+  .cta-start{ background:var(--navy); color:#fff; border:none; border-radius:999px; padding:13px 24px; font-weight:800; font-size:14.5px; box-shadow:var(--shadow); }
+  .cta-start:hover{ background:var(--teal-dark); }
+
+  .helix-wrap{ width:140px; height:280px; margin:0 auto; position:relative; perspective:900px; }
+  .helix-wrap::before, .helix-wrap::after{ content:""; position:absolute; top:0; bottom:0; width:4px; border-radius:3px; background:linear-gradient(180deg, var(--teal), var(--navy)); opacity:0.5; }
+  .helix-wrap::before{ left:16%; } .helix-wrap::after{ right:16%; }
+  .helix-rung{ position:absolute; left:50%; width:96px; height:9px; margin-left:-48px; top:0; border-radius:5px; animation-name:helixSpin; animation-timing-function:linear; animation-iteration-count:infinite; }
+  @keyframes helixSpin{
+    0%{ transform: translateY(var(--ty,0px)) rotateY(0deg) scaleX(1); opacity:1; }
+    25%{ transform: translateY(var(--ty,0px)) rotateY(90deg) scaleX(0.12); opacity:0.45; }
+    50%{ transform: translateY(var(--ty,0px)) rotateY(180deg) scaleX(1); opacity:1; }
+    75%{ transform: translateY(var(--ty,0px)) rotateY(270deg) scaleX(0.12); opacity:0.45; }
+    100%{ transform: translateY(var(--ty,0px)) rotateY(360deg) scaleX(1); opacity:1; }
+  }
+
+  .qr-panel{ background:var(--navy); border-radius:var(--radius); padding:18px; text-align:center; box-shadow:var(--shadow); color:#fff; }
+  .qr-panel p{ color:#CFE7E3; font-size:12.5px; margin-top:10px; }
+  .qr-panel .qr-box{ background:#fff; border-radius:12px; padding:10px; display:inline-block; }
+  #qrHero{ width:180px; height:180px; }
+  #qrHero img, #qrHero canvas, #qrHero table{ width:100% !important; height:100% !important; }
+  .qr-fallback{ color:#0B2340 !important; font-size:12px !important; max-width:160px; }
+  @media (min-width:900px){ #qrHero{ width:220px; height:220px; } }
+
+  /* repaso mini cards */
+  .mini-card{ text-align:center; }
+  .mini-icon{ width:48px; height:48px; border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:16px; color:#fff; }
+
+  /* cronograma */
+  .timeline{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media (max-width:760px){ .timeline{ grid-template-columns:repeat(2,1fr); } }
+  .timeline .card{ text-align:center; padding:14px 8px; }
+  .timeline .mins{ color:var(--baseC); font-weight:800; font-size:12.5px; margin:4px 0; }
+  .timeline .step-n{ width:28px; height:28px; border-radius:50%; border:1.5px solid var(--teal); color:var(--teal-dark); display:flex; align-items:center; justify-content:center; font-weight:800; margin:0 auto 6px; font-size:13px; }
+
+  /* concepto punnett */
+  .concept-grid-mini{ display:grid; grid-template-columns:repeat(3, 60px); gap:4px; margin:0 auto; width:max-content; }
+  .concept-cell{ width:60px; height:44px; border:1.5px solid var(--line); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; border-radius:6px; }
+  .concept-cell.head{ background:var(--navy); color:#fff; }
+  .concept-cell.corner{ background:transparent; border:none; }
+
+  /* pasos */
+  .steps-list{ counter-reset:step; list-style:none; padding:0; margin:0; }
+  .steps-list li{ counter-increment:step; position:relative; padding-left:36px; margin-bottom:12px; font-size:14px; }
+  .steps-list li::before{ content:counter(step); position:absolute; left:0; top:-2px; width:24px; height:24px; border-radius:50%; background:var(--teal); color:#fff; font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center; }
+
+  /* simulador punnett */
+  .cross-toggle{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .cross-btn{ flex:1; min-width:120px; padding:10px; border-radius:12px; border:1.5px solid var(--line); background:#fff; font-weight:800; font-size:13.5px; color:var(--muted); }
+  .cross-btn.active{ border-color:var(--navy); background:var(--navy); color:#fff; }
+
+  .punnett-layout{ display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }
+  @media (max-width:820px){ .punnett-layout{ grid-template-columns:1fr; } }
+
+  .punnett-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; max-width:340px; margin:0 auto; }
+  .p-cell{ aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px; border-radius:10px; }
+  .p-cell.corner{ background:transparent; }
+  .p-cell.head{ background:var(--navy); color:#fff; font-family:'Fraunces', serif; }
+  .p-cell.result{ background:var(--mint-tint); color:var(--teal-dark); border:1.5px solid #CCEAE5; font-family:'Fraunces', serif; }
+  .p-cell.result.recessive{ background:var(--cream-tint); color:var(--baseC); border-color:#F0DDBB; }
+
+  .ratio-info-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px; }
+  .ratio-info-item{ background:var(--mint-tint); border-radius:10px; padding:10px 12px; font-size:13px; text-align:center; }
+  .ratio-info-item b{ display:block; color:var(--teal-dark); font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+  .ratio-info-item .val{ font-size:17px; font-weight:800; color:var(--navy); }
+
+  /* ejercicios interactivos de Punnett (rellenar) */
+  .exercise-layout{ display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }
+  @media (max-width:820px){ .exercise-layout{ grid-template-columns:1fr; } }
+  .p-cell-fill{
+    aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px;
+    border-radius:10px; background:#fff; border:1.5px dashed #B9CFCB; color:var(--muted); font-family:'Fraunces', serif;
+  }
+  .p-cell-fill:hover{ border-color:var(--teal); color:var(--teal-dark); }
+  .p-cell-fill.filled{ border-style:solid; color:var(--navy); border-color:var(--line); }
+  .p-cell-fill.correct{ background:#E8F6EE; border-color:var(--ok); border-style:solid; color:var(--ok); }
+  .p-cell-fill.incorrect{ background:#FBEAE8; border-color:var(--bad); border-style:solid; color:var(--bad); }
+  .exercise-controls{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .verify-btn{ background:var(--navy); color:#fff; border:none; border-radius:999px; padding:10px 20px; font-weight:800; font-size:13.5px; }
+  .verify-btn:hover{ background:var(--teal-dark); }
+  .reset-btn{ background:#fff; border:1.5px solid var(--line); color:var(--muted); border-radius:999px; padding:10px 20px; font-weight:700; font-size:13.5px; }
+  .reset-btn:hover{ border-color:var(--teal); color:var(--teal-dark); }
+  .exercise-feedback{ margin-top:12px; font-size:13.5px; font-weight:700; min-height:20px; }
+  .exercise-feedback.ok{ color:var(--ok); }
+  .exercise-feedback.pending{ color:var(--muted); font-weight:500; }
+  .exercise-hint{ font-size:12px; color:var(--muted); margin-top:10px; }
+
+  /* actividad manual */
+  .symbol-row{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+  .chip{ width:22px; height:22px; border-radius:50%; flex-shrink:0; }
+
+  /* quiz */
+  .quiz-card{ margin-bottom:16px; }
+  .quiz-q{ font-weight:700; font-size:15px; margin-bottom:11px; color:var(--navy); }
+  .quiz-options{ display:grid; gap:8px; }
+  .opt-btn{ text-align:left; background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:10px 14px; font-size:13.5px; color:var(--text); }
+  .opt-btn:hover:not(:disabled){ border-color:var(--teal); }
+  .opt-btn.correct{ background:#E8F6EE; border-color:var(--ok); color:var(--ok); font-weight:700; }
+  .opt-btn.incorrect{ background:#FBEAE8; border-color:var(--bad); color:var(--bad); font-weight:700; }
+  .opt-btn:disabled{ cursor:default; }
+  .score-badge{ position:sticky; top:56px; display:inline-block; background:var(--navy); color:#fff; padding:8px 15px; border-radius:999px; font-weight:800; font-size:13px; margin-bottom:16px; }
+
+  /* AER */
+  .aer-label{ font-size:11px; font-weight:800; color:var(--teal-dark); text-transform:uppercase; letter-spacing:.5px; display:block; margin:9px 0 4px; }
+  textarea{ width:100%; border:1.5px solid var(--line); border-radius:10px; padding:9px 11px; font-family:var(--font-body); font-size:13.5px; color:var(--text); resize:vertical; min-height:56px; }
+  textarea:focus{ outline:none; border-color:var(--teal); }
+
+  /* cierre */
+  .qr-toggle{ background:#fff; border:1.5px solid var(--teal); color:var(--teal-dark); border-radius:999px; padding:9px 15px; font-weight:700; font-size:13px; }
+  #qrClosing{ margin-top:14px; width:110px; height:110px; }
+  #qrClosing img, #qrClosing canvas, #qrClosing table{ width:100% !important; height:100% !important; }
+  .footer-credit{ text-align:center; font-size:11.5px; color:var(--muted); margin-top:24px; }
+
+  @media print{
+    .progress-ladder, .top-actions, .nav-fixed{ display:none !important; }
+    body{ background:#fff !important; }
+    .slide{ display:block !important; min-height:auto !important; page-break-after:always; padding:14px 10px !important; }
+    .slide:last-of-type{ page-break-after:auto; }
+    .slide-viewport{ padding:0 !important; }
+    * { animation:none !important; transition:none !important; }
+    .card, .quiz-card{ box-shadow:none !important; }
+    .score-badge{ position:static !important; }
+  }
+  @page{ size: A4 landscape; margin:12mm; }
+  @media (prefers-reduced-motion: reduce){ .helix-rung{ animation:none !important; } }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <nav class="progress-ladder" id="progressLadder" aria-label="Progreso de la clase"></nav>
+
+  <div class="top-actions">
+    <button class="icon-btn" id="exportPdfBtn" title="Exportar esta clase a PDF">⤓ Exportar a PDF</button>
+  </div>
+
+  <main class="slide-viewport" id="slideViewport">
+
+    <!-- ================= SLIDE 0 — PORTADA ================= -->
+    <section class="slide active" data-title="Portada">
+      <div class="slide-inner">
+        <div class="cover-grid">
+          <div>
+            <span class="eyebrow">Unidad 3 · Genética · 2° Medio Biología</span>
+            <h2 class="title" style="font-size:clamp(28px,4.4vw,42px);">Monohibridismo</h2>
+            <p class="subtitle">Sesión 5 — Cuadros de Punnett y resolución de problemas</p>
+            <div class="cover-info">
+              <span><b>Profesor(a):</b> Felipe Jiménez</span>
+              <span><b>Curso:</b> 2° Medio</span>
+              <span><b>Duración:</b> 90 minutos</span>
+            </div>
+            <div style="margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap;">
+              <span class="tag">OA 7</span>
+              <span class="tag">Nivel Bloom: Aplicar</span>
+              <span class="tag">Laboratorio de cruces con fichas</span>
+            </div>
+            <button class="cta-start" id="startBtn">Iniciar clase →</button>
+          </div>
+
+          <div>
+            <div class="helix-wrap" id="helixWrap" aria-hidden="true"></div>
+            <div class="qr-panel">
+              <p style="color:#fff; font-weight:700; font-size:13.5px; margin-top:0;">Recursos de la clase</p>
+              <div class="qr-box"><div id="qrHero"></div></div>
+              <p>Escanea con tu celular o visita<br><span style="color:#fff;">fjimenez321-stack.github.io/dondefelipe</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 1 — REPASO SESIÓN 4 ================= -->
+    <section class="slide" data-title="Repaso Sesión 4">
+      <div class="slide-inner">
+        <span class="eyebrow">Repaso exprés · Sesión 4</span>
+        <h2 class="title">De Mendel al vocabulario de la herencia</h2>
+        <p class="subtitle">Lo que ya sabemos, antes de aplicarlo</p>
+        <div class="grid-3">
+          <div class="card mini-card">
+            <div class="mini-icon" style="background:var(--baseT);">M</div>
+            <p><b>Mendel</b><br>cruzó miles de arvejas y descubrió patrones de herencia (proporción 3:1 en la F2).</p>
+          </div>
+          <div class="card mini-card">
+            <div class="mini-icon" style="background:var(--baseG);">Aa</div>
+            <p><b>Genotipo y fenotipo</b><br>la combinación de alelos (SS, Ss, ss) determina la característica observable.</p>
+          </div>
+          <div class="card mini-card">
+            <div class="mini-icon" style="background:var(--baseA);">△</div>
+            <p><b>Árbol genealógico</b><br>nos permitió reconocer patrones hereditarios entre generaciones.</p>
+          </div>
+        </div>
+        <p style="margin-top:20px; font-size:14px; color:var(--muted); text-align:center;">
+          Hoy damos el siguiente paso: <b style="color:var(--navy);">predecir</b> matemáticamente los resultados de un cruce.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 2 — OBJETIVO ================= -->
+    <section class="slide" data-title="Objetivo de la sesión">
+      <div class="slide-inner">
+        <span class="eyebrow">Foco de la clase · Sesión 5</span>
+        <h2 class="title">Objetivo, OA e Indicador de Evaluación</h2>
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="card tint-mint">
+            <span class="card-label">Eje Biología</span>
+            <h3 style="font-size:18px; margin-bottom:8px;">OA 7</h3>
+            <p>Desarrollar una explicación científica, basada en evidencias, sobre los procesos de herencia genética, aplicando los principios de Mendel.</p>
+          </div>
+          <div class="card tint-cream">
+            <span class="card-label">Indicador de Evaluación (IE)</span>
+            <p>Aplican las leyes de Mendel en la resolución de problemas de genética simple (monohibridismo); evalúan problemas, modelos y explicaciones considerando las limitaciones de la teoría.</p>
+          </div>
+        </div>
+        <div class="timeline">
+          <div class="card"><div class="step-n">1</div><b>Inicio</b><div class="mins">10 min</div><p style="font-size:12px;">Repaso Sesión 4</p></div>
+          <div class="card"><div class="step-n">2</div><b>Clásica</b><div class="mins">25 min</div><p style="font-size:12px;">Cuadros de Punnett</p></div>
+          <div class="card"><div class="step-n">3</div><b>STEAM</b><div class="mins">35 min</div><p style="font-size:12px;">Laboratorio de cruces</p></div>
+          <div class="card"><div class="step-n">4</div><b>Cierre</b><div class="mins">20 min</div><p style="font-size:12px;">Guía + AER</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 3 — ¿QUÉ ES UN CUADRO DE PUNNETT? ================= -->
+    <section class="slide" data-title="¿Qué es un cuadro de Punnett?">
+      <div class="slide-inner">
+        <span class="eyebrow">Clásica · Concepto</span>
+        <h2 class="title">¿Qué es un cuadro de Punnett?</h2>
+        <div class="grid-2">
+          <div class="card">
+            <p>Es una herramienta que permite <b>predecir todas las combinaciones posibles</b> de alelos que puede tener la descendencia de un cruce, a partir de los gametos de cada progenitor.</p>
+            <ul style="margin-top:12px;">
+              <li>Cada <b>fila</b> representa un gameto del progenitor 1.</li>
+              <li>Cada <b>columna</b> representa un gameto del progenitor 2.</li>
+              <li>Cada <b>celda interior</b> es la combinación (genotipo) de un posible descendiente.</li>
+            </ul>
+          </div>
+          <div class="card tint-mint" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <div class="concept-grid-mini">
+              <div class="concept-cell corner"></div>
+              <div class="concept-cell head">A</div>
+              <div class="concept-cell head">a</div>
+              <div class="concept-cell head">A</div>
+              <div class="concept-cell">AA</div>
+              <div class="concept-cell">Aa</div>
+              <div class="concept-cell head">a</div>
+              <div class="concept-cell">Aa</div>
+              <div class="concept-cell">aa</div>
+            </div>
+            <p style="font-size:11.5px; color:var(--muted); margin-top:12px; text-align:center;">Ejemplo: cruce Aa × Aa</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 4 — SIMULADOR: CUADRO DE PUNNETT ================= -->
+    <section class="slide" data-title="Simulador: cuadro de Punnett">
+      <div class="slide-inner">
+        <span class="eyebrow">Simulador · CSS interactivo</span>
+        <h2 class="title">Arma tu cuadro de Punnett</h2>
+        <p class="subtitle">Semilla lisa (S) es dominante sobre semilla rugosa (s)</p>
+        <div class="cross-toggle" id="crossToggle">
+          <button class="cross-btn active" data-cross="SsxSs">Ss × Ss</button>
+          <button class="cross-btn" data-cross="SsxSs2">Ss × ss</button>
+          <button class="cross-btn" data-cross="SSxss">SS × ss</button>
+          <button class="cross-btn" data-cross="SSxSs">SS × Ss</button>
+        </div>
+        <div class="punnett-layout">
+          <div class="punnett-grid" id="punnettGrid"></div>
+          <div>
+            <div class="card">
+              <span class="card-label">Resultado del cruce</span>
+              <div class="ratio-info-grid" id="ratioInfoGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 5 — EJEMPLO GUIADO ================= -->
+    <section class="slide" data-title="Ejemplo guiado paso a paso">
+      <div class="slide-inner">
+        <span class="eyebrow">Clásica · Modelamiento paso a paso</span>
+        <h2 class="title">Resolvamos un problema juntos</h2>
+        <div class="card tint-cream" style="margin-bottom:14px;">
+          <p style="font-style:italic;">"En las arvejas, la semilla lisa (S) es dominante sobre la rugosa (s). Se cruzan dos plantas heterocigotas (Ss × Ss). ¿Qué proporción de la descendencia tendrá semilla rugosa?"</p>
+        </div>
+        <div class="card">
+          <ol class="steps-list">
+            <li>Identifica los genotipos parentales: <b>Ss</b> y <b>Ss</b>.</li>
+            <li>Determina los gametos posibles de cada progenitor: <b>S, s</b> y <b>S, s</b>.</li>
+            <li>Construye el cuadro de Punnett combinando cada gameto de un progenitor con cada gameto del otro.</li>
+            <li>Lee los genotipos resultantes: 1 SS, 2 Ss, 1 ss (proporción genotípica 1:2:1).</li>
+            <li>Traduce a fenotipos: 3 lisas (SS y Ss) : 1 rugosa (ss) → <b>25% de la descendencia será rugosa</b>.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE — EJERCICIO PUNNETT 1/3 ================= -->
+    <section class="slide" data-title="Ejercicios de Punnett (1 de 3)">
+      <div class="slide-inner">
+        <span class="eyebrow">Practica · Ejercicio 1 de 3</span>
+        <h2 class="title">Color de flor en arvejas</h2>
+        <div class="card tint-cream" style="margin-bottom:14px;">
+          <p>El color púrpura (P) es dominante sobre el blanco (p). Se cruzan dos plantas heterocigotas: <b>Pp × Pp</b>. Completa el cuadro de Punnett tocando cada celda.</p>
+        </div>
+        <div class="exercise-layout">
+          <div class="punnett-grid" id="ex1Grid"></div>
+          <div class="card">
+            <span class="card-label">Tu tarea</span>
+            <p style="font-size:13px;">Toca cada celda para elegir un genotipo. Vuelve a tocar para cambiarlo. Cuando termines, presiona <b>Verificar</b>.</p>
+            <div class="exercise-controls">
+              <button class="verify-btn" id="ex1Verify">Verificar</button>
+              <button class="reset-btn" id="ex1Reset">Reiniciar</button>
+            </div>
+            <p class="exercise-feedback pending" id="ex1Feedback">Aún no has verificado tus respuestas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE — EJERCICIO PUNNETT 2/3 ================= -->
+    <section class="slide" data-title="Ejercicios de Punnett (2 de 3)">
+      <div class="slide-inner">
+        <span class="eyebrow">Practica · Ejercicio 2 de 3</span>
+        <h2 class="title">Capacidad de enrollar la lengua</h2>
+        <div class="card tint-cream" style="margin-bottom:14px;">
+          <p>Enrollar la lengua (E) es dominante sobre no poder hacerlo (e). Se cruza una persona heterocigota con una que no puede enrollarla: <b>Ee × ee</b> (cruce de prueba).</p>
+        </div>
+        <div class="exercise-layout">
+          <div class="punnett-grid" id="ex2Grid"></div>
+          <div class="card">
+            <span class="card-label">Tu tarea</span>
+            <p style="font-size:13px;">Toca cada celda para elegir un genotipo. Fíjate que ambos gametos de "ee" son iguales.</p>
+            <div class="exercise-controls">
+              <button class="verify-btn" id="ex2Verify">Verificar</button>
+              <button class="reset-btn" id="ex2Reset">Reiniciar</button>
+            </div>
+            <p class="exercise-feedback pending" id="ex2Feedback">Aún no has verificado tus respuestas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE — EJERCICIO PUNNETT 3/3 ================= -->
+    <section class="slide" data-title="Ejercicios de Punnett (3 de 3)">
+      <div class="slide-inner">
+        <span class="eyebrow">Practica · Ejercicio 3 de 3</span>
+        <h2 class="title">Textura de la semilla</h2>
+        <div class="card tint-cream" style="margin-bottom:14px;">
+          <p>La semilla lisa (R) es dominante sobre la rugosa (r). Se cruza una planta homocigota dominante con una heterocigota: <b>RR × Rr</b>.</p>
+        </div>
+        <div class="exercise-layout">
+          <div class="punnett-grid" id="ex3Grid"></div>
+          <div class="card">
+            <span class="card-label">Tu tarea</span>
+            <p style="font-size:13px;">Toca cada celda para elegir un genotipo. ¿Qué tienen en común los gametos de "RR"?</p>
+            <div class="exercise-controls">
+              <button class="verify-btn" id="ex3Verify">Verificar</button>
+              <button class="reset-btn" id="ex3Reset">Reiniciar</button>
+            </div>
+            <p class="exercise-feedback pending" id="ex3Feedback">Aún no has verificado tus respuestas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 6 — ACTIVIDAD MANUAL: LABORATORIO DE CRUCES ================= -->
+    <section class="slide" data-title="Actividad manual: laboratorio de cruces">
+      <div class="slide-inner">
+        <span class="eyebrow">Actividad STEAM</span>
+        <h2 class="title">Laboratorio de cruces con fichas</h2>
+        <div class="grid-2">
+          <div class="card tint-mint">
+            <span class="card-label">Materiales por pareja</span>
+            <ul>
+              <li>Fichas o papelitos de dos colores (representan los alelos "S" y "s")</li>
+              <li>2 bolsas o recipientes pequeños (uno por progenitor)</li>
+              <li>Dados o monedas (alternativa a las fichas)</li>
+              <li>Hoja de registro</li>
+            </ul>
+            <div class="symbol-row">
+              <div class="chip" style="background:var(--teal);"></div> Alelo S (dominante)
+              <div class="chip" style="background:var(--baseC);"></div> Alelo s (recesivo)
+            </div>
+          </div>
+          <div class="card">
+            <span class="card-label">Pasos</span>
+            <ol class="steps-list">
+              <li>Arme dos bolsas de gametos "Ss": cada una con 1 ficha S y 1 ficha s.</li>
+              <li>Sin mirar, cada integrante saca una ficha de su bolsa: esas dos fichas forman el genotipo de un "hijo".</li>
+              <li>Registre el genotipo, devuelva las fichas y repita 20 veces.</li>
+              <li>Tabule cuántos SS, Ss y ss obtuvieron, y cuántos con fenotipo liso vs. rugoso.</li>
+              <li>Guarde sus resultados: los compararemos con la proporción teórica en el cierre.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 7 — GUÍA DE PROBLEMAS (QUIZ) ================= -->
+    <section class="slide" data-title="Guía de problemas">
+      <div class="slide-inner">
+        <span class="eyebrow">Evaluación formativa · Guía de problemas</span>
+        <h2 class="title">Resuelve estos problemas de monohibridismo</h2>
+        <div class="score-badge" id="scoreBadge">Puntaje: 0 / 0</div>
+        <div id="quizContainer"></div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 8 — COMPARACIÓN EXPERIMENTAL VS TEÓRICA (AER) ================= -->
+    <section class="slide" data-title="Comparación experimental vs teórica">
+      <div class="slide-inner">
+        <span class="eyebrow">Evaluación formativa · AER</span>
+        <h2 class="title">¿Coincide lo experimental con lo teórico?</h2>
+        <div class="card">
+          <p style="font-weight:700; font-size:14.5px; margin-bottom:10px;">Compara los resultados de tu laboratorio de fichas con la proporción teórica 3:1 esperada para el cruce Ss × Ss.</p>
+          <label class="aer-label">Afirmación: ¿tu proporción experimental fue igual, mayor o menor a la teórica?</label>
+          <textarea rows="2" aria-label="Afirmación"></textarea>
+          <label class="aer-label">Evidencia: ¿cuántos SS, Ss y ss obtuviste en tus 20 repeticiones?</label>
+          <textarea rows="2" aria-label="Evidencia"></textarea>
+          <label class="aer-label">Razonamiento: ¿a qué se deben las diferencias entre lo experimental y lo teórico? (relaciona con el azar y el tamaño de la muestra)</label>
+          <textarea rows="2" aria-label="Razonamiento"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 9 — CIERRE ================= -->
+    <section class="slide" data-title="Cierre">
+      <div class="slide-inner">
+        <span class="eyebrow">Síntesis y próximos pasos</span>
+        <h2 class="title">Lo que sabemos hoy sobre el monohibridismo</h2>
+        <div class="grid-2" style="margin-bottom:18px;">
+          <div class="card tint-mint">
+            <span class="card-label">Hoy aprendimos</span>
+            <ul>
+              <li>A construir un cuadro de Punnett para un cruce monohíbrido.</li>
+              <li>A traducir genotipos resultantes en proporciones fenotípicas.</li>
+              <li>Por qué los resultados experimentales pueden diferir de los teóricos.</li>
+            </ul>
+          </div>
+          <div class="card tint-cream">
+            <span class="card-label">Próxima clase — Semana 6</span>
+            <p>Dihibridismo, pedigríes y enfermedades hereditarias, con cierre del Bloque 2 (Kahoot de repaso).</p>
+          </div>
+        </div>
+
+        <button class="qr-toggle" id="qrToggleBtn">Mostrar QR de recursos</button>
+        <div id="qrClosing" style="display:none;"></div>
+
+        <p class="footer-credit">Unidad 3 · Genética — Sesión 5 · Prof. Felipe Jiménez · 2° Medio Biología</p>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="nav-fixed">
+    <button class="nav-btn" id="prevBtn">← Anterior</button>
+    <span class="nav-counter" id="navCounter">1 / 13</span>
+    <button class="nav-btn" id="nextBtn">Siguiente →</button>
+  </nav>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var QR_URL = "https://fjimenez321-stack.github.io/dondefelipe/#";
+
+  /* ---------------- Navegación de slides ---------------- */
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var total = slides.length;
+  var current = 0;
+
+  var ladder = document.getElementById("progressLadder");
+  slides.forEach(function(s, i){
+    var b = document.createElement("button");
+    b.className = "prog-step";
+    b.type = "button";
+    b.setAttribute("aria-label", "Ir a: " + (s.getAttribute("data-title") || ("Diapositiva " + (i+1))));
+    b.addEventListener("click", function(){ goTo(i); });
+    ladder.appendChild(b);
+  });
+  var progSteps = Array.prototype.slice.call(document.querySelectorAll(".prog-step"));
+
+  var prevBtn = document.getElementById("prevBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var navCounter = document.getElementById("navCounter");
+
+  function goTo(index){
+    if (index < 0) index = 0;
+    if (index > total - 1) index = total - 1;
+    slides[current].classList.remove("active");
+    current = index;
+    slides[current].classList.add("active");
+    progSteps.forEach(function(step, i){
+      step.classList.toggle("done", i <= current);
+      step.classList.toggle("current", i === current);
+    });
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+    navCounter.textContent = (current + 1) + " / " + total;
+    window.scrollTo(0, 0);
+  }
+  prevBtn.addEventListener("click", function(){ goTo(current - 1); });
+  nextBtn.addEventListener("click", function(){ goTo(current + 1); });
+  document.getElementById("startBtn").addEventListener("click", function(){ goTo(1); });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight") goTo(current + 1);
+    if (e.key === "ArrowLeft") goTo(current - 1);
+  });
+  goTo(0);
+
+  /* ---------------- QR codes ---------------- */
+  function buildQR(elementId, size){
+    try{
+      new QRCode(document.getElementById(elementId), {
+        text: QR_URL, width: size, height: size,
+        colorDark: "#0B2340", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e){
+      var el = document.getElementById(elementId);
+      if (el) el.innerHTML = '<p class="qr-fallback">No se pudo cargar el QR (sin conexión). Visita:<br>' + QR_URL + '</p>';
+    }
+  }
+  buildQR("qrHero", 220);
+
+  var qrToggleBtn = document.getElementById("qrToggleBtn");
+  var qrClosingBuilt = false;
+  qrToggleBtn.addEventListener("click", function(){
+    var box = document.getElementById("qrClosing");
+    var showing = box.style.display !== "none";
+    if (!showing && !qrClosingBuilt){ buildQR("qrClosing", 110); qrClosingBuilt = true; }
+    box.style.display = showing ? "none" : "inline-block";
+    qrToggleBtn.textContent = showing ? "Mostrar QR de recursos" : "Ocultar QR de recursos";
+  });
+
+  /* ---------------- Hero DNA helix ---------------- */
+  var helixWrap = document.getElementById("helixWrap");
+  var baseColors = ["var(--baseA)", "var(--baseT)", "var(--baseG)", "var(--baseC)"];
+  var RUNGS = 15;
+  for (var i = 0; i < RUNGS; i++){
+    var rung = document.createElement("div");
+    rung.className = "helix-rung";
+    rung.style.setProperty("--ty", (i * 18) + "px");
+    rung.style.background = baseColors[i % 4];
+    rung.style.animationDuration = "5s";
+    rung.style.animationDelay = (i * -0.3) + "s";
+    helixWrap.appendChild(rung);
+  }
+
+  /* ---------------- Simulador: cuadro de Punnett ---------------- */
+  var crossData = {
+    SsxSs:  { p1: "Ss", p2: "Ss", label: "Ss × Ss" },
+    SsxSs2: { p1: "Ss", p2: "ss", label: "Ss × ss" },
+    SSxss:  { p1: "SS", p2: "ss", label: "SS × ss" },
+    SSxSs:  { p1: "SS", p2: "Ss", label: "SS × Ss" }
+  };
+
+  function combineAlleles(a, b){
+    return [a, b].sort(function(x, y){
+      var xUp = x === x.toUpperCase();
+      var yUp = y === y.toUpperCase();
+      if (xUp && !yUp) return -1;
+      if (!xUp && yUp) return 1;
+      return 0;
+    }).join("");
+  }
+
+  var punnettGrid = document.getElementById("punnettGrid");
+  var ratioInfoGrid = document.getElementById("ratioInfoGrid");
+  var crossButtons = Array.prototype.slice.call(document.querySelectorAll(".cross-btn"));
+
+  function renderCross(key){
+    var data = crossData[key];
+    var g1 = data.p1.split("");
+    var g2 = data.p2.split("");
+
+    punnettGrid.innerHTML = "";
+    var corner = document.createElement("div");
+    corner.className = "p-cell corner";
+    punnettGrid.appendChild(corner);
+    g2.forEach(function(g){
+      var head = document.createElement("div");
+      head.className = "p-cell head";
+      head.textContent = g;
+      punnettGrid.appendChild(head);
+    });
+
+    var genotypeCounts = {};
+    g1.forEach(function(a){
+      var rowHead = document.createElement("div");
+      rowHead.className = "p-cell head";
+      rowHead.textContent = a;
+      punnettGrid.appendChild(rowHead);
+      g2.forEach(function(b){
+        var geno = combineAlleles(a, b);
+        genotypeCounts[geno] = (genotypeCounts[geno] || 0) + 1;
+        var cell = document.createElement("div");
+        cell.className = "p-cell result" + (geno === geno.toLowerCase() ? " recessive" : "");
+        cell.textContent = geno;
+        punnettGrid.appendChild(cell);
+      });
+    });
+
+    var total4 = g1.length * g2.length;
+    var dominant = 0, recessive = 0;
+    Object.keys(genotypeCounts).forEach(function(geno){
+      if (geno === geno.toLowerCase()) recessive += genotypeCounts[geno];
+      else dominant += genotypeCounts[geno];
+    });
+
+    var genoText = Object.keys(genotypeCounts).sort().map(function(g){
+      return genotypeCounts[g] + " " + g;
+    }).join(" : ");
+
+    ratioInfoGrid.innerHTML = "";
+    [
+      ["Cruce", data.label],
+      ["Genotipos", genoText],
+      ["Fenotipo dominante", dominant + " / " + total4 + " (" + Math.round(dominant / total4 * 100) + "%)"],
+      ["Fenotipo recesivo", recessive + " / " + total4 + " (" + Math.round(recessive / total4 * 100) + "%)"]
+    ].forEach(function(pair){
+      var box = document.createElement("div");
+      box.className = "ratio-info-item";
+      box.innerHTML = "<b>" + pair[0] + "</b><span class='val'>" + pair[1] + "</span>";
+      ratioInfoGrid.appendChild(box);
+    });
+
+    crossButtons.forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-cross") === key); });
+  }
+  crossButtons.forEach(function(b){
+    b.addEventListener("click", function(){ renderCross(b.getAttribute("data-cross")); });
+  });
+  renderCross("SsxSs");
+
+  /* ---------------- Ejercicios: completa el cuadro de Punnett ---------------- */
+  function buildFillExercise(config){
+    var grid = document.getElementById(config.gridId);
+    var verifyBtn = document.getElementById(config.verifyId);
+    var resetBtn = document.getElementById(config.resetId);
+    var feedback = document.getElementById(config.feedbackId);
+    var rowG = config.rowGametes, colG = config.colGametes;
+    var options = config.options;
+    var correct = config.correct; // array de 4 respuestas, orden fila por fila
+
+    function build(){
+      grid.innerHTML = "";
+      var corner = document.createElement("div");
+      corner.className = "p-cell corner";
+      grid.appendChild(corner);
+      colG.forEach(function(g){
+        var head = document.createElement("div");
+        head.className = "p-cell head";
+        head.textContent = g;
+        grid.appendChild(head);
+      });
+      rowG.forEach(function(rg){
+        var rowHead = document.createElement("div");
+        rowHead.className = "p-cell head";
+        rowHead.textContent = rg;
+        grid.appendChild(rowHead);
+        colG.forEach(function(){
+          var cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "p-cell-fill";
+          cell.textContent = "?";
+          cell.dataset.idx = "-1";
+          cell.addEventListener("click", function(){
+            var idx = (parseInt(cell.dataset.idx, 10) + 1) % options.length;
+            cell.dataset.idx = String(idx);
+            cell.textContent = options[idx];
+            cell.classList.add("filled");
+            cell.classList.remove("correct", "incorrect");
+          });
+          grid.appendChild(cell);
+        });
+      });
+      feedback.textContent = "Aún no has verificado tus respuestas.";
+      feedback.className = "exercise-feedback pending";
+    }
+
+    verifyBtn.addEventListener("click", function(){
+      var cells = grid.querySelectorAll(".p-cell-fill");
+      var numCorrect = 0;
+      cells.forEach(function(cell, i){
+        var isCorrect = cell.textContent === correct[i];
+        cell.classList.remove("correct", "incorrect");
+        cell.classList.add(isCorrect ? "correct" : "incorrect");
+        if (isCorrect) numCorrect++;
+      });
+      if (numCorrect === cells.length){
+        feedback.textContent = "¡Correcto! " + numCorrect + "/" + cells.length + " celdas bien. " + config.successMsg;
+        feedback.className = "exercise-feedback ok";
+      } else {
+        feedback.textContent = numCorrect + "/" + cells.length + " celdas correctas. Revisa las marcadas en rojo y vuelve a intentar.";
+        feedback.className = "exercise-feedback";
+      }
+    });
+
+    resetBtn.addEventListener("click", build);
+    build();
+  }
+
+  buildFillExercise({
+    gridId: "ex1Grid", verifyId: "ex1Verify", resetId: "ex1Reset", feedbackId: "ex1Feedback",
+    rowGametes: ["P", "p"], colGametes: ["P", "p"],
+    options: ["PP", "Pp", "pp"],
+    correct: ["PP", "Pp", "Pp", "pp"],
+    successMsg: "Proporción esperada: 3 púrpura : 1 blanca."
+  });
+
+  buildFillExercise({
+    gridId: "ex2Grid", verifyId: "ex2Verify", resetId: "ex2Reset", feedbackId: "ex2Feedback",
+    rowGametes: ["E", "e"], colGametes: ["e", "e"],
+    options: ["Ee", "ee"],
+    correct: ["Ee", "Ee", "ee", "ee"],
+    successMsg: "Proporción esperada: 1 enrolla : 1 no enrolla (cruce de prueba)."
+  });
+
+  buildFillExercise({
+    gridId: "ex3Grid", verifyId: "ex3Verify", resetId: "ex3Reset", feedbackId: "ex3Feedback",
+    rowGametes: ["R", "R"], colGametes: ["R", "r"],
+    options: ["RR", "Rr"],
+    correct: ["RR", "Rr", "RR", "Rr"],
+    successMsg: "Proporción esperada: 100% semilla lisa (aunque no todos son homocigotos)."
+  });
+
+  /* ---------------- Guía de problemas (quiz) ---------------- */
+  var quizData = [
+    { q: "1. En humanos, el hoyuelo en la mejilla (H) es dominante sobre su ausencia (h). Si dos personas heterocigotas (Hh) tienen hijos, ¿qué proporción de sus hijos NO tendrá hoyuelos?", options: ["0%", "25%", "50%", "75%"], correct: 1 },
+    { q: "2. Se cruza una planta de flor púrpura homocigota (PP) con una de flor blanca (pp). ¿Qué color tendrán TODOS los descendientes de la F1?", options: ["Púrpura", "Blanca", "Mitad y mitad", "No se puede determinar"], correct: 0 },
+    { q: "3. Se cruza un conejo de pelo negro heterocigoto (Nn) con uno de pelo blanco (nn). ¿Qué proporción genotípica se espera en la descendencia?", options: ["100% Nn", "50% Nn : 50% nn", "75% Nn : 25% nn", "100% NN"], correct: 1 },
+    { q: "4. ¿Por qué un cruce entre un individuo de fenotipo dominante y uno homocigoto recesivo permite determinar el genotipo del primero?", options: ["Porque siempre produce descendencia idéntica.", "Porque si aparece descendencia recesiva, el progenitor dominante debe ser heterocigoto.", "Porque el cruce nunca produce descendencia recesiva.", "Porque revela directamente el ADN del progenitor."], correct: 1 },
+    { q: "5. En un cruce Aa × Aa, ¿cuál es la proporción fenotípica esperada (dominante : recesivo)?", options: ["1 : 1", "1 : 2 : 1", "3 : 1", "9 : 3 : 3 : 1"], correct: 2 }
+  ];
+  var quizContainer = document.getElementById("quizContainer");
+  var scoreBadge = document.getElementById("scoreBadge");
+  var score = 0;
+  function updateScore(){ scoreBadge.textContent = "Puntaje: " + score + " / " + quizData.length; }
+  quizData.forEach(function(item){
+    var card = document.createElement("div");
+    card.className = "card quiz-card";
+    var qEl = document.createElement("p");
+    qEl.className = "quiz-q";
+    qEl.textContent = item.q;
+    card.appendChild(qEl);
+    var optWrap = document.createElement("div");
+    optWrap.className = "quiz-options";
+    item.options.forEach(function(optText, oi){
+      var btn = document.createElement("button");
+      btn.className = "opt-btn";
+      btn.textContent = optText;
+      btn.addEventListener("click", function(){
+        var allBtns = optWrap.querySelectorAll(".opt-btn");
+        if (allBtns[0].disabled) return;
+        allBtns.forEach(function(b, bi){ b.disabled = true; if (bi === item.correct) b.classList.add("correct"); });
+        if (oi === item.correct) score++; else btn.classList.add("incorrect");
+        updateScore();
+      });
+      optWrap.appendChild(btn);
+    });
+    card.appendChild(optWrap);
+    quizContainer.appendChild(card);
+  });
+  updateScore();
+
+  /* ---------------- Exportar a PDF ---------------- */
+  document.getElementById("exportPdfBtn").addEventListener("click", function(){ window.print(); });
+
+})();
+</script>
+</body>
+</html>
