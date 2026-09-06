@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Copa San Agustín 2026 · Octavos de Final</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#08080c; --ink:#0e0f16; --slab:#14161f; --slab-2:#1b1e2b; --slab-3:#232739;
+    --acid:#ccff00; --acid-dim:#9dc700; --acid-deep:#5e7a00;
+    --tyrian:#ff2e7e; --tyrian-deep:#7a0f3d;
+    --cyan:#22e3ff;
+    --brass:#e9b949; --brass-deep:#8a6a12;
+    --bone:#f2f0e9; --mute:#9498ab; --line:rgba(204,255,0,.16); --line-2:rgba(255,255,255,.08);
+    --ff-display:'Big Shoulders Display','Impact',sans-serif;
+    --ff-body:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;
+    --r-sm:6px; --r-md:10px;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    min-height:100vh; font-family:var(--ff-body); color:var(--bone); background:var(--void);
+    overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  }
+  .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(ellipse 70% 45% at 10% 0%,rgba(122,15,61,.45),transparent 60%),
+               radial-gradient(ellipse 60% 40% at 90% 6%,rgba(94,122,0,.28),transparent 58%),
+               radial-gradient(ellipse 80% 45% at 50% 105%,rgba(34,227,255,.10),transparent 62%);
+  }
+  .gridlines{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(rgba(204,255,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(204,255,0,.04) 1px,transparent 1px);
+    background-size:56px 56px;
+    mask-image:radial-gradient(ellipse 90% 70% at 50% 20%,#000 20%,transparent 85%);
+  }
+  .frieze{position:relative;z-index:5;height:4px;
+    background:linear-gradient(90deg,var(--void),var(--tyrian-deep) 12%,var(--tyrian) 26%,var(--acid) 50%,var(--cyan) 74%,var(--tyrian) 88%,var(--void));
+    box-shadow:0 0 22px rgba(204,255,0,.35);
+  }
+
+  .wrap{position:relative;z-index:5;max-width:1180px;margin:0 auto;padding:2.6rem 1.5rem 4rem}
+
+  header{padding-bottom:1.8rem;margin-bottom:1.8rem;border-bottom:1px solid var(--line-2)}
+  .eyebrow{font-size:.72rem;color:var(--tyrian);letter-spacing:2.2px;text-transform:uppercase;font-weight:700}
+  h1{font-family:var(--ff-display);font-size:clamp(2.1rem,6vw,3.6rem);line-height:.95;letter-spacing:-.5px;
+    text-transform:uppercase;font-weight:900;color:var(--bone);margin-top:.4rem}
+  .subt{font-size:.95rem;color:var(--mute);margin-top:.6rem;max-width:640px;line-height:1.5}
+
+  .estado{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:1.4rem;
+    background:var(--slab);border:1px solid var(--line-2);border-left:3px solid var(--brass);
+    border-radius:var(--r-sm);padding:.9rem 1.2rem}
+  .estado .dot{width:9px;height:9px;border-radius:50%;background:var(--brass);flex-shrink:0;
+    box-shadow:0 0 10px rgba(233,185,73,.6)}
+  .estado .txt{font-size:.84rem;color:var(--bone)}
+  .estado .txt b{color:var(--brass);font-weight:700}
+
+  /* ── cuadro ── */
+  .bracket-scroll{overflow-x:auto;padding:1.6rem .2rem 2.4rem;margin-top:1rem}
+  .bracket{display:flex;align-items:stretch;min-width:960px;filter:grayscale(.55);opacity:.72}
+  .round{display:flex;flex-direction:column;flex:1;min-width:190px}
+  .round-title{font-family:var(--ff-display);font-size:.92rem;letter-spacing:1.6px;font-weight:800;
+    color:var(--mute);text-transform:uppercase;text-align:center;margin-bottom:1.2rem}
+  .pair{flex:1;display:flex;flex-direction:column;justify-content:space-around;position:relative;padding-right:26px}
+  .round.final .pair, .round.final{padding-right:0}
+  .pair:not(.no-connector)::before{content:'';position:absolute;top:25%;bottom:25%;right:0;
+    border-right:2px solid var(--line-2)}
+  .pair:not(.no-connector)::after{content:'';position:absolute;top:50%;right:0;width:26px;height:2px;
+    background:var(--line-2);transform:translateY(-1px)}
+  .match{position:relative;background:var(--slab);border:1.5px dashed var(--line-2);border-radius:var(--r-sm);
+    padding:.55rem .7rem;margin:.35rem 0;min-height:52px}
+  .round:not(.final) .match::after{content:'';position:absolute;top:50%;right:-26px;width:26px;height:2px;
+    background:var(--line-2);transform:translateY(-1px)}
+  .slot{display:flex;align-items:center;gap:8px;font-size:.78rem;padding:2px 0;color:var(--mute)}
+  .slot .curso{font-family:var(--ff-display);font-weight:700;font-size:.68rem;letter-spacing:.4px;
+    color:var(--mute);min-width:34px}
+  .slot .nombre{font-style:italic}
+  .match .vs{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);background:var(--void);
+    color:var(--mute);font-size:.58rem;letter-spacing:1px;padding:0 6px;font-weight:700}
+
+  .final-slot{flex:1;display:flex;align-items:center;justify-content:center}
+  .final-match{background:var(--slab);border:1.5px dashed var(--brass-deep);border-radius:var(--r-md);
+    padding:1.2rem 1.4rem;text-align:center;min-width:170px}
+  .final-match .trofeo{font-size:1.4rem;margin-bottom:.3rem;opacity:.7}
+  .final-match .txt{font-family:var(--ff-display);font-size:.92rem;letter-spacing:1.4px;font-weight:800;
+    color:var(--mute);text-transform:uppercase}
+
+  /* ── bases ── */
+  .bases-toggle{display:flex;justify-content:center;margin-top:1.4rem}
+  details.bases{width:100%}
+  summary.bases-link{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--ff-body);font-size:.78rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+    color:var(--acid);border:1.5px solid rgba(204,255,0,.35);border-radius:var(--r-sm);padding:.7rem 1.4rem;
+    transition:all .25s var(--ease);width:fit-content;margin:0 auto}
+  summary.bases-link::-webkit-details-marker{display:none}
+  summary.bases-link:hover{background:rgba(204,255,0,.08);border-color:var(--acid)}
+  summary.bases-link .car{transition:transform .25s var(--ease);font-size:.7rem}
+  details[open] summary.bases-link .car{transform:rotate(180deg)}
+  .bases-toggle{flex-direction:column;align-items:center}
+
+  .bases-panel{margin-top:1.6rem;background:var(--slab);border:1px solid var(--line-2);border-radius:var(--r-md);
+    padding:1.8rem 1.8rem 2.2rem;animation:fadeIn .35s var(--ease)}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .bases-panel h2{font-family:var(--ff-display);font-size:1.5rem;letter-spacing:-.3px;text-transform:uppercase;
+    color:var(--bone);font-weight:900;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--line-2)}
+  .bases-sec{margin-bottom:1.4rem}
+  .bases-sec h3{font-family:var(--ff-display);font-size:.98rem;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--acid);font-weight:800;margin-bottom:.5rem;display:flex;align-items:baseline;gap:8px}
+  .bases-sec h3 span{color:var(--mute);font-family:var(--ff-body);font-weight:600;font-size:.78rem}
+  .bases-sec p, .bases-sec li{font-size:.86rem;color:var(--mute);line-height:1.6}
+  .bases-sec ul{padding-left:1.2rem;margin-top:.3rem}
+  .bases-sec li::marker{color:var(--acid)}
+  .bases-sec strong{color:var(--bone);font-weight:600}
+  table.rondas{width:100%;border-collapse:collapse;margin:.6rem 0 .2rem;font-size:.82rem}
+  table.rondas th{text-align:left;color:var(--bone);font-family:var(--ff-display);font-weight:700;
+    letter-spacing:.5px;text-transform:uppercase;font-size:.7rem;padding:.5rem .6rem;border-bottom:1px solid var(--line-2)}
+  table.rondas td{padding:.5rem .6rem;color:var(--mute);border-bottom:1px solid var(--line-2)}
+
+  footer{margin-top:2.4rem;text-align:center;font-size:.72rem;color:var(--mute);letter-spacing:.4px}
+
+  @media (max-width:640px){
+    .wrap{padding:2rem 1rem 3rem}
+    .bracket{min-width:820px}
+  }
+</style>
+</head>
+<body>
+  <div class="aurora"></div>
+  <div class="gridlines"></div>
+  <div class="frieze"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">Copa San Agustín 2026</div>
+      <h1>Octavos de final</h1>
+      <p class="subt">Mini campeonato de ping pong · eliminación simple · 16 cupos, 2 por curso, desde 5° Básico hasta 4° Medio.</p>
+
+      <div class="estado">
+        <span class="dot"></span>
+        <span class="txt"><b>Cuadro inactivo.</b> Se publicará con los 16 inscritos una vez cerrada la inscripción sala por sala. Los cruces se sembrarán para que dos cursos de niveles muy distintos no se enfrenten recién en primera ronda.</span>
+      </div>
+    </header>
+
+    <div class="bracket-scroll">
+      <div class="bracket">
+        <div class="round octavos">
+          <div class="round-title">Octavos · 8 partidos</div>
+          <div class="pair">
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+            </div>
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+            </div>
+          </div>
+          <div class="pair">
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+            </div>
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+            </div>
+          </div>
+          <div class="pair">
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+            </div>
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+            </div>
+          </div>
+          <div class="pair">
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+            </div>
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="round cuartos">
+          <div class="round-title">Cuartos · 4 partidos</div>
+          <div class="pair">
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+            </div>
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+            </div>
+          </div>
+          <div class="pair">
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+            </div>
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="round semifinal">
+          <div class="round-title">Semifinal · 2 partidos</div>
+          <div class="pair">
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+            </div>
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="nombre">Por definir</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="round final">
+          <div class="round-title">Final</div>
+          <div class="final-slot">
+            <div class="final-match">
+              <div class="trofeo">🏆</div>
+              <div class="txt">Campeón<br>por definir</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bases-toggle">
+      <details class="bases">
+        <summary class="bases-link">Bases <span class="car">▾</span></summary>
+        <div class="bases-panel">
+          <h2>Bases del mini campeonato</h2>
+
+          <div class="bases-sec">
+            <h3>1 <span>· Participantes</span></h3>
+            <p>16 cupos: 2 por curso, desde 5° Básico hasta 4° Medio. La inscripción se realiza sala por sala, mediante una ficha con el nombre del curso y sus dos postulantes. Si en un curso postulan más de 2 interesados, el curso define sus 2 representantes por votación interna o un mini punto rápido de desempate.</p>
+          </div>
+
+          <div class="bases-sec">
+            <h3>2 <span>· Cómo se desarrolla</span></h3>
+            <p>Formato de <strong>eliminación simple</strong>: quien pierde queda fuera y quien gana avanza, hasta llegar a un solo campeón. El cuadro completo se arma y publica antes de comenzar, sembrando los cruces para que, en lo posible, dos cursos de niveles muy distintos (básica y media) no se enfrenten recién en la primera ronda.</p>
+            <p style="margin-top:.6rem">Se juega a un ritmo de 2 partidos por semana, en un día y lugar fijo (por ejemplo, el recreo largo del jueves en el gimnasio):</p>
+            <table class="rondas">
+              <tr><th>Ronda</th><th>N° de partidos</th><th>Semanas estimadas</th></tr>
+              <tr><td>Octavos de final</td><td>8</td><td>1 a 4</td></tr>
+              <tr><td>Cuartos de final</td><td>4</td><td>5 y 6</td></tr>
+              <tr><td>Semifinales</td><td>2</td><td>7</td></tr>
+              <tr><td>Final</td><td>1</td><td>8</td></tr>
+            </table>
+            <p style="margin-top:.6rem">Las semanas 9 y 10 quedan de colchón para reprogramar partidos atrasados y organizar la premiación. El ganador avanza automáticamente a su casilla de la siguiente ronda apenas se jueguen los dos partidos que la alimentan; no hay que esperar el resto de la ronda. Resultados y avance se publican tras cada partido en el diario mural y en El Mundo de Felipe.</p>
+          </div>
+
+          <div class="bases-sec">
+            <h3>3 <span>· Formato de juego</span></h3>
+            <ul>
+              <li>Set único, no al mejor de 3.</li>
+              <li>Se juega a 11 puntos, diferencia mínima de 2 (si hay 10-10, se continúa hasta 2 de ventaja).</li>
+              <li>Si el tiempo lo requiere, una ronda completa puede jugarse a 7 puntos (misma regla de diferencia de 2); esta decisión se toma para toda la ronda antes de empezar, nunca partido a partido.</li>
+            </ul>
+          </div>
+
+          <div class="bases-sec">
+            <h3>4 <span>· Saque y cambios de lado</span></h3>
+            <ul>
+              <li>El saque se alterna cada 2 puntos, sin importar quién anotó el punto anterior.</li>
+              <li>Cambio de lado a mitad del set (por ejemplo, al llegar alguien a 5 o 6 puntos si se juega a 11).</li>
+            </ul>
+          </div>
+
+          <div class="bases-sec">
+            <h3>5 <span>· Puntualidad y ausencias</span></h3>
+            <ul>
+              <li>Tolerancia de espera: 5 minutos desde la hora fijada; si un jugador no llega, pierde por walkover (W.O.).</li>
+              <li>Si un jugador no puede asistir, debe avisar con anticipación para reprogramar dentro de la misma semana, sin atrasar el cuadro completo.</li>
+            </ul>
+          </div>
+
+          <div class="bases-sec">
+            <h3>6 <span>· Materiales</span></h3>
+            <p>El colegio facilita mesa, red y paletas. Se recomienda que cada jugador traiga su propia pelota de repuesto.</p>
+          </div>
+
+          <div class="bases-sec">
+            <h3>7 <span>· Arbitraje y resultados</span></h3>
+            <p>Los propios jugadores llevan el conteo de puntos. Ante cualquier duda o desacuerdo, se recurre a los encargados del campeonato, <strong>profesor Fernando</strong> y <strong>profesor Felipe</strong>. El resultado debe informarse de inmediato a los encargados para actualizar el cuadro público.</p>
+          </div>
+
+          <div class="bases-sec">
+            <h3>8 <span>· Premiación</span></h3>
+            <p>Reconocimiento simbólico (medalla, diploma o mención en las redes del colegio) al campeón y subcampeón al finalizar el torneo.</p>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <footer>El Mundo de Felipe · Copa San Agustín 2026</footer>
+  </div>
+</body>
+</html>
