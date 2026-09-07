@@ -59,7 +59,7 @@
 
   /* ── cuadro ── */
   .bracket-scroll{overflow-x:auto;padding:1.6rem .2rem 2.4rem;margin-top:1rem}
-  .bracket{display:flex;align-items:stretch;min-width:960px;filter:grayscale(.55);opacity:.72}
+  .bracket{display:flex;align-items:stretch;min-width:960px}
   .round{display:flex;flex-direction:column;flex:1;min-width:190px}
   .round-title{font-family:var(--ff-display);font-size:.92rem;letter-spacing:1.6px;font-weight:800;
     color:var(--mute);text-transform:uppercase;text-align:center;margin-bottom:1.2rem}
@@ -77,6 +77,8 @@
   .slot .curso{font-family:var(--ff-display);font-weight:700;font-size:.68rem;letter-spacing:.4px;
     color:var(--mute);min-width:34px}
   .slot .nombre{font-style:italic}
+  .round.octavos .slot .nombre{font-style:normal;color:var(--bone);font-weight:600}
+  .round.octavos .slot .curso{color:var(--acid-dim)}
   .match .vs{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);background:var(--void);
     color:var(--mute);font-size:.58rem;letter-spacing:1px;padding:0 6px;font-weight:700}
 
@@ -138,8 +140,8 @@
       <p class="subt">Mini campeonato de ping pong · eliminación simple · 16 cupos, 2 por curso, desde 5° Básico hasta 4° Medio.</p>
 
       <div class="estado">
-        <span class="dot"></span>
-        <span class="txt"><b>Cuadro inactivo.</b> Se publicará con los 16 inscritos una vez cerrada la inscripción sala por sala. Los cruces se sembrarán para que dos cursos de niveles muy distintos no se enfrenten recién en primera ronda.</span>
+        <span class="dot" style="background:var(--acid);box-shadow:0 0 10px rgba(204,255,0,.6)"></span>
+        <span class="txt"><b>Cuadro publicado.</b> 16 inscritos, cruces sembrados: los dos representantes de un mismo curso quedaron en mitades opuestas del cuadro, por lo que solo podrían encontrarse en la final.</span>
       </div>
     </header>
 
@@ -149,42 +151,42 @@
           <div class="round-title">Octavos · 8 partidos</div>
           <div class="pair">
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">5°B</span><span class="nombre">Florencia</span></div>
+              <div class="slot"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
             </div>
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-            </div>
-          </div>
-          <div class="pair">
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-            </div>
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">4°M</span><span class="nombre">Nicolás S.</span></div>
+              <div class="slot"><span class="curso">2°M</span><span class="nombre">Bastián M</span></div>
             </div>
           </div>
           <div class="pair">
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">1°M</span><span class="nombre">Gaspi</span></div>
+              <div class="slot"><span class="curso">6°B</span><span class="nombre">Santiago R</span></div>
             </div>
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">8°B</span><span class="nombre">Iker</span></div>
+              <div class="slot"><span class="curso">3°M</span><span class="nombre">Santiago</span></div>
             </div>
           </div>
           <div class="pair">
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">4°M</span><span class="nombre">Joako</span></div>
+              <div class="slot"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
             </div>
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
-              <div class="slot"><span class="curso">—</span><span class="nombre">Por inscribir</span></div>
+              <div class="slot"><span class="curso">2°M</span><span class="nombre">Juan</span></div>
+              <div class="slot"><span class="curso">6°B</span><span class="nombre">Benja</span></div>
+            </div>
+          </div>
+          <div class="pair">
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">1°M</span><span class="nombre">Joaquín</span></div>
+              <div class="slot"><span class="curso">3°M</span><span class="nombre">Martina</span></div>
+            </div>
+            <div class="match"><span class="vs">VS</span>
+              <div class="slot"><span class="curso">7°B</span><span class="nombre">Vicente</span></div>
+              <div class="slot"><span class="curso">5°B</span><span class="nombre">Emilio</span></div>
             </div>
           </div>
         </div>
