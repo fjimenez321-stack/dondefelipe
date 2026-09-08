@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesión 3 · Conservación de la energía mecánica · Física 2° Medio</title>
+<style>
+  :root{
+    --navy:#1F3A44;
+    --teal:#2E7D82;
+    --amber:#B8791F;
+    --green:#3F8A5C;
+    --text:#1F2937;
+    --muted:#6B7780;
+    --line:#E3E7E8;
+    --panel:#FAFBFB;
+    --paper:#FFFFFF;
+    --stage:#12191B;
+    --font-head:Cambria, Georgia, 'Times New Roman', serif;
+    --font-body:Calibri, 'Segoe UI', Roboto, Arial, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{ margin:0; padding:0; height:100%; background:var(--stage); font-family:var(--font-body); -webkit-font-smoothing:antialiased; }
+
+  .stage{ height:100vh; height:100dvh; display:flex; align-items:center; justify-content:center; padding:2.2vh 2vw; }
+  .deck{
+    position:relative;
+    width:min(96vw, calc((100vh - 4.4vh) * 16 / 9));
+    aspect-ratio:16/9;
+    background:var(--paper);
+    border-radius:8px;
+    box-shadow:0 30px 70px rgba(0,0,0,0.5);
+    overflow:hidden;
+    font-size:clamp(13px, 2.3vw, 30px);
+  }
+
+  .slide{
+    position:absolute; inset:0;
+    display:none;
+    padding:4.4% 5%;
+    color:var(--text);
+    background:var(--paper);
+  }
+  .slide.active{ display:flex; flex-direction:column; justify-content:center; }
+  .slide.fill.active{ justify-content:flex-start; }
+
+  .sim-wrap{ position:relative; flex:1; min-height:0; margin-top:0.7em; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#0b0f10; }
+  .sim-wrap iframe{ width:100%; height:100%; border:0; display:block; }
+  .sim-fs-btn{
+    position:absolute; top:10px; right:10px; z-index:5;
+    display:flex; align-items:center; gap:0.4em;
+    background:rgba(255,255,255,0.92); border:1px solid var(--line); border-radius:7px;
+    padding:0.4em 0.7em; font-family:var(--font-body); font-size:0.55em; font-weight:700;
+    color:var(--navy); cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.18);
+  }
+  .sim-fs-btn:hover{ background:#fff; }
+  .sim-wrap:fullscreen{ background:#0b0f10; }
+  .sim-wrap:fullscreen iframe{ width:100vw; height:100vh; }
+  .sim-wrap:fullscreen .sim-fs-btn{ top:18px; right:18px; font-size:0.75em; padding:0.55em 0.9em; }
+
+  .diagram-box{ border:1px solid var(--line); border-radius:8px; background:var(--panel); padding:0.6em; }
+  .diagram-box svg{ width:100%; height:auto; display:block; }
+  .diagram-caption{ font-size:0.56em; color:var(--muted); text-align:center; margin-top:0.5em; line-height:1.35; }
+
+  /* ---------- TEXT PRIMITIVES ---------- */
+  .kicker{
+    font-family:var(--font-body); font-weight:700; font-size:0.6em;
+    letter-spacing:0.13em; color:var(--amber); text-transform:uppercase;
+    margin:0 0 0.8em 0;
+  }
+  h1.title{ font-family:var(--font-head); font-weight:700; font-size:1.5em; color:var(--navy); margin:0 0 0.55em 0; line-height:1.18; }
+  p.lede{ font-size:0.7em; color:var(--muted); margin:0 0 1.2em 0; line-height:1.45; max-width:90%; }
+
+  .rule{ border:none; border-top:1px solid var(--line); margin:1em 0; }
+
+  .footer{
+    position:absolute; left:5%; right:5%; bottom:4%;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:0.48em; color:var(--muted);
+    border-top:1px solid var(--line); padding-top:0.7em;
+  }
+
+  /* ---------- MINIMAL CARD (border only, thin accent bar) ---------- */
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:0.9em 1.05em; position:relative; padding-left:1.3em;
+  }
+  .card::before{
+    content:""; position:absolute; left:0; top:0.7em; bottom:0.7em; width:3px;
+    background:var(--accent, var(--teal)); border-radius:2px;
+  }
+  .card h3{ font-family:var(--font-head); font-size:1em; color:var(--navy); margin:0 0 0.25em 0; }
+  .card .eyebrow{ font-size:0.58em; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--accent, var(--teal)); margin-bottom:0.35em; }
+  .card p{ font-size:0.66em; line-height:1.4; margin:0.25em 0; color:var(--text); }
+
+  .row{ display:flex; gap:0.75em; }
+  .col{ flex:1; }
+
+  /* ---------- formula block: plain bordered, no fill ---------- */
+  .formula{
+    border:1px solid var(--line); border-radius:8px; padding:0.85em 1.1em; background:var(--panel);
+  }
+  .formula .f{ font-family:var(--font-head); font-weight:700; color:var(--navy); font-size:1.5em; }
+  .formula .sub{ font-size:0.58em; color:var(--muted); margin-top:0.4em; }
+
+  /* ---------- note / idea clave: left rule, no fill ---------- */
+  .note{ border-left:3px solid var(--amber); padding:0.15em 0 0.15em 0.9em; margin:0.9em 0; }
+  .note .lbl{ font-size:0.6em; font-weight:700; color:var(--amber); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.3em; }
+  .note p{ font-size:0.68em; line-height:1.4; margin:0; color:var(--text); }
+
+  /* ---------- pill / tag ---------- */
+  .pill{
+    display:inline-flex; align-items:center; gap:0.35em; width:fit-content;
+    padding:0.32em 0.8em; border-radius:999px; background:var(--panel); border:1px solid var(--line);
+    font-size:0.58em; font-weight:700; color:var(--navy); white-space:nowrap;
+  }
+  .pill .dot{ width:0.55em; height:0.55em; border-radius:50%; background:var(--accent, var(--teal)); flex:none; }
+
+  /* ---------- table (simple, ruled) ---------- */
+  table.data{ width:100%; border-collapse:collapse; font-size:0.66em; }
+  table.data th{ text-align:left; font-family:var(--font-body); font-weight:700; color:var(--navy); border-bottom:1px solid var(--line); padding:0.5em 0.6em; font-size:0.95em; }
+  table.data td{ padding:0.5em 0.6em; border-bottom:1px solid var(--line); color:var(--text); }
+  table.data tr:last-child td{ border-bottom:none; font-weight:700; color:var(--navy); }
+
+  ul.plain{ list-style:none; margin:0; padding:0; }
+  ul.plain li{ font-size:0.68em; line-height:1.5; margin-bottom:0.5em; padding-left:1.1em; position:relative; }
+  ul.plain li::before{ content:"—"; position:absolute; left:0; color:var(--muted); }
+
+  ol.steps{ list-style:none; margin:0; padding:0; counter-reset:step; }
+  ol.steps li{ counter-increment:step; display:flex; gap:0.7em; margin-bottom:0.7em; }
+  ol.steps li::before{
+    content:counter(step); flex:none; width:1.5em; height:1.5em; border-radius:50%;
+    border:1px solid var(--navy); color:var(--navy); font-weight:700; font-size:0.6em;
+    display:flex; align-items:center; justify-content:center;
+  }
+  ol.steps li .txt{ font-size:0.68em; line-height:1.45; padding-top:0.1em; }
+  ol.steps li .txt strong{ color:var(--navy); }
+
+  /* ---------- PORTADA ---------- */
+  .cover{ display:flex; flex-direction:column; justify-content:center; height:100%; max-width:78%; }
+  .cover-eyebrow{ font-size:0.62em; font-weight:700; letter-spacing:0.11em; color:var(--amber); text-transform:uppercase; margin-bottom:1em; }
+  .cover-title{ font-family:var(--font-head); font-weight:700; font-size:2.3em; color:var(--navy); line-height:1.15; margin:0 0 0.5em 0; }
+  .cover-sub{ font-style:italic; color:var(--muted); font-size:0.85em; margin-bottom:1.6em; }
+  .cover-meta{ display:flex; gap:2.4em; margin-bottom:1.8em; padding-top:1.4em; border-top:1px solid var(--line); }
+  .cover-meta div span.lbl{ display:block; font-size:0.56em; font-weight:700; letter-spacing:0.05em; color:var(--teal); text-transform:uppercase; margin-bottom:0.35em; }
+  .cover-meta div span.val{ font-size:0.8em; color:var(--text); }
+  .cover-school{ font-size:0.62em; color:var(--muted); }
+  .cover-formula{ font-family:var(--font-head); font-size:1em; color:var(--navy); margin-top:0.2em; }
+
+  /* ---------- HOJA DE RUTA phase cards ---------- */
+  .fase{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:1em 1.1em; flex:1; }
+  .fase-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8em; }
+  .fase-name{ font-family:var(--font-head); font-weight:700; font-size:1.05em; color:var(--navy); }
+  .fase-desc{ font-size:0.66em; line-height:1.4; color:var(--text); }
+
+  /* ---------- footer nav controls ---------- */
+  .nav-btn{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:44px; height:44px; border-radius:50%;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18);
+    color:#fff; font-size:20px; cursor:pointer; z-index:20;
+    display:flex; align-items:center; justify-content:center;
+    transition:background 0.15s ease;
+  }
+  .nav-btn:hover{ background:rgba(255,255,255,0.18); }
+  .nav-prev{ left:1.2vw; }
+  .nav-next{ right:1.2vw; }
+  .nav-btn:disabled{ opacity:0.25; cursor:default; }
+  .nav-btn:disabled:hover{ background:rgba(255,255,255,0.08); }
+
+  .hud{ position:fixed; left:0; right:0; bottom:1vh; display:flex; align-items:center; justify-content:center; gap:10px; z-index:20; pointer-events:none; }
+  .hud > *{ pointer-events:auto; }
+  .dots{ display:flex; gap:6px; background:rgba(255,255,255,0.06); padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.1); }
+  .dots button{ width:7px; height:7px; border-radius:50%; border:none; padding:0; background:rgba(255,255,255,0.3); cursor:pointer; }
+  .dots button.active{ background:var(--amber); width:16px; border-radius:5px; }
+  .counter{ font-family:var(--font-body); color:rgba(255,255,255,0.55); font-size:12px; letter-spacing:0.03em; min-width:40px; text-align:center; }
+  .fs-btn{
+    position:fixed; top:16px; right:16px; z-index:20;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18);
+    color:#fff; font-size:12px; padding:7px 12px; border-radius:8px; cursor:pointer; font-family:var(--font-body);
+  }
+  .fs-btn:hover{ background:rgba(255,255,255,0.18); }
+
+  @media print{
+    body{ background:#fff; }
+    .stage{ padding:0; height:auto; }
+    .nav-btn, .hud, .fs-btn{ display:none !important; }
+    .deck{ box-shadow:none; border-radius:0; width:100%; aspect-ratio:auto; }
+    .slide{ position:relative; display:flex !important; page-break-after:always; height:100vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="deck" id="deck">
+
+    <!-- ============================================================ -->
+    <!-- 1 — PORTADA -->
+    <!-- ============================================================ -->
+    <section class="slide active" data-index="0">
+      <div class="cover">
+        <div class="cover-eyebrow">Unidad 3 · Energía mecánica y cantidad de movimiento</div>
+        <h1 class="cover-title">Conservación de la energía mecánica</h1>
+        <div class="cover-sub">Sesión 3 de 8 · Semana 3</div>
+        <div class="cover-meta">
+          <div><span class="lbl">Duración</span><span class="val">90 minutos</span></div>
+          <div><span class="lbl">OA trabajado</span><span class="val">OA 11 (continuación)</span></div>
+          <div><span class="lbl">Nivel Bloom</span><span class="val">Aplicar</span></div>
+          <div><span class="lbl">Evaluación</span><span class="val">Informe de laboratorio</span></div>
+        </div>
+        <div class="cover-formula">Em = Ec + Ep = constante &nbsp;·&nbsp; Em<sub>inicial</sub> = Em<sub>final</sub></div>
+        <div class="rule"></div>
+        <div class="cover-school">Colegio San Agustín de Villa Alemana · Física · Prof. Felipe Jiménez</div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 2 — HOJA DE RUTA -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="1">
+      <div class="kicker">Estructura de la clase</div>
+      <h1 class="title">Hoja de ruta — Jardinero Pedagógico</h1>
+      <p class="lede">90 minutos organizados en tres momentos, con experimento y simulación como eje central.</p>
+
+      <div class="row">
+        <div class="fase">
+          <div class="fase-top"><span class="fase-name">Siembra</span><span class="pill" style="--accent:var(--green)"><span class="dot"></span>10 min</span></div>
+          <div class="fase-desc">Predicción: ¿qué pasa con la energía mecánica de una pelota mientras cae?</div>
+        </div>
+        <div class="fase">
+          <div class="fase-top"><span class="fase-name">Riego</span><span class="pill"><span class="dot"></span>55 min</span></div>
+          <div class="fase-desc">Ley de conservación, experimento de caída libre, simulación PhET, cálculo en varios puntos e informe con 4 experiencias a elegir.</div>
+        </div>
+        <div class="fase">
+          <div class="fase-top"><span class="fase-name">Cosecha</span><span class="pill" style="--accent:var(--amber)"><span class="dot"></span>25 min</span></div>
+          <div class="fase-desc">Preguntas de cierre y semáforo pedagógico.</div>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>2</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 3 — SIEMBRA -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="2">
+      <div class="kicker">Siembra · 10 min</div>
+      <h1 class="title">Predicción: una pelota que cae</h1>
+
+      <div class="formula" style="margin-bottom:1em;">
+        <div style="font-size:0.72em; font-style:italic; line-height:1.45;">Sueltas una pelota desde 5 metros de altura, sin roce del aire. A medida que cae, ¿qué pasa con su energía potencial, su energía cinética y su energía mecánica total?</div>
+      </div>
+
+      <div class="row">
+        <div class="col card" style="--accent:var(--navy)">
+          <div class="eyebrow" style="color:var(--navy)">Think · 2 min</div>
+          <p>Cada estudiante escribe su predicción para las tres energías, sin conversar.</p>
+        </div>
+        <div class="col card" style="--accent:var(--navy)">
+          <div class="eyebrow" style="color:var(--navy)">Pair · 3 min</div>
+          <p>En parejas comparan y ajustan su predicción si es necesario.</p>
+        </div>
+        <div class="col card" style="--accent:var(--navy)">
+          <div class="eyebrow" style="color:var(--navy)">Share · 5 min</div>
+          <p>El docente recoge 2 o 3 respuestas en la pizarra, sin corregir aún.</p>
+        </div>
+      </div>
+
+      <div class="note"><div class="lbl">Nota docente</div><p>La predicción correcta es que Ep disminuye, Ec aumenta y Em se mantiene constante — pero se confirma recién en la fase Riego.</p></div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>3</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 4 — RIEGO: LEY DE CONSERVACIÓN -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="3">
+      <div class="kicker">Riego · concepto</div>
+      <h1 class="title">La ley de conservación de la energía mecánica</h1>
+
+      <p style="font-size:0.72em; line-height:1.45; max-width:92%;">En ausencia de roce u otras fuerzas disipativas, la energía mecánica de un cuerpo no cambia: la que se pierde como Ep se gana como Ec, y viceversa.</p>
+
+      <div class="formula" style="margin:0.9em 0;">
+        <div class="f">Em<sub style="font-size:0.6em;">inicial</sub> = Em<sub style="font-size:0.6em;">final</sub></div>
+        <div class="sub">Ec₁ + Ep₁ = Ec₂ + Ep₂ &nbsp;→&nbsp; permite calcular velocidad o altura en cualquier punto, sin usar tiempo.</div>
+      </div>
+
+      <div class="note"><div class="lbl">Ejemplo</div><p>Un objeto cae desde 5 m de altura. Con conservación de energía: mgh = ½mv² &nbsp;→&nbsp; v = √(2gh) = √(2 · 9,8 · 5) ≈ 9,9 m/s — sin necesidad de medir el tiempo de caída.</p></div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>4</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 5 — RIEGO: EXPERIMENTO CAÍDA LIBRE -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="4">
+      <div class="kicker">Riego · experimento · 20 min</div>
+      <h1 class="title">Experimento: caída libre</h1>
+      <p class="lede">Objetivo: verificar que Em se conserva, midiendo altura y tiempo de caída.</p>
+
+      <div class="row">
+        <div class="col">
+          <ol class="steps">
+            <li><div class="txt">Medir la altura <strong>h</strong> desde la que se soltará el objeto.</div></li>
+            <li><div class="txt">Soltar el objeto sin impulso y medir el tiempo de caída <strong>t</strong> con cronómetro.</div></li>
+            <li><div class="txt">Calcular la velocidad final con cinemática: <strong>v = g·t</strong>.</div></li>
+            <li><div class="txt">Comparar <strong>Ep inicial</strong> (mgh) con <strong>Ec final</strong> (½mv²): deberían ser aproximadamente iguales.</div></li>
+          </ol>
+        </div>
+        <div class="col card" style="--accent:var(--teal)">
+          <div class="eyebrow">Materiales</div>
+          <p>Pelota o esfera pequeña, cronómetro, huincha de medir.</p>
+          <div class="eyebrow" style="margin-top:0.6em;">Diferencias esperadas</div>
+          <p>Pequeñas diferencias entre Ep inicial y Ec final se explican por el roce del aire y el error de medición del cronómetro.</p>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>5</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 6 — RIEGO: SIMULACIÓN PHET -->
+    <!-- ============================================================ -->
+    <section class="slide fill" data-index="5">
+      <div class="kicker">Riego · simulación · 15 min</div>
+      <h1 class="title">Simulación PhET — Energy Skate Park</h1>
+      <p class="lede" style="margin-bottom:0;">Activa los medidores de energía, suelta al patinador desde distintas alturas y pistas, y observa que Em se mantiene constante sin fricción — y disminuye (se transforma en calor) si la activas. Pruébalo aquí:</p>
+
+      <div class="sim-wrap" id="simWrap">
+        <iframe src="https://phet.colorado.edu/sims/html/energy-skate-park/latest/energy-skate-park_en.html"
+                allowfullscreen
+                title="PhET Energy Skate Park"></iframe>
+        <button class="sim-fs-btn" id="simFsBtn" type="button">⛶ Pantalla completa</button>
+      </div>
+      <div style="font-size:0.5em; color:var(--muted); margin-top:0.5em;">¿No carga? Ábrela directamente en <a href="https://phet.colorado.edu/en/simulations/energy-skate-park" target="_blank" style="color:var(--teal);">phet.colorado.edu/en/simulations/energy-skate-park</a></div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez · Simulación: PhET Interactive Simulations, University of Colorado Boulder</span><span>6</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 7 — RIEGO: CÁLCULO EN DISTINTOS PUNTOS -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="6">
+      <div class="kicker">Riego · ejemplo resuelto</div>
+      <h1 class="title">Energía en distintos puntos de la trayectoria</h1>
+      <p class="lede">Una esfera de 1 kg rueda por una rampa desde 4 m de altura, sin roce.</p>
+
+      <table class="data">
+        <tr><th>Punto</th><th>h (m)</th><th>Ep (J)</th><th>Ec (J)</th><th>v (m/s)</th><th>Em (J)</th></tr>
+        <tr><td>A — parte alta</td><td>4</td><td>39,2</td><td>0</td><td>0</td><td>39,2</td></tr>
+        <tr><td>B — punto medio</td><td>2</td><td>19,6</td><td>19,6</td><td>6,26</td><td>39,2</td></tr>
+        <tr><td>C — parte baja</td><td>0</td><td>0</td><td>39,2</td><td>8,85</td><td>39,2</td></tr>
+      </table>
+
+      <div class="note"><div class="lbl">Idea clave</div><p>La columna Em no cambia: en cada punto la energía se reparte distinto entre Ep y Ec, pero la suma es siempre la misma.</p></div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>7</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 8 — ELIGE TU EXPERIENCIA (1/2) -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="7">
+      <div class="kicker">Riego · elige tu experiencia · 1 de 2</div>
+      <h1 class="title">Cuatro formas de poner a prueba Em</h1>
+      <p class="lede">Elige una de estas 4 experiencias para tu informe práctico. Todas verifican si la energía mecánica se conserva.</p>
+
+      <div class="row">
+        <div class="col card" style="--accent:var(--teal)">
+          <h3>1. Caída libre vertical</h3>
+          <p>Sueltas un objeto desde una altura conocida (h) y mides el tiempo de caída (t), comparando mgh con ½mv² (v = g·t).</p>
+          <div class="eyebrow" style="color:var(--amber); margin-top:0.55em;">Dificultad común</div>
+          <p>Si h es muy pequeña, t es tan corto que el error de reacción del cronómetro se vuelve enorme.</p>
+          <div class="eyebrow" style="color:var(--teal);">Cómo resolverla</div>
+          <p>Usa una altura de al menos 2–3 m y repite la medición varias veces, promediando los resultados.</p>
+        </div>
+        <div class="col card" style="--accent:var(--navy)">
+          <h3>2. Plano inclinado</h3>
+          <p>Dejas rodar una esfera por una rampa de altura y largo conocidos, midiendo el tiempo de recorrido para obtener su velocidad final.</p>
+          <div class="eyebrow" style="color:var(--amber); margin-top:0.55em;">Dificultad común</div>
+          <p>La fricción con la rampa disipa energía: la Ec final siempre resulta menor que la Ep inicial.</p>
+          <div class="eyebrow" style="color:var(--teal);">Cómo resolverla</div>
+          <p>Usa una superficie lisa y explica la diferencia en tu conclusión como energía disipada, no como error.</p>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>8</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 9 — ELIGE TU EXPERIENCIA (2/2) -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="8">
+      <div class="kicker">Riego · elige tu experiencia · 2 de 2</div>
+      <h1 class="title">Cuatro formas de poner a prueba Em</h1>
+      <p class="lede">Dos alternativas más, útiles si no cuentas con una altura o rampa adecuada.</p>
+
+      <div class="row">
+        <div class="col card" style="--accent:var(--green)">
+          <h3>3. Péndulo simple</h3>
+          <p>Sueltas un péndulo desde una altura conocida y estimas su rapidez en el punto más bajo de la oscilación.</p>
+          <div class="eyebrow" style="color:var(--amber); margin-top:0.55em;">Dificultad común</div>
+          <p>El aire y la fricción del hilo frenan el péndulo, sobre todo si el objeto es liviano.</p>
+          <div class="eyebrow" style="color:var(--teal);">Cómo resolverla</div>
+          <p>Usa un objeto pesado y denso, y mide solo la primera oscilación completa.</p>
+        </div>
+        <div class="col card" style="--accent:#6B4C7A">
+          <h3>4. Video-análisis con celular</h3>
+          <p>Grabas en cámara lenta la caída o el rodado de un objeto y usas los cuadros del video para medir tiempo y posición con más precisión.</p>
+          <div class="eyebrow" style="color:var(--amber); margin-top:0.55em;">Dificultad común</div>
+          <p>No todos tienen cámara lenta, o el conteo cuadro a cuadro puede ser lento.</p>
+          <div class="eyebrow" style="color:var(--teal);">Cómo resolverla</div>
+          <p>Trabaja en parejas compartiendo un dispositivo, o usa un video normal con el programa gratuito Tracker.</p>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>9</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 10 — INFORME DE LABORATORIO -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="9">
+      <div class="kicker">Riego · evaluación formativa</div>
+      <h1 class="title">Informe práctico: estructura</h1>
+      <p class="lede">Documenta la experiencia que elegiste, verificando si la energía mecánica se conservó.</p>
+
+      <ol class="steps">
+        <li><div class="txt"><strong>Hipótesis</strong> — tu predicción antes de medir.</div></li>
+        <li><div class="txt"><strong>Variables</strong> — independiente, dependientes y controladas de tu experiencia.</div></li>
+        <li><div class="txt"><strong>Procedimiento</strong> — pasos seguidos, en pocas líneas.</div></li>
+        <li><div class="txt"><strong>Datos</strong> — tabla con las magnitudes medidas.</div></li>
+        <li><div class="txt"><strong>Evidencia esquemática</strong> — diagrama del montaje (siguiente diapositiva).</div></li>
+        <li><div class="txt"><strong>Cálculos</strong> — energía inicial vs. energía final.</div></li>
+        <li><div class="txt"><strong>Conclusión</strong> — ¿se conservó Em? ¿por qué?</div></li>
+      </ol>
+
+      <p style="font-size:0.5em; color:var(--muted); margin:0.8em 0 0;">Manuscrito o digital · máximo 1 página · entrega individual la próxima clase</p>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>10</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 11 — EVIDENCIA ESQUEMÁTICA -->
+    <!-- ============================================================ -->
+    <section class="slide fill" data-index="10">
+      <div class="kicker">Riego · evidencia esquemática</div>
+      <h1 class="title">¿Qué debe mostrar tu diagrama?</h1>
+      <p class="lede" style="margin-bottom:0;">Un dibujo simple del montaje, sin necesidad de escala. Este ejemplo es de la opción de caída libre — adáptalo a la experiencia que elegiste.</p>
+
+      <div class="diagram-box" style="flex:1; min-height:0; margin-top:0.7em; display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 220 260" style="height:100%; width:auto; max-width:100%;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowUp2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,8 L4,0 L8,8 Z" fill="#2E7D82"/>
+            </marker>
+            <marker id="arrowDown2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,0 L4,8 Z" fill="#2E7D82"/>
+            </marker>
+          </defs>
+          <line x1="100" y1="46" x2="100" y2="222" stroke="#B8791F" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="100" cy="38" r="9" fill="#1F3A44"/>
+          <text x="113" y="30" font-size="11" fill="#1F3A44" font-family="Calibri, sans-serif">objeto (m)</text>
+          <line x1="150" y1="40" x2="150" y2="228" stroke="#2E7D82" stroke-width="1.5" marker-start="url(#arrowUp2)" marker-end="url(#arrowDown2)"/>
+          <text x="159" y="138" font-size="15" fill="#2E7D82" font-family="Cambria, serif" font-weight="700">h</text>
+          <line x1="25" y1="230" x2="195" y2="230" stroke="#1F3A44" stroke-width="2"/>
+          <text x="25" y="250" font-size="10.5" fill="#6B7780" font-family="Calibri, sans-serif">suelo (h = 0)</text>
+          <circle cx="100" cy="230" r="4" fill="#B8791F"/>
+          <text x="18" y="212" font-size="10.5" fill="#B8791F" font-family="Calibri, sans-serif">impacto: mide t</text>
+        </svg>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>11</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 12 — RÚBRICA DE EVALUACIÓN -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="11">
+      <div class="kicker">Riego · rúbrica de evaluación</div>
+      <h1 class="title">Rúbrica del informe práctico</h1>
+      <p class="lede">5 criterios, evaluados en 3 niveles. Puntaje total: 10 puntos.</p>
+
+      <table class="data">
+        <tr><th>Criterio</th><th>Logrado (2 pts)</th><th>Medianamente logrado (1 pt)</th><th>Por lograr (0 pts)</th></tr>
+        <tr><td>Hipótesis y variables</td><td>Predicción clara; variables independiente, dependiente y controladas bien identificadas</td><td>Predicción o variables presentes pero vagas o incompletas</td><td>No plantea hipótesis ni identifica variables</td></tr>
+        <tr><td>Datos</td><td>Tabla completa y ordenada con las magnitudes medidas</td><td>Datos incompletos o con errores menores</td><td>Datos ausentes o incorrectos</td></tr>
+        <tr><td>Evidencia esquemática</td><td>Diagrama claro del montaje, con h y puntos clave señalados</td><td>Diagrama presente pero incompleto o poco claro</td><td>No incluye diagrama del montaje</td></tr>
+        <tr><td>Cálculos</td><td>Ep y Ec bien calculadas, con comparación clara</td><td>Cálculos con algún error, comparación incompleta</td><td>Cálculos ausentes o erróneos</td></tr>
+        <tr><td>Conclusión</td><td>Explica si Em se conservó y qué factores influyeron</td><td>Conclusión superficial o sin fundamento</td><td>No hay conclusión, o no responde la pregunta</td></tr>
+      </table>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>12</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 13 — COSECHA: PREGUNTAS DE CIERRE -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="12">
+      <div class="kicker">Cosecha · preguntas de cierre · 10 min</div>
+      <h1 class="title">Preguntas de cierre</h1>
+      <p class="lede">5 preguntas conceptuales de alternativas, para responder de forma individual antes de terminar la clase.</p>
+
+      <ol class="steps">
+        <li><div class="txt">En caída libre sin roce, la energía mecánica de un objeto…</div></li>
+        <li><div class="txt">Si un objeto cae desde el doble de altura, su velocidad final al llegar al suelo…</div></li>
+        <li><div class="txt">En el experimento, si la Ec final medida es menor que la Ep inicial calculada, la diferencia se debe principalmente a…</div></li>
+        <li><div class="txt">En la simulación Energy Skate Park, al activar la fricción, la energía mecánica del patinador…</div></li>
+        <li><div class="txt">En el punto donde la altura es máxima, la energía cinética del objeto es…</div></li>
+      </ol>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>13</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 14 — COSECHA: SEMÁFORO -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="13">
+      <div class="kicker">Cosecha · cierre · 5 min</div>
+      <h1 class="title">Semáforo pedagógico</h1>
+      <p class="lede">Cada estudiante marca su nivel de comprensión antes de salir de la clase.</p>
+
+      <div class="row">
+        <div class="col card" style="--accent:var(--green)">
+          <div class="eyebrow" style="color:var(--green)">Verde</div>
+          <p>Entiendo la ley de conservación de Em y puedo aplicarla para calcular velocidad o altura sin usar tiempo.</p>
+        </div>
+        <div class="col card" style="--accent:var(--amber)">
+          <div class="eyebrow" style="color:var(--amber)">Amarillo</div>
+          <p>Entiendo la idea general, pero tengo dudas al aplicarla en el experimento o en la tabla de puntos.</p>
+        </div>
+        <div class="col card" style="--accent:#B5473F">
+          <div class="eyebrow" style="color:#B5473F">Rojo</div>
+          <p>Todavía no entiendo por qué Em se mantiene constante ni cómo usar Em₁ = Em₂ en un problema.</p>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Sesión 3 · Prof. Felipe Jiménez</span><span>14</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 15 — CIERRE -->
+    <!-- ============================================================ -->
+    <section class="slide" data-index="14">
+      <div class="kicker">Síntesis de la sesión</div>
+      <h1 class="title">Lo esencial de hoy</h1>
+
+      <div class="row">
+        <div class="col">
+          <ul class="plain">
+            <li>Sin roce, la energía mecánica se conserva: Em<sub>inicial</sub> = Em<sub>final</sub>.</li>
+            <li>Esto permite calcular velocidad o altura sin necesidad de medir el tiempo.</li>
+            <li>El experimento de caída libre compara Ep inicial con Ec final para verificarlo.</li>
+            <li>La simulación PhET muestra que, con fricción, la energía mecánica disminuye porque se disipa como calor.</li>
+          </ul>
+        </div>
+        <div class="col card" style="--accent:var(--amber)">
+          <div class="eyebrow" style="color:var(--amber)">Próxima sesión</div>
+          <h3>Efecto del roce, trabajo-energía y potencia</h3>
+          <p>Taller práctico comparando energía mecánica inicial y final sobre una superficie rugosa, y cálculo de potencia mecánica en situaciones cotidianas.</p>
+        </div>
+      </div>
+
+      <div class="footer"><span>Física 2° Medio · Unidad 3 · Prof. Felipe Jiménez</span><span>15</span></div>
+    </section>
+
+  </div>
+
+  <button class="nav-btn nav-prev" id="prevBtn" aria-label="Diapositiva anterior">&#8249;</button>
+  <button class="nav-btn nav-next" id="nextBtn" aria-label="Siguiente diapositiva">&#8250;</button>
+</div>
+
+<button class="fs-btn" id="fsBtn">Pantalla completa</button>
+<div class="hud">
+  <div class="dots" id="dots"></div>
+  <div class="counter" id="counter">1 / 15</div>
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const dotsWrap = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(b);
+  });
+  const dots = Array.from(dotsWrap.children);
+  const counter = document.getElementById('counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  function render(){
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    counter.textContent = (current + 1) + ' / ' + total;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+  }
+
+  function goTo(i){
+    current = Math.max(0, Math.min(total - 1, i));
+    render();
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { goTo(current + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { goTo(current - 1); e.preventDefault(); }
+    else if (e.key === 'Home') { goTo(0); }
+    else if (e.key === 'End') { goTo(total - 1); }
+  });
+
+  let touchX = null;
+  const deck = document.getElementById('deck');
+  deck.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, {passive:true});
+  deck.addEventListener('touchend', (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) { dx < 0 ? goTo(current + 1) : goTo(current - 1); }
+    touchX = null;
+  }, {passive:true});
+
+  document.getElementById('fsBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen();
+  });
+
+  // ---- Fullscreen toggle for the embedded PhET simulator ----
+  const simWrap = document.getElementById('simWrap');
+  const simFsBtn = document.getElementById('simFsBtn');
+  if (simWrap && simFsBtn) {
+    const isFs = () => document.fullscreenElement === simWrap;
+
+    const requestFs = (el) =>
+      (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || function(){}).call(el);
+    const exitFs = () =>
+      (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen || function(){}).call(document);
+
+    simFsBtn.addEventListener('click', () => {
+      if (!isFs()) requestFs(simWrap);
+      else exitFs();
+    });
+
+    const updateBtn = () => {
+      simFsBtn.textContent = isFs() ? '↩ Volver' : '⛶ Pantalla completa';
+    };
+    ['fullscreenchange', 'webkitfullscreenchange', 'MSFullscreenChange'].forEach((evt) =>
+      document.addEventListener(evt, updateBtn)
+    );
+  }
+
+  render();
+})();
+</script>
+
+</body>
+</html>
