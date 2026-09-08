@@ -81,6 +81,12 @@
   .round.octavos .slot .curso{color:var(--acid-dim)}
   .match .vs{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);background:var(--void);
     color:var(--mute);font-size:.58rem;letter-spacing:1px;padding:0 6px;font-weight:700}
+  .slot.ganador .nombre{color:var(--acid);font-weight:800}
+  .slot.ganador .curso{color:var(--acid)}
+  .slot.ganador::before{content:'🏓';margin-right:2px;font-size:.7rem}
+  .slot.perdedor{opacity:.4}
+  .slot.perdedor .nombre{text-decoration:line-through}
+  .match.jugado{border-style:solid;border-color:var(--acid-deep)}
 
   .final-slot{flex:1;display:flex;align-items:center;justify-content:center}
   .final-match{background:var(--slab);border:1.5px dashed var(--brass-deep);border-radius:var(--r-md);
@@ -150,9 +156,9 @@
         <div class="round octavos">
           <div class="round-title">Octavos · 8 partidos</div>
           <div class="pair">
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">5°B</span><span class="nombre">Florencia</span></div>
-              <div class="slot"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot perdedor"><span class="curso">5°B</span><span class="nombre">Florencia</span></div>
+              <div class="slot ganador"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
             </div>
             <div class="match"><span class="vs">VS</span>
               <div class="slot"><span class="curso">4°M</span><span class="nombre">Nicolás S.</span></div>
@@ -164,15 +170,15 @@
               <div class="slot"><span class="curso">1°M</span><span class="nombre">Gaspi</span></div>
               <div class="slot"><span class="curso">6°B</span><span class="nombre">Santiago R</span></div>
             </div>
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">8°B</span><span class="nombre">Iker</span></div>
-              <div class="slot"><span class="curso">3°M</span><span class="nombre">Santiago</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot ganador"><span class="curso">8°B</span><span class="nombre">Excequiel</span></div>
+              <div class="slot perdedor"><span class="curso">3°M</span><span class="nombre">Santiago</span></div>
             </div>
           </div>
           <div class="pair">
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">4°M</span><span class="nombre">Joako</span></div>
-              <div class="slot"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot perdedor"><span class="curso">4°M</span><span class="nombre">Joako</span></div>
+              <div class="slot ganador"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
             </div>
             <div class="match"><span class="vs">VS</span>
               <div class="slot"><span class="curso">2°M</span><span class="nombre">Juan</span></div>
@@ -195,17 +201,17 @@
           <div class="round-title">Cuartos · 4 partidos</div>
           <div class="pair">
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
               <div class="slot"><span class="nombre">Por definir</span></div>
             </div>
             <div class="match"><span class="vs">VS</span>
               <div class="slot"><span class="nombre">Por definir</span></div>
-              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="curso">8°B</span><span class="nombre">Excequiel</span></div>
             </div>
           </div>
           <div class="pair">
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
               <div class="slot"><span class="nombre">Por definir</span></div>
             </div>
             <div class="match"><span class="vs">VS</span>
