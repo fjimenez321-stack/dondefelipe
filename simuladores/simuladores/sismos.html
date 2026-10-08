@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Repaso: sismos, ondas y tsunamis · simulador de subducción</title>
+<meta name="description" content="Repaso previo a la prueba de Física 1° Medio: simulador de subducción, ondas sísmicas, magnitud e intensidad, tsunami y preguntas de práctica.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+  --bg:#FAF7F0; --bg-2:#F2ECDD; --surface:#FFFFFF; --surface-2:#F7F2E7;
+  --ink:#18242F; --ink-2:#43515E; --muted:#6B7886; --line:#E3DAC7;
+  --accent:#1F4E79; --accent-2:#3E7CA6; --accent-text:#1F4E79; --accent-soft:#DCE8F2; --on-accent:#FFFFFF;
+  --sand:#EDE3CD; --red:#B33A3A; --red-soft:#F6DEDE; --ok:#2E7D4F; --ok-soft:#DDF0E4; --warn-soft:#FBEFD0;
+  --hero-a:#1B476F; --hero-b:#2F6A9C;
+  --shadow:0 1px 2px rgba(24,36,47,.06),0 10px 28px rgba(24,36,47,.07);
+  --radius:16px;
+  --font-body:'Source Sans 3','Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;
+  --font-head:'Fraunces','Bookman Old Style',Georgia,'Times New Roman',serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0C161F; --bg-2:#101D29; --surface:#14232F; --surface-2:#192B39;
+    --ink:#E9EFF4; --ink-2:#B7C4CF; --muted:#8798A6; --line:#25394A;
+    --accent:#3B7FB4; --accent-2:#6FA8D3; --accent-text:#8CC0EA; --accent-soft:#17324A; --on-accent:#FFFFFF;
+    --sand:#2A2A24; --red:#E4605F; --red-soft:#3A1F22; --ok:#58C08A; --ok-soft:#173226; --warn-soft:#3A3217;
+    --hero-a:#0F2A42; --hero-b:#1B4A70;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0C161F; --bg-2:#101D29; --surface:#14232F; --surface-2:#192B39;
+  --ink:#E9EFF4; --ink-2:#B7C4CF; --muted:#8798A6; --line:#25394A;
+  --accent:#3B7FB4; --accent-2:#6FA8D3; --accent-text:#8CC0EA; --accent-soft:#17324A; --on-accent:#FFFFFF;
+  --sand:#2A2A24; --red:#E4605F; --red-soft:#3A1F22; --ok:#58C08A; --ok-soft:#173226; --warn-soft:#3A3217;
+  --hero-a:#0F2A42; --hero-b:#1B4A70;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.35);
+}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px);height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.55;-webkit-text-size-adjust:100%}
+h1,h2,h3,h4{font-family:var(--font-head);line-height:1.15;margin:0;color:var(--ink)}
+h2{font-size:clamp(26px,3.6vw,38px);letter-spacing:-.01em}
+h3{font-size:20px}
+h4{font-size:15px;font-family:var(--font-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+p{margin:0 0 .8em}
+a{color:var(--accent-text)}
+.wrap{max-width:1260px;margin:0 auto;padding:0 clamp(14px,3vw,30px)}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.fine{font-size:13px;color:var(--muted);line-height:1.45;margin:.5em 0 0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:18px;height:56px}
+.brand{font-family:var(--font-head);font-weight:700;font-size:17px;white-space:nowrap;color:var(--ink);text-decoration:none}
+.brand b{color:var(--red)}
+.nav-links{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{white-space:nowrap;text-decoration:none;color:var(--ink-2);font-size:15px;font-weight:600;padding:8px 12px;border-radius:999px}
+.nav-links a:hover{background:var(--accent-soft);color:var(--accent-text)}
+
+/* hero */
+.hero{position:relative;overflow:hidden;color:#fff;background:linear-gradient(135deg,var(--hero-a),var(--hero-b));padding:clamp(40px,7vw,84px) 0 clamp(70px,9vw,120px)}
+.hero h1{color:#fff;font-size:clamp(34px,5.6vw,60px);letter-spacing:-.015em;max-width:18ch}
+.hero .eyebrow{font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#CFE3F3;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+.hero .eyebrow::before{content:"";width:28px;height:3px;background:#E26A5F;border-radius:2px}
+.hero .lead{font-size:clamp(17px,2vw,20px);max-width:56ch;color:#DDE9F3;margin:18px 0 26px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.hero-waves{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:clamp(50px,8vw,100px);display:block}
+.hero-rings{position:absolute;right:-60px;top:-60px;width:min(520px,70vw);opacity:.35;pointer-events:none}
+
+/* buttons */
+.btn{appearance:none;border:1px solid transparent;border-radius:12px;padding:10px 16px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;line-height:1.1;transition:transform .08s,background .15s,border-color .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible,.seg button:focus-visible,.opt:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,textarea:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{filter:brightness(1.1)}
+.hero .btn-primary{background:#fff;color:#1B476F}
+.btn-ghost{background:transparent;color:var(--accent-text);border-color:var(--line)}
+.btn-ghost:hover{background:var(--accent-soft)}
+.hero .btn-ghost{color:#fff;border-color:rgba(255,255,255,.4)}
+.hero .btn-ghost:hover{background:rgba(255,255,255,.12)}
+.btn-quake{background:var(--red);color:#fff;box-shadow:0 6px 18px color-mix(in srgb,var(--red) 40%,transparent);padding:11px 18px}
+.btn-quake:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-icon{padding:10px 12px;background:var(--surface-2);border-color:var(--line);color:var(--ink)}
+.btn-icon:hover{background:var(--accent-soft)}
+.btn svg{width:18px;height:18px;flex:none}
+
+/* sections */
+.section{padding:clamp(44px,6vw,80px) 0}
+.section.alt{background:var(--bg-2)}
+.sec-head{margin-bottom:26px;max-width:72ch}
+.sec-kicker{font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--red);margin:0 0 8px}
+.sec-lead{color:var(--ink-2);font-size:18px;margin-top:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);min-width:0}
+.card>h3{margin-bottom:12px}
+
+/* simulator layout */
+.sim-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+.sim-col{display:flex;flex-direction:column;gap:18px;min-width:0}
+@media (max-width:1060px){
+  .sim-grid{display:flex;flex-direction:column}
+  .sim-col{display:contents}
+  #cStage{order:1}#cControls{order:2}#cResults{order:3}#cSeis{order:4}#cTsu{order:5}#cPlan{order:6}
+}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar .spacer{display:none}
+.toolbar .btn-quake{margin-left:auto}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{appearance:none;border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--ink-2);padding:7px 12px;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--on-accent)}
+.canvas-wrap{position:relative;border-radius:14px;overflow:hidden;background:#0d1a26;line-height:0}
+.canvas-wrap canvas{display:block;width:100%;height:auto}
+#scene{cursor:default;touch-action:pan-y}
+.hud{position:absolute;left:10px;bottom:10px;line-height:1.3;font-size:12.5px;color:#fff;background:rgba(10,24,38,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:6px 10px;border-radius:10px;max-width:calc(100% - 20px);pointer-events:none}
+.hud b{color:#FFD27A}
+.banner{position:absolute;left:0;right:0;top:34%;display:grid;place-items:center;pointer-events:none;opacity:0}
+.banner span{font-family:var(--font-head);font-weight:700;font-size:clamp(20px,4vw,40px);color:#fff;background:rgba(179,58,58,.9);padding:8px 22px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);letter-spacing:.01em}
+.banner.show{animation:pop 2.2s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:scale(.85)}12%{opacity:1;transform:scale(1.04)}22%{transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
+.hint{position:absolute;right:10px;bottom:10px;font-size:12px;line-height:1.3;color:#fff;background:rgba(10,24,38,.6);padding:5px 9px;border-radius:9px;pointer-events:none}
+.gauge{margin-top:14px}
+.gauge-top,.gauge-foot{display:flex;justify-content:space-between;gap:10px;font-size:14px;flex-wrap:wrap}
+.gauge-top{font-weight:700;margin-bottom:6px}
+.gauge-foot{color:var(--muted);margin-top:6px;font-size:13px}
+.gauge-bar{position:relative;height:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.gauge-bar>div{height:100%;width:0;border-radius:999px;background:#4D9BD6;transition:background .2s}
+.legend{list-style:none;display:flex;flex-wrap:wrap;gap:8px 16px;margin:14px 0 0;padding:0;font-size:13.5px;color:var(--ink-2)}
+.legend li{display:flex;align-items:center;gap:7px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex:none}
+.dot.sq{border-radius:3px}
+.dot.star{clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+
+/* controls */
+.group{padding:12px 0;border-top:1px solid var(--line)}
+.group:first-of-type{border-top:0;padding-top:0}
+.group-title{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.presets .btn{padding:9px 8px;font-size:14px}
+.slider{display:block;margin:0 0 12px}
+.sl-top{display:flex;justify-content:space-between;gap:10px;font-size:15px;font-weight:600}
+.sl-top output{font-family:var(--font-mono);font-size:14px;color:var(--accent-text);font-weight:600}
+.slider input[type=range]{width:100%;margin:6px 0 2px;accent-color:var(--accent);height:28px}
+.sl-hint{display:block;font-size:12.5px;color:var(--muted);line-height:1.35}
+select{font:inherit;font-size:15px;width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)}
+.toggles{display:flex;flex-wrap:wrap;gap:6px 16px}
+.toggles label{display:flex;align-items:center;gap:8px;font-size:15px;cursor:pointer;min-height:32px}
+.toggles input{width:18px;height:18px;accent-color:var(--accent)}
+
+/* results */
+.mw-box{display:flex;align-items:baseline;gap:14px;padding:14px 16px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);flex-wrap:wrap}
+.mw-val{font-size:54px;line-height:1;font-weight:600;color:var(--accent-text)}
+.mw-box.event .mw-val{color:var(--red)}
+.mw-label{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mw-sub{font-size:13px;color:var(--muted);flex-basis:100%;line-height:1.35}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:14px 0 0}
+.metrics div{min-width:0}
+.metrics dt{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.metrics dd{margin:2px 0 0;font-family:var(--font-mono);font-size:14px;font-weight:600;line-height:1.3}
+.metrics .wide{grid-column:1/-1}
+.stations{display:grid;gap:10px;margin-top:10px}
+.st{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface-2);display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center}
+.st-id{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:700;font-size:14px;grid-row:span 2}
+.st-name{font-weight:700;font-size:15px;line-height:1.2}
+.st-meta{font-size:12.5px;color:var(--muted);font-family:var(--font-mono);grid-column:2/4;line-height:1.35}
+.mmi{min-width:62px;text-align:center;border-radius:10px;padding:5px 8px;font-family:var(--font-mono);font-weight:700;font-size:17px;color:#1a1a1a;background:#ddd;line-height:1.1}
+.mmi small{display:block;font-family:var(--font-body);font-weight:600;font-size:10.5px;line-height:1.1;margin-top:2px}
+
+/* side canvases */
+.cv{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface-2);line-height:0}
+.cv canvas{display:block;width:100%;height:auto}
+.mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.mini-metrics div{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.mini-metrics dt{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.mini-metrics dd{margin:2px 0 0;font-family:var(--font-mono);font-weight:600;font-size:15px}
+.mmi-legend{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;line-height:1}
+.mmi-legend span{font-family:var(--font-mono);font-size:11px;font-weight:700;padding:5px 6px;border-radius:6px;color:#1a1a1a;min-width:28px;text-align:center}
+
+/* challenges */
+.challenges{margin-top:18px}
+.ch-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ch-list li{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.ch-list li.done{background:var(--ok-soft);border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+.ch-mark{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);flex:none;display:grid;place-items:center;font-size:14px;color:#fff;font-weight:700;margin-top:1px}
+.ch-list li.done .ch-mark{background:var(--ok);border-color:var(--ok)}
+.ch-list b{display:block}
+
+/* guide + concepts */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;counter-reset:s}
+.step{position:relative;padding:18px 18px 18px 64px}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:16px;top:16px;width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-family:var(--font-head);font-weight:700;font-size:18px}
+.step h3{font-size:18px;margin-bottom:6px}
+.step p{margin:0;color:var(--ink-2);font-size:16px}
+.concepts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.concept{display:flex;flex-direction:column;gap:8px}
+.concept h3{font-size:19px;display:flex;align-items:center;gap:10px}
+.concept .tag{font-family:var(--font-body);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--accent-text);background:var(--accent-soft);padding:3px 8px;border-radius:999px}
+.concept p{margin:0;color:var(--ink-2);font-size:16px}
+.tip{font-size:14.5px;background:var(--warn-soft);border-left:4px solid #D9A441;padding:8px 12px;border-radius:0 10px 10px 0;color:var(--ink)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:15.5px}
+th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:700}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:13px;font-weight:700}
+.pill.p{background:#DCEBFF;color:#17457A}.pill.s{background:#FFEBC7;color:#7A4A07}.pill.l{background:#FFD9E6;color:#8A1F4B}
+:root[data-theme="dark"] .pill.p{background:#17324F;color:#9CC8F5}:root[data-theme="dark"] .pill.s{background:#3F2F12;color:#F5CB86}:root[data-theme="dark"] .pill.l{background:#47202F;color:#F4A8C6}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.p{background:#17324F;color:#9CC8F5}:root:not([data-theme="light"]) .pill.s{background:#3F2F12;color:#F5CB86}:root:not([data-theme="light"]) .pill.l{background:#47202F;color:#F4A8C6}}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.compare h3{font-size:20px;margin-bottom:6px}
+.compare .big{font-family:var(--font-mono);font-size:15px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:10px 0;display:block}
+.callout{border-radius:14px;padding:16px 18px;background:var(--red-soft);border:1px solid color-mix(in srgb,var(--red) 35%,var(--line));margin-top:16px}
+.callout b{color:var(--red)}
+.callout.blue{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent-2) 40%,var(--line))}
+.callout.blue b{color:var(--accent-text)}
+
+/* quiz */
+.quiz{max-width:860px}
+.quiz-start{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.q-head{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted);font-weight:700;margin-bottom:8px}
+.q-bar{height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden;border:1px solid var(--line);margin-bottom:16px}
+.q-bar>div{height:100%;background:var(--accent);width:0;transition:width .3s}
+.q-text{font-family:var(--font-head);font-size:clamp(20px,2.6vw,25px);line-height:1.25;margin:0 0 16px}
+.opts{display:grid;gap:10px}
+.opt{appearance:none;text-align:left;font:inherit;font-size:16.5px;padding:13px 16px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:flex;gap:12px;align-items:flex-start;line-height:1.35}
+.opt:hover:not([disabled]){border-color:var(--accent-2);background:var(--accent-soft)}
+.opt .k{font-family:var(--font-mono);font-weight:700;color:var(--muted);flex:none;width:20px}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--red);background:var(--red-soft)}
+.opt[disabled]{cursor:default}
+.explain{margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:16px}
+.explain b.ok{color:var(--ok)}.explain b.bad{color:var(--red)}
+.q-actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.score{font-family:var(--font-mono);font-size:56px;font-weight:600;color:var(--accent-text);line-height:1}
+.review li{margin:0 0 12px}
+.aer{display:grid;gap:14px;margin-top:20px;max-width:860px}
+.aer details{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.aer summary{cursor:pointer;padding:14px 18px;font-weight:700;list-style:none;display:flex;gap:10px;justify-content:space-between;align-items:center}
+.aer summary::-webkit-details-marker{display:none}
+.aer summary::after{content:"+";font-size:22px;color:var(--accent-text);font-weight:400}
+.aer details[open] summary::after{content:"–"}
+.aer .body{padding:0 18px 18px}
+.aer textarea{width:100%;min-height:90px;font:inherit;font-size:15.5px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);resize:vertical}
+.aer .model{margin-top:12px;display:none}
+.aer .model.show{display:block}
+.aer .model div{padding:10px 12px;border-radius:10px;margin-bottom:8px;background:var(--surface-2);border-left:4px solid var(--accent-2);font-size:15.5px}
+.aer .model div b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);margin-bottom:2px}
+
+footer{padding:36px 0 56px;color:var(--muted);font-size:14px;border-top:1px solid var(--line);background:var(--bg-2)}
+@media (max-width:560px){
+  body{font-size:16.5px}
+  .toolbar .seg{order:10;width:100%}
+  .toolbar .seg button{flex:1}
+  .hud{font-size:11.5px}
+  .btn{padding:11px 14px}
+  .mw-val{font-size:46px}
+  .metrics{grid-template-columns:1fr 1fr}
+  .mini-metrics{grid-template-columns:1fr 1fr 1fr}
+  .presets{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .banner.show{animation:none;opacity:1}
+  .q-bar>div{transition:none}
+}
+
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Secciones">
+  <div class="wrap">
+    <a class="brand" href="#inicio">Repaso<b>·</b>Sismos</a>
+    <div class="nav-links">
+      <a href="#simulador">Simulador</a>
+      <a href="#guia">Guía</a>
+      <a href="#conceptos">Conceptos</a>
+      <a href="#ondas">Ondas</a>
+      <a href="#escalas">Escalas</a>
+      <a href="#tsunami">Tsunami</a>
+      <a href="#practica">Práctica</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="inicio">
+  <svg class="hero-rings" viewBox="0 0 400 400" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2">
+    <circle cx="260" cy="140" r="30"/><circle cx="260" cy="140" r="70"/><circle cx="260" cy="140" r="120" stroke-dasharray="10 8"/><circle cx="260" cy="140" r="180" stroke-dasharray="4 10"/><circle cx="260" cy="140" r="250" stroke-dasharray="2 12"/>
+  </svg>
+  <div class="wrap" style="position:relative">
+    <p class="eyebrow">Física · 1° Medio · Unidad 3 · Bloque 2</p>
+    <h1>Repaso previo a la prueba: sismos, ondas y tsunamis</h1>
+    <p class="lead">Primero juega con el simulador de subducción para ver cómo se acumula y se libera la energía. Después repasa los conceptos y practica con preguntas tipo prueba.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#simulador">Ir al simulador</a>
+      <a class="btn btn-ghost" href="#practica">Ir directo a la práctica</a>
+    </div>
+  </div>
+  <svg class="hero-waves" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 60 C240 10 480 110 720 60 C960 10 1200 100 1440 50 L1440 100 L0 100Z" fill="var(--bg)"/></svg>
+</header>
+
+<main>
+<!-- ============ SIMULADOR ============ -->
+<section class="section" id="simulador" style="padding-top:clamp(20px,3vw,40px)">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-kicker">Simulador</p>
+      <h2>Subducción en Chile, en corte transversal</h2>
+      <p class="sec-lead">La placa de Nazca se hunde bajo la placa Sudamericana. Mira cómo se acumula energía, qué pasa cuando la falla se rompe y cómo cambian la magnitud, las ondas, la intensidad y el tsunami cuando tocas los controles.</p>
+    </div>
+
+    <div class="sim-grid">
+      <div class="sim-col">
+        <!-- escenario -->
+        <div class="card" id="cStage">
+          <div class="toolbar">
+            <button class="btn btn-icon" id="btnPlay" aria-label="Pausar simulación" title="Pausar / reanudar">
+              <svg id="icPause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+              <svg id="icPlay" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="btn btn-icon" id="btnReset" aria-label="Reiniciar simulación" title="Reiniciar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+            </button>
+            <div class="seg" role="group" aria-label="Velocidad del tiempo">
+              <button data-speed="0" type="button">Lento</button>
+              <button data-speed="1" type="button" class="on">Normal</button>
+              <button data-speed="2" type="button">Rápido</button>
+            </div>
+            <span class="spacer"></span>
+            <button class="btn btn-quake" id="btnQuake" type="button">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+              Provocar sismo
+            </button>
+          </div>
+          <div class="canvas-wrap" id="sceneWrap">
+            <canvas id="scene" role="img" aria-label="Corte transversal de una zona de subducción: la placa oceánica de Nazca se hunde bajo la placa continental Sudamericana. Se muestran la zona acoplada, el hipocentro, el epicentro, las ondas sísmicas y tres estaciones en superficie."></canvas>
+            <div class="hud mono" id="hud"></div>
+            <div class="banner" id="banner" aria-hidden="true"><span id="bannerTxt"></span></div>
+            <div class="hint" id="hint">Toca la falla para mover el hipocentro</div>
+          </div>
+          <div class="gauge">
+            <div class="gauge-top"><span>Esfuerzo acumulado en la falla</span><span class="mono" id="gaugeTxt"></span></div>
+            <div class="gauge-bar" role="progressbar" aria-label="Esfuerzo acumulado respecto de la resistencia de la fricción" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="gaugeBar"><div id="gaugeFill"></div></div>
+            <div class="gauge-foot"><span id="yearsTxt"></span><span id="gaugeNote">Cuando llega al 100 % la fricción cede y se produce el sismo.</span></div>
+          </div>
+          <ul class="legend" aria-label="Leyenda">
+            <li><span class="dot" style="background:#4DA3FF"></span>Onda P</li>
+            <li><span class="dot" style="background:#FFB020"></span>Onda S</li>
+            <li><span class="dot" style="background:#FF4D8D"></span>Ondas superficiales</li>
+            <li><span class="dot sq" style="background:linear-gradient(90deg,#4D9BD6,#F2C14E,#E5322D)"></span>Zona acoplada (esfuerzo)</li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l3.2 7.3 7.8.7-5.9 5.2 1.8 7.7L12 18.3 5.1 22.4l1.8-7.7L1 9.5l7.8-.7z" fill="#fff" stroke="#1b2a38" stroke-width="1.8" stroke-linejoin="round"/></svg>Hipocentro</li>
+            <li><span class="dot" style="background:#E5322D"></span>Epicentro</li>
+          </ul>
+          <p class="fine" id="exagNote"></p>
+        </div>
+
+        <!-- sismógrafos -->
+        <div class="card" id="cSeis">
+          <h3>Sismógrafos: ¿quién siente qué y cuándo?</h3>
+          <div class="cv"><canvas id="seis" role="img" aria-label="Sismogramas de las estaciones A, B y C con la llegada de las ondas P, S y superficiales"></canvas></div>
+          <p class="fine">Las trazas se dibujan a medida que llegan las ondas. Fíjate en el orden <b style="color:#4DA3FF">P</b> → <b style="color:#D98A00">S</b> → <b style="color:#E0307A">L/R</b>, en que la amplitud crece con cada tipo de onda y en que las estaciones lejanas reciben las ondas más tarde.</p>
+        </div>
+
+        <!-- tsunami -->
+        <div class="card" id="cTsu">
+          <h3>Tsunami: perfil del océano y mareógrafo en la costa</h3>
+          <div class="cv"><canvas id="tsu" role="img" aria-label="Perfil del océano con la ola de tsunami y registro del nivel del mar en la costa"></canvas></div>
+          <dl class="mini-metrics">
+            <div><dt>Llega a la costa</dt><dd id="tsArrive">—</dd></div>
+            <div><dt>Primera señal</dt><dd id="tsFirst">—</dd></div>
+            <div><dt>Altura máx.</dt><dd id="tsMax">—</dd></div>
+          </dl>
+          <p class="fine" id="tsNote">La altura de la ola está muy exagerada para poder verla. Modelo lineal 2D simplificado: los tiempos y alturas reales dependen de la geometría 3D del océano y de la costa. Sirve para entender, no para predecir.</p>
+        </div>
+      </div>
+
+      <div class="sim-col">
+        <!-- controles -->
+        <div class="card" id="cControls">
+          <h3>Controles</h3>
+          <div class="group">
+            <p class="group-title">Terremotos de Chile (ejemplos)</p>
+            <div class="presets">
+              <button class="btn btn-ghost" data-preset="illapel" type="button">Illapel 2015</button>
+              <button class="btn btn-ghost" data-preset="maule" type="button">Maule 2010</button>
+              <button class="btn btn-ghost" data-preset="valdivia" type="button">Valdivia 1960</button>
+              <button class="btn btn-ghost" data-preset="moderado" type="button">Sismo moderado</button>
+            </div>
+            <p class="fine">Valores didácticos que reproducen la magnitud. En la realidad el desplazamiento varía a lo largo de la falla.</p>
+          </div>
+          <div class="group">
+            <p class="group-title">Placas</p>
+            <label class="slider"><span class="sl-top"><span>Convergencia</span><output id="oConv"></output></span>
+              <input type="range" id="rConv" min="2" max="12" step="0.5"><span class="sl-hint">Nazca–Sudamérica: cerca de 7 cm/año. Más velocidad, más rápido se acumula el esfuerzo.</span></label>
+            <label class="slider"><span class="sl-top"><span>Resistencia de la fricción</span><output id="oRes"></output></span>
+              <input type="range" id="rRes" min="0.2" max="50" step="0.1"><span class="sl-hint">Desplazamiento acumulado que la falla aguanta antes de romperse. Es también el deslizamiento del sismo.</span></label>
+          </div>
+          <div class="group">
+            <p class="group-title">Zona acoplada (futura área de ruptura)</p>
+            <label class="slider"><span class="sl-top"><span>Profundidad superior</span><output id="oZup"></output></span>
+              <input type="range" id="rZup" min="5" max="30" step="1"><span class="sl-hint">Si llega cerca de la fosa, la ruptura levanta más el fondo marino.</span></label>
+            <label class="slider"><span class="sl-top"><span>Profundidad inferior</span><output id="oZlow"></output></span>
+              <input type="range" id="rZlow" min="25" max="70" step="1"><span class="sl-hint">Define el ancho de la falla (W), medido a lo largo del plano inclinado.</span></label>
+            <label class="slider"><span class="sl-top"><span>Largo a lo largo de la costa</span><output id="oLen"></output></span>
+              <input type="range" id="rLen" min="50" max="1000" step="10"><span class="sl-hint">No se ve en el corte, pero cuenta para el área de ruptura (L × W). Míralo en el mapa.</span></label>
+            <label class="slider"><span class="sl-top"><span>Hipocentro en la falla</span><output id="oHypo"></output></span>
+              <input type="range" id="rHypo" min="0" max="100" step="1"><span class="sl-hint">0 % = extremo superficial · 100 % = extremo profundo. También puedes tocar la falla en el dibujo.</span></label>
+          </div>
+          <div class="group">
+            <p class="group-title">Suelo bajo la ciudad B</p>
+            <select id="selSoil" aria-label="Tipo de suelo bajo la ciudad B">
+              <option value="roca">Roca firme</option>
+              <option value="firme" selected>Suelo firme</option>
+              <option value="blando">Relleno blando (sedimentos)</option>
+            </select>
+          </div>
+          <div class="group">
+            <p class="group-title">Mostrar</p>
+            <div class="toggles">
+              <label><input type="checkbox" id="tLabels" checked> Etiquetas</label>
+              <label><input type="checkbox" id="tGrid" checked> Cuadrícula elástica</label>
+              <label><input type="checkbox" id="tWaves" checked> Ondas</label>
+            </div>
+          </div>
+          <button class="btn btn-ghost" id="btnDefaults" type="button" style="width:100%">Restablecer valores</button>
+        </div>
+
+        <!-- resultados -->
+        <div class="card" id="cResults">
+          <h3>Resultados</h3>
+          <div class="mw-box" id="mwBox">
+            <span class="mw-label" id="mwLabel">Magnitud potencial</span>
+            <span class="mw-val mono" id="mwVal">—</span>
+            <span class="mw-sub" id="mwSub"></span>
+          </div>
+          <dl class="metrics">
+            <div><dt>Área de ruptura</dt><dd id="mArea">—</dd></div>
+            <div><dt>Deslizamiento</dt><dd id="mSlip">—</dd></div>
+            <div><dt>Energía</dt><dd id="mEnergy">—</dd></div>
+            <div><dt>Duración ruptura</dt><dd id="mDur">—</dd></div>
+            <div class="wide"><dt>Hipocentro / epicentro</dt><dd id="mHypo">—</dd></div>
+            <div><dt>Tsunami</dt><dd id="mTsu">—</dd></div>
+            <div><dt>Réplicas</dt><dd id="mRep">0</dd></div>
+          </dl>
+          <h4 style="margin-top:18px">Estaciones y ciudades</h4>
+          <div class="stations" id="stations"></div>
+          <p class="fine">Intensidad Mercalli estimada con un modelo didáctico: depende de la magnitud, de la distancia a la falla y del suelo. La magnitud es una sola; la intensidad cambia de un lugar a otro.</p>
+          <div aria-live="polite" class="sr-only" id="live"></div>
+        </div>
+
+        <!-- mapa -->
+        <div class="card" id="cPlan">
+          <h3 id="planTitle">Mapa de intensidades (vista desde arriba)</h3>
+          <div class="cv"><canvas id="plan" role="img" aria-label="Mapa en planta con el área de ruptura y las zonas de intensidad Mercalli estimadas"></canvas></div>
+          <div class="mmi-legend" id="mmiLegend" aria-label="Escala de colores de la intensidad Mercalli"></div>
+          <p class="fine">Cada color es una zona de igual intensidad estimada (isosistas). Cambia el largo, la profundidad o el hipocentro y mira cómo se deforma el mapa.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card challenges">
+      <h3>Retos para probar que lo entiendes</h3>
+      <ul class="ch-list" id="chList"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GUÍA ============ -->
+<section class="section alt" id="guia">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-kicker">Cómo leer lo que ves</p>
+      <h2>De la subducción al tsunami, en seis pasos</h2>
+    </div>
+    <div class="steps">
+      <div class="card step"><h3>Las placas se juntan</h3><p>La placa de Nazca (oceánica y más densa) se hunde bajo la placa Sudamericana (continental) a unos 7 cm por año. Es un límite convergente con subducción.</p></div>
+      <div class="card step"><h3>La falla se “pega”</h3><p>En la zona acoplada la fricción impide el deslizamiento. Las placas siguen empujando y las rocas se deforman de forma elástica: es la cuadrícula que se estira.</p></div>
+      <div class="card step"><h3>La fricción cede</h3><p>Cuando el esfuerzo supera la resistencia, la falla se desliza de golpe. La parte que se desliza es el área de ruptura y el punto donde parte es el hipocentro.</p></div>
+      <div class="card step"><h3>Rebote elástico</h3><p>Las rocas deformadas vuelven a su forma y liberan la energía acumulada como ondas sísmicas. Después vienen las réplicas, que reacomodan la falla.</p></div>
+      <div class="card step"><h3>Llegan las ondas</h3><p>Primero la P, luego la S y al final las superficiales, que son las de mayor amplitud. Cada estación las registra en distinto momento según su distancia.</p></div>
+      <div class="card step"><h3>Magnitud, intensidad y tsunami</h3><p>La magnitud mide la energía del sismo (un valor). La intensidad mide los efectos en cada lugar. Si el fondo marino se levanta de golpe, puede generarse un tsunami.</p></div>
+    </div>
+    <div class="callout blue" style="max-width:860px"><b>Qué simplifica el modelo:</b> corte 2D con la profundidad exagerada, falla de rigidez uniforme, ruptura que libera todo el esfuerzo acumulado, ondas desde un solo punto y una fórmula didáctica para la intensidad. Sirve para entender las relaciones, no para predecir sismos reales.</div>
+  </div>
+</section>
+
+<!-- ============ CONCEPTOS ============ -->
+<section class="section" id="conceptos">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-kicker">Conceptos clave</p>
+      <h2>Lo que tienes que saber explicar</h2>
+      <p class="sec-lead">Cada tarjeta tiene la definición y un truco para no confundirte en la prueba.</p>
+    </div>
+    <div class="concepts">
+      <div class="card concept"><h3>Hipocentro <span class="tag">foco</span></h3><p>Punto en el interior de la Tierra, sobre la falla, donde comienza la ruptura y se libera la energía.</p><p class="tip"><b>Truco:</b> hipo = “debajo”. Está bajo tierra.</p></div>
+      <div class="card concept"><h3>Epicentro</h3><p>Punto de la superficie ubicado justo sobre el hipocentro. Es el lugar que suele aparecer en los mapas y en las noticias.</p><p class="tip"><b>Truco:</b> epi = “sobre”. Es la proyección vertical del hipocentro.</p></div>
+      <div class="card concept"><h3>Área de ruptura</h3><p>Parte de la falla que se desliza durante el sismo. Su tamaño es largo × ancho. A mayor área y mayor deslizamiento, mayor magnitud.</p><p class="tip"><b>Truco:</b> no es un punto: puede medir cientos de kilómetros.</p></div>
+      <div class="card concept"><h3>Magnitud <span class="tag">Richter · Mw</span></h3><p>Mide la energía liberada por el sismo. Es un solo valor para cada sismo. Hoy se usa la magnitud de momento (Mw), que sirve también para los sismos más grandes.</p><p class="tip"><b>Truco:</b> +1 en magnitud ≈ 10 veces la amplitud y ≈ 32 veces la energía.</p></div>
+      <div class="card concept"><h3>Intensidad <span class="tag">Mercalli</span></h3><p>Describe los efectos del sismo en personas, construcciones y terreno en un lugar (I a XII). Cambia con la distancia, la profundidad, el tipo de suelo y la calidad de las construcciones.</p><p class="tip"><b>Truco:</b> una magnitud, muchas intensidades.</p></div>
+      <div class="card concept"><h3>Réplicas</h3><p>Sismos menores que siguen al principal, cerca del área de ruptura, mientras la falla se reacomoda. Su frecuencia disminuye con el tiempo.</p><p class="tip"><b>Truco:</b> en el simulador aparecen como destellos sobre la falla.</p></div>
+      <div class="card concept"><h3>Subducción</h3><p>Proceso en que una placa oceánica más densa se hunde bajo otra. En Chile, Nazca bajo Sudamérica: origina sismos grandes, tsunamis y la cordillera con sus volcanes.</p><p class="tip"><b>Truco:</b> es un límite convergente.</p></div>
+      <div class="card concept"><h3>Sismógrafo y tiempo S−P</h3><p>El sismógrafo registra las ondas. Mientras más lejos está el sismo, mayor es el tiempo entre la llegada de P y de S.</p><p class="tip"><b>Truco:</b> distancia ≈ 8 km × (S−P en segundos).</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ONDAS ============ -->
+<section class="section alt" id="ondas">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-kicker">Ondas sísmicas</p>
+      <h2>P, S y superficiales: compáralas</h2>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Característica</th><th><span class="pill p">Onda P</span></th><th><span class="pill s">Onda S</span></th><th><span class="pill l">Superficiales (L y R)</span></th></tr></thead>
+        <tbody>
+          <tr><td>Nombre</td><td>Primaria</td><td>Secundaria</td><td>Love (L) y Rayleigh (R)</td></tr>
+          <tr><td>Movimiento</td><td>Longitudinal: comprime y expande en la dirección en que avanza</td><td>Transversal: mueve el material perpendicular a su avance</td><td>Se propagan por la superficie; Love sacude de lado y Rayleigh rueda como una ola</td></tr>
+          <tr><td>Rapidez (corteza)</td><td>Cerca de 6 km/s (la más rápida)</td><td>Cerca de 3,5 km/s</td><td>Cerca de 3 km/s (la más lenta)</td></tr>
+          <tr><td>Medios</td><td>Sólidos, líquidos y gases</td><td>Solo sólidos</td><td>Superficie terrestre</td></tr>
+          <tr><td>Orden de llegada</td><td>1.ª</td><td>2.ª</td><td>3.ª</td></tr>
+          <tr><td>Efecto</td><td>Sacudida seca y poco amplia</td><td>Sacudida fuerte lateral</td><td>Mayor amplitud y duración: las más destructivas</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="two" style="margin-top:18px">
+      <div class="card"><h3>Conecta con la Unidad 1</h3><p>La onda P es análoga a una onda longitudinal, como el sonido o el pulso de empuje del resorte. La onda S es análoga a una onda transversal, como la de una cuerda. Es la misma clasificación de ondas que ya conoces.</p></div>
+      <div class="card"><h3>Para recordarlo</h3><p class="tip" style="margin-bottom:10px"><b>P</b> = Primera, Presión (compresión).</p><p class="tip" style="margin:0"><b>S</b> = Segunda, Sacudida lateral y Solo sólidos.</p></div>
+    </div>
+    <div class="callout"><b>Pregunta típica:</b> ¿por qué la S no atraviesa el océano? Porque los líquidos no pueden transmitir esfuerzos de corte. Pruébalo en el simulador: el anillo ámbar (S) se corta al llegar al agua, mientras que el azul (P) la atraviesa.</div>
+  </div>
+</section>
+
+<!-- ============ ESCALAS ============ -->
+<section class="section" id="escalas">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-kicker">Escalas</p>
+      <h2>Magnitud no es lo mismo que intensidad</h2>
+    </div>
+    <div class="two compare">
+      <div class="card"><h3>Magnitud (Richter / Mw)</h3><p>Mide la <b>energía liberada en el foco</b>. Un sismo tiene una sola magnitud, sin importar dónde lo sientas.</p><span class="big">Mw = ⅔ · (log₁₀ M₀ − 9,1) · M₀ = μ · A · D</span><p style="margin:0">M₀ depende de la rigidez de la roca (μ), el área de ruptura (A) y el deslizamiento (D). Es la fórmula que usa el simulador.</p></div>
+      <div class="card"><h3>Intensidad (Mercalli, I–XII)</h3><p>Describe los <b>efectos observados en un lugar</b>: lo que sienten las personas y los daños. Un mismo sismo tiene muchas intensidades.</p><span class="big">Depende de: distancia · profundidad · suelo · construcción</span><p style="margin:0">En el simulador compara las estaciones A, B y C, y cambia el suelo bajo la ciudad B.</p></div>
+    </div>
+    <h3 style="margin:30px 0 12px">Tres terremotos chilenos para tener a mano</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Terremoto</th><th>Año</th><th>Magnitud (Mw)</th><th>Intensidad máxima (Mercalli)</th><th>Contexto</th></tr></thead>
+        <tbody>
+          <tr><td>Valdivia</td><td>1960</td><td class="mono">9,5</td><td class="mono">XII</td><td>Subducción. El mayor sismo registrado en la historia.</td></tr>
+          <tr><td>Maule</td><td>2010</td><td class="mono">8,8</td><td class="mono">IX</td><td>Subducción. Seguido de tsunami en la costa.</td></tr>
+          <tr><td>Illapel</td><td>2015</td><td class="mono">8,3</td><td class="mono">VIII</td><td>Subducción. Tsunami en la costa de Coquimbo.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fine">Valores aproximados; pueden variar levemente según la fuente (CSN, USGS).</p>
+    <div class="callout blue"><b>Pregunta tipo AER:</b> si Maule tuvo una magnitud mayor que Illapel (8,8 frente a 8,3), ¿por qué es una diferencia importante? Porque 0,5 unidades equivalen a unas 5,6 veces más energía liberada (10<sup>1,5 × 0,5</sup>).</div>
+  </div>
+</section>
+
+<!-- ============ TSUNAMI ============ -->
+<section class="section alt" id="tsunami">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-kicker">Tsunami</p>
+      <h2>Una ola que nace en el fondo del mar</h2>
+      <p class="sec-lead">En una zona de subducción, el deslizamiento súbito levanta (y hunde) el fondo marino. Ese movimiento vertical empuja toda la columna de agua y se propaga como una onda de gran longitud.</p>
+    </div>
+    <div class="two">
+      <div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Profundidad</th><th>Rapidez v = √(g·h)</th></tr></thead>
+            <tbody>
+              <tr><td>4 000 m (mar abierto)</td><td class="mono">≈ 200 m/s ≈ 710 km/h</td></tr>
+              <tr><td>1 000 m</td><td class="mono">≈ 100 m/s ≈ 355 km/h</td></tr>
+              <tr><td>100 m</td><td class="mono">≈ 31 m/s ≈ 113 km/h</td></tr>
+              <tr><td>10 m (cerca de la costa)</td><td class="mono">≈ 10 m/s ≈ 36 km/h</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fine">En mar abierto la ola mide poco de alto y es muy rápida. Al llegar a aguas someras se frena, se “apila” y aumenta su altura.</p>
+      </div>
+      <div class="card">
+        <h3>Qué hacer en la costa</h3>
+        <p>Si sientes un sismo tan fuerte que te cuesta mantenerte en pie, <b>evacúa de inmediato</b> a pie hacia la zona segura indicada (en muchas ciudades, sobre la cota 30), sin esperar una alerta oficial.</p>
+        <p style="margin:0">El mar no siempre se retira antes de un tsunami. La señal confiable es el sismo fuerte y prolongado.</p>
+      </div>
+    </div>
+    <div class="callout blue"><b>Pruébalo en el simulador:</b> sube la “profundidad superior” de la zona acoplada. La ruptura queda lejos de la fosa, levanta menos el fondo marino y el tsunami baja, aunque la magnitud sea parecida.</div>
+  </div>
+</section>
+
+<!-- ============ PRÁCTICA ============ -->
+<section class="section" id="practica">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-kicker">Práctica</p>
+      <h2>Preguntas tipo prueba</h2>
+      <p class="sec-lead">Responde, mira la explicación y vuelve a intentar las que fallaste. Al final, practica el formato AER.</p>
+    </div>
+    <div class="card quiz" id="quiz" aria-live="polite"></div>
+
+    <h3 style="margin:42px 0 6px">Practica el formato AER</h3>
+    <p style="color:var(--ink-2)">Escribe tu respuesta con Afirmación, Evidencia y Razonamiento, y compárala con la respuesta modelo.</p>
+    <div class="aer" id="aer"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p style="margin:0 0 6px"><b>Repaso Unidad 3 · Bloque 2 · Física 1° Medio</b></p>
+    <p style="margin:0">El simulador es un modelo didáctico simplificado y no predice sismos reales. Las cifras de los terremotos son aproximadas.</p>
+  </div>
+</footer>
+<noscript><p style="padding:20px;text-align:center">Esta página necesita JavaScript para mostrar el simulador y la práctica.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (t) => t * t * (3 - 2 * t);
+const f0 = (v) => Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const f1 = (v) => v.toFixed(1).replace('.', ',');
+const f2 = (v) => v.toFixed(2).replace('.', ',');
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function isDark() {
+  const t = document.documentElement.getAttribute('data-theme');
+  if (t) return t === 'dark';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* =====================================================================
+   GEOMETRÍA (km) — corte transversal O–E. x hacia el este, z hacia abajo.
+   ===================================================================== */
+const WIN = { x0: -120, x1: 380, z0: -20, z1: 148 };
+const STEP = 1, NX = 501, I0 = 120, XC = 112;
+const MMI_A = 0.7;               // constante didáctica calibrada con Illapel (VIII) y Maule (IX)
+const MU = 30e9, VP = 6.0, VS = 3.5, VL = 3.0, VR = 2.8, THICK = 42, G = 9.81;
+const YPS = [2, 8, 30];            // años por segundo real
+const DEF = { conv: 7, res: 6, zup: 10, zlow: 45, len: 250, hfrac: 0.5, soil: 'firme' };
+const SOIL = { roca: { mmi: -0.5, gain: 0.8 }, firme: { mmi: 0, gain: 1 }, blando: { mmi: 1, gain: 1.6 } };
+const STATIONS = [
+  { id: 'A', name: 'Costa', x: 118, seed: 11 },
+  { id: 'B', name: 'Ciudad en el valle', x: 190, seed: 22 },
+  { id: 'C', name: 'Cordillera', x: 335, seed: 33 },
+];
+const MMI_COL = ['#ffffff', '#ececff', '#bfccff', '#a0e6ff', '#80ffff', '#7aff93', '#ffff00', '#ffc800', '#ff9100', '#ff0000', '#c80000', '#8a0000'];
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+const MMI_TXT = ['Imperceptible', 'Muy débil', 'Débil', 'Moderado', 'Algo fuerte', 'Fuerte', 'Muy fuerte', 'Destructivo', 'Ruinoso', 'Desastroso', 'Muy desastroso', 'Catastrófico'];
+
+function topo(x) {            // profundidad de la superficie sólida (km, + hacia abajo; negativo = altura)
+  if (x <= 0) {
+    const t = clamp((x + 90) / 90, 0, 1);
+    return 4 + 3 * smooth(t) - 0.25 * Math.exp(-Math.pow((x + 60) / 22, 2));
+  }
+  if (x <= XC) return 7 * (1 - smooth(x / XC));
+  const g = smooth(clamp((x - XC) / 12, 0, 1));
+  const base = 0.3 + 4.2 * smooth(clamp((x - 190) / 180, 0, 1));
+  const coastal = 0.8 * Math.exp(-Math.pow((x - 135) / 14, 2));
+  const volc = 1.9 * Math.exp(-Math.pow((x - 293) / 7, 2));
+  return -g * (base + coastal + volc);
+}
+const dipRad = (x) => (7 + 17 * (1 - Math.exp(-Math.max(x, 0) / 110))) * Math.PI / 180;
+const moho = (x) => 30 + 0.12 * (x - XC);
+
+const XS = new Float64Array(NX), TOPO = new Float64Array(NX), ZT = new Float64Array(NX), SS = new Float64Array(NX), SA = new Float64Array(NX);
+for (let i = 0; i < NX; i++) { XS[i] = WIN.x0 + i * STEP; TOPO[i] = topo(XS[i]); }
+for (let i = 0; i <= I0; i++) ZT[i] = TOPO[i];
+for (let i = I0 + 1; i < NX; i++) ZT[i] = ZT[i - 1] + 0.5 * (Math.tan(dipRad(XS[i - 1])) + Math.tan(dipRad(XS[i]))) * STEP;
+SS[I0] = 0;
+for (let i = I0 + 1; i < NX; i++) SS[i] = SS[i - 1] + Math.hypot(STEP, ZT[i] - ZT[i - 1]);
+SA[0] = 0;
+for (let i = 1; i < NX; i++) SA[i] = SA[i - 1] + Math.hypot(STEP, ZT[i] - ZT[i - 1]);
+let I_INT = I0;
+for (let i = I0; i < NX; i++) { if (ZT[i] >= moho(XS[i])) { I_INT = i; break; } }
+
+const SLAB = { bx: [], bz: [], cx: [], cz: [] };
+for (let i = 0; i < NX; i++) {
+  const a = Math.max(0, i - 1), b = Math.min(NX - 1, i + 1);
+  const dx = XS[b] - XS[a], dz = ZT[b] - ZT[a], L = Math.hypot(dx, dz);
+  const nx = -dz / L, nz = dx / L;
+  SLAB.bx[i] = XS[i] + nx * THICK; SLAB.bz[i] = ZT[i] + nz * THICK;
+  SLAB.cx[i] = XS[i] + nx * 7; SLAB.cz[i] = ZT[i] + nz * 7;
+}
+function topoAt(x) {
+  const f = (x - WIN.x0) / STEP, i = clamp(Math.floor(f), 0, NX - 2), t = f - i;
+  return TOPO[i] * (1 - t) + TOPO[i + 1] * t;
+}
+function depthPoint(z) {
+  for (let i = I0 + 1; i < NX; i++) {
+    if (ZT[i] >= z) { const t = (z - ZT[i - 1]) / (ZT[i] - ZT[i - 1]); return { x: XS[i - 1] + t * STEP, z, s: SS[i - 1] + t * (SS[i] - SS[i - 1]), i }; }
+  }
+  return { x: XS[NX - 1], z: ZT[NX - 1], s: SS[NX - 1], i: NX - 1 };
+}
+function pointAtS(s) {
+  for (let i = I0 + 1; i < NX; i++) {
+    if (SS[i] >= s) { const t = (s - SS[i - 1]) / (SS[i] - SS[i - 1]); return { x: XS[i - 1] + t * STEP, z: ZT[i - 1] + t * (ZT[i] - ZT[i - 1]), s }; }
+  }
+  return { x: XS[NX - 1], z: ZT[NX - 1], s: SS[NX - 1] };
+}
+
+/* =====================================================================
+   ESTADO
+   ===================================================================== */
+const S = {
+  running: !reduceMotion, speed: 1,
+  conv: DEF.conv, res: DEF.res, zup: DEF.zup, zlow: DEF.zlow, len: DEF.len, hfrac: DEF.hfrac, soil: DEF.soil,
+  labels: true, grid: true, waves: true,
+  D: 0, years: 0, phase: 'locked', ts: 0, evReal: 0, relaxT: 0, f: 0,
+  ev: null, pot: null, view: 'potential', afterGlow: 0, bump: 0, stripe: 0, reps: 0, repAcc: 0, bgAcc: 0,
+  done: {},
+};
+let F = null;                 // geometría de la falla acoplada
+let gridLines = [];
+const flashes = [];
+
+function computeFault() {
+  const a = depthPoint(S.zup), b = depthPoint(S.zlow);
+  const samples = [{ x: a.x, z: a.z, s: a.s }];
+  for (let i = a.i; i < b.i; i++) samples.push({ x: XS[i], z: ZT[i], s: SS[i] });
+  samples.push({ x: b.x, z: b.z, s: b.s });
+  F = { sa: a.s, sb: b.s, W: b.s - a.s, xa: a.x, xb: b.x, samples };
+  buildGrid();
+}
+function buildGrid() {
+  gridLines = [];
+  for (let z = -8; z <= 64; z += 8) { const pts = []; for (let x = 0; x <= 380; x += 5) pts.push({ x, z, dx: 0, dz: 0 }); gridLines.push(pts); }
+  for (let x = 0; x <= 380; x += 20) { const pts = []; for (let z = -8; z <= 70; z += 4) pts.push({ x, z, dx: 0, dz: 0 }); gridLines.push(pts); }
+  const sm = F.samples, n = sm.length;
+  for (const ln of gridLines) for (const p of ln) {
+    let best = 1e9, bi = 0;
+    for (let k = 0; k < n; k++) { const d = Math.hypot(p.x - sm[k].x, p.z - sm[k].z); if (d < best) { best = d; bi = k; } }
+    const a = sm[Math.max(0, bi - 1)], b = sm[Math.min(n - 1, bi + 1)];
+    const tl = Math.hypot(b.x - a.x, b.z - a.z) || 1, tx = (b.x - a.x) / tl, tz = (b.z - a.z) / tl;
+    const w = Math.exp(-best / 45);
+    p.dx = w * 15 * tx; p.dz = w * 15 * tz;
+  }
+}
+
+/* ---------- física ---------- */
+const mwFrom = (L, W, D) => (2 / 3) * (Math.log10(MU * (L * 1e3) * (W * 1e3) * D) - 9.1);
+function hypoAt(h) { const p = pointAtS(F.sa + h * (F.sb - F.sa)); return p; }
+function fracAtDepth(z) { const s = clamp(depthPoint(z).s, F.sa, F.sb); return (s - F.sa) / (F.sb - F.sa); }
+function stationInfo(st, hy, Mw) {
+  const zg = topoAt(st.x), Rh = Math.hypot(st.x - hy.x, zg - hy.z);
+  let Rrup = 1e9;
+  for (const p of F.samples) Rrup = Math.min(Rrup, Math.hypot(st.x - p.x, zg - p.z));
+  const soil = st.id === 'B' ? SOIL[S.soil] : SOIL.firme;
+  const mmiF = MMI_A + 1.5 * Mw - 3.5 * Math.log10(Math.max(Rrup, 10)) + soil.mmi;
+  return { id: st.id, name: st.name, x: st.x, zg, Rh, Rrup, tP: Rh / VP, tS: Rh / VS, tL: Rh / VL, mmi: clamp(Math.round(mmiF), 1, 12), gain: soil.gain, seed: st.seed };
+}
+function tsunamiProfile(D, N) {
+  const eta = new Float32Array(N), xa = F.xa, xb = F.xb, w = xb - xa;
+  const fsh = clamp(1.15 - S.zup / 28, 0.1, 1), gL = clamp(S.len / 200, 0.35, 1);
+  const Ue = 0.30 * D * fsh * gL;
+  const xu = xa + 0.25 * w - 5, wu = 0.35 * w + 12;
+  const Us = 0.35 * Ue, xs = xb + 0.10 * w + 5, ws = 0.45 * w + 15;
+  let mx = 0;
+  for (let i = 0; i < N; i++) {
+    const x = WIN.x0 + i + 0.5;
+    let v = Ue * Math.exp(-Math.pow((x - xu) / wu, 2)) - Us * Math.exp(-Math.pow((x - xs) / ws, 2));
+    v *= smooth(clamp((XC - x) / 20, 0, 1));
+    eta[i] = v; mx = Math.max(mx, Math.abs(v));
+  }
+  return { eta, max: mx };
+}
+function scenario(D) {
+  const hy = hypoAt(S.hfrac), W = F.W, L = S.len, Dd = Math.max(D, 0.02);
+  const Mw = mwFrom(L, W, Dd);
+  const Tdip = Math.max(hy.s - F.sa, F.sb - hy.s) / VR;
+  const Tsrc = Math.max(Tdip, L / (2 * VR));
+  const st = STATIONS.map((s) => stationInfo(s, hy, Mw));
+  const tsu = tsunamiProfile(Dd, 232);
+  const xe = hy.x;
+  return { D: Dd, Mw, L, W, hy, xe, Tdip, Tsrc, st, tsuMax: tsu.max, A: L * W, soil: S.soil };
+}
+
+/* =====================================================================
+   TSUNAMI (aguas someras lineales 1D)
+   ===================================================================== */
+const T = { N: 232, active: false, t: 0, acc: 0, eta: new Float32Array(232), u: new Float32Array(233), hc: new Float32Array(232), hf: new Float32Array(233), gt: [], ge: [], first: null, max: 0, arrive: null, started: false };
+for (let i = 0; i < T.N; i++) T.hc[i] = Math.max(topoAt(WIN.x0 + i + 0.5) * 1000, 15);
+for (let j = 0; j <= T.N; j++) T.hf[j] = (T.hc[Math.max(0, j - 1)] + T.hc[Math.min(T.N - 1, j)]) / 2;
+function sweStep(dt) {
+  const N = T.N, DX = 1000, e = T.eta, u = T.u;
+  for (let j = 1; j < N; j++) u[j] -= G * dt / DX * (e[j] - e[j - 1]);
+  u[0] = -e[0] * Math.sqrt(G / T.hc[0]);
+  u[N] = 0;
+  for (let j = N - 12; j < N; j++) u[j] *= 1 - 0.002 * (j - (N - 12)) / 12;
+  for (let i = 0; i < N; i++) e[i] -= dt / DX * (T.hf[i + 1] * u[i + 1] - T.hf[i] * u[i]);
+}
+function startTsunami(ev) {
+  const prof = tsunamiProfile(ev.D, T.N);
+  T.eta.set(prof.eta); T.u.fill(0); T.t = 0; T.acc = 0; T.gt = []; T.ge = []; T.first = null; T.max = 0; T.arrive = null;
+  T.started = true; T.significant = prof.max >= 0.05; T.active = T.significant; T.offshoreMax = prof.max;
+  ev.tsuMax = prof.max;
+}
+function advanceTsunami(dt) {
+  if (!T.active) return;
+  T.acc += dt * 120;
+  let n = 0;
+  while (T.acc >= 2 && n < 10) {
+    sweStep(2); T.t += 2; T.acc -= 2; n++;
+    const c = T.eta[T.N - 1];
+    if (Math.round(T.t) % 20 === 0) { T.gt.push(T.t / 60); T.ge.push(c); }
+    T.max = Math.max(T.max, c);
+    if (!T.first && Math.abs(c) > 0.1) { T.first = { t: T.t, sign: c > 0 ? 1 : -1 }; }
+    if (T.arrive == null && Math.abs(c) > 0.1) T.arrive = T.t;
+  }
+  T.acc = Math.min(T.acc, 8);
+  if (T.t > 7200) T.active = false;
+  dirty.tsu = true;
+}
+
+/* =====================================================================
+   SISMOGRAMAS SINTÉTICOS
+   ===================================================================== */
+const PER = { P: 1.5, S: 2.6, L: 6.5 };
+function genTrace(st, ev) {
+  const dt = 0.25, n = Math.ceil(ev.Tmax / dt) + 1, arr = new Float32Array(n), rng = mulberry32(st.seed * 977 + 13);
+  const comps = { P: [], S: [], L: [] };
+  for (const k of ['P', 'S', 'L']) for (let j = 0; j < 4; j++) comps[k].push({ f: (0.7 + 0.7 * rng()) / PER[k], ph: rng() * 6.283, a: 0.5 + 0.5 * rng() });
+  const base = 18 * Math.pow(10, 0.5 * (ev.Mw - 8)) * (100 / Math.max(st.Rh, 25)) * st.gain;
+  const amp = { P: 0.16 * base, S: 0.46 * base, L: base * Math.exp(-ev.hy.z / 60) };
+  const tail = { P: 5 + 0.04 * st.Rh, S: 9 + 0.05 * st.Rh, L: 22 + 0.12 * st.Rh };
+  const H = 30, t0 = { P: st.tP, S: st.tS, L: st.tL };
+  for (let i = 0; i < n; i++) {
+    const t = i * dt; let y = 0;
+    for (const k of ['P', 'S', 'L']) {
+      const tau = t - t0[k]; if (tau < 0) continue;
+      const att = 1 - Math.exp(-tau / 2.5), dec = tau < ev.Tsrc ? 1 : Math.exp(-(tau - ev.Tsrc) / tail[k]);
+      let s = 0;
+      for (const c of comps[k]) {
+        const ph = k === 'L' ? 2 * Math.PI * c.f * Math.log(1 + 0.01 * tau) / 0.01 : 2 * Math.PI * c.f * tau;
+        s += c.a * Math.sin(ph + c.ph);
+      }
+      y += amp[k] * att * dec * s / 2.2;
+    }
+    arr[i] = H * Math.tanh(y / H);
+  }
+  return arr;
+}
+
+/* =====================================================================
+   EVENTO
+   ===================================================================== */
+function startRupture() {
+  const sc = scenario(S.D);
+  sc.f0 = clamp(S.D / S.res, 0, 1.2);
+  sc.Tmax = Math.max(120, ...sc.st.map((s) => s.tL + sc.Tsrc + 4 * (22 + 0.12 * s.Rh)) );
+  sc.st.forEach((s) => { s.trace = genTrace(s, sc); });
+  sc.K = clamp(3 + 5 * (sc.Mw - 6.5), 2, 18);
+  S.ev = sc; S.phase = 'rupture'; S.ts = 0; S.evReal = 0; S.relaxT = 0; S.reps = 0; S.repAcc = 0; S.view = 'event'; S.afterGlow = 0;
+  T.started = false; T.active = false; T.eta.fill(0); T.gt = []; T.ge = []; T.first = null; T.max = 0; T.arrive = null; sc.tsuStarted = false;
+  showBanner('Rebote elástico'); setLocks(true);
+  renderResults(); renderStations(); dirty.seis = true; dirty.plan = true; dirty.tsu = true;
+  const m = f1(sc.Mw);
+  $('live').textContent = `Sismo de magnitud ${m}. Hipocentro a ${f0(sc.hy.z)} kilómetros de profundidad.`;
+  evaluateChallenges(sc);
+}
+function endRupture() {
+  S.phase = 'locked'; S.D = 0; S.years = 0; S.f = 0; S.afterGlow = 1; S.bump = 1; setLocks(false);
+  dirty.seis = true;
+}
+function forceQuake() {
+  if (S.phase !== 'locked' || S.D < 0.15 * S.res) return;
+  startRupture();
+}
+
+/* =====================================================================
+   RETOS
+   ===================================================================== */
+const CH = [
+  { id: 'big', text: 'Provoca un sismo de magnitud 8,5 o más.', hint: 'Prueba con una zona acoplada más larga o una resistencia de la fricción mayor.', test: (sc) => sc.Mw >= 8.5 },
+  { id: 'city', text: 'Logra intensidad VIII o más en la ciudad B con un sismo de magnitud menor que 8,2.', hint: 'Acerca la falla a la ciudad (profundidad inferior alta, hipocentro hacia el extremo profundo), baja la resistencia y prueba con suelo blando.', test: (sc) => sc.Mw < 8.2 && sc.st[1].mmi >= 8 },
+  { id: 'notsu', text: 'Provoca un sismo de magnitud 8,0 o más con un tsunami pequeño (menos de 0,3 m en mar abierto).', hint: 'Aleja la zona acoplada de la fosa: sube la profundidad superior.', test: (sc) => sc.Mw >= 8 && sc.tsuMax < 0.3 },
+];
+function renderChallenges() {
+  $('chList').innerHTML = CH.map((c) => `<li class="${S.done[c.id] ? 'done' : ''}"><span class="ch-mark" aria-hidden="true">${S.done[c.id] ? '✓' : ''}</span><div><b>${c.text}</b><span class="fine">${S.done[c.id] ? '¡Logrado!' : c.hint}</span></div></li>`).join('');
+}
+function evaluateChallenges(sc) {
+  let ch = false;
+  CH.forEach((c) => { if (!S.done[c.id] && c.test(sc)) { S.done[c.id] = true; ch = true; } });
+  if (ch) renderChallenges();
+}
+
+/* =====================================================================
+   DIBUJO — ESCENA
+   ===================================================================== */
+const scene = $('scene'), ctx = scene.getContext('2d'), sceneWrap = $('sceneWrap');
+const bg = document.createElement('canvas');
+let cssW = 0, cssH = 0, dpr = 1, sx = 1, sy = 1, exag = 1;
+const P = {};
+const X = (x) => (x - WIN.x0) * sx, Y = (z) => (z - WIN.z0) * sy;
+const EXT = 6;                                   // px por metro (altura de ola exagerada)
+const dirty = { seis: true, tsu: true, plan: true };
+
+function makeNoise(size, seed, alpha) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const x = c.getContext('2d'), id = x.createImageData(size, size), r = mulberry32(seed);
+  for (let i = 0; i < size * size; i++) { const v = (r() * 255) | 0; id.data[i * 4] = v; id.data[i * 4 + 1] = v; id.data[i * 4 + 2] = v; id.data[i * 4 + 3] = alpha * 255 * (r() < 0.5 ? 1 : 0.45); }
+  x.putImageData(id, 0, 0); return c;
+}
+const NOISE = makeNoise(160, 7, 0.9);
+
+function buildPaths() {
+  let p = new Path2D(); p.moveTo(X(WIN.x0), Y(Math.min(0, TOPO[0])));
+  for (let i = 1; i < NX; i++) p.lineTo(X(XS[i]), Y(Math.min(0, TOPO[i])));
+  p.lineTo(X(WIN.x1), Y(WIN.z1 + 3)); p.lineTo(X(WIN.x0), Y(WIN.z1 + 3)); p.closePath(); P.all = p;
+  p = new Path2D(); p.moveTo(X(WIN.x0), Y(TOPO[0]));
+  for (let i = 1; i < NX; i++) p.lineTo(X(XS[i]), Y(TOPO[i]));
+  p.lineTo(X(WIN.x1), Y(WIN.z1 + 3)); p.lineTo(X(WIN.x0), Y(WIN.z1 + 3)); p.closePath(); P.solid = p;
+  p = new Path2D(); p.moveTo(X(0), Y(TOPO[I0]));
+  for (let i = I0; i < NX; i++) p.lineTo(X(XS[i]), Y(TOPO[i]));
+  p.lineTo(X(WIN.x1), Y(moho(WIN.x1))); p.lineTo(X(XS[I_INT]), Y(moho(XS[I_INT])));
+  for (let i = I_INT; i >= I0; i--) p.lineTo(X(XS[i]), Y(ZT[i]));
+  p.closePath(); P.crust = p;
+  p = new Path2D(); p.moveTo(X(XS[0]), Y(ZT[0]));
+  for (let i = 1; i < NX; i++) p.lineTo(X(XS[i]), Y(ZT[i]));
+  for (let i = NX - 1; i >= 0; i--) p.lineTo(X(SLAB.bx[i]), Y(SLAB.bz[i]));
+  p.closePath(); P.slab = p;
+  p = new Path2D(); p.moveTo(X(XS[0]), Y(ZT[0]));
+  for (let i = 1; i < NX; i++) p.lineTo(X(XS[i]), Y(ZT[i]));
+  for (let i = NX - 1; i >= 0; i--) p.lineTo(X(SLAB.cx[i]), Y(SLAB.cz[i]));
+  p.closePath(); P.slabCrust = p;
+}
+
+function renderBackground() {
+  bg.width = Math.round(cssW * dpr); bg.height = Math.round(cssH * dpr);
+  const b = bg.getContext('2d'); b.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const dark = isDark();
+  // cielo
+  let g = b.createLinearGradient(0, 0, 0, Y(0));
+  if (dark) { g.addColorStop(0, '#06111C'); g.addColorStop(1, '#22405D'); } else { g.addColorStop(0, '#7FB9E3'); g.addColorStop(1, '#EAF4F9'); }
+  b.fillStyle = g; b.fillRect(0, 0, cssW, cssH);
+  // sol / luna
+  const sxp = X(246), syp = Y(-12), sr = Math.max(14, cssW / 38);
+  const sg = b.createRadialGradient(sxp, syp, 0, sxp, syp, sr * 3);
+  if (dark) { sg.addColorStop(0, 'rgba(235,240,255,.55)'); sg.addColorStop(1, 'rgba(235,240,255,0)'); } else { sg.addColorStop(0, 'rgba(255,236,170,.9)'); sg.addColorStop(1, 'rgba(255,236,170,0)'); }
+  b.fillStyle = sg; b.beginPath(); b.arc(sxp, syp, sr * 3, 0, 6.283); b.fill();
+  b.fillStyle = dark ? '#E9EEF8' : '#FFF3C4'; b.beginPath(); b.arc(sxp, syp, sr * 0.55, 0, 6.283); b.fill();
+  // manto
+  b.save(); b.clip(P.solid);
+  g = b.createLinearGradient(0, Y(0), 0, Y(WIN.z1));
+  g.addColorStop(0, '#A9744B'); g.addColorStop(0.5, '#80503A'); g.addColorStop(1, '#4A2B26');
+  b.fillStyle = g; b.fillRect(0, 0, cssW, cssH);
+  const rg = b.createRadialGradient(X(285), Y(105), 0, X(285), Y(105), 70 * sx);
+  rg.addColorStop(0, 'rgba(255,140,60,.40)'); rg.addColorStop(1, 'rgba(255,140,60,0)');
+  b.fillStyle = rg; b.fillRect(0, 0, cssW, cssH);
+  b.globalAlpha = 0.28; b.globalCompositeOperation = 'overlay'; b.fillStyle = b.createPattern(NOISE, 'repeat'); b.fillRect(0, 0, cssW, cssH);
+  b.restore();
+  // corteza continental
+  b.save(); b.clip(P.crust);
+  g = b.createLinearGradient(0, Y(-6), 0, Y(60));
+  g.addColorStop(0, '#D8C9A3'); g.addColorStop(1, '#A89672');
+  b.fillStyle = g; b.fillRect(0, 0, cssW, cssH);
+  b.globalAlpha = 0.35; b.globalCompositeOperation = 'overlay'; b.fillStyle = b.createPattern(NOISE, 'repeat'); b.fillRect(0, 0, cssW, cssH);
+  b.globalAlpha = 1; b.globalCompositeOperation = 'source-over';
+  b.strokeStyle = 'rgba(60,40,15,.14)'; b.lineWidth = 1;
+  for (let k = 1; k <= 5; k++) { b.beginPath(); for (let i = I0; i < NX; i++) { const x = X(XS[i]), y = Y(TOPO[i] + k * 6); i === I0 ? b.moveTo(x, y) : b.lineTo(x, y); } b.stroke(); }
+  b.restore();
+  b.strokeStyle = 'rgba(70,52,28,.75)'; b.lineWidth = 1.3; b.beginPath();
+  for (let i = I0; i < NX; i++) { const x = X(XS[i]), y = Y(TOPO[i]); i === I0 ? b.moveTo(x, y) : b.lineTo(x, y); } b.stroke();
+  // Moho
+  b.save(); b.setLineDash([6, 5]); b.strokeStyle = 'rgba(255,255,255,.4)'; b.lineWidth = 1.2; b.beginPath();
+  for (let x = XS[I_INT]; x <= WIN.x1; x += 4) { const px = X(x), py = Y(moho(x)); x === XS[I_INT] ? b.moveTo(px, py) : b.lineTo(px, py); }
+  b.stroke(); b.restore();
+  // placa de Nazca
+  b.save(); b.clip(P.slab);
+  g = b.createLinearGradient(X(-120), Y(0), X(320), Y(WIN.z1));
+  g.addColorStop(0, '#6F95B8'); g.addColorStop(0.5, '#456B8E'); g.addColorStop(1, '#20394F');
+  b.fillStyle = g; b.fillRect(0, 0, cssW, cssH);
+  b.globalAlpha = 0.3; b.globalCompositeOperation = 'overlay'; b.fillStyle = b.createPattern(NOISE, 'repeat'); b.fillRect(0, 0, cssW, cssH);
+  b.globalAlpha = 1; b.globalCompositeOperation = 'source-over';
+  g = b.createLinearGradient(0, Y(55), 0, Y(WIN.z1));
+  g.addColorStop(0, 'rgba(150,80,50,0)'); g.addColorStop(1, 'rgba(150,80,50,.5)');
+  b.fillStyle = g; b.fillRect(0, 0, cssW, cssH);
+  b.restore();
+  b.save(); b.clip(P.slabCrust); b.fillStyle = 'rgba(18,32,48,.85)'; b.fillRect(0, 0, cssW, cssH); b.restore();
+  b.strokeStyle = 'rgba(255,255,255,.22)'; b.lineWidth = 1; b.stroke(P.slab);
+  // conducto magmático y cámara bajo el volcán
+  const iv = depthPoint(100);
+  b.save(); b.setLineDash([3, 6]); b.strokeStyle = 'rgba(255,120,60,.55)'; b.lineWidth = 1.6; b.beginPath();
+  b.moveTo(X(iv.x), Y(iv.z)); b.quadraticCurveTo(X(300), Y(55), X(293), Y(8)); b.stroke(); b.restore();
+  const mg = b.createRadialGradient(X(293), Y(10), 0, X(293), Y(10), 14 * sx);
+  mg.addColorStop(0, 'rgba(255,100,40,.75)'); mg.addColorStop(1, 'rgba(255,100,40,0)');
+  b.fillStyle = mg; b.fillRect(X(293) - 16 * sx, Y(10) - 16 * sy, 32 * sx, 32 * sy);
+  // nieve en la cordillera
+  b.fillStyle = 'rgba(255,255,255,.92)'; b.beginPath(); let st = false;
+  for (let i = I0; i < NX; i++) { if (-TOPO[i] > 3.9) { const x = X(XS[i]), y = Y(TOPO[i]); if (!st) { b.moveTo(x, y); st = true; } else b.lineTo(x, y); } }
+  for (let i = NX - 1; i >= I0; i--) { if (-TOPO[i] > 3.9) b.lineTo(X(XS[i]), Y(TOPO[i]) + Math.max(2, 0.45 * sy)); }
+  b.fill();
+}
+
+function layout() {
+  const wrapW = Math.max(300, Math.floor(sceneWrap.clientWidth));
+  const aspect = wrapW < 560 ? 1.3 : wrapW < 900 ? 1.6 : 1.85;
+  cssW = wrapW; cssH = Math.round(wrapW / aspect);
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  scene.width = Math.round(cssW * dpr); scene.height = Math.round(cssH * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sx = cssW / (WIN.x1 - WIN.x0); sy = cssH / (WIN.z1 - WIN.z0); exag = sy / sx;
+  buildPaths(); renderBackground();
+  $('exagNote').textContent = `Escala vertical exagerada ×${f1(exag)} respecto de la horizontal (la altura del tsunami y la deformación elástica están mucho más exageradas). Corte de unos 500 km de ancho por 150 km de profundidad.`;
+}
+
+/* ---------- helpers de dibujo ---------- */
+function star(c, cx, cy, r, ri) { c.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? ri : r; c.lineTo(cx + rr * Math.cos(a), cy + rr * Math.sin(a)); } c.closePath(); }
+const STOPS = [[0, [77, 155, 214]], [0.5, [242, 193, 78]], [0.8, [242, 123, 61]], [1, [229, 50, 45]]];
+function stressColor(s, a = 1) {
+  s = clamp(s, 0, 1);
+  for (let i = 1; i < STOPS.length; i++) if (s <= STOPS[i][0]) {
+    const [s0, c0] = STOPS[i - 1], [s1, c1] = STOPS[i], t = (s - s0) / (s1 - s0);
+    return `rgba(${Math.round(lerp(c0[0], c1[0], t))},${Math.round(lerp(c0[1], c1[1], t))},${Math.round(lerp(c0[2], c1[2], t))},${a})`;
+  }
+}
+function haloText(c, txt, x, y, size, align = 'center', col = '#fff', bound = 0) {
+  c.font = `600 ${size}px "Source Sans 3","Segoe UI",system-ui,sans-serif`; c.textAlign = align; c.textBaseline = 'middle';
+  if (bound) {
+    const w = c.measureText(txt).width;
+    if (align === 'center') x = clamp(x, w / 2 + 5, bound - w / 2 - 5);
+    else if (align === 'left') x = clamp(x, 5, bound - w - 5);
+    else x = clamp(x, w + 5, bound - 5);
+  }
+  c.lineWidth = 3.2; c.strokeStyle = 'rgba(8,20,32,.55)'; c.lineJoin = 'round'; c.strokeText(txt, x, y);
+  c.fillStyle = col; c.fillText(txt, x, y);
+}
+const curSc = () => (S.view === 'event' && S.ev) ? S.ev : S.pot;
+function etaPx(x) {
+  if (!T.started) return 0;
+  const i = clamp(Math.floor(x - WIN.x0), 0, T.N - 1);
+  return clamp(T.eta[i] * EXT, -30, 30);
+}
+function segPts(sA, sB) {
+  const out = [pointAtS(sA)];
+  for (const p of F.samples) if (p.s > sA && p.s < sB) out.push(p);
+  out.push(pointAtS(sB)); return out;
+}
+
+/* ---------- capas dinámicas ---------- */
+function drawOcean(t) {
+  const y0 = Y(0);
+  ctx.save();
+  ctx.beginPath();
+  for (let x = WIN.x0; x <= XC; x += 2) {
+    const yy = y0 - etaPx(x) + Math.sin(x * 0.09 + t * 1.7) * 0.7 + Math.sin(x * 0.23 - t * 2.3) * 0.4;
+    x === WIN.x0 ? ctx.moveTo(X(x), yy) : ctx.lineTo(X(x), yy);
+  }
+  for (let x = XC; x >= WIN.x0; x -= 2) ctx.lineTo(X(x), Y(topoAt(x)));
+  ctx.closePath();
+  const g = ctx.createLinearGradient(0, y0, 0, Y(7.5));
+  g.addColorStop(0, 'rgba(125,205,235,.84)'); g.addColorStop(1, 'rgba(8,44,84,.95)');
+  ctx.fillStyle = g; ctx.fill();
+  ctx.beginPath();
+  for (let x = WIN.x0; x <= XC; x += 2) {
+    const yy = y0 - etaPx(x) + Math.sin(x * 0.09 + t * 1.7) * 0.7 + Math.sin(x * 0.23 - t * 2.3) * 0.4;
+    x === WIN.x0 ? ctx.moveTo(X(x), yy) : ctx.lineTo(X(x), yy);
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.restore();
+}
+function drawBump() {
+  const ev = S.ev; if (!ev) return;
+  const k = S.phase === 'rupture' ? clamp((S.ts) / ev.Tdip, 0, 1) : S.bump;
+  if (k <= 0.01) return;
+  const prof = ev.bumpProf || (ev.bumpProf = tsunamiProfile(ev.D, T.N));
+  ctx.save(); ctx.beginPath(); let started = false;
+  const pts = [];
+  for (let x = WIN.x0; x <= 60; x += 2) {
+    const i = clamp(Math.floor(x - WIN.x0), 0, T.N - 1);
+    pts.push([x, clamp(prof.eta[i] * k * EXT * 1.3, -22, 22)]);
+  }
+  pts.forEach(([x, u], n) => { const px = X(x), py = Y(topoAt(x)) - u; n === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); });
+  for (let n = pts.length - 1; n >= 0; n--) ctx.lineTo(X(pts[n][0]), Y(topoAt(pts[n][0])));
+  ctx.closePath(); ctx.fillStyle = 'rgba(255,214,140,.55)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,240,200,.9)'; ctx.lineWidth = 1.2; ctx.beginPath();
+  pts.forEach(([x, u], n) => { const px = X(x), py = Y(topoAt(x)) - u; n === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); }); ctx.stroke();
+  ctx.restore();
+}
+function drawStripes() {
+  ctx.save(); ctx.clip(P.slab);
+  const spacing = 26, off = S.stripe % spacing, total = SA[NX - 1];
+  ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1.3; ctx.beginPath();
+  let j = 1;
+  for (let s = spacing - off; s < total; s += spacing) {
+    while (j < NX - 1 && SA[j] < s) j++;
+    const t = (s - SA[j - 1]) / (SA[j] - SA[j - 1] || 1);
+    const tx = lerp(XS[j - 1], XS[j], t), tz = lerp(ZT[j - 1], ZT[j], t), bx = lerp(SLAB.bx[j - 1], SLAB.bx[j], t), bz = lerp(SLAB.bz[j - 1], SLAB.bz[j], t);
+    ctx.moveTo(X(tx), Y(tz)); ctx.lineTo(X(bx), Y(bz));
+  }
+  ctx.stroke(); ctx.restore();
+}
+function drawGrid() {
+  if (!S.grid) return;
+  ctx.save(); ctx.clip(P.crust);
+  const mid = F.samples[F.samples.length >> 1];
+  const rg = ctx.createRadialGradient(X(mid.x), Y(mid.z), 0, X(mid.x), Y(mid.z), 95 * sx);
+  rg.addColorStop(0, `rgba(235,70,50,${0.42 * clamp(S.f, 0, 1)})`); rg.addColorStop(1, 'rgba(235,70,50,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, cssW, cssH);
+  ctx.strokeStyle = 'rgba(70,46,14,.38)'; ctx.lineWidth = 1;
+  for (const ln of gridLines) {
+    ctx.beginPath();
+    for (let k = 0; k < ln.length; k++) { const p = ln[k], x = X(p.x + S.f * p.dx), y = Y(p.z + S.f * p.dz); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawInterface(t) {
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); for (let i = I0; i < NX; i++) { const x = X(XS[i]), y = Y(ZT[i]); i === I0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+  ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1.4; ctx.stroke(); ctx.setLineDash([]);
+  const lw = clamp(cssW / 170, 3, 7), pts = F.samples;
+  const base = S.phase === 'rupture' ? 'rgba(229,50,45,1)' : stressColor(S.D / S.res);
+  ctx.beginPath(); pts.forEach((p, k) => { const x = X(p.x), y = Y(p.z); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = lw + 3; ctx.stroke();
+  ctx.strokeStyle = base; ctx.lineWidth = lw; ctx.stroke();
+  if (S.phase === 'locked' && S.D / S.res > 0.8) {
+    ctx.save(); ctx.shadowColor = 'rgba(255,80,50,.9)'; ctx.shadowBlur = 8 + 6 * Math.sin(t * 7); ctx.strokeStyle = base; ctx.lineWidth = lw; ctx.stroke(); ctx.restore();
+  }
+  const slipped = (sA, sB, alpha) => {
+    const sp = segPts(sA, sB); ctx.beginPath(); sp.forEach((p, k) => { const x = X(p.x), y = Y(p.z); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.save(); ctx.shadowColor = 'rgba(80,255,180,.9)'; ctx.shadowBlur = 10; ctx.strokeStyle = `rgba(92,242,176,${alpha})`; ctx.lineWidth = lw + 1.5; ctx.stroke(); ctx.restore();
+  };
+  if (S.phase === 'rupture' && S.ev) {
+    const ev = S.ev, fd = VR * S.ts, sUp = Math.max(F.sa, ev.hy.s - fd), sDn = Math.min(F.sb, ev.hy.s + fd);
+    if (sDn > sUp) slipped(sUp, sDn, 1);
+    [sUp, sDn].forEach((s) => {
+      if (s > F.sa + 0.01 && s < F.sb - 0.01) {
+        const p = pointAtS(s); ctx.save(); ctx.shadowColor = '#fff'; ctx.shadowBlur = 14; ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(X(p.x), Y(p.z), lw * 0.9, 0, 6.283); ctx.fill(); ctx.restore();
+      }
+    });
+  } else if (S.afterGlow > 0) {
+    slipped(F.sa, F.sb, 0.9 * S.afterGlow);
+  }
+  ctx.restore();
+}
+function drawWaves() {
+  if (!S.waves || S.phase !== 'rupture' || !S.ev) return;
+  const ev = S.ev, ts = S.ts, cx = X(ev.hy.x), cy = Y(ev.hy.z);
+  ctx.save(); ctx.clip(P.all); ctx.lineWidth = 2;
+  [0, 4.5, 9].forEach((off, k) => {
+    const r = VP * ts - off; if (r <= 0) return;
+    ctx.globalAlpha = clamp(1 - r / 430, 0.25, 1) * (1 - 0.28 * k);
+    ctx.strokeStyle = '#4DA3FF'; ctx.lineWidth = 2.2 - 0.5 * k;
+    ctx.beginPath(); ctx.ellipse(cx, cy, r * sx, r * sy, 0, 0, 6.2832); ctx.stroke();
+  });
+  ctx.restore();
+  ctx.save(); ctx.clip(P.solid);
+  [0, 7].forEach((off, k) => {
+    const r = VS * ts - off; if (r <= 0) return;
+    ctx.globalAlpha = clamp(1 - r / 330, 0.28, 1) * (1 - 0.35 * k);
+    ctx.strokeStyle = '#FFB020'; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let a = 0; a <= 6.2832; a += 0.03) {
+      const rr = r + 2.4 * Math.sin(a * 16 + ts * 2);
+      const px = cx + rr * sx * Math.cos(a), py = cy + rr * sy * Math.sin(a);
+      a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  });
+  ctx.restore();
+  // ondas superficiales: perfil que vibra
+  ctx.save(); ctx.strokeStyle = '#FF4D8D'; ctx.lineWidth = 2.4; ctx.shadowColor = 'rgba(255,77,141,.8)'; ctx.shadowBlur = 7; ctx.beginPath();
+  let any = false;
+  for (let i = 0; i < NX; i += 2) {
+    const x = XS[i], Rh = Math.hypot(x - ev.xe, ev.hy.z - TOPO[i]), tau = ts - Rh / VL;
+    let dy = 0;
+    if (tau > 0) {
+      const dur = ev.Tsrc + 0.12 * Math.abs(x - ev.xe) + 15;
+      if (tau < dur) {
+        const env = Math.pow(Math.sin(Math.PI * tau / dur), 0.6);
+        const a = clamp(7 * Math.pow(10, 0.5 * (ev.Mw - 8)) * Math.pow(100 / Math.max(Rh, 25), 0.9) * Math.exp(-ev.hy.z / 80), 0, 20);
+        dy = a * env * Math.sin(2 * Math.PI * tau / 4.2); any = true;
+      }
+    }
+    const px = X(x), py = Y(TOPO[i]) - dy;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.globalAlpha = any ? 1 : 0; ctx.stroke(); ctx.restore();
+}
+function drawHouse(c, x, y, s, wall, roof) {
+  c.fillStyle = wall; c.fillRect(x - 5 * s, y - 8 * s, 10 * s, 8 * s);
+  c.fillStyle = roof; c.beginPath(); c.moveTo(x - 6.6 * s, y - 8 * s); c.lineTo(x, y - 14.5 * s); c.lineTo(x + 6.6 * s, y - 8 * s); c.closePath(); c.fill();
+  c.fillStyle = 'rgba(30,40,50,.6)'; c.fillRect(x - 1.2 * s, y - 4.5 * s, 2.4 * s, 4.5 * s);
+}
+function drawStations(t) {
+  const sc = curSc(); if (!sc) return;
+  const bs = clamp(cssW / 900, 0.72, 1.35);
+  STATIONS.forEach((st, k) => {
+    const info = sc.st[k];
+    let jx = 0;
+    if (S.phase === 'rupture' && S.ev && S.ev.st[k].trace) {
+      const idx = clamp(Math.floor(S.ts / 0.25), 0, S.ev.st[k].trace.length - 1);
+      jx = S.ev.st[k].trace[idx] * 0.22;
+    }
+    const gx = X(st.x + S.f * 3.2 * Math.exp(-Math.max(0, st.x - 110) / 160)) + jx, gy = Y(info.zg);
+    if (st.id === 'A') { drawHouse(ctx, gx, gy, bs, '#F2E7D0', '#B5493C'); }
+    else if (st.id === 'B') {
+      ctx.fillStyle = '#D9DEE6'; ctx.fillRect(gx - 9 * bs, gy - 15 * bs, 6 * bs, 15 * bs);
+      ctx.fillStyle = '#C5CCD8'; ctx.fillRect(gx - 2.5 * bs, gy - 22 * bs, 6 * bs, 22 * bs);
+      ctx.fillStyle = '#E4E8EE'; ctx.fillRect(gx + 4 * bs, gy - 11 * bs, 6 * bs, 11 * bs);
+      ctx.fillStyle = 'rgba(255,230,140,.85)';
+      for (let r = 0; r < 4; r++) { ctx.fillRect(gx - 1.2 * bs, gy - (20 - r * 5) * bs, 2 * bs, 2 * bs); }
+    } else {
+      ctx.fillStyle = '#F4F4F4'; ctx.beginPath(); ctx.moveTo(gx - 6 * bs, gy); ctx.lineTo(gx, gy - 12 * bs); ctx.lineTo(gx + 6 * bs, gy); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(30,40,50,.7)'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    // etiqueta
+    const r = 9.5 * bs + 2, ly = Math.max(gy - 30 * bs, r + 20 * bs);
+    ctx.fillStyle = 'rgba(14,30,46,.9)'; ctx.beginPath(); ctx.arc(gx, ly, r, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = `700 ${Math.round(11 * bs + 2)}px "Source Sans 3",system-ui,sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(st.id, gx, ly + 0.5);
+    const reveal = S.view === 'potential' || (S.ev && S.ev === sc && S.phase !== 'rupture') || (S.ev && S.ev === sc && S.ts >= info.tL);
+    if (reveal) {
+      const txt = ROMAN[info.mmi - 1], w = 14 + txt.length * 7 * bs;
+      ctx.fillStyle = MMI_COL[info.mmi - 1]; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 1;
+      const bx = gx - w / 2, by = ly - r - 17 * bs, bh = 15 * bs + 2;
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, by, w, bh, 6) : ctx.rect(bx, by, w, bh); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = info.mmi >= 10 ? '#fff' : '#1a1a1a'; ctx.font = `700 ${Math.round(10 * bs + 2)}px "IBM Plex Mono",monospace`; ctx.fillText(txt, gx, by + bh / 2 + 0.5);
+    }
+  });
+}
+function drawHypo(t) {
+  const sc = curSc(); if (!sc) return;
+  const hy = sc.hy, px = X(hy.x), py = Y(hy.z), ez = Math.min(0, topoAt(hy.x)), ey = Y(ez);
+  ctx.save();
+  ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, ey); ctx.stroke(); ctx.setLineDash([]);
+  const pulse = (t * 0.9) % 1;
+  ctx.strokeStyle = `rgba(229,50,45,${1 - pulse})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, ey, 4 + pulse * 14, 0, 6.283); ctx.stroke();
+  ctx.fillStyle = '#E5322D'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(px, ey, 5.2, 0, 6.283); ctx.fill(); ctx.stroke();
+  const flash = S.phase === 'rupture' ? clamp(1 - S.ts / 3, 0, 1) : 0;
+  if (flash > 0) { const g = ctx.createRadialGradient(px, py, 0, px, py, 46); g.addColorStop(0, `rgba(255,255,255,${flash})`); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, 46, 0, 6.283); ctx.fill(); }
+  ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 5; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1b2a38'; ctx.lineWidth = 1.5;
+  star(ctx, px, py, 10, 4.4); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawFlashes(t) {
+  ctx.save();
+  for (let i = flashes.length - 1; i >= 0; i--) {
+    const f = flashes[i], age = (t - f.t0) / f.life;
+    if (age >= 1) { flashes.splice(i, 1); continue; }
+    ctx.strokeStyle = f.col.replace('A', String(0.9 * (1 - age))); ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(X(f.x), Y(f.z), f.r * (0.4 + age), 0, 6.283); ctx.stroke();
+    ctx.fillStyle = f.col.replace('A', String(0.9 * (1 - age))); ctx.beginPath(); ctx.arc(X(f.x), Y(f.z), f.r * 0.3, 0, 6.283); ctx.fill();
+  }
+  ctx.restore();
+}
+function drawLabels() {
+  const small = cssW < 560, fs = clamp(cssW / (small ? 52 : 78), 10.5, 14.5);
+  const L = (txt, x, z, al, hideSmall) => { if (small && hideSmall) return; haloText(ctx, txt, X(x), Y(z), fs, al, '#fff', cssW); };
+  L('Océano Pacífico', -70, 2.4, 'center', true);
+  L(small ? 'Placa de Nazca' : 'Placa de Nazca (oceánica)', -58, 27, 'center', false);
+  L(small ? 'Placa Sudamericana' : 'Placa Sudamericana (continental)', 252, 20, 'center', false);
+  L('Cuña del manto', 330, 86, 'center', true);
+  const mid = F.samples[F.samples.length >> 1];
+  L('Zona acoplada', mid.x - 22, mid.z + 18, 'center', false);
+  L('Fosa', 0, -9, 'center', true);
+  L('Costa', XC + 14, 8, 'left', true);
+  L('Volcán', 293, -11, 'center', true);
+  L('Andes', 352, -13, 'center', false);
+  // flecha de convergencia
+  const ax = X(-104), bx = X(-58), ay = Y(-12);
+  ctx.save(); ctx.strokeStyle = '#fff'; ctx.fillStyle = '#fff'; ctx.lineWidth = 2.2; ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 4;
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx - 6, ay); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bx, ay); ctx.lineTo(bx - 9, ay - 5); ctx.lineTo(bx - 9, ay + 5); ctx.closePath(); ctx.fill(); ctx.restore();
+  haloText(ctx, `Nazca ${f1(S.conv)} cm/año`, (ax + bx) / 2, ay + 12, fs, 'center', '#fff', cssW);
+}
+
+/* =====================================================================
+   DIBUJO — PANELES
+   ===================================================================== */
+const seisC = $('seis'), seisX = seisC.getContext('2d');
+const tsuC = $('tsu'), tsuX = tsuC.getContext('2d');
+const planC = $('plan'), planX = planC.getContext('2d');
+const SZ = { seis: { w: 0, h: 0 }, tsu: { w: 0, h: 0 }, plan: { w: 0, h: 0 } };
+function sizeCanvas(cv, cx, key, aspect) {
+  const w = Math.max(240, Math.floor(cv.parentElement.clientWidth));
+  const h = Math.round(w * aspect), d = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d); cx.setTransform(d, 0, 0, d, 0, 0);
+  SZ[key] = { w, h, d };
+}
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+function drawSeis() {
+  const { w, h } = SZ.seis, c = seisX; if (!w) return;
+  const dark = isDark();
+  c.clearRect(0, 0, w, h);
+  c.fillStyle = dark ? '#0F1C27' : '#FFFFFF'; c.fillRect(0, 0, w, h);
+  const padL = 64, padR = 12, padT = 8, padB = 28, pw = w - padL - padR, rowH = (h - padT - padB) / 3;
+  const ev = S.ev, Tmax = ev ? ev.Tmax : 120;
+  const ink = dark ? '#C3D0DB' : '#43515E', grid = dark ? '#243A4B' : '#E7E0CF';
+  c.font = '11px "IBM Plex Mono",monospace'; c.textBaseline = 'middle';
+  const stepT = Tmax > 240 ? 60 : 30;
+  for (let t = 0; t <= Tmax; t += stepT) {
+    const x = padL + t / Tmax * pw; c.strokeStyle = grid; c.lineWidth = 1; c.beginPath(); c.moveTo(x, padT); c.lineTo(x, h - padB); c.stroke();
+    c.fillStyle = ink; c.textAlign = 'center'; c.fillText(t + ' s', x, h - padB + 13);
+  }
+  const upto = ev ? (S.phase === 'rupture' ? S.ts : ev.Tmax) : 0;
+  STATIONS.forEach((st, k) => {
+    const yb = padT + (k + 0.5) * rowH;
+    c.strokeStyle = grid; c.beginPath(); c.moveTo(padL, yb); c.lineTo(w - padR, yb); c.stroke();
+    c.fillStyle = ink; c.textAlign = 'left'; c.font = '700 12px "Source Sans 3",system-ui,sans-serif'; c.fillText(`${st.id} · ${st.name.split(' ')[0]}`, 6, yb - 6);
+    c.font = '11px "IBM Plex Mono",monospace';
+    if (!ev) return;
+    const info = ev.st[k], tr = info.trace, n = Math.min(tr.length - 1, Math.floor(upto / 0.25));
+    const amp = Math.min(rowH / 2 - 3, 28) / 30;
+    c.strokeStyle = dark ? '#E9EFF4' : '#18242F'; c.lineWidth = 1.1; c.beginPath();
+    for (let i = 0; i <= n; i += Math.max(1, Math.floor(tr.length / (pw * 1.5)))) { const x = padL + (i * 0.25) / Tmax * pw, y = yb - tr[i] * amp; i === 0 ? c.moveTo(x, y) : c.lineTo(x, y); }
+    c.stroke();
+    [['P', info.tP, '#4DA3FF'], ['S', info.tS, '#E59A00'], ['L', info.tL, '#E0307A']].forEach(([lb, tt, col]) => {
+      if (upto >= tt) {
+        const x = padL + tt / Tmax * pw; c.strokeStyle = col; c.lineWidth = 1.4; c.beginPath(); c.moveTo(x, yb - rowH / 2 + 3); c.lineTo(x, yb + rowH / 2 - 3); c.stroke();
+        c.fillStyle = col; c.textAlign = 'left'; c.font = '700 12px "IBM Plex Mono",monospace'; c.fillText(lb, x + 3, yb - rowH / 2 + 9);
+      }
+    });
+  });
+  if (ev && S.phase === 'rupture') { const x = padL + upto / Tmax * pw; c.strokeStyle = 'rgba(229,50,45,.8)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, padT); c.lineTo(x, h - padB); c.stroke(); }
+  if (!ev) { c.fillStyle = ink; c.textAlign = 'center'; c.font = '600 14px "Source Sans 3",system-ui,sans-serif'; c.fillText('Provoca un sismo para ver los sismogramas', w / 2, h / 2 - 8); }
+}
+function drawTsu() {
+  const { w, h } = SZ.tsu, c = tsuX; if (!w) return;
+  const dark = isDark(); c.clearRect(0, 0, w, h);
+  c.fillStyle = dark ? '#0F1C27' : '#FFFFFF'; c.fillRect(0, 0, w, h);
+  const ink = dark ? '#C3D0DB' : '#43515E', grid = dark ? '#243A4B' : '#E7E0CF';
+  const padL = 40, padR = 14, pw = w - padL - padR, profH = h * 0.5, yS = 14 + profH * 0.42;
+  const EXT2 = 15;
+  const xp = (x) => padL + (x - WIN.x0) / (XC - WIN.x0) * pw;
+  // perfil
+  const etaAt = (x) => { if (!T.started) return 0; const i = clamp(Math.floor(x - WIN.x0), 0, T.N - 1); return clamp(T.eta[i] * EXT2, -34, 34); };
+  c.beginPath(); for (let x = WIN.x0; x <= XC; x += 2) { const px = xp(x), py = yS - etaAt(x); x === WIN.x0 ? c.moveTo(px, py) : c.lineTo(px, py); }
+  for (let x = XC; x >= WIN.x0; x -= 2) c.lineTo(xp(x), yS + topoAt(x) * 4.5);
+  c.closePath(); const g = c.createLinearGradient(0, yS, 0, yS + 32); g.addColorStop(0, 'rgba(120,200,232,.9)'); g.addColorStop(1, 'rgba(14,60,104,.95)'); c.fillStyle = g; c.fill();
+  c.beginPath(); for (let x = WIN.x0; x <= XC; x += 2) { const px = xp(x), py = yS - etaAt(x); x === WIN.x0 ? c.moveTo(px, py) : c.lineTo(px, py); } c.strokeStyle = dark ? '#BFE4F5' : '#1F4E79'; c.lineWidth = 1.8; c.stroke();
+  c.beginPath(); for (let x = WIN.x0; x <= XC; x += 2) { const px = xp(x), py = yS + topoAt(x) * 4.5; x === WIN.x0 ? c.moveTo(px, py) : c.lineTo(px, py); }
+  c.lineTo(xp(XC) + 0, yS + 40); c.lineTo(xp(WIN.x0), yS + 40); c.closePath(); c.fillStyle = dark ? '#6C5238' : '#B79B72'; c.fill();
+  c.setLineDash([4, 4]); c.strokeStyle = grid; c.beginPath(); c.moveTo(padL, yS); c.lineTo(w - padR, yS); c.stroke(); c.setLineDash([]);
+  c.fillStyle = ink; c.font = '700 12px "Source Sans 3",system-ui,sans-serif'; c.textAlign = 'left'; c.fillText('Mar abierto', padL + 4, 12); c.textAlign = 'right'; c.fillText('Costa', w - padR - 2, 12);
+  c.font = '11px "IBM Plex Mono",monospace'; c.textAlign = 'center'; c.fillStyle = ink;
+  c.fillText(T.started ? `t = ${f0(T.t / 60)} min desde el sismo` : 'Aún no hay tsunami', padL + pw / 2, 12);
+  // mareógrafo
+  const gy0 = profH + 30, gh = h - gy0 - 26, gmid = gy0 + gh / 2;
+  c.strokeStyle = grid; c.lineWidth = 1; c.strokeRect(padL, gy0, pw, gh);
+  c.beginPath(); c.moveTo(padL, gmid); c.lineTo(padL + pw, gmid); c.stroke();
+  c.fillStyle = ink; c.font = '700 12px "Source Sans 3",system-ui,sans-serif'; c.textAlign = 'left'; c.fillText('Mareógrafo en la costa (nivel del mar)', padL, gy0 - 10);
+  const tmax = 90, rng = Math.max(2, (T.started ? Math.max(Math.abs(T.max), 1) : 1) * 1.25);
+  c.font = '11px "IBM Plex Mono",monospace'; c.textAlign = 'center';
+  for (let m = 0; m <= tmax; m += 30) { const x = padL + m / tmax * pw; c.fillText(m + ' min', x, gy0 + gh + 13); c.beginPath(); c.moveTo(x, gy0); c.lineTo(x, gy0 + gh); c.strokeStyle = grid; c.stroke(); }
+  c.textAlign = 'right'; c.fillText('+' + f1(rng) + ' m', padL - 4, gy0 + 8); c.fillText('0', padL - 4, gmid); c.fillText('−' + f1(rng) + ' m', padL - 4, gy0 + gh - 4);
+  if (T.gt.length > 1) {
+    c.strokeStyle = '#E5322D'; c.lineWidth = 1.8; c.beginPath();
+    T.gt.forEach((tm, i) => { const x = padL + Math.min(tm, tmax) / tmax * pw, y = gmid - clamp(T.ge[i] / rng, -1, 1) * (gh / 2 - 2); i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke();
+  } else if (T.started && !T.significant) { c.fillStyle = ink; c.textAlign = 'center'; c.font = '600 13px "Source Sans 3",system-ui,sans-serif'; c.fillText('Sin tsunami significativo', padL + pw / 2, gmid - 8); }
+}
+function updateTsuMetrics() {
+  if (!T.started) { $('tsArrive').textContent = '—'; $('tsFirst').textContent = '—'; $('tsMax').textContent = '—'; return; }
+  if (!T.significant) { $('tsArrive').textContent = 'No hay'; $('tsFirst').textContent = '—'; $('tsMax').textContent = '< 0,05 m'; return; }
+  $('tsArrive').textContent = T.arrive != null ? `${f0(T.arrive / 60)} min` : '…';
+  $('tsFirst').textContent = T.first ? (T.first.sign > 0 ? 'Sube el mar' : 'Baja el mar') : '…';
+  $('tsMax').textContent = T.max > 0 ? `${f1(T.max)} m` : '…';
+}
+
+/* ---------- mapa de intensidades ---------- */
+const heat = document.createElement('canvas');
+function drawPlan() {
+  const { w, h } = SZ.plan, c = planX; if (!w) return;
+  const sc = curSc(); if (!sc) return;
+  const dark = isDark(), k = w / 500;
+  c.clearRect(0, 0, w, h);
+  const xCoast = (y) => XC + 7 * Math.sin(y / 70) + 4 * Math.sin(y / 23);
+  const px = (x) => (x - WIN.x0) * k, py = (y) => h / 2 + y * k;
+  c.fillStyle = dark ? '#16384F' : '#CFE3F0'; c.fillRect(0, 0, w, h);
+  c.beginPath(); c.moveTo(px(xCoast(-h / 2 / k)), 0);
+  for (let yy = 0; yy <= h; yy += 3) c.lineTo(px(xCoast((yy - h / 2) / k)), yy);
+  c.lineTo(w, h); c.lineTo(w, 0); c.closePath(); c.fillStyle = dark ? '#3A3626' : '#E9DFC6'; c.fill();
+  // mapa de calor
+  const cw = Math.ceil(w / 2), ch = Math.ceil(h / 2);
+  heat.width = cw; heat.height = ch; const hx = heat.getContext('2d'), img = hx.createImageData(cw, ch);
+  const dsec = new Float32Array(cw);
+  for (let i = 0; i < cw; i++) {
+    const x = WIN.x0 + (i * 2 + 1) / k, z = Math.min(0, topoAt(clamp(x, WIN.x0, WIN.x1)));
+    let m = 1e9; for (const p of F.samples) m = Math.min(m, Math.hypot(x - p.x, z - p.z)); dsec[i] = m;
+  }
+  const rgb = MMI_COL.map((hex) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)]);
+  for (let j = 0; j < ch; j++) {
+    const y = ((j * 2 + 1) - h / 2) / k, dy = Math.max(0, Math.abs(y) - sc.L / 2);
+    for (let i = 0; i < cw; i++) {
+      const R = Math.hypot(dsec[i], dy), m = clamp(Math.round(MMI_A + 1.5 * sc.Mw - 3.5 * Math.log10(Math.max(R, 10))), 1, 12);
+      const o = (j * cw + i) * 4;
+      if (m >= 3) { const cc = rgb[m - 1]; img.data[o] = cc[0]; img.data[o + 1] = cc[1]; img.data[o + 2] = cc[2]; img.data[o + 3] = 175; }
+    }
+  }
+  hx.putImageData(img, 0, 0);
+  c.imageSmoothingEnabled = false; c.drawImage(heat, 0, 0, cw * 2, ch * 2); c.imageSmoothingEnabled = true;
+  // costa y fosa
+  c.strokeStyle = dark ? '#E3D9BE' : '#6B5C3A'; c.lineWidth = 1.6; c.beginPath();
+  for (let yy = 0; yy <= h; yy += 3) { const xx = px(xCoast((yy - h / 2) / k)); yy === 0 ? c.moveTo(xx, yy) : c.lineTo(xx, yy); } c.stroke();
+  c.setLineDash([5, 4]); c.strokeStyle = dark ? '#9FB6C8' : '#35566F'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(px(0), 0); c.lineTo(px(0), h); c.stroke(); c.setLineDash([]);
+  c.font = '700 11px "Source Sans 3",system-ui,sans-serif'; c.fillStyle = dark ? '#C9DAE8' : '#2A4A63'; c.textAlign = 'left'; c.fillText('Fosa', px(0) + 4, 12);
+  c.fillText('Océano', 6, 28); c.textAlign = 'right'; c.fillText('Tierra', w - 6, 28);
+  // área de ruptura
+  const ry0 = clamp(py(-sc.L / 2), -2, h + 2), ry1 = clamp(py(sc.L / 2), -2, h + 2);
+  c.fillStyle = 'rgba(179,58,58,.28)'; c.fillRect(px(F.xa), ry0, px(F.xb) - px(F.xa), ry1 - ry0);
+  c.strokeStyle = '#fff'; c.lineWidth = 2; c.setLineDash([6, 3]); c.strokeRect(px(F.xa), ry0, px(F.xb) - px(F.xa), ry1 - ry0); c.setLineDash([]);
+  c.strokeStyle = '#B33A3A'; c.lineWidth = 1.2; c.strokeRect(px(F.xa), ry0, px(F.xb) - px(F.xa), ry1 - ry0);
+  haloText(c, `L = ${f0(sc.L)} km`, px(F.xa) + 2, ry0 + 12, 11, 'left');
+  haloText(c, `W = ${f0(sc.W)} km`, px(F.xb) - 2, ry1 - 12, 11, 'right');
+  // estaciones
+  sc.st.forEach((s) => {
+    const x = px(s.x), y = h / 2, col = MMI_COL[s.mmi - 1];
+    c.fillStyle = col; c.strokeStyle = '#1b2a38'; c.lineWidth = 1.6; c.beginPath(); c.arc(x, y, 11, 0, 6.283); c.fill(); c.stroke();
+    c.fillStyle = s.mmi >= 10 ? '#fff' : '#111'; c.font = '700 12px "Source Sans 3",system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s.id, x, y + 0.5);
+  });
+  const ex = px(sc.hy.x), ey = h / 2;
+  c.fillStyle = '#fff'; c.strokeStyle = '#1b2a38'; c.lineWidth = 1.5; star(c, ex, ey - 22, 9, 4); c.fill(); c.stroke();
+  // escala y norte
+  c.strokeStyle = dark ? '#E9EFF4' : '#18242F'; c.lineWidth = 2; c.beginPath(); c.moveTo(10, h - 14); c.lineTo(10 + 100 * k, h - 14); c.stroke();
+  c.fillStyle = dark ? '#E9EFF4' : '#18242F'; c.font = '700 11px "IBM Plex Mono",monospace'; c.textAlign = 'left'; c.fillText('100 km', 10, h - 24);
+  c.textAlign = 'center'; c.fillText('N ↑', w - 22, h - 16);
+  $('planTitle').textContent = S.view === 'event' ? 'Intensidades del sismo (vista desde arriba)' : 'Si ocurriera ahora: mapa de intensidades';
+}
+
+/* =====================================================================
+   RESULTADOS (DOM)
+   ===================================================================== */
+function mwText(m) { return f1(m); }
+function renderResults() {
+  const sc = curSc(); if (!sc) return;
+  const ev = S.view === 'event' && S.ev;
+  $('mwBox').classList.toggle('event', !!ev);
+  $('mwLabel').textContent = ev ? 'Magnitud del sismo' : 'Magnitud potencial';
+  $('mwVal').textContent = mwText(sc.Mw);
+  $('mwSub').textContent = ev ? 'Mw · valor único para todo el sismo' : 'Mw si la falla se rompiera ahora · crece con el esfuerzo acumulado';
+  $('mArea').textContent = `${f0(sc.L)} × ${f0(sc.W)} = ${f0(sc.A)} km²`;
+  $('mSlip').textContent = `${f1(sc.D)} m`;
+  const eRel = Math.pow(10, 1.5 * (sc.Mw - 7));
+  $('mEnergy').textContent = `${eRel >= 10 ? f0(eRel) : f1(eRel)}× un Mw 7`;
+  $('mDur').textContent = `${f0(sc.Tsrc)} s`;
+  const where = sc.xe < XC ? `en el mar, a ${f0(XC - sc.xe)} km de la costa` : `en tierra, a ${f0(sc.xe - XC)} km de la costa`;
+  $('mHypo').textContent = `Hipocentro a ${f0(sc.hy.z)} km de profundidad · epicentro ${where}`;
+  if (ev) {
+    const m = sc.tsuMax;
+    $('mTsu').textContent = (T.started || S.phase === 'locked') ? (T.significant ? `Sí · ${f1(m)} m en mar abierto` : 'No significativo') : 'Calculando…';
+  } else $('mTsu').textContent = '—';
+  $('mRep').textContent = ev ? String(S.reps) : '0';
+  $('hint') && ($('hint').style.display = S.phase === 'rupture' ? 'none' : '');
+}
+function renderStations() {
+  const sc = curSc(); if (!sc) return;
+  const ev = S.view === 'event' && S.ev;
+  $('stations').innerHTML = sc.st.map((s) => {
+    const show = !ev || S.phase !== 'rupture' || S.ts >= s.tL;
+    const sp = s.tS - s.tP;
+    const badge = show ? `<div class="mmi" style="background:${MMI_COL[s.mmi - 1]};color:${s.mmi >= 10 ? '#fff' : '#1a1a1a'}">${ROMAN[s.mmi - 1]}<small>${MMI_TXT[s.mmi - 1]}</small></div>` : `<div class="mmi" style="background:var(--line);color:var(--muted)">…<small>esperando</small></div>`;
+    return `<div class="st"><div class="st-id">${s.id}</div><div class="st-name">${s.name}${s.id === 'B' ? ' · suelo ' + (S.soil === 'roca' ? 'roca' : S.soil === 'blando' ? 'blando' : 'firme') : ''}</div>${badge}<div class="st-meta">P: ${f0(s.tP)} s · S: ${f0(s.tS)} s · S−P: ${f0(sp)} s ≈ ${f0(sp * 8.4)} km<br>A la falla: ${f0(s.Rrup)} km · al hipocentro: ${f0(s.Rh)} km</div></div>`;
+  }).join('');
+}
+let showNote = '';
+function setLocks(flag) {
+  ['rZup', 'rZlow'].forEach((id) => { $(id).disabled = flag; });
+  document.querySelectorAll('[data-preset]').forEach((b) => { b.disabled = flag; });
+}
+function showBanner(txt) {
+  const b = $('banner'); $('bannerTxt').textContent = txt; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+}
+
+/* =====================================================================
+   BUCLE
+   ===================================================================== */
+let last = performance.now(), visible = true, hudKey = '', potTimer = 0, revealed = [false, false, false];
+function refreshPotential() { S.pot = scenario(S.D); if (S.view === 'potential') { renderResults(); renderStations(); dirty.plan = true; } }
+function update(dt) {
+  if (S.phase === 'locked') {
+    if (S.running) {
+      const yps = YPS[S.speed];
+      S.years += yps * dt; S.D += S.conv / 100 * yps * dt;
+      if (S.D >= S.res) startRupture();
+    }
+  }
+  if (S.phase === 'locked') {
+    S.f = S.D / S.res;
+    if (S.running) { S.stripe += 2.7 * S.conv * (YPS[S.speed] / 8) * dt; }
+    if (S.view === 'event' && S.D / S.res > 0.25) { S.view = 'potential'; refreshPotential(); }
+    potTimer += dt; if (potTimer > 0.2) { potTimer = 0; refreshPotential(); }
+  } else if (S.phase === 'rupture' && S.ev) {
+    const ev = S.ev;
+    if (S.running) {
+      const scale = S.ts < 90 ? 8 : 20;
+      S.ts += dt * scale; S.evReal += dt; S.stripe += 0.8 * S.conv * dt;
+      const fd = VR * S.ts, sUp = Math.max(F.sa, ev.hy.s - fd), sDn = Math.min(F.sb, ev.hy.s + fd), p = clamp((sDn - sUp) / (F.sb - F.sa), 0, 1);
+      if (p >= 1) S.relaxT += dt;
+      const osc = p >= 1 ? 0.14 * Math.exp(-S.relaxT / 0.9) * Math.sin(2 * Math.PI * S.relaxT / 0.8) : 0;
+      S.f = ev.f0 * (1 - p) + ev.f0 * osc;
+      if (!ev.tsuStarted && S.ts >= ev.Tdip) { ev.tsuStarted = true; startTsunami(ev); renderResults(); }
+      // réplicas
+      if (S.ts > ev.Tdip * 0.9) {
+        S.repAcc += ev.K / (1 + S.evReal / 1.5) * dt;
+        while (S.repAcc >= 1) {
+          S.repAcc -= 1; S.reps++;
+          const p2 = pointAtS(lerp(F.sa, F.sb, Math.random())); const ta = performance.now() / 1000;
+          flashes.push({ x: p2.x + (Math.random() - 0.5) * 6, z: p2.z + (Math.random() - 0.5) * 6, t0: ta, life: 0.9, r: 4 + Math.random() * 9, col: 'rgba(255,240,150,A)' });
+          $('mRep').textContent = String(S.reps);
+        }
+      }
+      // estaciones: revelar intensidad cuando llega L
+      ev.st.forEach((s, i) => { if (!revealed[i] && S.ts >= s.tL) { revealed[i] = true; renderStations(); } });
+      if (S.ts >= ev.Tmax) { endRupture(); revealed = [false, false, false]; renderStations(); renderResults(); }
+    }
+    dirty.seis = true;
+  }
+  if (S.afterGlow > 0) S.afterGlow = Math.max(0, S.afterGlow - dt / 5);
+  if (S.bump > 0 && S.phase === 'locked') S.bump = Math.max(0, S.bump - dt / 7);
+  if (S.running) {
+    // sismicidad de fondo
+    S.bgAcc += dt * 1.1;
+    while (S.bgAcc >= 1) {
+      S.bgAcc -= 1;
+      const x = 5 + Math.random() * 330, i = clamp(Math.round(x - WIN.x0), 0, NX - 1), z = ZT[i] + Math.random() * 18 * (0.4 + Math.random());
+      flashes.push({ x: x, z: z, t0: performance.now() / 1000, life: 0.8, r: 2.5 + Math.random() * 3.5, col: 'rgba(255,255,255,A)' });
+    }
+    advanceTsunami(dt);
+  }
+  // HUD
+  let key;
+  if (S.phase === 'rupture') key = `t = <b>${f0(S.ts)} s</b> tras el inicio · ×${S.ts < 90 ? 8 : 20}`;
+  else key = `Año <b>${f0(S.years)}</b> del ciclo · <b>${f1(S.conv)}</b> cm/año`;
+  if (key !== hudKey) { hudKey = key; $('hud').innerHTML = key; }
+  let pct = clamp(S.D / S.res, 0, 1), gtxt = `${f1(S.D)} m de ${f1(S.res)} m · ${f0(pct * 100)} %`;
+  if (S.phase === 'rupture' && S.ev) { pct = clamp(S.f, 0, 1); gtxt = `Liberando el esfuerzo: ${f0((1 - clamp(S.f / S.ev.f0, 0, 1)) * 100)} %`; }
+  $('gaugeFill').style.width = (pct * 100) + '%';
+  $('gaugeFill').style.background = stressColor(pct);
+  $('gaugeTxt').textContent = gtxt;
+  $('gaugeBar').setAttribute('aria-valuenow', String(Math.round(pct * 100)));
+  $('yearsTxt').textContent = S.phase === 'rupture' ? 'Sismo en curso…' : `Año ${f0(S.years)} del ciclo de acumulación`;
+  const can = S.phase === 'locked' && S.D >= 0.15 * S.res;
+  const q = $('btnQuake'); if (q.disabled === can) { q.disabled = !can; q.title = can ? '' : (S.phase === 'rupture' ? 'Sismo en curso' : 'Aún no hay suficiente esfuerzo acumulado (mínimo 15 %)'); }
+}
+function render(t) {
+  ctx.clearRect(0, 0, cssW, cssH);
+  ctx.drawImage(bg, 0, 0, cssW, cssH);
+  drawOcean(t); drawBump(); drawStripes(); drawGrid(); drawInterface(t); drawWaves(); drawFlashes(t); drawHypo(t); drawStations(t);
+  if (S.labels) drawLabels();
+  if (dirty.seis) { dirty.seis = false; drawSeis(); }
+  if (dirty.tsu) { dirty.tsu = false; drawTsu(); updateTsuMetrics(); }
+  if (dirty.plan) { dirty.plan = false; drawPlan(); }
+}
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (visible) { update(S.running ? dt : 0); render(now / 1000); }
+  requestAnimationFrame(frame);
+}
+
+/* =====================================================================
+   INTERFAZ
+   ===================================================================== */
+function syncUI() {
+  $('rConv').value = S.conv; $('oConv').textContent = `${f1(S.conv)} cm/año`;
+  $('rRes').value = S.res; $('oRes').textContent = `${f1(S.res)} m`;
+  $('rZup').value = S.zup; $('oZup').textContent = `${S.zup} km`;
+  $('rZlow').value = S.zlow; $('oZlow').textContent = `${S.zlow} km`;
+  $('rLen').value = S.len; $('oLen').textContent = `${f0(S.len)} km`;
+  $('rHypo').value = Math.round(S.hfrac * 100);
+  const hy = hypoAt(S.hfrac); $('oHypo').textContent = `${f0(S.hfrac * 100)} % · ${f0(hy.z)} km`;
+  $('selSoil').value = S.soil;
+}
+function recompute() { computeFault(); S.D = Math.min(S.D, 0.97 * S.res); syncUI(); S.view = 'potential'; refreshPotential(); renderChallenges(); }
+function setSpeed(i) { S.speed = i; document.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', +b.dataset.speed === i)); }
+function setRunning(v) { S.running = v; $('icPause').style.display = v ? '' : 'none'; $('icPlay').style.display = v ? 'none' : ''; $('btnPlay').setAttribute('aria-label', v ? 'Pausar simulación' : 'Reanudar simulación'); }
+function resetAll() {
+  Object.assign(S, { conv: DEF.conv, res: DEF.res, zup: DEF.zup, zlow: DEF.zlow, len: DEF.len, hfrac: DEF.hfrac, soil: DEF.soil, phase: 'locked', ts: 0, ev: null, view: 'potential', afterGlow: 0, bump: 0, reps: 0, f: 0, years: 0 });
+  setLocks(false); S.D = 0.45 * S.res; T.active = false; T.started = false; T.eta.fill(0); T.gt = []; T.ge = []; flashes.length = 0; revealed = [false, false, false];
+  recompute(); dirty.seis = dirty.tsu = dirty.plan = true; updateTsuMetrics(); renderResults(); renderStations();
+}
+const PRESETS = {
+  illapel: { mw: 8.3, len: 220, zup: 8, zlow: 38, depth: 22 },
+  maule: { mw: 8.8, len: 500, zup: 8, zlow: 45, depth: 35 },
+  valdivia: { mw: 9.5, len: 900, zup: 5, zlow: 58, depth: 33 },
+  moderado: { mw: 7.2, len: 60, zup: 20, zlow: 40, depth: 28 },
+};
+function applyPreset(key) {
+  const p = PRESETS[key]; if (!p || S.phase === 'rupture') return;
+  S.len = p.len; S.zup = p.zup; S.zlow = p.zlow; S.conv = 7; computeFault();
+  const M0 = Math.pow(10, 1.5 * p.mw + 9.1);
+  S.res = clamp(Math.round(M0 / (MU * F.W * 1e3 * S.len * 1e3) * 10) / 10, 0.2, 50);
+  S.hfrac = fracAtDepth(p.depth); S.D = 0.5 * S.res; S.view = 'potential';
+  recompute(); showBanner('Preset: ' + ({ illapel: 'Illapel 2015', maule: 'Maule 2010', valdivia: 'Valdivia 1960', moderado: 'sismo moderado' })[key]);
+}
+function bindUI() {
+  const on = (id, fn, ev = 'input') => $(id).addEventListener(ev, fn);
+  on('rConv', (e) => { S.conv = +e.target.value; syncUI(); });
+  on('rRes', (e) => { S.res = +e.target.value; S.D = Math.min(S.D, 0.97 * S.res); syncUI(); refreshPotential(); });
+  on('rZup', (e) => { S.zup = +e.target.value; if (S.zlow < S.zup + 10) S.zlow = Math.min(70, S.zup + 10); recompute(); });
+  on('rZlow', (e) => { S.zlow = +e.target.value; if (S.zup > S.zlow - 10) S.zup = Math.max(5, S.zlow - 10); recompute(); });
+  on('rLen', (e) => { S.len = +e.target.value; syncUI(); refreshPotential(); });
+  on('rHypo', (e) => { S.hfrac = +e.target.value / 100; syncUI(); refreshPotential(); });
+  on('selSoil', (e) => { S.soil = e.target.value; refreshPotential(); renderStations(); if (S.ev) { S.ev.st.forEach((s) => { if (s.id === 'B') { /* recalcular */ } }); } }, 'change');
+  on('tLabels', (e) => { S.labels = e.target.checked; }, 'change');
+  on('tGrid', (e) => { S.grid = e.target.checked; }, 'change');
+  on('tWaves', (e) => { S.waves = e.target.checked; }, 'change');
+  on('btnPlay', () => setRunning(!S.running), 'click');
+  on('btnReset', resetAll, 'click');
+  on('btnDefaults', resetAll, 'click');
+  on('btnQuake', forceQuake, 'click');
+  document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => setSpeed(+b.dataset.speed)));
+  document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => applyPreset(b.dataset.preset)));
+  // tocar la falla para mover el hipocentro
+  const pick = (e) => {
+    if (S.phase === 'rupture') return;
+    const r = scene.getBoundingClientRect(), mx = (e.clientX - r.left) * (cssW / r.width), my = (e.clientY - r.top) * (cssH / r.height);
+    let best = 1e9, bs = 0;
+    for (const p of F.samples) { const d = Math.hypot(X(p.x) - mx, Y(p.z) - my); if (d < best) { best = d; bs = p.s; } }
+    return { best, bs };
+  };
+  scene.addEventListener('pointerdown', (e) => { const r = pick(e); if (r && r.best < 34) { S.hfrac = clamp((r.bs - F.sa) / (F.sb - F.sa), 0, 1); syncUI(); refreshPotential(); } });
+  scene.addEventListener('pointermove', (e) => { const r = pick(e); scene.style.cursor = r && r.best < 34 ? 'pointer' : 'default'; if (e.buttons === 1 && e.pointerType === 'mouse' && r && r.best < 60) { S.hfrac = clamp((r.bs - F.sa) / (F.sb - F.sa), 0, 1); syncUI(); refreshPotential(); } });
+  // leyenda Mercalli
+  $('mmiLegend').innerHTML = [3, 4, 5, 6, 7, 8, 9, 10, 11].map((m) => `<span style="background:${MMI_COL[m - 1]};color:${m >= 10 ? '#fff' : '#1a1a1a'}">${ROMAN[m - 1]}</span>`).join('');
+}
+
+/* =====================================================================
+   PRÁCTICA (quiz + AER)
+   ===================================================================== */
+const QUIZ = [
+  { q: '¿Qué es el hipocentro de un sismo?', o: ['El punto de la superficie ubicado justo sobre el foco', 'El punto en el interior de la Tierra donde se origina la ruptura', 'La parte de la falla que se desliza durante el sismo', 'El lugar donde la intensidad es mayor'], a: 1, e: 'El hipocentro (o foco) está bajo tierra, sobre la falla. El punto de la superficie que queda justo encima es el epicentro.' },
+  { q: 'El epicentro de un sismo es…', o: ['el punto del interior de la Tierra donde parte la ruptura', 'el punto de la superficie ubicado justo sobre el hipocentro', 'toda la superficie que se mueve durante el sismo', 'el lugar donde llega primero el tsunami'], a: 1, e: 'Epi significa “sobre”: es la proyección vertical del hipocentro en la superficie.' },
+  { q: 'El área de ruptura de un sismo corresponde a…', o: ['la zona donde se registran réplicas', 'el lugar de la superficie donde hay más daños', 'la parte de la falla que se desliza durante el sismo', 'la distancia entre el epicentro y la costa'], a: 2, e: 'Es la superficie de la falla que se desliza. Su tamaño (largo × ancho) influye directamente en la magnitud.' },
+  { q: 'En el simulador, si aumentas el largo de la zona acoplada y dejas todo lo demás igual, ¿qué pasa con la magnitud?', o: ['Disminuye, porque la energía se reparte', 'Aumenta, porque el área de ruptura es mayor', 'No cambia, porque depende solo de la profundidad', 'No se puede saber sin conocer el epicentro'], a: 1, e: 'M₀ = μ · A · D. Si el área de ruptura (A) crece y el deslizamiento (D) se mantiene, aumenta el momento sísmico y, por lo tanto, la magnitud.' },
+  { q: 'Si la magnitud de un sismo aumenta en 1 unidad, la energía liberada aumenta aproximadamente…', o: ['2 veces', '10 veces', '32 veces', '100 veces'], a: 2, e: 'Cada unidad de magnitud equivale a unas 32 veces más energía (10^1,5) y a unas 10 veces más amplitud en el registro.' },
+  { q: 'La escala de Mercalli mide…', o: ['la energía liberada en el hipocentro', 'los efectos del sismo en un lugar determinado', 'la profundidad del hipocentro', 'la duración de la ruptura'], a: 1, e: 'Mercalli (I–XII) es una escala de intensidad: describe efectos en personas, construcciones y terreno en cada lugar.' },
+  { q: 'Respecto de un mismo sismo, ¿cuál afirmación es correcta?', o: ['Tiene una sola intensidad y varias magnitudes', 'Tiene varias magnitudes y varias intensidades', 'Tiene una sola magnitud y varias intensidades, según el lugar', 'Tiene una sola magnitud y una sola intensidad'], a: 2, e: 'La magnitud es una propiedad del sismo. La intensidad cambia de un lugar a otro (distancia, suelo, construcciones).' },
+  { q: '¿En qué orden llegan las ondas a un sismógrafo?', o: ['Superficiales, S, P', 'S, P, superficiales', 'P, S, superficiales', 'Llegan todas al mismo tiempo'], a: 2, e: 'La P es la más rápida, luego la S y al final las superficiales, que son las más lentas.' },
+  { q: '¿Cuál de estas ondas NO se propaga por líquidos?', o: ['La onda P', 'La onda S', 'Todas las ondas sísmicas', 'Ninguna'], a: 1, e: 'La S es transversal y necesita un medio capaz de transmitir esfuerzos de corte; los líquidos no pueden.' },
+  { q: 'Las ondas P son…', o: ['transversales y las más lentas', 'longitudinales y las más rápidas', 'transversales y las más destructivas', 'longitudinales y solo viajan por la superficie'], a: 1, e: 'Las P son longitudinales (comprimen y expanden en la dirección de avance) y son las primeras en llegar.' },
+  { q: '¿Por qué las ondas superficiales suelen ser las más destructivas?', o: ['Porque son las más rápidas', 'Porque tienen mayor amplitud y mueven mucho el suelo', 'Porque solo se producen en los sismos más profundos', 'Porque atraviesan el núcleo terrestre'], a: 1, e: 'Aunque son las más lentas, tienen la mayor amplitud y duración cerca de la superficie, donde están las construcciones.' },
+  { q: 'En una estación, la diferencia de tiempo entre la llegada de S y de P es de 10 s. ¿Qué se puede concluir?', o: ['El sismo ocurrió a unos 8 km', 'El sismo ocurrió a unos 80 km, aproximadamente', 'El sismo ocurrió a unos 800 km', 'No sirve para estimar la distancia'], a: 1, e: 'Regla práctica: distancia ≈ 8 km × (S−P). Con 10 s resultan unos 80 km. Con tres estaciones se ubica el epicentro.' },
+  { q: 'En la subducción frente a Chile, ¿qué placa se hunde?', o: ['La Sudamericana bajo la de Nazca', 'La de Nazca bajo la Sudamericana', 'Ambas se separan', 'Ambas se deslizan lateralmente sin hundirse'], a: 1, e: 'La placa oceánica de Nazca, más densa, se hunde bajo la placa continental Sudamericana: un límite convergente.' },
+  { q: '¿Cuál es el sismo de mayor magnitud registrado en la historia?', o: ['Maule, 2010 (Mw 8,8)', 'Illapel, 2015 (Mw 8,3)', 'Valdivia, 1960 (Mw 9,5)', 'Iquique, 2014 (Mw 8,2)'], a: 2, e: 'El terremoto de Valdivia de 1960 (Mw 9,5) es el mayor sismo registrado instrumentalmente.' },
+  { q: '¿Por qué dos sismos de la misma magnitud pueden provocar intensidades muy distintas?', o: ['Porque la magnitud cambia según el lugar', 'Por la distancia a la falla, la profundidad, el tipo de suelo y la calidad de las construcciones', 'Porque la intensidad solo depende de la hora del sismo', 'No pueden: misma magnitud implica misma intensidad'], a: 1, e: 'La intensidad mide efectos locales, que dependen de varios factores además de la magnitud.' },
+  { q: '¿Qué origina principalmente un tsunami en una zona de subducción?', o: ['El viento sobre el océano', 'El desplazamiento vertical súbito del fondo marino', 'El paso de las ondas S por el agua', 'La erupción de los volcanes de la cordillera'], a: 1, e: 'Si la ruptura levanta o hunde el fondo marino, mueve toda la columna de agua y genera una ola de gran longitud.' },
+  { q: 'Un tsunami, en mar abierto y al llegar a la costa…', o: ['va lento y bajo, y luego se acelera', 'va muy rápido y con poca altura, y luego se frena y crece', 'mantiene siempre la misma rapidez y altura', 'va rápido y alto en todo su recorrido'], a: 1, e: 'La rapidez depende de la profundidad (v = √(g·h)). En aguas someras la ola se frena y su altura aumenta.' },
+  { q: 'Estás en la costa y sientes un sismo tan fuerte que cuesta mantenerse en pie. ¿Qué haces?', o: ['Espero la alerta oficial antes de moverme', 'Miro si el mar se retira para decidir', 'Evacúo de inmediato hacia la zona segura, sin esperar alerta', 'Me quedo en casa, porque los tsunamis son raros'], a: 2, e: 'En Chile, un sismo fuerte y prolongado en la costa es la alerta: evacúa a pie a la zona segura de inmediato.' },
+  { q: 'En el simulador, si la zona acoplada llega más cerca de la fosa (profundidad superior baja), ¿qué esperas del tsunami?', o: ['Más pequeño, porque la ruptura es superficial', 'Más grande, porque se levanta más el fondo marino', 'No cambia, porque depende solo de la magnitud', 'No se puede generar un tsunami'], a: 1, e: 'Cuanto más superficial y cercana a la fosa es la ruptura, más se deforma el fondo marino y más agua se desplaza.' },
+  { q: 'Con la misma magnitud, un hipocentro más profundo suele producir…', o: ['mayor intensidad en la superficie', 'menor intensidad en la superficie, en general', 'ondas P más lentas', 'un tsunami más alto siempre'], a: 1, e: 'La energía recorre mayor distancia hasta la superficie y, en general, las ondas superficiales son más débiles, por lo que la intensidad suele ser menor.' },
+];
+const AER = [
+  { t: 'Magnitud e intensidad: Maule e Illapel', q: 'Maule 2010 tuvo Mw 8,8 e intensidad máxima IX. Illapel 2015 tuvo Mw 8,3 e intensidad máxima VIII. ¿Por qué ambos datos son distintos si los dos fueron sismos de subducción?', A: 'Porque la magnitud y la intensidad miden cosas distintas, y el sismo del Maule fue mayor.', E: 'Maule: Mw 8,8 e intensidad IX. Illapel: Mw 8,3 e intensidad VIII. Una diferencia de 0,5 en magnitud equivale a unas 5,6 veces más energía liberada.', R: 'La magnitud mide la energía liberada; un sismo con mayor área de ruptura y deslizamiento libera más energía y puede producir intensidades altas en una zona más amplia. La intensidad es local y depende también de la distancia a la falla, la profundidad, el suelo y las construcciones.' },
+  { t: 'Ondas P y S: ¿por qué llegan en tiempos distintos?', q: '¿Por qué la onda S llega después que la P y qué permite estimar la diferencia de tiempos S−P?', A: 'La S llega después porque se propaga más lento que la P, y la diferencia S−P permite estimar la distancia al sismo.', E: 'En la corteza la P viaja a cerca de 6 km/s y la S a cerca de 3,5 km/s. Si S−P es 10 s, la estación está a unos 80 km (≈ 8 km por cada segundo de diferencia).', R: 'Ambas ondas parten juntas desde el hipocentro, pero la P es más rápida; mientras más lejos está la estación, más se acumula la diferencia de tiempo. Con tres estaciones se triangula el epicentro.' },
+  { t: 'Subducción y tsunami', q: '¿Por qué un sismo de subducción puede generar un tsunami?', A: 'Porque el deslizamiento de la falla bajo el mar levanta y hunde el fondo marino de forma súbita.', E: 'En el simulador el fondo se levanta sobre el área de ruptura y se forma una ola que viaja hacia la costa; en la bandeja con agua, el movimiento vertical brusco del bloque generó la onda.', R: 'Ese movimiento vertical desplaza toda la columna de agua. La perturbación se propaga como onda de gran longitud, rápida en aguas profundas (v = √(g·h)), que se frena y crece al llegar a aguas someras. Mientras más superficial es la ruptura, mayor es el desplazamiento del fondo.' },
+  { t: 'Ondas S y océano', q: '¿Por qué la onda S no atraviesa el océano y la P sí?', A: 'Porque la S es transversal y necesita un medio que transmita esfuerzos de corte; los líquidos no pueden, mientras que la P se transmite por compresión.', E: 'En el simulador el anillo ámbar (S) se corta al llegar al agua, y el azul (P) la atraviesa.', R: 'Un líquido no resiste el corte, solo cambia de volumen. Por eso en él solo se propagan ondas de compresión, como la P.' },
+];
+const quizEl = $('quiz');
+let Q = null;
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function quizStart() {
+  quizEl.innerHTML = `<h3 style="margin-bottom:6px">¿Cuánto recuerdas?</h3><p style="color:var(--ink-2)">${QUIZ.length} preguntas sobre sismos, ondas, escalas y tsunamis. Recibes la explicación después de cada respuesta.</p><div class="quiz-start"><button class="btn btn-primary" data-n="10" type="button">10 preguntas al azar</button><button class="btn btn-ghost" data-n="${QUIZ.length}" type="button">Todas (${QUIZ.length})</button></div>`;
+  quizEl.querySelectorAll('[data-n]').forEach((b) => b.addEventListener('click', () => quizBegin(+b.dataset.n)));
+}
+function quizBegin(n, subset) {
+  const idx = subset || shuffle(QUIZ.map((_, i) => i)).slice(0, n);
+  Q = { items: idx.map((i) => { const q = QUIZ[i], order = shuffle([0, 1, 2, 3]); return { i, order }; }), cur: 0, score: 0, wrong: [], locked: false };
+  quizRender();
+}
+function quizRender() {
+  const it = Q.items[Q.cur], q = QUIZ[it.i], n = Q.items.length;
+  quizEl.innerHTML = `<div class="q-head"><span>Pregunta ${Q.cur + 1} de ${n}</span><span>${Q.score} correctas</span></div><div class="q-bar"><div style="width:${Q.cur / n * 100}%"></div></div><p class="q-text">${q.q}</p><div class="opts">${it.order.map((oi, k) => `<button class="opt" type="button" data-oi="${oi}"><span class="k">${'ABCD'[k]}</span><span>${q.o[oi]}</span></button>`).join('')}</div><div id="qfb"></div>`;
+  Q.locked = false;
+  quizEl.querySelectorAll('.opt').forEach((b) => b.addEventListener('click', () => quizAnswer(+b.dataset.oi)));
+}
+function quizAnswer(oi) {
+  if (Q.locked) return; Q.locked = true;
+  const it = Q.items[Q.cur], q = QUIZ[it.i], ok = oi === q.a;
+  if (ok) Q.score++; else Q.wrong.push(it.i);
+  quizEl.querySelectorAll('.opt').forEach((b) => { b.disabled = true; const v = +b.dataset.oi; if (v === q.a) b.classList.add('ok'); else if (v === oi) b.classList.add('bad'); });
+  const last = Q.cur === Q.items.length - 1;
+  $('qfb').innerHTML = `<div class="explain"><b class="${ok ? 'ok' : 'bad'}">${ok ? '¡Correcto!' : 'No es esa.'}</b> ${q.e}</div><div class="q-actions"><button class="btn btn-primary" id="qnext" type="button">${last ? 'Ver resultado' : 'Siguiente'}</button></div>`;
+  $('qnext').addEventListener('click', () => { if (last) quizEnd(); else { Q.cur++; quizRender(); $('quiz').scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' }); } });
+  $('qnext').focus({ preventScroll: true });
+}
+function quizEnd() {
+  const n = Q.items.length, pct = Math.round(Q.score / n * 100);
+  const msg = pct >= 85 ? 'Vas muy bien. Repasa solo lo que fallaste.' : pct >= 60 ? 'Buen avance. Vuelve a los conceptos de las que fallaste.' : 'Todavía hay que repasar. Usa el simulador para ver cada idea en acción y vuelve a intentarlo.';
+  const rev = Q.wrong.map((i) => `<li><b>${QUIZ[i].q}</b><br><span style="color:var(--ink-2)">${QUIZ[i].e}</span></li>`).join('');
+  quizEl.innerHTML = `<div class="q-head"><span>Resultado</span><span></span></div><div class="score">${Q.score}<span style="font-size:28px;color:var(--muted)"> / ${n}</span></div><p style="margin:10px 0 16px">${msg}</p>${Q.wrong.length ? `<h4 style="margin:18px 0 10px">Para repasar</h4><ul class="review" style="padding-left:20px">${rev}</ul>` : ''}<div class="q-actions">${Q.wrong.length ? '<button class="btn btn-primary" id="qagain" type="button">Reintentar las falladas</button>' : ''}<button class="btn btn-ghost" id="qnew" type="button">Nuevo intento</button></div>`;
+  if ($('qagain')) $('qagain').addEventListener('click', () => quizBegin(0, Q.wrong.slice()));
+  $('qnew').addEventListener('click', quizStart);
+}
+function buildAER() {
+  $('aer').innerHTML = AER.map((a, i) => `<details><summary>${a.t}</summary><div class="body"><p style="margin-bottom:10px"><b>${a.q}</b></p><textarea aria-label="Tu respuesta AER" placeholder="Afirmación: …&#10;Evidencia: …&#10;Razonamiento: …"></textarea><div class="q-actions"><button class="btn btn-ghost" type="button" data-m="${i}">Ver respuesta modelo</button></div><div class="model" id="m${i}"><div><b>Afirmación</b>${a.A}</div><div><b>Evidencia</b>${a.E}</div><div><b>Razonamiento</b>${a.R}</div></div></div></details>`).join('');
+  $('aer').querySelectorAll('[data-m]').forEach((b) => b.addEventListener('click', () => { const m = $('m' + b.dataset.m); m.classList.toggle('show'); b.textContent = m.classList.contains('show') ? 'Ocultar respuesta modelo' : 'Ver respuesta modelo'; }));
+}
+
+/* =====================================================================
+   INICIO
+   ===================================================================== */
+function init() {
+  computeFault(); bindUI();
+  S.D = 0.45 * S.res; syncUI(); setRunning(S.running);
+  S.pot = scenario(S.D);
+  layout();
+  sizeCanvas(seisC, seisX, 'seis', 0.78); sizeCanvas(tsuC, tsuX, 'tsu', 0.82); sizeCanvas(planC, planX, 'plan', 1.3);
+  renderResults(); renderStations(); renderChallenges(); quizStart(); buildAER();
+  dirty.seis = dirty.tsu = dirty.plan = true;
+  const ro = new ResizeObserver(() => {
+    const w = Math.floor(sceneWrap.clientWidth);
+    if (w && w !== cssW) layout();
+    [[seisC, seisX, 'seis', 0.78], [tsuC, tsuX, 'tsu', 0.82], [planC, planX, 'plan', 1.3]].forEach(([cv, cx, k, a]) => { const ww = Math.floor(cv.parentElement.clientWidth); if (ww && ww !== SZ[k].w) { sizeCanvas(cv, cx, k, a); dirty[k] = true; } });
+  });
+  ro.observe(sceneWrap); ro.observe(seisC.parentElement); ro.observe(tsuC.parentElement); ro.observe(planC.parentElement);
+  const themeChange = () => { renderBackground(); dirty.seis = dirty.tsu = dirty.plan = true; };
+  new MutationObserver(themeChange).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', themeChange);
+  new IntersectionObserver((en) => { visible = en[0].isIntersecting; if (visible) last = performance.now(); }, { rootMargin: '120px' }).observe(sceneWrap);
+  if (reduceMotion) { $('hud').innerHTML = 'Animaciones en pausa por tu configuración del sistema. Pulsa ▶ para iniciar.'; }
+  requestAnimationFrame(frame);
+}
+window.__sim = { S, T, scenario, applyPreset, forceQuake, resetAll, get F() { return F; }, STATIONS };
+init();
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Bosque Esclerófilo · Zona Central de Chile</title>
+<style>
+:root{
+  --bg:#071713; --panel:#0d211b; --panel2:#102a22; --line:#24483a;
+  --text:#eaf6ef; --muted:#9db9aa; --accent:#8bd36b; --gold:#f4c95d;
+  --water:#5fc9e8; --danger:#ed765f; --purple:#bd9bf4;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 15% 0%,#16372b 0,#071713 42%,#040d0b 100%);
+font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);min-height:100vh}
+header{padding:28px 4vw 18px;display:flex;justify-content:space-between;gap:20px;align-items:end}
+h1{margin:0;font-size:clamp(25px,4vw,43px);letter-spacing:-1.5px}
+.subtitle{color:var(--muted);margin-top:6px}
+.badge{border:1px solid #3a654f;background:#11281f;border-radius:999px;padding:9px 14px;color:#bde8ad;font-size:13px}
+.app{width:min(1500px,94vw);margin:auto;display:grid;grid-template-columns:330px 1fr;gap:18px;padding-bottom:30px}
+.panel{background:linear-gradient(180deg,rgba(18,43,34,.96),rgba(8,25,20,.96));border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 50px #0005;overflow:hidden}
+.controls{padding:18px}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#8caf9e;margin:8px 0 15px}
+.control{margin:15px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+label{font-size:14px;color:#d9e9df}
+.value{font-weight:700;color:#bde8ad;font-size:13px}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:8px}
+select,button{font:inherit}
+select{width:100%;background:#0a1b16;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
+button{border:1px solid #315744;background:#132d23;color:#e8f5ed;border-radius:10px;padding:10px 12px;cursor:pointer;transition:.2s}
+button:hover{transform:translateY(-1px);border-color:#6cae77}
+button.primary{background:linear-gradient(135deg,#386b42,#2d5138);border-color:#699f6d}
+button.danger{background:#48251f;border-color:#7b4135}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}
+.main{display:grid;grid-template-rows:auto auto auto;gap:18px}
+.scene-wrap{position:relative;min-height:470px;background:#102d28;border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:inset 0 0 80px #0006}
+#scene{image-rendering:auto}
+.season-chip,.weather-chip{position:absolute;top:15px;padding:8px 11px;border-radius:999px;background:#06140dcc;border:1px solid #ffffff20;backdrop-filter:blur(8px);font-size:12px}
+.season-chip{right:145px}.weather-chip{right:15px}
+#scene{width:100%;height:470px;display:block}
+.overlay{position:absolute;left:16px;top:15px;background:#06140fcc;border:1px solid #ffffff20;backdrop-filter:blur(8px);border-radius:13px;padding:11px 14px;font-size:13px}
+.legend{position:absolute;right:15px;bottom:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.legend span{background:#06140dcc;border:1px solid #ffffff1a;border-radius:999px;padding:6px 9px;font-size:11px;color:#d9e9df}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.metric{padding:15px;background:#0c211a;border:1px solid var(--line);border-radius:14px}
+.metric .num{font-size:25px;font-weight:800;margin-top:4px}
+.metric small{color:var(--muted)}
+.chart-panel{padding:17px}
+canvas.chart{width:100%;height:190px;display:block}
+.eco{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+.eco-panel{padding:17px}
+.species{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.species-item{display:flex;align-items:center;gap:9px;padding:9px;background:#0a1a15;border-radius:10px;border:1px solid #18362b;font-size:13px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px currentColor}
+.foodweb{position:relative;height:330px;background:radial-gradient(circle,#15392b 0,#081713 70%);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.foodweb svg{position:absolute;inset:0;width:100%;height:100%}
+.node{position:absolute;transform:translate(-50%,-50%);padding:8px 10px;border-radius:10px;background:#122b21;border:1px solid #477456;box-shadow:0 5px 18px #0008;font-size:12px;white-space:nowrap}
+.node.plant{border-color:#699c57}.node.herb{border-color:#b69b52}.node.pred{border-color:#a66b5d}.node.top{border-color:#a98ad2}
+.footer{color:#78988a;font-size:11px;text-align:center;padding:3px 0 15px}
+@media(max-width:1000px){.app{grid-template-columns:1fr}.cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:650px){header{padding:20px 3vw}.app{width:96vw}.cards{grid-template-columns:repeat(2,1fr)}.eco{grid-template-columns:1fr}.species{grid-template-columns:1fr}.scene-wrap,#scene{height:390px;min-height:390px}}
+
+/* Capa 3D estilizada: terreno, árboles y rocas */
+.scene-wrap{perspective:1100px;isolation:isolate}
+.terrain-3d{position:absolute;inset:0;pointer-events:none;transform-style:preserve-3d;overflow:hidden;opacity:.9}
+.terrain-layer{position:absolute;left:-8%;width:116%;height:43%;bottom:-9%;border-radius:48% 48% 0 0/28% 28% 0 0;
+ transform:rotateX(58deg) translateZ(0);transform-origin:center bottom;box-shadow:0 -18px 45px #07140c99 inset}
+.layer-back{bottom:25%;background:linear-gradient(135deg,#617a4e,#2e5137 58%,#203b2c);transform:rotateX(61deg) rotateZ(-2deg) translateZ(-30px)}
+.layer-mid{bottom:8%;background:linear-gradient(145deg,#738a56,#385b3c 55%,#1b3325);transform:rotateX(59deg) rotateZ(1deg) translateZ(5px)}
+.layer-front{bottom:-16%;height:38%;background:linear-gradient(145deg,#50663f,#263e2b 60%,#14271e);transform:rotateX(55deg) rotateZ(-1deg) translateZ(38px)}
+.rock{position:absolute;width:42px;height:30px;border-radius:48% 52% 42% 58%;background:linear-gradient(145deg,#9a947b,#514e43 55%,#2d2d28);box-shadow:inset 8px 5px 8px #d1ccb044,8px 12px 16px #0008;transform-style:preserve-3d;transform:rotateX(55deg) rotateZ(-8deg)}
+.rock:after{content:"";position:absolute;inset:5px 7px 13px;border-radius:50%;background:#b9b49a33}
+.rock-a{left:18%;bottom:20%;transform:rotateX(55deg) rotateZ(-13deg) translateZ(55px)}
+.rock-b{left:62%;bottom:28%;width:28px;height:22px;transform:rotateX(55deg) rotateZ(15deg) translateZ(60px)}
+.rock-c{left:78%;bottom:15%;width:34px;height:25px;transform:rotateX(55deg) rotateZ(-5deg) translateZ(50px)}
+.tree3d{position:absolute;width:34px;height:112px;transform-style:preserve-3d;animation:sway3d 4s ease-in-out infinite;filter:drop-shadow(9px 13px 8px #0006)}
+.tree3d i{position:absolute;left:15px;bottom:0;width:7px;height:48px;border-radius:4px;background:linear-gradient(90deg,#3c281c,#815538,#2b2119);transform:translateZ(12px)}
+.tree3d b,.tree3d span{position:absolute;display:block;border-radius:48% 52% 45% 55%;background:linear-gradient(145deg,#709e55,#37683d 55%,#193a29);box-shadow:inset -8px -10px 15px #10271c55}
+.tree3d b{width:48px;height:50px;left:-7px;bottom:34px;transform:translateZ(10px) rotateY(-7deg)}
+.tree3d span{width:39px;height:43px;left:0;bottom:57px;transform:translateZ(23px) rotateY(8deg)}
+.t1{left:9%;bottom:27%;transform:scale(.8)}.t2{left:30%;bottom:31%;transform:scale(1.15);animation-delay:-1.2s}
+.t3{left:69%;bottom:30%;transform:scale(.95);animation-delay:-2.1s}.t4{left:86%;bottom:25%;transform:scale(.72);animation-delay:-.6s}
+@keyframes sway3d{0%,100%{rotate:0deg}50%{rotate:1.5deg}}
+.scene-wrap:after{content:"";position:absolute;inset:auto 0 0;height:35%;background:linear-gradient(transparent,#07171388);pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tree3d{animation:none}}
+
+
+/* --- Fine ecological rendering layer --- */
+.scene-wrap{background:#102b27;overflow:hidden}
+.scene-wrap::before{
+ content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+ background:
+ radial-gradient(circle at 78% 18%,rgba(255,238,174,.22),transparent 17%),
+ radial-gradient(circle at 22% 55%,rgba(174,220,177,.12),transparent 28%),
+ linear-gradient(180deg,rgba(255,255,255,.06),transparent 35%,rgba(0,0,0,.22));
+ mix-blend-mode:screen;
+}
+.scene-wrap::after{
+ content:"";position:absolute;left:0;right:0;bottom:0;height:34%;pointer-events:none;z-index:5;
+ background:linear-gradient(180deg,transparent,rgba(3,13,9,.62));
+}
+.fog-layer{
+ position:absolute;inset:18% -20% 15%;pointer-events:none;z-index:4;
+ background:radial-gradient(ellipse at center,rgba(224,241,218,.13),transparent 62%);
+ filter:blur(14px);animation:fogDrift 18s ease-in-out infinite alternate;
+}
+.leaf-layer{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}
+.leaf{
+ position:absolute;width:7px;height:3px;border-radius:100% 0 100% 0;
+ background:linear-gradient(135deg,#9ab866,#3f713e 62%,#21432d);
+ box-shadow:0 2px 4px rgba(0,0,0,.35);
+ opacity:.82;
+ animation:leafFloat var(--dur) ease-in-out infinite;
+ transform:rotate(var(--rot));
+}
+.light-ray{
+ position:absolute;top:-10%;width:100px;height:120%;pointer-events:none;z-index:2;
+ background:linear-gradient(90deg,transparent,rgba(255,240,186,.055),transparent);
+ transform:rotate(17deg);filter:blur(7px);opacity:.8;animation:rayMove 14s ease-in-out infinite alternate;
+}
+.tree3d{filter:drop-shadow(10px 16px 8px rgba(0,0,0,.42));}
+.tree3d b,.tree3d span{
+ background:
+ radial-gradient(circle at 30% 24%,rgba(214,238,157,.45),transparent 15%),
+ radial-gradient(circle at 65% 40%,rgba(154,198,107,.3),transparent 18%),
+ linear-gradient(145deg,#6f9d55 0%,#477c43 45%,#28583a 78%,#173b2a 100%);
+ box-shadow:inset -11px -13px 17px rgba(7,30,19,.32),inset 7px 6px 13px rgba(218,239,177,.15),5px 9px 15px rgba(0,0,0,.22);
+}
+.tree3d i{
+ background:linear-gradient(90deg,#2a1b15,#805536 38%,#4a2e1f 75%,#241a14);
+ box-shadow:inset 2px 0 rgba(235,185,118,.2),4px 7px 9px rgba(0,0,0,.25);
+}
+.rock{
+ background:
+ radial-gradient(circle at 28% 22%,rgba(255,255,255,.2),transparent 16%),
+ linear-gradient(145deg,#b1aa8d 0%,#77735f 45%,#3f4038 100%);
+ box-shadow:inset 6px 5px 8px rgba(255,255,255,.15),inset -8px -8px 10px rgba(0,0,0,.32),8px 12px 16px rgba(0,0,0,.4);
+}
+@keyframes leafFloat{
+ 0%,100%{transform:translate3d(0,0,0) rotate(var(--rot))}
+ 25%{transform:translate3d(18px,-7px,0) rotate(calc(var(--rot) + 20deg))}
+ 50%{transform:translate3d(34px,5px,0) rotate(calc(var(--rot) - 14deg))}
+ 75%{transform:translate3d(12px,11px,0) rotate(calc(var(--rot) + 28deg))}
+}
+@keyframes fogDrift{from{transform:translateX(-3%)}to{transform:translateX(4%)}}
+@keyframes rayMove{from{left:15%}to{left:72%}}
+@media (prefers-reduced-motion:reduce){
+ .fog-layer,.light-ray,.leaf{animation:none}
+}
+
+.climate-strip{padding:12px 15px;background:linear-gradient(100deg,#0c211a,#112f25);border:1px solid #315844;border-radius:15px}
+.climate-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px;color:#dbeee1;font-weight:700}
+.climate-head small{font-weight:400;color:#88a999}
+.climate-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.climate-grid>div{padding:8px 10px;background:#081914aa;border:1px solid #1d3d30;border-radius:10px}
+.climate-grid small{display:block;color:#78998a;font-size:10px}.climate-grid b{font-size:15px;color:#c5e6b5}
+@media(max-width:650px){.climate-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🌳 Bosque Esclerófilo</h1>
+    <div class="subtitle">Simulador ecológico · Zona central de Chile</div>
+  </div>
+  <div class="badge">MODELO EDUCATIVO · SUCESIÓN + RED TRÓFICA</div>
+</header>
+
+<div class="app">
+<aside class="panel controls">
+  <div class="section-title">Condiciones ambientales</div>
+
+  <div class="control"><div class="row"><label>⛰️ Inclinación del cerro</label><span id="slopeVal" class="value">30°</span></div>
+  <input id="slope" type="range" min="0" max="60" value="30"></div>
+
+  <div class="control"><div class="row"><label>☀️ Exposición solar</label><span id="sunVal" class="value">65%</span></div>
+  <input id="sun" type="range" min="10" max="100" value="65"></div>
+
+  <div class="control"><div class="row"><label>💧 Disponibilidad de agua</label><span id="waterVal" class="value">60%</span></div>
+  <input id="water" type="range" min="0" max="100" value="60"></div>
+
+  <div class="control"><div class="row"><label>🌧️ Precipitación anual</label><span id="rainVal" class="value">420 mm</span></div>
+  <input id="rain" type="range" min="100" max="900" value="420"></div>
+
+  <div class="control"><div class="row"><label>🌊 Ríos atmosféricos</label><span id="arVal" class="value">20%</span></div>
+  <input id="ar" type="range" min="0" max="100" value="20"></div>
+
+  <div class="control"><div class="row"><label>⬇️ Subsidencia atmosférica</label><span id="subsVal" class="value">55%</span></div>
+  <input id="subs" type="range" min="0" max="100" value="55"></div>
+
+  <div class="control"><div class="row"><label>💨 Humedad relativa</label><span id="rhVal" class="value">65%</span></div>
+  <input id="rh" type="range" min="25" max="95" value="65"></div>
+
+  <div class="control"><div class="row"><label>🌬️ Viento</label><span id="windVal" class="value">25%</span></div>
+  <input id="wind" type="range" min="0" max="100" value="25"></div>
+
+  <div class="control"><div class="row"><label>🌡️ Temperatura media</label><span id="tempVal" class="value">17 °C</span></div>
+  <input id="temp" type="range" min="8" max="28" value="17"></div>
+
+  <div class="control"><div class="row"><label>🌱 Fertilidad del suelo</label><span id="soilVal" class="value">60%</span></div>
+  <input id="soil" type="range" min="10" max="100" value="60"></div>
+
+  <div class="control"><div class="row"><label>🏙️ Perturbación humana</label><span id="humanVal" class="value">15%</span></div>
+  <input id="human" type="range" min="0" max="100" value="15"></div>
+
+  <div class="control"><div class="row"><label>📅 Mes</label></div>
+  <select id="month">
+    <option value="0">Enero · verano</option><option value="1">Febrero · verano</option>
+    <option value="2">Marzo · otoño</option><option value="3">Abril · otoño</option>
+    <option value="4">Mayo · otoño</option><option value="5">Junio · invierno</option>
+    <option value="6">Julio · invierno</option><option value="7">Agosto · invierno</option>
+    <option value="8">Septiembre · primavera</option><option value="9">Octubre · primavera</option>
+    <option value="10">Noviembre · primavera</option><option value="11">Diciembre · verano</option>
+  </select>
+
+  <div class="buttons">
+    <button class="primary" id="yearBtn">▶ Avanzar 1 año</button>
+    <button id="resetBtn">↺ Reiniciar</button>
+    <button class="danger" id="fireBtn">🔥 Incendio</button>
+    <button id="rainBtn">🌧️ Lluvias +</button>
+  </div>
+
+  <div class="section-title" style="margin-top:24px">Escenarios rápidos</div>
+  <div class="buttons">
+    <button onclick="scenario('wet')">🌧️ Año lluvioso</button>
+    <button onclick="scenario('dry')">☀️ Sequía</button>
+    <button onclick="scenario('natural')">🌿 Conservación</button>
+    <button onclick="scenario('urban')">🏗️ Urbanización</button>
+  </div>
+</aside>
+
+<main class="main">
+  <section class="scene-wrap panel">
+    <canvas id="scene"></canvas>
+    <div class="fog-layer" aria-hidden="true"></div>
+    <div class="light-ray" aria-hidden="true"></div>
+    <div class="leaf-layer" id="leafLayer" aria-hidden="true"></div>
+    <div class="season-chip" id="seasonChip">☀️ Verano</div>
+    <div class="weather-chip" id="weatherChip">🌤️ Día estable</div>
+    <div class="terrain-3d" aria-hidden="true">
+      <div class="terrain-layer layer-back"></div>
+      <div class="terrain-layer layer-mid"></div>
+      <div class="terrain-layer layer-front"></div>
+      <div class="rock rock-a"></div><div class="rock rock-b"></div><div class="rock rock-c"></div>
+      <div class="tree3d t1"><i></i><b></b><span></span></div>
+      <div class="tree3d t2"><i></i><b></b><span></span></div>
+      <div class="tree3d t3"><i></i><b></b><span></span></div>
+      <div class="tree3d t4"><i></i><b></b><span></span></div>
+    </div>
+    <div class="overlay">
+      <b id="season">Verano</b> · <span id="yearLabel">Año 1</span><br>
+      <span id="condition">Condiciones favorables</span>
+    </div>
+    <div class="legend">
+      <span>🌳 Vegetación</span><span>🐝 Polinizadores</span><span>🦊 Depredadores</span><span>🦅 Rapaces</span>
+    </div>
+  </section>
+
+  <section class="panel climate-strip">
+    <div class="climate-head"><span>🌎 Balance climático</span><small id="climateSummary">Humedad de suelo en equilibrio</small></div>
+    <div class="climate-grid">
+      <div><small>Humedad suelo</small><b id="mSoil">58%</b></div>
+      <div><small>ET potencial</small><b id="mET">520 mm</b></div>
+      <div><small>Escorrentía</small><b id="mRunoff">24 mm</b></div>
+      <div><small>Riesgo incendio</small><b id="mFireRisk">18%</b></div>
+      <div><small>Déficit hídrico</small><b id="mDeficit">0 mm</b></div>
+    </div>
+  </section>
+
+  <section class="cards">
+    <div class="metric"><small>🌳 Cobertura vegetal</small><div id="mVeg" class="num">42%</div></div>
+    <div class="metric"><small>🌿 Especies vegetales</small><div id="mPlant" class="num">9</div></div>
+    <div class="metric"><small>🐾 Biodiversidad</small><div id="mBio" class="num">48%</div></div>
+    <div class="metric"><small>🦊 Fauna activa</small><div id="mFauna" class="num">14</div></div>
+    <div class="metric"><small>🌱 Biomasa</small><div id="mBiomass" class="num">38%</div></div>
+  </section>
+
+  <section class="panel chart-panel">
+    <div class="section-title">Dinámica del ecosistema</div>
+    <canvas id="chart" class="chart"></canvas>
+  </section>
+
+  <section class="eco">
+    <div class="panel eco-panel">
+      <div class="section-title">Especies observadas</div>
+      <div id="species" class="species"></div>
+    </div>
+    <div class="panel eco-panel">
+      <div class="section-title">Red trófica · zona central</div>
+      <div class="foodweb">
+        <svg viewBox="0 0 500 330" preserveAspectRatio="none">
+          <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8z" fill="#719c80"/></marker></defs>
+          <g stroke="#719c80" stroke-width="1.5" opacity=".6" fill="none" marker-end="url(#arrow)">
+            <path d="M80 250 L150 180"/><path d="M80 250 L150 245"/><path d="M80 250 L150 300"/>
+            <path d="M200 180 L275 115"/><path d="M200 245 L275 190"/><path d="M200 300 L275 190"/>
+            <path d="M325 115 L410 75"/><path d="M325 190 L410 150"/><path d="M325 190 L410 235"/>
+            <path d="M325 190 L410 300"/>
+          </g>
+        </svg>
+        <div class="node plant" style="left:16%;top:76%">🌳 Quillay / peumo</div>
+        <div class="node plant" style="left:16%;top:55%">🌸 Flores nativas</div>
+        <div class="node plant" style="left:16%;top:91%">🌱 Semillas</div>
+        <div class="node herb" style="left:40%;top:55%">🐝 Abejas</div>
+        <div class="node herb" style="left:40%;top:74%">🦎 Lagartijas</div>
+        <div class="node herb" style="left:40%;top:91%">🐭 Degú / roedores</div>
+        <div class="node pred" style="left:65%;top:35%">🐦 Aves insectívoras</div>
+        <div class="node pred" style="left:65%;top:58%">🦊 Zorro culpeo</div>
+        <div class="node pred" style="left:65%;top:71%">🐍 Culebra</div>
+        <div class="node top" style="left:82%;top:23%">🦅 Águila</div>
+        <div class="node top" style="left:82%;top:46%">🦉 Rapaz nocturna</div>
+        <div class="node top" style="left:82%;top:71%">🍄 Descomponedores</div>
+      </div>
+    </div>
+  </section>
+  <div class="footer">Modelo simplificado para exploración pedagógica. No representa predicciones ecológicas reales.</div>
+</main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const seasons=['Verano','Verano','Otoño','Otoño','Otoño','Invierno','Invierno','Invierno','Primavera','Primavera','Primavera','Verano'];
+let state={year:1,veg:42,bio:48,biomass:38,plants:9,fauna:14,fire:0,soilMoisture:55,climate:{},history:[]};
+
+const species=[
+ ['Quillay','🌳','Planta'],['Peumo','🌳','Planta'],['Litre','🌳','Planta'],['Boldo','🌿','Planta'],
+ ['Espino','🌳','Planta'],['Chagual','🌵','Planta'],['Abejas nativas','🐝','Polinizador'],['Picaflor','🐦','Polinizador'],
+ ['Lagartija','🦎','Herbívoro'],['Degú','🐭','Herbívoro'],['Zorro culpeo','🦊','Depredador'],['Tiuque','🦅','Rapaz'],
+ ['Águila','🦅','Depredador'],['Culebra','🐍','Depredador'],['Hongos','🍄','Descomponedor'],['Lombrices','🪱','Descomponedor']
+];
+
+function params(){
+ return {
+  slope:+$('slope').value,sun:+$('sun').value,water:+$('water').value,rain:+$('rain').value,
+  ar:+$('ar').value,subs:+$('subs').value,rh:+$('rh').value,wind:+$('wind').value,
+  temp:+$('temp').value,soil:+$('soil').value,human:+$('human').value,month:+$('month').value
+ };
+}
+function updateLabels(){
+ const p=params();
+ $('slopeVal').textContent=p.slope+'°';$('sunVal').textContent=p.sun+'%';$('waterVal').textContent=p.water+'%';
+ $('rainVal').textContent=p.rain+' mm';$('arVal').textContent=p.ar+'%';$('subsVal').textContent=p.subs+'%';
+ $('rhVal').textContent=p.rh+'%';$('windVal').textContent=p.wind+'%';$('tempVal').textContent=p.temp+' °C';
+ $('soilVal').textContent=p.soil+'%';$('humanVal').textContent=p.human+'%';
+}
+function climateModel(p, previousSoil=55){
+ // Simplified monthly water-balance model, not a forecast.
+ // Winter frontal precipitation dominates central Chile; summer has high atmospheric demand.
+ const winter=(p.month>=4&&p.month<=8);
+ const seasonRainFactor=seasonRainFactors[p.month];
+ const arEvent=(p.ar/100)*(winter?.65:.12);
+ const frontalEfficiency=winter?(1-.22*p.subs/100):(.38-.20*p.subs/100);
+ const effectiveRain=p.rain*seasonRainFactor*frontalEfficiency*(1+arEvent*.85);
+ const slopeRunoff=Math.min(.42,(p.slope/60)*.28);
+ const infiltration=effectiveRain*(1-slopeRunoff)*(0.55+0.45*p.soil/100);
+
+ // Penman-like proxy for atmospheric demand: T, radiation, wind and dryness.
+ const vpd=Math.max(.05,1-(p.rh/100))* (0.45+0.55*p.temp/25);
+ const radiation=(.35+.65*p.sun/100)*seasonRadFactors[p.month];
+ const vegFactor=.55+state.veg/180;
+ const et=clamp(260 + 13*p.temp + 125*radiation*vpd*vegFactor + 1.25*p.wind,180,1100);
+
+ const storageCapacity=55+75*p.soil/100;
+ const soilInput=infiltration/(storageCapacity+infiltration)*100;
+ const moisture=clamp(previousSoil*.58+soilInput*.42,2,98);
+ const runoff=Math.max(0,effectiveRain-infiltration);
+ const deficit=Math.max(0,et-infiltration);
+ const waterStress=clamp(100-(deficit/Math.max(1,et))*100,0,100);
+ const fireRisk=clamp(.55*(100-moisture)+.25*p.temp*2+.12*p.wind+.18*p.human-18,0,100);
+
+ return {effectiveRain,infiltration,et,moisture,runoff,deficit,waterStress,fireRisk};
+}
+const seasonRainFactors=[.03,.02,.04,.08,.14,.18,.22,.18,.07,.03,.02,.03];
+const seasonRadFactors=[1.18,1.17,1.10,.88,.70,.62,.63,.72,.88,1.02,1.10,1.17];
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function calculate(){
+ const p=params();
+ const cm=climateModel(p,state.soilMoisture??55);
+ const slopePenalty=Math.max(0,(p.slope-28)*.42);
+ const temperatureFit=100-clamp(Math.abs(p.temp-17)*5.5,0,100);
+ const habitat=.38*cm.moisture+.18*p.sun+.16*p.soil+.14*temperatureFit+.08*p.rh+.06*(100-p.human)-slopePenalty;
+ return clamp(habitat,4,98);
+}
+function simulateYear(){
+ const p=params();
+ // Advance one ecological year with a seasonal water-budget average.
+ let moisture=state.soilMoisture??55;
+ let annualRain=0,annualET=0,annualRunoff=0,annualDeficit=0,annualFire=0;
+ for(let m=0;m<12;m++){
+   const pp={...p,month:m};
+   const cm=climateModel(pp,moisture);
+   moisture=cm.moisture;
+   annualRain+=cm.effectiveRain; annualET+=cm.et; annualRunoff+=cm.runoff; annualDeficit+=cm.deficit; annualFire+=cm.fireRisk;
+ }
+ const avgFire=annualFire/12;
+ state.soilMoisture=moisture;
+
+ // Vegetation responds with lag: growth depends on moisture, fertility and temperature;
+ // drought and disturbance reduce carrying capacity.
+ const waterSuit=clamp(100-Math.abs(moisture-62)*1.15,5,100);
+ const tempSuit=clamp(100-Math.abs(p.temp-17)*6,10,100);
+ const carrying=clamp(.42*waterSuit+.22*p.soil+.16*tempSuit+.10*p.sun+.10*(100-p.human)-p.slope*.12,5,100);
+ const fireDamage=state.fire*.0025;
+ const growth=(carrying-state.veg)*.105 - fireDamage - Math.max(0,(50-moisture))*.018;
+ state.veg=clamp(state.veg+growth,2,96);
+
+ // Biodiversity has inertia and depends on habitat continuity rather than instant water alone.
+ const habitat=calculate();
+ const diversityTarget=clamp(.52*habitat+.28*state.veg+.10*p.soil+.10*(100-p.human),3,98);
+ state.bio=clamp(state.bio+(diversityTarget-state.bio)*.12-state.fire*.004,3,98);
+ state.biomass=clamp(state.veg*(.48+.004*moisture+.0015*p.soil),1,100);
+ state.plants=clamp(Math.round(2+state.bio/7.4),2,16);
+ state.fauna=clamp(Math.round(2+state.bio/7.0),2,18);
+
+ // Fire risk can generate a small natural disturbance if fuel is abundant and conditions dry.
+ if(avgFire>72 && state.veg>35 && p.human>20 && Math.random()<.12) state.fire=Math.min(70,state.fire+12);
+ state.fire*=.70;
+ state.year++;
+ state.history.push({year:state.year,veg:state.veg,bio:state.bio,biomass:state.biomass,moisture});
+ if(state.history.length>20)state.history.shift();
+
+ state.climate={annualRain,annualET,annualRunoff,annualDeficit,avgFire};
+ render();
+}
+function render(){
+ updateLabels();
+ const p=params(), h=calculate();
+ $('season').textContent=seasons[p.month];$('yearLabel').textContent='Año '+state.year;
+ $('condition').textContent=state.fire>25?'Recuperación post-incendio':h>72?'Condiciones muy favorables':h>52?'Condiciones favorables':h>35?'Estrés ambiental':'Condiciones limitantes';
+ const cm=climateModel(p,state.soilMoisture??55);
+ const cl=state.climate||{};
+ $('mSoil').textContent=Math.round(state.soilMoisture??cm.moisture)+'%';
+ $('mET').textContent=Math.round(cl.annualET?cl.annualET/12:cm.et)+' mm';
+ $('mRunoff').textContent=Math.round(cl.annualRunoff?cl.annualRunoff:cm.runoff)+' mm';
+ $('mFireRisk').textContent=Math.round(cl.avgFire??cm.fireRisk)+'%';
+ $('mDeficit').textContent=Math.round(cl.annualDeficit?cl.annualDeficit:cm.deficit)+' mm';
+ $('climateSummary').textContent=(state.soilMoisture??55)<30?'Déficit hídrico severo':(state.soilMoisture??55)<45?'Estrés hídrico':(state.soilMoisture??55)>75?'Suelo muy húmedo':'Humedad de suelo en equilibrio';
+ $('mVeg').textContent=Math.round(state.veg)+'%';$('mPlant').textContent=state.plants;
+ $('mBio').textContent=Math.round(state.bio)+'%';$('mFauna').textContent=state.fauna;$('mBiomass').textContent=Math.round(state.biomass)+'%';
+ drawScene();drawChart();drawSpecies();
+}
+let animTime=0, animationFrame=null;
+const particles=[];
+const butterflies=[
+ {x:.20,y:.38,phase:0,speed:.7},{x:.52,y:.32,phase:2,speed:.55},
+ {x:.72,y:.44,phase:4,speed:.8},{x:.35,y:.52,phase:1,speed:.65}
+];
+function drawScene(){
+ const c=$('scene'),ctx=c.getContext('2d'),d=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
+ c.width=w*d;c.height=h*d;ctx.setTransform(d,0,0,d,0,0);
+ const p=params(), month=p.month;
+ const seasonFactor=(month>=5&&month<=7)?.72:(month>=8&&month<=10)?1.08:.92;
+ const hour=12+Math.sin(animTime*.035)*5;
+ const daylight=Math.max(.15,Math.sin((hour-6)/12*Math.PI));
+ const skyTop=month>=5&&month<=7?'#173a4a':month>=8&&month<=10?'#67aeb0':'#4e9ba5';
+ const skyBottom=month>=5&&month<=7?'#7b8e83':month>=8&&month<=10?'#b7d4b3':'#d1d3a0';
+ let g=ctx.createLinearGradient(0,0,0,h);
+ g.addColorStop(0,skyTop);g.addColorStop(.55,skyBottom);g.addColorStop(1,'#273d29');
+ ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+
+ // atmospheric haze
+ ctx.fillStyle=`rgba(230,245,225,${.05+daylight*.06})`;ctx.fillRect(0,0,w,h*.48);
+
+ // sun trajectory / moon
+ const sunX=w*.18+((month+0.5)/12)*w*.64;
+ const sunY=82+Math.sin((month/12)*Math.PI)*(-34);
+ ctx.save();ctx.shadowBlur=35;ctx.shadowColor='#ffe39a';
+ ctx.fillStyle='#ffe39a';ctx.beginPath();ctx.arc(sunX,sunY,24,0,Math.PI*2);ctx.fill();ctx.restore();
+
+ // distant hills
+ ctx.fillStyle='#36594a';ctx.beginPath();ctx.moveTo(0,h*.59);
+ for(let x=0;x<=w;x+=35)ctx.lineTo(x,h*.55+Math.sin(x*.008)*22);
+ ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();ctx.fill();
+
+ // main slope: inclination changes silhouette
+ const base=h*.79, peak=h*.20+(p.slope/60)*100;
+ const shift=Math.sin(animTime*.008)*2;
+ ctx.beginPath();ctx.moveTo(-20,base);
+ ctx.bezierCurveTo(w*.20,peak+80,w*.40,peak,w*.62,base-35);
+ ctx.bezierCurveTo(w*.78,base-55,w*.90,base-15,w+20,base-55);
+ ctx.lineTo(w+20,h);ctx.lineTo(-20,h);ctx.closePath();
+ let soil=ctx.createLinearGradient(0,peak,0,h);
+ soil.addColorStop(0,'#738a55');soil.addColorStop(.5,'#4d633d');soil.addColorStop(1,'#172d22');
+ ctx.fillStyle=soil;ctx.fill();
+
+ // erosion lines on steep slopes
+ ctx.strokeStyle=`rgba(30,45,27,${.18+p.slope/300})`;ctx.lineWidth=1;
+ for(let i=0;i<10;i++){
+   const y=base-15-i*15;
+   ctx.beginPath();ctx.moveTo(w*.48,y);ctx.quadraticCurveTo(w*.58,y-8,w*.70,y+3);ctx.stroke();
+ }
+
+ // grass and shrubs move with wind
+ const wind=Math.sin(animTime*.04)*2.5;
+ for(let i=0;i<95;i++){
+   const x=(i*73)%w, y=base+8+(i*29)%(Math.max(30,h-base-10));
+   ctx.strokeStyle='rgba(142,174,97,.38)';ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-2+wind*.2,y-7);ctx.moveTo(x,y);ctx.lineTo(x+3+wind*.15,y-6);ctx.stroke();
+ }
+
+ // forest trees: density and height respond to vegetation
+ const count=Math.floor(9+state.veg*.34);
+ for(let i=0;i<count;i++){
+   const x=25+(i*97%Math.max(1,w-50));
+   const localY=base-25-((i*43)%Math.max(30,base-75))*(state.veg/100);
+   const r=10+((i*11)%16)*(state.veg/100);
+   drawTreeAnimated(ctx,x,localY,r,state.veg/100,wind,i);
+ }
+
+ // flowering patches
+ if(state.bio>35){
+   for(let i=0;i<18;i++){
+     const x=(i*137+40)%w,y=base-10-(i%4)*13;
+     ctx.fillStyle=i%2?'#e6c2d2':'#f4d878';
+     ctx.beginPath();ctx.arc(x,y,2.2,0,Math.PI*2);ctx.fill();
+   }
+ }
+
+ // butterflies / pollinators
+ if(state.fauna>6){
+   ctx.font='17px serif';
+   butterflies.forEach((b,i)=>{
+     const bx=(b.x*w+Math.sin(animTime*.03*b.speed+b.phase)*28)%w;
+     const by=b.y*h+Math.sin(animTime*.045+b.phase)*16;
+     ctx.fillText(i%2?'🦋':'🐝',bx,by);
+   });
+ }
+
+ // animated birds
+ if(state.fauna>10){
+   ctx.strokeStyle='#1d2b27';ctx.lineWidth=2;
+   for(let i=0;i<3;i++){
+     const bx=(w*(.15+i*.32)+animTime*(10+i*4))%(w+100)-50;
+     const by=70+i*45+Math.sin(animTime*.025+i)*18;
+     ctx.beginPath();ctx.arc(bx,by,8,Math.PI*1.1,Math.PI*1.9);
+     ctx.arc(bx+12,by,8,Math.PI*1.1,Math.PI*1.9);ctx.stroke();
+   }
+ }
+
+ // water stress / rain
+ if(p.water<35){
+   ctx.fillStyle='rgba(210,190,105,.10)';ctx.fillRect(0,0,w,h);
+   ctx.fillStyle='rgba(235,215,145,.45)';ctx.font='12px system-ui';
+   ctx.fillText('estrés hídrico',18,h-18);
+ }
+ if(p.rain>600 || p.month>=5&&p.month<=7){
+   ctx.strokeStyle='rgba(170,220,235,.35)';ctx.lineWidth=1;
+   for(let i=0;i<35;i++){
+     const x=(i*53+animTime*3)%w,y=(i*31+animTime*7)%(h*.65);
+     ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y+10);ctx.stroke();
+   }
+ }
+
+ // fire glow
+ if(state.fire>10){
+   const fireA=Math.min(.7,state.fire/120);
+   ctx.fillStyle=`rgba(235,91,52,${fireA*.12})`;ctx.fillRect(0,0,w,h);
+   for(let i=0;i<18;i++){
+     const x=(i*83+animTime*2)%w,y=base-20-(i*17%80);
+     ctx.fillStyle=`rgba(247,119,47,${fireA})`;
+     ctx.beginPath();ctx.arc(x,y,3+Math.sin(animTime*.1+i)*2,0,Math.PI*2);ctx.fill();
+   }
+ }
+ $('seasonChip').textContent=(seasons[p.month]==='Invierno'?'❄️ ':seasons[p.month]==='Verano'?'☀️ ':seasons[p.month]==='Primavera'?'🌸 ':'🍂 ')+seasons[p.month];
+ $('weatherChip').textContent=p.water<30?'🏜️ Sequía':p.rain>600?'🌧️ Lluvias intensas':state.fire>15?'🔥 Recuperación':'🌤️ Condiciones estables';
+}
+function drawTreeAnimated(ctx,x,y,r,v,wind,i){
+ const sway=Math.sin(animTime*.025+i*.7)*2+wind*.35;
+ ctx.save();ctx.translate(sway,0);
+ ctx.strokeStyle='#493323';ctx.lineWidth=Math.max(2,r*.20);
+ ctx.beginPath();ctx.moveTo(x,y+r*2.5);ctx.lineTo(x,y);ctx.stroke();
+ // branches
+ ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,y+r*.7);ctx.lineTo(x-r*.7,y-r*.3);ctx.moveTo(x,y+r*.5);ctx.lineTo(x+r*.7,y-r*.1);ctx.stroke();
+ const pulse=1+Math.sin(animTime*.02+i)*.035;
+ ctx.scale(pulse,pulse);
+ ctx.fillStyle=v>.65?'#356b3d':v>.35?'#4c793f':'#687b46';
+ [[0,0,r],[ -r*.65,r*.18,r*.72],[r*.65,r*.22,r*.70],[0,r*.52,r*.62]].forEach(q=>{
+   ctx.beginPath();ctx.arc(x+q[0],y+q[1],q[2],0,Math.PI*2);ctx.fill();
+ });
+ ctx.restore();
+}
+
+function buildLeaves(){
+ const layer=document.getElementById('leafLayer');
+ if(!layer)return;
+ layer.innerHTML='';
+ const amount=Math.round(10+state.veg*.42);
+ for(let i=0;i<amount;i++){
+   const el=document.createElement('span');
+   el.className='leaf';
+   el.style.left=(4+(i*47)%92)+'%';
+   el.style.top=(20+(i*31)%58)+'%';
+   el.style.setProperty('--dur',(3.5+(i%7)*.55)+'s');
+   el.style.setProperty('--rot',(i*37%180)+'deg');
+   el.style.animationDelay=(-(i%11)*.48)+'s';
+   el.style.opacity=Math.min(.9,.25+state.veg/120);
+   layer.appendChild(el);
+ }
+}
+function animate(){
+ animTime++;drawScene();
+ animationFrame=requestAnimationFrame(animate);
+}
+function drawChart(){
+ const c=$('chart'),ctx=c.getContext('2d'),d=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;c.width=w*d;c.height=h*d;ctx.setTransform(d,0,0,d,0,0);
+ ctx.clearRect(0,0,w,h);ctx.strokeStyle='#294a3c';ctx.lineWidth=1;
+ for(let i=0;i<5;i++){let y=18+i*(h-35)/4;ctx.beginPath();ctx.moveTo(30,y);ctx.lineTo(w-10,y);ctx.stroke()}
+ const hist=state.history.length?state.history:[{year:1,veg:state.veg,bio:state.bio,biomass:state.biomass}];
+ function line(key,dash){ctx.beginPath();hist.forEach((v,i)=>{let x=35+i*(w-55)/Math.max(1,hist.length-1),y=h-20-(v[key]/100)*(h-42);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.setLineDash(dash||[]);ctx.strokeStyle=key==='veg'?'#8bd36b':key==='bio'?'#f4c95d':'#5fc9e8';ctx.lineWidth=2.5;ctx.stroke();ctx.setLineDash([])}
+ line('veg');line('bio',[5,5]);line('biomass',[2,4]);
+ ctx.font='11px system-ui';ctx.fillStyle='#8bd36b';ctx.fillText('Cobertura',35,15);ctx.fillStyle='#f4c95d';ctx.fillText('Biodiversidad',105,15);ctx.fillStyle='#5fc9e8';ctx.fillText('Biomasa',200,15);
+}
+function drawSpecies(){
+ const habitat=calculate();
+ $('species').innerHTML=species.map((s,i)=>{
+   const threshold=[25,32,38,42,35,48,35,45,28,34,48,55,68,52,15,18][i];
+   const active=state.bio>=threshold && habitat>threshold*.65;
+   return `<div class="species-item" style="opacity:${active?1:.28}"><span>${s[1]}</span><div><b>${s[0]}</b><br><small style="color:#78988a">${active?s[2]:'poco probable'}</small></div></div>`;
+ }).join('');
+}
+function scenario(type){
+ if(type==='wet'){$('water').value=75;$('rain').value=650;$('ar').value=70;$('subs').value=25;$('rh').value=78;$('wind').value=20;$('human').value=8}
+ if(type==='dry'){$('water').value=25;$('rain').value=180;$('ar').value=5;$('subs').value=82;$('rh').value=38;$('wind').value=45;$('temp').value=21}
+ if(type==='natural'){$('water').value=65;$('rain').value=480;$('ar').value=25;$('subs').value=48;$('rh').value=68;$('wind').value=18;$('human').value=2;$('soil').value=75}
+ if(type==='urban'){$('water').value=45;$('rain').value=350;$('ar').value=15;$('subs').value=65;$('rh').value=50;$('wind').value=35;$('human').value=70;$('soil').value=35}
+ render();
+}
+document.querySelectorAll('input[type=range],select').forEach(el=>el.addEventListener('input',render));
+$('yearBtn').onclick=simulateYear;
+$('resetBtn').onclick=()=>{state={year:1,veg:42,bio:48,biomass:38,plants:9,fauna:14,fire:0,soilMoisture:55,climate:{},history:[]};render()};
+$('fireBtn').onclick=()=>{state.fire=Math.min(100,state.fire+55);state.veg*=.52;state.bio*=.62;state.biomass*=.48;render()};
+$('rainBtn').onclick=()=>{$('water').value=Math.min(100,+$('water').value+12);$('rain').value=Math.min(900,+$('rain').value+90);$('ar').value=Math.min(100,+$('ar').value+20);render()};
+window.addEventListener('resize',render); render(); animate();
+
+const sceneWrap=document.querySelector('.scene-wrap');
+if(sceneWrap){
+ sceneWrap.addEventListener('pointermove',e=>{
+   const r=sceneWrap.getBoundingClientRect();
+   const nx=(e.clientX-r.left)/r.width-.5, ny=(e.clientY-r.top)/r.height-.5;
+   const terrain=sceneWrap.querySelector('.terrain-3d');
+   terrain.style.transform=`rotateY(${nx*5}deg) rotateX(${-ny*3}deg)`;
+ });
+ sceneWrap.addEventListener('pointerleave',()=>{
+   sceneWrap.querySelector('.terrain-3d').style.transform='';
+ });
+}
+const oldRender=render;
+render=function(){
+ oldRender();
+ buildLeaves();
+ const strength=Math.max(.45,Math.min(1.15,.45+state.veg/100));
+ document.querySelectorAll('.tree3d').forEach((el,i)=>{
+   const s=strength*(0.82+(i%3)*.08);
+   el.style.opacity=Math.min(1,s);
+   el.style.filter=`drop-shadow(9px 13px 8px #0006) saturate(${.8+state.bio/180})`;
+ });
+ document.querySelectorAll('.rock').forEach(el=>el.style.opacity=state.veg<15?.55:1);
+};
+
+</script>
+
+<script>
+/* === ECOMULADOR · BIODIVERSIDAD CUANTIFICADA + MODO JUEGO === */
+(function(){
+  const originalCalculate = window.calculate;
+  const originalSimulateYear = window.simulateYear;
+
+  window.gameMode = false;
+  window.bioInventory = {
+    quillay:0, peumo:0, litre:0, boldo:0, espino:0, chagual:0,
+    abejas:0, picaflor:0, lagartijas:0, degus:0, zorros:0, aves:0
+  };
+
+  const labels = {
+    quillay:"🌳 Quillayes", peumo:"🌳 Peumos", litre:"🌳 Litres",
+    boldo:"🌿 Boldos", espino:"🌳 Espinos", chagual:"🌵 Chaguales",
+    abejas:"🐝 Abejas", picaflor:"🪽 Picaflores", lagartijas:"🦎 Lagartijas",
+    degus:"🐭 Degús", zorros:"🦊 Zorros", aves:"🦅 Aves rapaces"
+  };
+
+  function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+
+  function updateInventory(){
+    if(typeof state==="undefined") return;
+    const b=clamp(state.bio||0,0,100), v=clamp(state.veg||0,0,100);
+    const habitat=typeof state.habitat==="number"?state.habitat:b;
+    const diversityFactor=(b/100)*(.65+.35*habitat/100);
+    const counts={
+      quillay:Math.max(0,Math.round(v*.10)),
+      peumo:Math.max(0,Math.round(v*.075)),
+      litre:Math.max(0,Math.round(v*.06)),
+      boldo:Math.max(0,Math.round(v*.055)),
+      espino:Math.max(0,Math.round(v*.07)),
+      chagual:Math.max(0,Math.round(v*.05)),
+      abejas:Math.max(0,Math.round(b*.11)),
+      picaflor:Math.max(0,Math.round(b*.035)),
+      lagartijas:Math.max(0,Math.round(b*.07)),
+      degus:Math.max(0,Math.round(b*.055)),
+      zorros:Math.max(0,Math.round(b*.018)),
+      aves:Math.max(0,Math.round(b*.025))
+    };
+    // Ensure a viable ecosystem starts with at least one representative species
+    if(v>15){ counts.quillay=Math.max(1,counts.quillay); }
+    if(v>25){ counts.peumo=Math.max(1,counts.peumo); }
+    if(b>25){ counts.abejas=Math.max(1,counts.abejas); }
+    if(b>35){ counts.lagartijas=Math.max(1,counts.lagartijas); }
+    window.bioInventory=counts;
+
+    const totalSpecies=Object.values(counts).filter(x=>x>0).length;
+    const totalUnits=Object.values(counts).reduce((a,x)=>a+x,0);
+    const level=Math.max(1,Math.min(10,Math.floor(totalUnits/10)+1));
+    const nextTarget=level*10;
+    const progress=clamp((totalUnits%10)/10*100,0,100);
+
+    const el=document.getElementById("speciesCounters");
+    if(el) el.innerHTML=Object.entries(counts).map(([k,x])=>
+      `<div style="padding:7px 8px;background:rgba(255,255,255,.055);border-radius:9px">${labels[k]} <b style="float:right">${x}</b></div>`
+    ).join("");
+    const lev=document.getElementById("bioLevel"); if(lev) lev.textContent=window.gameMode?`Nivel ${level}`:`Índice ${Math.round(b)}/100`;
+    const fill=document.getElementById("bioProgressFill"); if(fill) fill.style.width=window.gameMode?`${progress}%`:`${b}%`;
+    const goal=document.getElementById("bioGoal");
+    if(goal) goal.textContent=window.gameMode
+      ? `Meta siguiente: ${nextTarget} unidades de biodiversidad · ${totalSpecies} grupos presentes`
+      : `${totalUnits} unidades estimadas · ${totalSpecies} grupos funcionales presentes`;
+
+    // Evolution milestones
+    if(window.gameMode){
+      const milestone=Math.floor(totalUnits/10)*10;
+      if(milestone>=10 && milestone !== window._lastMilestone){
+        window._lastMilestone=milestone;
+        showEvolution(milestone, level);
+      }
+    }
+  }
+
+  function showEvolution(points, level){
+    let toast=document.getElementById("evolutionToast");
+    if(!toast){
+      toast=document.createElement("div");
+      toast.id="evolutionToast";
+      toast.style.cssText="position:fixed;left:50%;top:18%;transform:translateX(-50%) scale(.9);z-index:9999;background:linear-gradient(135deg,#163c24,#2f7542);color:#fff;padding:18px 24px;border-radius:18px;box-shadow:0 15px 50px rgba(0,0,0,.45);font-size:18px;text-align:center;border:1px solid rgba(255,255,255,.2);opacity:0;transition:.35s";
+      document.body.appendChild(toast);
+    }
+    const names={10:"Matorral inicial",20:"Bosque joven",30:"Bosque en expansión",40:"Bosque diverso",50:"Bosque maduro",60:"Ecosistema resiliente",70:"Refugio de biodiversidad",80:"Bosque excepcional",90:"Santuario ecológico",100:"🌎 Bosque esclerófilo legendario"};
+    toast.innerHTML=`<div style="font-size:30px">🌱 → 🌳</div><b>¡Evolución desbloqueada!</b><br><span>${points} unidades · ${names[Math.min(100,points)]||"Nuevo nivel"}</span>`;
+    requestAnimationFrame(()=>{toast.style.opacity="1";toast.style.transform="translateX(-50%) scale(1)"});
+    setTimeout(()=>{toast.style.opacity="0";toast.style.transform="translateX(-50%) scale(.9)"},2600);
+  }
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    const t=document.getElementById("gameModeToggle");
+    if(t) t.addEventListener("change",e=>{
+      window.gameMode=e.target.checked;
+      window._lastMilestone=0;
+      updateInventory();
+    });
+    setTimeout(updateInventory,300);
+  });
+
+  // Observe changes to state without depending on the internal function structure.
+  setInterval(updateInventory,900);
+})();
+</script>
+</body>
+</html>

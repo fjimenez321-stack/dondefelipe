@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Simulador de ladera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light;
+    --bg: #FFFFFF;
+    --green: #1B4332;
+    --green2: #2D6A4F;
+    --gold: #C9A227;
+    --goldl: #F3E6B0;
+    --ember: #E2572B;
+    --water: #2F6690;
+    --ink: #1F2A24;
+    --muted: #5B6B61;
+    --line: #E3E7E2;
+    --soft: #F5F8F5;
+    --display: "Fraunces", Cambria, Georgia, serif;
+    --body: "Inter", Calibri, "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 20px 16px 40px; }
+  h1 { font-family: var(--display); font-size: clamp(26px, 5vw, 36px); line-height: 1.15; margin: 0 0 6px; color: var(--green); }
+  h2 { font-family: var(--display); font-size: 20px; margin: 0 0 10px; color: var(--green); }
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--ember); text-transform: uppercase; margin-bottom: 6px; }
+  .lead { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  .controls { display: grid; gap: 14px; grid-template-columns: 1fr; margin-bottom: 14px; }
+  @media (min-width: 700px) { .controls { grid-template-columns: repeat(3, 1fr); } }
+  .ctl label { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .ctl output { font-family: var(--display); font-size: 18px; color: var(--green2); font-weight: 700; }
+  .ctl small { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+  input[type=range] { width: 100%; accent-color: var(--green2); height: 28px; margin: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+  .chips span.t { font-size: 13px; font-weight: 600; color: var(--muted); align-self: center; margin-right: 2px; }
+  .chip { font: inherit; font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: #fff; color: var(--green); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
+  .chip:hover { background: var(--soft); border-color: var(--green2); }
+  .scene { padding: 8px; margin-bottom: 14px; }
+  .scene svg { display: block; width: 100%; height: auto; }
+  .obs { margin: 8px 8px 4px; font-size: 14px; color: var(--ink); }
+  .obs b { color: var(--ember); }
+  .results { display: grid; gap: 14px; grid-template-columns: 1fr; margin-bottom: 14px; }
+  @media (min-width: 640px) { .results { grid-template-columns: 1fr 1fr; } }
+  .slope h3 { font-family: var(--display); font-size: 18px; margin: 0 0 2px; }
+  .slope .sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .slope.s h3 { color: var(--water); }
+  .slope.n h3 { color: #9A7B0B; }
+  .meter { margin-bottom: 12px; }
+  .meter .row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .meter .row span:last-child { font-variant-numeric: tabular-nums; }
+  .bar { height: 12px; border-radius: 6px; background: #EDF1ED; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 6px; transition: width .25s ease; }
+  .bar.e i { background: linear-gradient(90deg, #F2D43A, #E2572B); }
+  .bar.h i { background: linear-gradient(90deg, #9CC3DE, #2F6690); }
+  .veg { border-top: 1px dashed var(--line); padding-top: 10px; }
+  .veg .vn { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--green); }
+  .veg .vs { font-size: 14px; margin: 2px 0 4px; }
+  .veg .va { font-size: 13px; color: var(--muted); }
+  .ai { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .chart { padding: 12px; margin-bottom: 14px; }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); margin: 4px 4px 0; }
+  .legend i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .legend i.bar-l { height: 10px; width: 10px; background: #D6E6F2; border-radius: 2px; }
+  .explore { display: grid; gap: 10px; grid-template-columns: 1fr; margin-bottom: 18px; }
+  @media (min-width: 700px) { .explore { grid-template-columns: 1fr 1fr; } }
+  .q { background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 15px; }
+  .q b { display: inline-block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #4A3B00; background: var(--goldl); padding: 2px 9px; border-radius: 999px; margin-bottom: 6px; }
+  .note { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Biología de los Ecosistemas · 3° Medio</div>
+  <h1>Simulador de ladera</h1>
+  <p class="lead">Un mismo cerro, dos laderas. Mueve los controles y observa cómo se relacionan la energía del Sol, la humedad que retiene el suelo y la vegetación que logra vivir ahí.</p>
+
+  <div class="card controls">
+    <div class="ctl">
+      <label for="beta">Inclinación <output id="betaOut">25°</output></label>
+      <input id="beta" type="range" min="0" max="45" step="1" value="25">
+      <small>0° es terreno plano; 45° es muy empinado.</small>
+    </div>
+    <div class="ctl">
+      <label for="rain">Lluvia anual <output id="rainOut">450 mm</output></label>
+      <input id="rain" type="range" min="200" max="900" step="25" value="450">
+      <small>En la costa de la Región de Valparaíso, el rango habitual es menor a 500 mm.</small>
+    </div>
+    <div class="ctl">
+      <label for="month">Mes <output id="monthOut">Julio</output></label>
+      <input id="month" type="range" min="0" max="11" step="1" value="6">
+      <small id="sunTxt">El Sol está hacia el norte.</small>
+    </div>
+  </div>
+
+  <div class="chips" id="chips">
+    <span class="t">Prueba:</span>
+    <button class="chip" data-b="25" data-p="450" data-m="6">Cerro típico, invierno</button>
+    <button class="chip" data-b="25" data-p="450" data-m="0">El mismo cerro, verano</button>
+    <button class="chip" data-b="25" data-p="250" data-m="6">Un año seco</button>
+    <button class="chip" data-b="45" data-p="450" data-m="6">Cerro muy empinado</button>
+    <button class="chip" data-b="0" data-p="450" data-m="6">Terreno plano</button>
+  </div>
+
+  <div class="card scene">
+    <svg id="scene" viewBox="0 20 700 380" role="img" aria-label="Corte norte-sur de un cerro con dos laderas, el Sol y la vegetación"></svg>
+    <p class="obs" id="obs"></p>
+  </div>
+
+  <div class="results">
+    <div class="card slope s">
+      <h3>Ladera sur (umbría)</h3>
+      <div class="sub">Mira hacia el sur: recibe el Sol más de costado.</div>
+      <div class="meter"><div class="row"><span>Energía solar recibida</span><span id="eS"></span></div><div class="bar e"><i id="eSb"></i></div></div>
+      <div class="meter"><div class="row"><span>Humedad retenida en el suelo</span><span id="hS"></span></div><div class="bar h"><i id="hSb"></i></div></div>
+      <div class="veg"><div class="vn" id="vnS"></div><div class="vs" id="vsS"></div><div class="va" id="vaS"></div></div>
+      <div class="ai" id="aiS"></div>
+    </div>
+    <div class="card slope n">
+      <h3>Ladera norte (solana)</h3>
+      <div class="sub">Mira hacia el norte: enfrenta al Sol de frente.</div>
+      <div class="meter"><div class="row"><span>Energía solar recibida</span><span id="eN"></span></div><div class="bar e"><i id="eNb"></i></div></div>
+      <div class="meter"><div class="row"><span>Humedad retenida en el suelo</span><span id="hN"></span></div><div class="bar h"><i id="hNb"></i></div></div>
+      <div class="veg"><div class="vn" id="vnN"></div><div class="vs" id="vsN"></div><div class="va" id="vaN"></div></div>
+      <div class="ai" id="aiN"></div>
+    </div>
+  </div>
+
+  <div class="card chart">
+    <h2>La humedad del suelo a lo largo del año</h2>
+    <svg id="chart" viewBox="0 0 700 220" role="img" aria-label="Humedad del suelo mensual de ambas laderas"></svg>
+    <div class="legend">
+      <span><i style="background:#2F6690"></i>Ladera sur</span>
+      <span><i style="background:#C9A227"></i>Ladera norte</span>
+      <span><i class="bar-l"></i>Lluvia del mes</span>
+    </div>
+  </div>
+
+  <h2>Preguntas para explorar</h2>
+  <p class="lead" style="margin-bottom:10px">No tienen una única respuesta. Sirven para mirar mejor, probar ideas y preguntar más.</p>
+  <div class="explore">
+    <div class="q"><b>Observa</b><br>Mueve el mes de enero a julio. ¿Qué cambia primero: la energía o la humedad? ¿Qué te hace pensar eso?</div>
+    <div class="q"><b>Predice</b><br>Antes de mover la inclinación, imagina qué le pasará a cada ladera. Luego pruébalo: ¿en qué te sorprendió?</div>
+    <div class="q"><b>Conecta</b><br>Busca una combinación en que las dos laderas tengan la misma vegetación. ¿Qué tienen en común esas condiciones?</div>
+    <div class="q"><b>Imagina</b><br>Si fueras una semilla de peumo, ¿en qué ladera y con cuánta lluvia te gustaría caer? ¿Qué necesitarías para pasar el verano?</div>
+    <div class="q"><b>Cuestiona</b><br>¿Qué le falta a este modelo para parecerse a un cerro real? Piensa en viento, suelo, fuego, animales y personas.</div>
+  </div>
+
+  <p class="note">Modelo didáctico simplificado para 33° S (Valparaíso): cielo medio con nubosidad, balance de agua mensual y suelo con capacidad limitada. Los valores sirven para razonar, no reemplazan mediciones en terreno. Las especies mencionadas son tendencias generales de Chile central.</p>
+</div>
+
+<script>
+(function () {
+  var rad = function (d) { return d * Math.PI / 180; };
+  var PHI_DEG = -33.05, PHI = rad(PHI_DEG);
+  var CF = 0.75, K = 0.38, MJ = 3.6 * 0.408;
+  var MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var MS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+  var PM = [0,0.5,1.5,4,12,24,22,18,9,5,3,1];
+  var MID = [15,46,74,105,135,166,196,227,258,288,319,349];
+  var decl = function (n) { return 23.44 * Math.sin(rad(360 / 365 * (n - 81))); };
+
+  function daily(decDeg, betaDeg, face) {
+    var d = rad(decDeg), b = rad(betaDeg), sum = 0;
+    for (var w = -180; w < 180; w += 5) {
+      var om = rad(w + 2.5);
+      var sa = Math.sin(PHI) * Math.sin(d) + Math.cos(PHI) * Math.cos(d) * Math.cos(om);
+      if (sa <= 0.02) continue;
+      var sN = Math.sin(d) * Math.cos(PHI) - Math.cos(d) * Math.sin(PHI) * Math.cos(om);
+      var am = Math.min(1 / sa, 30);
+      var Ib = 1.353 * Math.pow(0.7, Math.pow(am, 0.678)) * CF;
+      var cosT = face * Math.sin(b) * sN + Math.cos(b) * sa;
+      var Id = 0.1 * Ib * sa;
+      sum += (Ib * Math.max(0, cosT) + Id * (1 + Math.cos(b)) / 2) * (5 / 15);
+    }
+    return sum;
+  }
+
+  function model(P, beta, face) {
+    var run = 0.5 * Math.sin(rad(beta));
+    var Peff = P * (1 - run);
+    var C = 150 * (1 - 0.6 * Math.sin(rad(beta)));
+    var E = MID.map(function (n) { return daily(decl(n), beta, face); });
+    var pet = E.map(function (e, i) { return DAYS[i] * e * MJ * K; });
+    var petA = pet.reduce(function (a, b) { return a + b; }, 0);
+    var S = 0, H = new Array(12).fill(0);
+    for (var y = 0; y < 4; y++) for (var m = 0; m < 12; m++) {
+      S = Math.max(0, Math.min(C, S + Peff * PM[m] / 100 - pet[m]));
+      if (y === 3) H[m] = 100 * S / C;
+    }
+    return { E: E, H: H, AI: Peff / petA };
+  }
+
+  var CATS = [
+    { max: 0.20, cls: 0, name: 'Matorral muy seco', sp: 'Quisco, chagual y otras plantas que almacenan agua.', ad: 'Tallos que guardan agua y espinas que reducen la pérdida y el consumo.' },
+    { max: 0.32, cls: 1, name: 'Espinal y matorral seco', sp: 'Espino, quisco, colliguay.', ad: 'Hojas pequeñas o transformadas en espinas y raíces profundas que buscan agua.' },
+    { max: 0.48, cls: 2, name: 'Matorral esclerófilo', sp: 'Quillay, litre, colliguay.', ad: 'Hojas duras con cutícula gruesa que reducen la pérdida de agua en verano.' },
+    { max: 0.75, cls: 3, name: 'Bosque esclerófilo', sp: 'Peumo, boldo, quillay.', ad: 'Árboles de hojas duras que aprovechan la humedad del invierno y resisten el verano seco.' },
+    { max: 99, cls: 4, name: 'Bosque húmedo de quebrada', sp: 'Lingue, canelo, belloto del norte y helechos.', ad: 'Más sombra y suelo húmedo permiten hojas menos duras y un sotobosque de helechos.' }
+  ];
+  function cat(ai) { for (var i = 0; i < CATS.length; i++) if (ai < CATS[i].max) return CATS[i]; return CATS[CATS.length - 1]; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var st = { beta: 25, P: 450, m: 6 };
+  var res = null;
+  function recompute() { res = { N: model(st.P, st.beta, +1), S: model(st.P, st.beta, -1) }; }
+
+  function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
+  function mix(a, b, t) {
+    var x = hex(a), y = hex(b);
+    return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(x[i] + (y[i] - x[i]) * t); }).join(',') + ')';
+  }
+  var fmt = function (v, d) { return v.toFixed(d).replace('.', ','); };
+
+  function plant(cls, x, y, s) {
+    if (cls === 0) return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><rect x="-4" y="-30" width="8" height="30" rx="4" fill="#5E8C4A"/><rect x="-14" y="-22" width="6" height="14" rx="3" fill="#5E8C4A"/><rect x="-14" y="-14" width="12" height="5" rx="2" fill="#5E8C4A"/><rect x="8" y="-26" width="6" height="16" rx="3" fill="#5E8C4A"/><rect x="2" y="-14" width="10" height="5" rx="2" fill="#5E8C4A"/></g>';
+    if (cls === 1) return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><path d="M0 0 L0 -14 M0 -9 L-7 -16 M0 -11 L7 -18" stroke="#6B4F3A" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="0" cy="-20" rx="13" ry="7" fill="#9AA85C"/><circle cx="-9" cy="-17" r="4" fill="#9AA85C"/><circle cx="9" cy="-21" r="4" fill="#9AA85C"/></g>';
+    if (cls === 2) return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><rect x="-1.5" y="-8" width="3" height="8" fill="#6B4F3A"/><circle cx="0" cy="-16" r="12" fill="#6F9A4F"/><circle cx="-6" cy="-12" r="7" fill="#5F8A43"/><circle cx="7" cy="-19" r="6" fill="#7DAA5A"/></g>';
+    if (cls === 3) return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><rect x="-2" y="-16" width="4" height="16" fill="#6B4F3A"/><circle cx="0" cy="-26" r="15" fill="#3F7D4E"/><circle cx="-8" cy="-21" r="9" fill="#356E44"/><circle cx="8" cy="-30" r="8" fill="#4C8D5B"/></g>';
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')"><circle cx="-9" cy="-4" r="5" fill="#4F9D69"/><circle cx="9" cy="-4" r="5" fill="#4F9D69"/><rect x="-2.5" y="-24" width="5" height="24" fill="#5A4630"/><circle cx="0" cy="-34" r="17" fill="#2D6A4F"/><circle cx="-10" cy="-28" r="10" fill="#245A42"/><circle cx="10" cy="-38" r="9" fill="#38785A"/></g>';
+  }
+  var COUNTS = [2, 4, 6, 8, 9];
+  var TS = [0.12, 0.27, 0.42, 0.57, 0.72, 0.86, 0.34, 0.64, 0.2];
+
+  function renderScene() {
+    var L = 230, y0 = 318, cx = 350;
+    var tb = Math.tan(rad(st.beta));
+    var yp = y0 - L * tb;
+    var dec = decl(MID[st.m]);
+    var alt = 90 - Math.abs(PHI_DEG - dec);
+    var sx = Math.min(655, cx + 270 * Math.cos(rad(alt))), sy = y0 - 270 * Math.sin(rad(alt));
+    var eN = res.N.E[st.m], eS = res.S.E[st.m];
+    var hN = res.N.H[st.m], hS = res.S.H[st.m];
+    var cN = cat(res.N.AI), cS = cat(res.S.AI);
+    var dry = '#E6CB97', wet = '#6E5035';
+    var out = '';
+    out += '<rect x="0" y="0" width="700" height="400" fill="#FFFFFF"/>';
+    // sol y rayos
+    var mids = [[cx - L / 2, (yp + y0) / 2, eS], [cx + L / 2, (yp + y0) / 2, eN]];
+    mids.forEach(function (m) {
+      var rel = Math.min(1, m[2] / 7);
+      out += '<line x1="' + sx.toFixed(1) + '" y1="' + sy.toFixed(1) + '" x2="' + m[0].toFixed(1) + '" y2="' + (m[1] - 4).toFixed(1) + '" stroke="#F2B705" stroke-width="' + (1 + 5 * rel).toFixed(1) + '" stroke-opacity="' + (0.15 + 0.7 * rel).toFixed(2) + '" stroke-dasharray="8 7" stroke-linecap="round"/>';
+    });
+    out += '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="22" fill="#F7C531" stroke="#E0A800" stroke-width="2"/>';
+    // laderas
+    out += '<polygon points="' + (cx - L) + ',' + y0 + ' ' + cx + ',' + yp.toFixed(1) + ' ' + cx + ',372 ' + (cx - L) + ',372" fill="' + mix(dry, wet, hS / 100) + '"/>';
+    out += '<polygon points="' + cx + ',' + yp.toFixed(1) + ' ' + (cx + L) + ',' + y0 + ' ' + (cx + L) + ',372 ' + cx + ',372" fill="' + mix(dry, wet, hN / 100) + '"/>';
+    out += '<polyline points="' + (cx - L) + ',' + y0 + ' ' + cx + ',' + yp.toFixed(1) + ' ' + (cx + L) + ',' + y0 + '" fill="none" stroke="#5A4630" stroke-width="2.5" stroke-linejoin="round"/>';
+    out += '<line x1="' + (cx - L - 60) + '" y1="' + y0 + '" x2="' + (cx - L) + '" y2="' + y0 + '" stroke="#5A4630" stroke-width="2.5"/><line x1="' + (cx + L) + '" y1="' + y0 + '" x2="' + (cx + L + 60) + '" y2="' + y0 + '" stroke="#5A4630" stroke-width="2.5"/>';
+    // vegetación (de arriba hacia abajo)
+    function veg(c, sign) {
+      var n = COUNTS[c.cls], ts = TS.slice(0, n).sort(function (a, b) { return a - b; }), g = '';
+      var sc = [0.9, 0.95, 1, 1.05, 1.1][c.cls];
+      ts.forEach(function (t) {
+        var x = cx + sign * t * L, y = yp + t * L * tb;
+        g += plant(c.cls, x.toFixed(1), y.toFixed(1), sc);
+      });
+      return g;
+    }
+    out += veg(cS, -1) + veg(cN, +1);
+    // etiquetas
+    out += '<text x="' + (cx - L / 2) + '" y="392" text-anchor="middle" font-family="Inter, Calibri, sans-serif" font-size="15" font-weight="700" fill="#2F6690">← Sur · ladera sur (umbría)</text>';
+    out += '<text x="' + (cx + L / 2) + '" y="392" text-anchor="middle" font-family="Inter, Calibri, sans-serif" font-size="15" font-weight="700" fill="#9A7B0B">Norte → · ladera norte (solana)</text>';
+    out += '<text x="' + (sx).toFixed(1) + '" y="' + (sy + 42).toFixed(1) + '" text-anchor="middle" font-family="Inter, Calibri, sans-serif" font-size="12" fill="#5B6B61">Sol a ' + Math.round(alt) + '° al mediodía</text>';
+    $('scene').innerHTML = out;
+    $('sunTxt').textContent = 'Al mediodía el Sol está a ' + Math.round(alt) + '° sobre el horizonte, hacia el norte.';
+  }
+
+  function renderResults() {
+    var m = st.m;
+    var N = res.N, S = res.S;
+    $('eN').textContent = fmt(N.E[m], 1) + ' kWh/m²·día';
+    $('eS').textContent = fmt(S.E[m], 1) + ' kWh/m²·día';
+    $('eNb').style.width = Math.min(100, N.E[m] / 7 * 100) + '%';
+    $('eSb').style.width = Math.min(100, S.E[m] / 7 * 100) + '%';
+    $('hN').textContent = Math.round(N.H[m]) + ' %';
+    $('hS').textContent = Math.round(S.H[m]) + ' %';
+    $('hNb').style.width = N.H[m] + '%';
+    $('hSb').style.width = S.H[m] + '%';
+    var cN = cat(N.AI), cS = cat(S.AI);
+    $('vnN').textContent = cN.name; $('vsN').textContent = cN.sp; $('vaN').textContent = cN.ad;
+    $('vnS').textContent = cS.name; $('vsS').textContent = cS.sp; $('vaS').textContent = cS.ad;
+    $('aiN').textContent = 'Relación lluvia útil ÷ evaporación potencial del año: ' + fmt(N.AI, 2) + ' (más alto = más húmedo)';
+    $('aiS').textContent = 'Relación lluvia útil ÷ evaporación potencial del año: ' + fmt(S.AI, 2) + ' (más alto = más húmedo)';
+    var a = N.E[m], b = S.E[m], txt;
+    var r = a / Math.max(b, 0.05);
+    if (r < 1.1) txt = 'En ' + MONTHS[m].toLowerCase() + ', ambas laderas reciben casi la misma energía solar.';
+    else txt = 'En ' + MONTHS[m].toLowerCase() + ', la ladera norte recibe <b>' + fmt(r, 1) + ' veces</b> la energía de la ladera sur.';
+    $('obs').innerHTML = txt;
+  }
+
+  function renderChart() {
+    var x0 = 50, x1 = 670, yb = 170, k = 1.4;
+    var xs = function (i) { return x0 + i * (x1 - x0) / 11; };
+    var out = '<rect width="700" height="220" fill="#fff"/>';
+    [0, 50, 100].forEach(function (v) {
+      var y = yb - v * k;
+      out += '<line x1="' + x0 + '" y1="' + y + '" x2="' + x1 + '" y2="' + y + '" stroke="#E3E7E2" stroke-width="1"/>';
+      out += '<text x="' + (x0 - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11" fill="#5B6B61" font-family="Inter, Calibri, sans-serif">' + v + ' %</text>';
+    });
+    for (var i = 0; i < 12; i++) {
+      var h = (PM[i] * st.P / 100) / 220 * 110;
+      out += '<rect x="' + (xs(i) - 14).toFixed(1) + '" y="' + (yb - h).toFixed(1) + '" width="28" height="' + h.toFixed(1) + '" fill="#D6E6F2"/>';
+      out += '<text x="' + xs(i).toFixed(1) + '" y="192" text-anchor="middle" font-size="11" fill="#5B6B61" font-family="Inter, Calibri, sans-serif">' + MS[i] + '</text>';
+    }
+    function line(H, color) {
+      var pts = H.map(function (v, i) { return xs(i).toFixed(1) + ',' + (yb - v * k).toFixed(1); }).join(' ');
+      return '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
+    }
+    out += line(res.S.H, '#2F6690') + line(res.N.H, '#C9A227');
+    var mx = xs(st.m);
+    out += '<line x1="' + mx.toFixed(1) + '" y1="20" x2="' + mx.toFixed(1) + '" y2="' + yb + '" stroke="#1F2A24" stroke-width="1.5" stroke-dasharray="4 4"/>';
+    out += '<circle cx="' + mx.toFixed(1) + '" cy="' + (yb - res.S.H[st.m] * k).toFixed(1) + '" r="5.5" fill="#2F6690" stroke="#fff" stroke-width="2"/>';
+    out += '<circle cx="' + mx.toFixed(1) + '" cy="' + (yb - res.N.H[st.m] * k).toFixed(1) + '" r="5.5" fill="#C9A227" stroke="#fff" stroke-width="2"/>';
+    $('chart').innerHTML = out;
+  }
+
+  function renderAll() { renderScene(); renderResults(); renderChart(); }
+
+  function labels() {
+    $('betaOut').textContent = st.beta + '°';
+    $('rainOut').textContent = st.P + ' mm';
+    $('monthOut').textContent = MONTHS[st.m];
+  }
+  function bind(id, key, heavy) {
+    $(id).addEventListener('input', function (e) {
+      st[key] = +e.target.value;
+      labels();
+      if (heavy) recompute();
+      renderAll();
+    });
+  }
+  bind('beta', 'beta', true); bind('rain', 'P', true); bind('month', 'm', false);
+  // las claves de st usan beta, P, m
+  $('rain').addEventListener('input', function () {});
+  document.getElementById('chips').addEventListener('click', function (e) {
+    var t = e.target.closest('.chip'); if (!t) return;
+    st.beta = +t.dataset.b; st.P = +t.dataset.p; st.m = +t.dataset.m;
+    $('beta').value = st.beta; $('rain').value = st.P; $('month').value = st.m;
+    labels(); recompute(); renderAll();
+  });
+  labels(); recompute(); renderAll();
+})();
+</script>
+</body>
+</html>

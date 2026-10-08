@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratorio 3D de Membranas · Difusión y Ósmosis</title>
+<style>
+:root{
+  --ink:#172033;--muted:#64748b;--line:#d9e1ea;--blue:#2563eb;
+  --blue2:#60a5fa;--cyan:#06b6d4;--green:#16a34a;--red:#dc2626;
+  --purple:#7c3aed;--orange:#ea580c;--bg:#f8fafc;--card:#ffffff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:#eef2f7;color:var(--ink)}
+button,select,input{font:inherit}
+.app{max-width:1500px;margin:auto;padding:18px}
+header{background:white;border:1px solid var(--line);border-radius:18px;padding:18px 22px;margin-bottom:14px;box-shadow:0 8px 30px #0f172a0b}
+h1{margin:0 0 5px;font-size:25px}
+.subtitle{color:var(--muted);font-size:14px}
+.layout{display:grid;grid-template-columns:350px 1fr;gap:14px}
+.panel,.stage{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 30px #0f172a0b}
+.panel{padding:16px;max-height:calc(100vh - 145px);overflow:auto}
+.stage{padding:10px;min-height:720px;display:flex;flex-direction:column}
+.section{border-top:1px solid #e8edf3;padding-top:14px;margin-top:14px}
+.section:first-child{border-top:0;padding-top:0;margin-top:0}
+label{display:block;font-size:12px;font-weight:700;margin:9px 0 5px}
+select,input[type=number]{width:100%;padding:9px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink)}
+input[type=range]{width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.value{float:right;font-weight:700;color:var(--blue)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:#edf2f7;padding:4px;border-radius:10px}
+.tabs button{border:0;padding:9px;border-radius:8px;background:transparent;color:var(--muted);font-weight:800;cursor:pointer}
+.tabs button.active{background:white;color:var(--blue);box-shadow:0 2px 8px #0f172a12}
+.systems{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.system{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;cursor:pointer;text-align:left}
+.system:hover{border-color:#93c5fd}
+.system.on{background:#eff6ff;border-color:#60a5fa}
+.system strong{display:block;font-size:12px}.system small{color:var(--muted);font-size:10px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.btn{border:0;border-radius:10px;padding:10px;font-weight:800;cursor:pointer}
+.primary{background:var(--blue);color:white}.secondary{background:#e8eef6;color:var(--ink)}
+.note{font-size:11px;color:var(--muted);line-height:1.45;background:#f8fafc;border-radius:10px;padding:9px;margin-top:10px}
+canvas{width:100%;height:590px;display:block;border-radius:14px;background:linear-gradient(#fff,#f6f9fc);cursor:crosshair}
+.readouts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:9px}
+.metric{border:1px solid var(--line);border-radius:11px;padding:10px;background:#fff}
+.metric span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800}
+.metric b{font-size:17px}
+.badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:900;margin-top:6px}
+.iso{background:#dcfce7;color:#166534}.hypo{background:#dbeafe;color:#1d4ed8}.hyper{background:#fee2e2;color:#b91c1c}
+.legend{display:flex;flex-wrap:wrap;gap:9px;padding:9px 3px 1px;font-size:11px;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.panel{max-height:none}.stage{min-height:auto}canvas{height:520px}.readouts{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Laboratorio 3D de Membranas</h1>
+  <div class="subtitle">Simulador educativo de difusión, transporte de membrana y ósmosis · modelo cualitativo con variables ajustables</div>
+</header>
+
+<div class="layout">
+<aside class="panel">
+  <div class="section">
+    <div class="tabs">
+      <button id="tabDiff" class="active">Difusión</button>
+      <button id="tabOsm">Ósmosis</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Tipo de célula</label>
+    <select id="cellType">
+      <option value="animal">Animal</option>
+      <option value="plant">Vegetal</option>
+      <option value="fungus">Fúngica</option>
+      <option value="bacteria">Bacteriana</option>
+    </select>
+  </div>
+
+  <div id="diffControls">
+    <div class="section">
+      <label>Soluto</label>
+      <select id="solute">
+        <option value="O2">O₂</option>
+        <option value="CO2">CO₂</option>
+        <option value="H2O">H₂O</option>
+        <option value="glucose">Glucosa</option>
+        <option value="Na">Na⁺</option>
+        <option value="K">K⁺</option>
+        <option value="H">H⁺</option>
+        <option value="protein">Proteína</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label>Exterior <span class="value" id="outVal">70</span></label>
+          <input id="outside" type="range" min="0" max="100" value="70">
+        </div>
+        <div>
+          <label>Interior <span class="value" id="inVal">25</span></label>
+          <input id="inside" type="range" min="0" max="100" value="25">
+        </div>
+      </div>
+
+      <label>Permeabilidad de la bicapa <span class="value" id="permVal">55%</span></label>
+      <input id="perm" type="range" min="0" max="100" value="55">
+
+      <label>Temperatura <span class="value" id="tempVal">25 °C</span></label>
+      <input id="temp" type="range" min="0" max="50" value="25">
+    </div>
+
+    <div class="section">
+      <label>Sistemas de transporte instalables</label>
+      <div class="systems">
+        <button class="system" data-sys="channel"><strong>Canal iónico</strong><small>Difusión facilitada</small></button>
+        <button class="system" data-sys="facilitated"><strong>Transportador</strong><small>Facilitado</small></button>
+        <button class="system" data-sys="aquaporin"><strong>Acuaporina</strong><small>Canal de agua</small></button>
+        <button class="system" data-sys="nak"><strong>Na⁺/K⁺ ATPasa</strong><small>3 Na⁺ fuera / 2 K⁺ dentro</small></button>
+        <button class="system" data-sys="proton"><strong>Bomba H⁺</strong><small>Transporte activo</small></button>
+        <button class="system" data-sys="cotrans"><strong>Na⁺/glucosa</strong><small>Cotransporte</small></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="osmControls" style="display:none">
+    <div class="section">
+      <label>Solutos no penetrantes — exterior <span class="value" id="osmOutVal">300</span> mOsm</label>
+      <input id="osmOut" type="range" min="50" max="600" value="300">
+
+      <label>Solutos no penetrantes — interior <span class="value" id="osmInVal">300</span> mOsm</label>
+      <input id="osmIn" type="range" min="50" max="600" value="300">
+
+      <label>Permeabilidad al agua <span class="value" id="waterPermVal">65%</span></label>
+      <input id="waterPerm" type="range" min="0" max="100" value="65">
+
+      <label>Volumen inicial <span class="value" id="volVal">100%</span></label>
+      <input id="volume" type="range" min="55" max="145" value="100">
+
+      <div id="tonicity" class="badge iso">ISOTÓNICO</div>
+      <div class="note" id="osmExplanation">Cuando cambia la concentración de solutos no penetrantes, el agua se desplaza hacia el lado con mayor concentración osmótica.</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary" id="pause">⏸ Pausar</button>
+    <button class="btn secondary" id="reset">↺ Reiniciar</button>
+  </div>
+
+  <div class="note">
+    <b>Modelo científico:</b> el flujo de difusión aumenta con el gradiente de concentración, la permeabilidad y la temperatura. En ósmosis se considera principalmente la diferencia de osmolaridad de solutos no penetrantes. Es un modelo educativo normalizado, no una simulación molecular cuantitativa.
+  </div>
+</aside>
+
+<main class="stage">
+  <canvas id="canvas" width="1100" height="590"></canvas>
+  <div class="legend">
+    <span><i class="dot" style="background:#ef4444"></i>O₂</span>
+    <span><i class="dot" style="background:#38bdf8"></i>H₂O</span>
+    <span><i class="dot" style="background:#f59e0b"></i>glucosa</span>
+    <span><i class="dot" style="background:#8b5cf6"></i>iones</span>
+    <span><i class="dot" style="background:#64748b"></i>proteínas</span>
+    <span>↔ movimiento browniano</span>
+  </div>
+  <div class="readouts">
+    <div class="metric"><span>Flujo neto</span><b id="flow">0.00</b></div>
+    <div class="metric"><span>Gradiente</span><b id="gradient">0.00</b></div>
+    <div class="metric"><span>Volumen celular</span><b id="volumeRead">100%</b></div>
+    <div class="metric"><span>ATP</span><b id="atp">100</b></div>
+  </div>
+</main>
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById("canvas"),ctx=canvas.getContext("2d");
+const $=id=>document.getElementById(id);
+let mode="diff",running=true,t=0,cellVolume=100,atp=100;
+let systems=new Set();
+let particles=[];
+const colors={O2:"#ef4444",CO2:"#f97316",H2O:"#38bdf8",glucose:"#f59e0b",Na:"#8b5cf6",K:"#a855f7",H:"#ec4899",protein:"#64748b"};
+
+function rand(a,b){return a+Math.random()*(b-a)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function currentCell(){
+  return $("cellType").value
+}
+function addParticle(type,x,y,side){
+  particles.push({type,x,y,side,vx:rand(-.8,.8),vy:rand(-.8,.8),phase:Math.random()*7})
+}
+function seedParticles(){
+  particles=[];
+  const type=$("solute").value;
+  for(let i=0;i<42;i++) addParticle(type,rand(70,500),rand(90,500),"out");
+  for(let i=0;i<Math.round(42*Number($("inside").value)/100+5);i++) addParticle(type,rand(600,980),rand(120,470),"in");
+}
+function seedWater(){
+  particles=[];
+  for(let i=0;i<48;i++) addParticle("H2O",rand(60,500),rand(90,500),"out");
+  for(let i=0;i<48;i++) addParticle("H2O",rand(610,970),rand(120,470),"in");
+}
+function reset(){
+  running=true;$("pause").textContent="⏸ Pausar";
+  atp=100;
+  cellVolume=mode==="osm"?Number($("volume").value):100;
+  mode==="osm"?seedWater():seedParticles();
+  updateLabels();updateTonicity();
+}
+function updateLabels(){
+  $("outVal").textContent=$("outside").value;
+  $("inVal").textContent=$("inside").value;
+  $("permVal").textContent=$("perm").value+"%";
+  $("tempVal").textContent=$("temp").value+" °C";
+  $("osmOutVal").textContent=$("osmOut").value;
+  $("osmInVal").textContent=$("osmIn").value;
+  $("waterPermVal").textContent=$("waterPerm").value+"%";
+  $("volVal").textContent=$("volume").value+"%";
+}
+function updateTonicity(){
+  const o=Number($("osmOut").value),i=Number($("osmIn").value);
+  const badge=$("tonicity");
+  if(Math.abs(o-i)<10){badge.textContent="ISOTÓNICO";badge.className="badge iso"}
+  else if(o<i){badge.textContent="HIPOTÓNICO";badge.className="badge hypo"}
+  else {badge.textContent="HIPERTÓNICO";badge.className="badge hyper"}
+  const cell=currentCell();
+  let extra="";
+  if(Math.abs(o-i)<10) extra="No existe un flujo osmótico neto importante.";
+  else if(o<i){
+    extra=cell==="animal"?"El agua entra: la célula aumenta de volumen y puede sufrir lisis si la diferencia es extrema."
+      :cell==="plant"?"El agua entra: aumenta la turgencia de la célula vegetal."
+      :"El agua entra, limitado parcialmente por la pared celular.";
+  }else{
+    extra=cell==="animal"?"El agua sale: la célula disminuye de volumen y puede crenarse."
+      :cell==="plant"?"El agua sale: puede producirse plasmólisis."
+      :"El agua sale y el volumen disminuye.";
+  }
+  $("osmExplanation").textContent=extra;
+}
+function setMode(m){
+  mode=m;
+  $("tabDiff").classList.toggle("active",m==="diff");
+  $("tabOsm").classList.toggle("active",m==="osm");
+  $("diffControls").style.display=m==="diff"?"block":"none";
+  $("osmControls").style.display=m==="osm"?"block":"none";
+  reset();
+}
+$("tabDiff").onclick=()=>setMode("diff");
+$("tabOsm").onclick=()=>setMode("osm");
+$("pause").onclick=()=>{running=!running;$("pause").textContent=running?"⏸ Pausar":"▶ Continuar"};
+$("reset").onclick=reset;
+["outside","inside","perm","temp","osmOut","osmIn","waterPerm","volume"].forEach(id=>{
+  $(id).addEventListener("input",()=>{updateLabels();if(id==="volume")cellVolume=Number($(id).value);updateTonicity()})
+});
+$("solute").onchange=()=>seedParticles();
+$("cellType").onchange=()=>updateTonicity();
+
+document.querySelectorAll(".system").forEach(btn=>{
+  btn.onclick=()=>{
+    const s=btn.dataset.sys;
+    systems.has(s)?systems.delete(s):systems.add(s);
+    btn.classList.toggle("on",systems.has(s));
+  }
+});
+
+function cellGeom(){
+  const v=cellVolume/100;
+  const base={x:550,y:295,rx:315*Math.sqrt(v),ry:205*Math.sqrt(v)};
+  const type=currentCell();
+  if(type==="bacteria")return {x:550,y:295,rx:300*Math.sqrt(v),ry:130*Math.sqrt(v)};
+  if(type==="fungus")return {x:550,y:295,rx:275*Math.sqrt(v),ry:190*Math.sqrt(v)};
+  return base;
+}
+function drawGrid(){
+  ctx.save();
+  ctx.strokeStyle="#e5eaf0";ctx.lineWidth=1;
+  for(let x=20;x<1080;x+=40){ctx.beginPath();ctx.moveTo(x,70);ctx.lineTo(x,545);ctx.stroke()}
+  for(let y=70;y<550;y+=35){ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(1080,y);ctx.stroke()}
+  ctx.restore();
+}
+function ellipsePath(x,y,rx,ry){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2)}
+function drawCell(){
+  const g=cellGeom(),type=currentCell();
+  ctx.save();
+  ctx.shadowColor="#0f172a20";ctx.shadowBlur=28;ctx.shadowOffsetY=10;
+  ctx.fillStyle="#ffffff";ellipsePath(g.x,g.y,g.rx,g.ry);ctx.fill();
+  ctx.shadowColor="transparent";
+
+  if(type==="plant"||type==="fungus"){
+    ctx.lineWidth=22;ctx.strokeStyle="#86a37b";ellipsePath(g.x,g.y,g.rx+4,g.ry+4);ctx.stroke();
+    ctx.lineWidth=3;ctx.strokeStyle="#496c47";ellipsePath(g.x,g.y,g.rx+4,g.ry+4);ctx.stroke();
+  }
+  ctx.lineWidth=9;ctx.strokeStyle="#8bc5d8";ellipsePath(g.x,g.y,g.rx,g.ry);ctx.stroke();
+  ctx.lineWidth=2;ctx.strokeStyle="#276c80";ellipsePath(g.x,g.y,g.rx,g.ry);ctx.stroke();
+
+  // citoplasma
+  const grad=ctx.createRadialGradient(g.x-80,g.y-90,10,g.x,g.y,g.rx);
+  grad.addColorStop(0,"#ffffff");grad.addColorStop(.65,"#f0f8fb");grad.addColorStop(1,"#dceef4");
+  ctx.fillStyle=grad;ellipsePath(g.x,g.y,g.rx-9,g.ry-9);ctx.fill();
+
+  if(type==="plant"){
+    ctx.fillStyle="#d8e8ba";ellipsePath(g.x+40,g.y,g.rx*.53,g.ry*.62);ctx.fill();
+    ctx.strokeStyle="#78934e";ctx.lineWidth=2;ctx.stroke();
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4;
+      ctx.fillStyle="#7fa95b";ctx.beginPath();
+      ctx.ellipse(g.x+Math.cos(a)*g.rx*.68,g.y+Math.sin(a)*g.ry*.62,22,9,a,0,Math.PI*2);ctx.fill();
+    }
+  }
+  if(type==="animal"||type==="plant"){
+    const nr=Math.min(g.rx,g.ry)*.24;
+    const ng=ctx.createRadialGradient(g.x-20,g.y-15,5,g.x,g.y,nr);
+    ng.addColorStop(0,"#c4b5fd");ng.addColorStop(1,"#7c3aed");
+    ctx.fillStyle=ng;ellipsePath(g.x-35,g.y-15,nr,nr*.8);ctx.fill();
+    ctx.strokeStyle="#5b21b6";ctx.lineWidth=2;ctx.stroke();
+  }
+  if(type==="fungus"){
+    ctx.strokeStyle="#8b5cf6";ctx.lineWidth=3;
+    for(let i=0;i<5;i++){
+      ctx.beginPath();ctx.moveTo(g.x-120+i*50,g.y+70);ctx.quadraticCurveTo(g.x-80+i*45,g.y-5,g.x-25+i*50,g.y-75);ctx.stroke();
+    }
+  }
+  if(type==="bacteria"){
+    ctx.strokeStyle="#4d7c0f";ctx.lineWidth=2;
+    for(let i=0;i<9;i++){ctx.beginPath();ctx.arc(g.x-190+i*48,g.y+rand(-55,55),rand(2,5),0,Math.PI*2);ctx.stroke()}
+  }
+  ctx.restore();
+}
+function drawMembrane(){
+  const g=cellGeom();
+  ctx.save();
+  // phospholipid bilayer
+  for(let k=0;k<7;k++){
+    ctx.lineWidth=1.5;
+    ctx.strokeStyle=`rgba(37,99,235,${.10+k*.035})`;
+    ellipsePath(g.x,g.y,g.rx-k*2.1,g.ry-k*2.1);ctx.stroke();
+  }
+  const n=42;
+  for(let i=0;i<n;i++){
+    const a=(i/n)*Math.PI*2+t*.001;
+    const wob=Math.sin(t*.004+i*2.1)*2.5;
+    const x=g.x+Math.cos(a)*(g.rx+4);
+    const y=g.y+Math.sin(a)*(g.ry+4);
+    ctx.fillStyle="#2563eb";ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#93c5fd";ctx.lineWidth=2;ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x-Math.cos(a)*(7+wob),y-Math.sin(a)*(7+wob));ctx.stroke();
+  }
+  // transporters
+  const list=[...systems];
+  list.forEach((s,j)=>{
+    const a=(j/list.length)*Math.PI*2-.7;
+    const x=g.x+Math.cos(a)*(g.rx+3),y=g.y+Math.sin(a)*(g.ry+3);
+    ctx.save();ctx.translate(x,y);ctx.rotate(a+Math.PI/2);
+    let c=s==="nak"?"#dc2626":s==="proton"?"#ea580c":s==="cotrans"?"#7c3aed":s==="aquaporin"?"#0891b2":"#16a34a";
+    ctx.fillStyle=c;ctx.shadowColor="#0002";ctx.shadowBlur=5;
+    ctx.fillRect(-14,-9,28,18);ctx.fillStyle="#fff8";ctx.fillRect(-7,-9,4,18);ctx.fillRect(3,-9,4,18);
+    ctx.restore();
+  });
+  ctx.restore();
+}
+function drawParticle(p){
+  const c=colors[p.type]||"#64748b";
+  const r=p.type==="protein"?7:p.type==="glucose"?5:p.type==="H2O"?4:4.5;
+  const grad=ctx.createRadialGradient(p.x-r*.35,p.y-r*.45,1,p.x,p.y,r*1.5);
+  grad.addColorStop(0,"#fff");grad.addColorStop(.22,c);grad.addColorStop(1,c+"00");
+  ctx.fillStyle=grad;ctx.beginPath();ctx.arc(p.x,p.y,r*1.45,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=c;ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();
+}
+function drawLabels(){
+  ctx.save();ctx.font="700 13px Segoe UI";ctx.fillStyle="#64748b";
+  ctx.fillText("MEDIO EXTRACELULAR",35,42);
+  ctx.fillText("MEDIO INTRACELULAR",850,42);
+  ctx.restore();
+}
+function membraneXAtY(y,g){
+  const q=1-Math.pow((y-g.y)/g.ry,2);
+  return g.x-g.rx*Math.sqrt(Math.max(.01,q));
+}
+function membraneXRightAtY(y,g){
+  const q=1-Math.pow((y-g.y)/g.ry,2);
+  return g.x+g.rx*Math.sqrt(Math.max(.01,q));
+}
+function updateDiff(){
+  const out=Number($("outside").value),inside=Number($("inside").value);
+  const grad=out-inside;
+  const basePerm=Number($("perm").value)/100;
+  const tempFactor=.55+Number($("temp").value)/40;
+  let multiplier=1;
+  const sol=$("solute").value;
+  if(systems.has("channel") && ["Na","K","H"].includes(sol)) multiplier*=5;
+  if(systems.has("facilitated") && ["glucose","O2","CO2"].includes(sol)) multiplier*=3.5;
+  if(systems.has("aquaporin") && sol==="H2O") multiplier*=7;
+  if(sol==="protein") multiplier=.015;
+  if(["Na","K","H"].includes(sol) && !systems.has("channel")) multiplier*=.08;
+  const flow=grad*basePerm*tempFactor*multiplier/100;
+  for(const p of particles){
+    p.x+=p.vx*(.7+Number($("temp").value)/25);
+    p.y+=p.vy*(.7+Number($("temp").value)/25);
+    p.vx+=rand(-.08,.08);p.vy+=rand(-.08,.08);
+    p.vx*=.985;p.vy*=.985;
+    if(p.y<85||p.y>520)p.vy*=-1;
+    if(p.x<40||p.x>1060)p.vx*=-1;
+    const g=cellGeom();
+    const insideCell=Math.pow((p.x-g.x)/g.rx,2)+Math.pow((p.y-g.y)/g.ry,2)<.91;
+    const membraneBand=Math.abs(Math.pow((p.x-g.x)/g.rx,2)+Math.pow((p.y-g.y)/g.ry,2)-1)<.035;
+    if(membraneBand && Math.random()<Math.abs(flow)*.012){
+      p.x+=Math.sign(g.x-p.x)*(sol==="protein"?1:14);
+      p.side=insideCell?"in":"out";
+    }
+    if(p.x>g.x-g.rx && p.x<g.x+g.rx && !insideCell){
+      if(p.x>g.x) p.x=g.x+g.rx+3;
+    }
+  }
+  // active transport: pedagogical stoichiometry
+  if(systems.has("nak") && Math.random()<.025){
+    if(["Na","K"].includes(sol)) atp=clamp(atp-.03,0,100);
+  }
+  if(systems.has("proton") && sol==="H" && Math.random()<.03) atp=clamp(atp-.04,0,100);
+  if(systems.has("cotrans") && sol==="glucose" && Math.random()<.02) atp=clamp(atp-.01,0,100);
+  $("flow").textContent=Math.abs(flow).toFixed(2);
+  $("gradient").textContent=grad.toFixed(0);
+}
+function updateOsm(){
+  const out=Number($("osmOut").value),inside=Number($("osmIn").value);
+  const d=inside-out;
+  const wp=Number($("waterPerm").value)/100;
+  const flow=d*wp/75;
+  // normalized volume response; stronger difference -> faster response
+  const target=clamp(100 + d*.11,55,145);
+  cellVolume += (target-cellVolume)*.008*wp;
+  const g=cellGeom();
+  for(const p of particles){
+    p.x+=p.vx*.7;p.y+=p.vy*.7;
+    p.vx+=rand(-.06,.06);p.vy+=rand(-.06,.06);
+    p.vx*=.99;p.vy*=.99;
+    if(p.y<85||p.y>520)p.vy*=-1;
+    if(p.x<40||p.x>1060)p.vx*=-1;
+    const direction=d>0?1:-1;
+    if(Math.random()<Math.abs(flow)*.0025){
+      p.x += direction*direction===1 ? 5 : -5;
+    }
+    // water particles cross both ways according to osmotic bias
+    const edgeL=g.x-g.rx,edgeR=g.x+g.rx;
+    if(p.x>edgeL-8 && p.x<edgeL+8 && Math.random()<.018){
+      p.x += direction*22;
+    }
+    if(p.x<edgeR+8 && p.x>edgeR-8 && Math.random()<.018){
+      p.x -= direction*22;
+    }
+  }
+  $("flow").textContent=Math.abs(flow).toFixed(2);
+  $("gradient").textContent=d.toFixed(0)+" mOsm";
+}
+function animate(){
+  if(running)t++;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawGrid();drawLabels();
+  if(running){
+    mode==="diff"?updateDiff():updateOsm();
+  }
+  drawCell();drawMembrane();
+  particles.forEach(drawParticle);
+  $("volumeRead").textContent=Math.round(cellVolume)+"%";
+  $("atp").textContent=Math.round(atp);
+  requestAnimationFrame(animate);
+}
+updateLabels();reset();animate();
+</script>
+</body>
+</html>

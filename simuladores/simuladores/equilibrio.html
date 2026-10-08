@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Simulador de Equilibrio Térmico</title>
+<style>
+/* Concepto: banco de laboratorio 3D al centro, controles a la derecha, gráficos debajo. Marca de la unidad: azul marino + ámbar, Arial. */
+:root{
+  --bg:#EEF2F7; --surface:#FFFFFF; --surface2:#E6ECF4; --fg:#14222F; --muted:#566879; --line:#D0D9E4; --grid:#E3E9F0;
+  --navy:#1A3A5C; --on-navy:#FFFFFF; --amber:#D4891A; --on-amber:#1B1202;
+  --ca:#C77A0C; --cb:#1B7FB0; --good:#2E7D4F; --bad:#C0392B;
+  --scene:#DCE6F1; --bench:#C5D2E1; --edge:#6F859C; --chip:rgba(255,255,255,.93);
+  --lat:#D4891A;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1622; --surface:#112133; --surface2:#182C42; --fg:#E7EEF6; --muted:#97A9BC; --line:#25405B; --grid:#1D3249;
+  --amber:#E9A23B; --ca:#EBA43F; --cb:#52B6E6; --good:#58C48A; --bad:#FF7F6B;
+  --scene:#0A1522; --bench:#14283D; --edge:#6C86A3; --chip:rgba(15,34,54,.93); --lat:#E9A23B; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0B1622; --surface:#112133; --surface2:#182C42; --fg:#E7EEF6; --muted:#97A9BC; --line:#25405B; --grid:#1D3249;
+  --amber:#E9A23B; --ca:#EBA43F; --cb:#52B6E6; --good:#58C48A; --bad:#FF7F6B;
+  --scene:#0A1522; --bench:#14283D; --edge:#6C86A3; --chip:rgba(15,34,54,.93); --lat:#E9A23B; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.45;padding-inline:16px;padding-block:12px 40px;font-variant-numeric:tabular-nums}
+.wrap{max-width:1380px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{margin:0;text-wrap:balance}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+.topbar{background:var(--navy);color:var(--on-navy);border-radius:10px;padding:12px 18px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between}
+.topbar .tag{font-size:11px;letter-spacing:.09em;text-transform:uppercase;opacity:.78}
+.topbar h1{font-size:22px;line-height:1.15;margin-top:2px}
+.wallet{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:6px 14px;font-weight:700}
+.wallet small{font-weight:400;opacity:.8}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-areas:"stage panel" "charts panel" "explain explain" "guide guide";gap:14px;align-items:start}
+.stage{grid-area:stage;min-width:0;display:flex;flex-direction:column;gap:8px}
+.panel{grid-area:panel;display:flex;flex-direction:column;gap:10px;min-width:0;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding-right:2px}
+.charts{grid-area:charts;min-width:0}
+.explain{grid-area:explain;min-width:0}
+.guide{grid-area:guide;min-width:0}
+@media (max-width:980px){.layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"stage" "panel" "charts" "explain" "guide"}.panel{position:static;max-height:none;overflow:visible}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.card h2{font-size:15px;margin-bottom:8px}
+.card h3{font-size:13px}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+
+.viewport{position:relative;height:clamp(340px,50vw,560px);background:var(--scene);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.viewport canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.viewport canvas:active{cursor:grabbing}
+#labels{position:absolute;inset:0;pointer-events:none}
+.chip{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;line-height:1.3;white-space:nowrap;text-align:center;will-change:transform}
+.chip b{font-size:15px}
+.chip .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:baseline}
+.hud{position:absolute;left:10px;top:10px;background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;display:flex;gap:12px;flex-wrap:wrap;max-width:calc(100% - 20px)}
+.hud b{font-size:13px}
+.hint{position:absolute;right:10px;bottom:8px;font-size:11px;color:var(--muted);background:var(--chip);border-radius:6px;padding:2px 8px}
+.fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
+
+.transport{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.btn{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700}
+.btn:hover{border-color:var(--amber)}
+.btn.primary{background:var(--amber);border-color:var(--amber);color:var(--on-amber);min-width:128px}
+.btn.small{padding:5px 10px;font-weight:400;font-size:12px}
+.speed{display:flex;align-items:center;gap:8px;flex:1 1 220px;min-width:0}
+.speed input{flex:1;min-width:80px}
+.speed output{min-width:56px;font-weight:700}
+
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--surface);padding:8px 6px;cursor:pointer;font-size:13px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.pre{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer}
+.pre:hover{border-color:var(--amber)}
+.pre[aria-pressed="true"]{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 18%,var(--surface))}
+fieldset{border:1px solid var(--line);border-radius:10px;margin:0;padding:10px 12px 12px;min-width:0}
+legend{font-weight:700;font-size:13px;padding:0 6px;display:flex;align-items:center;gap:6px}
+legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.row{display:grid;grid-template-columns:62px minmax(0,1fr) 62px;gap:8px;align-items:center;margin-top:7px}
+.row label{font-size:12px;color:var(--muted)}
+.row output{text-align:right;font-weight:700;font-size:13px}
+.row input[type=range]{width:100%;accent-color:var(--amber)}
+select,input[type=number]{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:6px 8px;width:100%}
+.phase{font-size:12px;color:var(--muted);margin-top:4px}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px}
+.check input{accent-color:var(--amber);width:16px;height:16px}
+[hidden]{display:none!important}
+
+.chartgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:1180px){.chartgrid{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
+.chartcard canvas{width:100%;height:220px;display:block}
+.chartcard p{margin:6px 0 0;font-size:12px;color:var(--muted)}
+.legend{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:12px}
+.legend li{display:flex;gap:8px;align-items:center}
+.legend i{width:12px;height:12px;border-radius:3px;flex:none}
+.legend span:last-child{margin-left:auto;color:var(--muted)}
+
+.explgrid{align-items:start;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px}
+@media (max-width:860px){.explgrid{grid-template-columns:minmax(0,1fr)}}
+#live p{margin:0 0 8px}
+.eqn{background:var(--surface2);border-radius:8px;padding:8px 10px;font-family:Consolas,Menlo,monospace;font-size:12.5px;overflow-x:auto;margin:6px 0}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:700;font-size:12px}
+.formulas{display:grid;gap:6px;margin-top:10px}
+
+.guidegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:1000px){.guidegrid{grid-template-columns:minmax(0,1fr)}}
+.stagehead{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--amber);font-weight:700;margin-bottom:4px}
+.exps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.exps li{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13px}
+.tick{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700}
+.tick.on{background:var(--good);border-color:var(--good);color:#fff}
+.q{padding:10px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0;padding-top:0}
+.q p{margin:0 0 6px;font-weight:700;font-size:13px}
+.opts{display:flex;flex-direction:column;gap:5px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;cursor:pointer;font-size:13px}
+.opt:hover:not(:disabled){border-color:var(--amber)}
+.opt.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 16%,var(--surface))}
+.opt.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--surface))}
+.fb{font-size:12px;color:var(--muted);margin-top:5px}
+
+.toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;align-items:center;z-index:50;pointer-events:none;width:calc(100% - 32px);max-width:420px}
+.toast{background:var(--navy);color:var(--on-navy);border-radius:10px;padding:9px 14px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.28);opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s}
+.toast.in{opacity:1;transform:none}
+.toast b{color:#F3B14B}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="topbar">
+    <div>
+      <div class="tag">Unidad 3 · OA 11 · Sesión 10 · Repaso</div>
+      <h1>Simulador de equilibrio térmico</h1>
+    </div>
+    <div class="wallet" title="Felipesos ganados en este simulador">🪙 <span id="walletN">0</span> <small>Felipesos</small></div>
+  </header>
+
+  <div class="layout">
+    <section class="stage" aria-label="Simulación 3D">
+      <div class="viewport" id="viewport">
+        <canvas id="gl" aria-label="Escena 3D del experimento"></canvas>
+        <div id="labels"></div>
+        <div class="hud" id="hud"></div>
+        <div class="hint">Arrastra para girar · rueda o pellizco para acercar</div>
+        <div class="fallback" id="fallback">Este dispositivo no pudo iniciar la vista 3D. Los gráficos y los cálculos siguen funcionando.</div>
+      </div>
+      <div class="transport">
+        <button class="btn primary" id="btnPlay" type="button">▶ Iniciar</button>
+        <button class="btn" id="btnReset" type="button">↺ Reiniciar</button>
+        <div class="speed"><label for="speed" class="small muted">Velocidad</label><input type="range" id="speed" min="0" max="100" step="0.5" value="40"><output id="speedO">×10</output><button class="btn small" id="btnAuto" type="button" title="Velocidad sugerida para que dure unos 20 s">Auto</button></div>
+        <button class="btn small" id="btnCam" type="button">Cámara</button>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="Controles">
+      <div class="card">
+        <div class="seg" role="group" aria-label="Modo">
+          <button type="button" id="modeEq" aria-pressed="true">Equilibrio entre dos cuerpos</button>
+          <button type="button" id="modeHeat" aria-pressed="false">Curva de calentamiento</button>
+        </div>
+        <h3 style="margin-top:12px">Experimentos rápidos</h3>
+        <div class="chips" id="presets" style="margin-top:6px"></div>
+      </div>
+
+      <fieldset id="fsA"><legend><span class="dot" style="background:var(--ca)"></span>Cuerpo A</legend>
+        <div class="row"><label for="matA">Material</label><select id="matA" style="grid-column:2/4"></select></div>
+        <div class="row"><label for="massA">Masa</label><input type="range" id="massA" min="0.1" max="2" step="0.05"><output id="massAo"></output></div>
+        <div class="row"><label for="tempA">Temp.</label><input type="range" id="tempA" min="-30" max="130" step="1"><output id="tempAo"></output></div>
+        <div class="phase" id="phA"></div>
+      </fieldset>
+
+      <fieldset id="fsB"><legend><span class="dot" style="background:var(--cb)"></span><span id="titleB">Cuerpo B</span></legend>
+        <div class="row"><label for="matB">Material</label><select id="matB" style="grid-column:2/4"></select></div>
+        <div class="row"><label for="massB">Masa</label><input type="range" id="massB" min="0.1" max="2" step="0.05"><output id="massBo"></output></div>
+        <div class="row"><label for="tempB">Temp.</label><input type="range" id="tempB" min="-30" max="130" step="1"><output id="tempBo"></output></div>
+        <div class="phase" id="phB"></div>
+      </fieldset>
+
+      <fieldset id="fsHeat" hidden><legend>Fuente de calor</legend>
+        <div class="row"><label for="power">Potencia</label><input type="range" id="power" min="100" max="3000" step="50"><output id="powerO"></output></div>
+        <div class="phase">Puedes cambiar la potencia mientras corre la simulación.</div>
+      </fieldset>
+
+      <fieldset id="fsTrans"><legend>Transferencia de calor</legend>
+        <div class="seg" role="group" aria-label="Mecanismo" style="margin-top:4px">
+          <button type="button" data-mech="cond" aria-pressed="true">Conducción</button>
+          <button type="button" data-mech="conv" aria-pressed="false">Convección</button>
+          <button type="button" data-mech="rad" aria-pressed="false">Radiación</button>
+        </div>
+        <div id="gCond">
+          <div class="row"><label for="rod">Barra</label><select id="rod" style="grid-column:2/4"></select></div>
+          <div class="row"><label for="thick">Grosor</label><input type="range" id="thick" min="0.5" max="3" step="0.1"><output id="thickO"></output></div>
+          <div class="phase" id="kInfo"></div>
+        </div>
+        <div id="gConv" hidden>
+          <div class="row"><label for="carea">Tubería</label><input type="range" id="carea" min="0.5" max="3" step="0.1"><output id="careaO"></output></div>
+          <div class="phase">Un fluido circula entre los dos cuerpos: sube donde está caliente y baja donde está frío.</div>
+        </div>
+        <div id="gRad" hidden>
+          <div class="row"><label for="eps">Emisiv.</label><input type="range" id="eps" min="0.05" max="1" step="0.05"><output id="epsO"></output></div>
+          <div class="row"><label for="rarea">Superf.</label><input type="range" id="rarea" min="0.5" max="3" step="0.1"><output id="rareaO"></output></div>
+          <div class="phase">No hay contacto: la energía viaja como radiación infrarroja, incluso en el vacío.</div>
+        </div>
+        <label class="check"><input type="checkbox" id="env"> Con pérdidas al ambiente (20 °C)</label>
+      </fieldset>
+
+      <div class="card" id="fsPred">
+        <h3>Tu predicción</h3>
+        <p class="small muted" style="margin:4px 0 8px">¿A qué temperatura se equilibrarán A y B? Anótala antes de iniciar.</p>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px"><input type="number" id="pred" step="0.1" min="-50" max="200" placeholder="°C" aria-label="Temperatura de equilibrio predicha"><button class="btn small" id="predBtn" type="button">Fijar</button></div>
+        <p class="phase" id="predMsg"></p>
+      </div>
+
+      <div class="card">
+        <label class="check" style="margin-top:0"><input type="checkbox" id="parts"> Ver partículas (vista microscópica)</label>
+        <label class="check"><input type="checkbox" id="showTeq"> Mostrar el equilibrio calculado en el gráfico</label>
+      </div>
+    </aside>
+
+    <section class="charts" aria-label="Gráficos">
+      <div class="chartgrid">
+        <div class="card chartcard"><h3 id="t1"></h3><canvas id="c1"></canvas><p id="k1"></p></div>
+        <div class="card chartcard"><h3 id="t2"></h3><canvas id="c2"></canvas><p id="k2"></p></div>
+        <div class="card chartcard"><h3 id="t3"></h3><canvas id="c3"></canvas><p id="k3"></p><ul class="legend" id="lg3"></ul></div>
+      </div>
+    </section>
+
+    <section class="explain">
+      <div class="explgrid">
+        <div class="card"><h2>¿Qué está pasando?</h2><div id="live"></div><div id="calc"></div></div>
+        <div class="card"><h2>Resumen numérico</h2><div class="tablewrap" id="tbl"></div>
+          <div class="formulas">
+            <div class="eqn">Q = m · c · ΔT   (cambia la temperatura)</div>
+            <div class="eqn">Q = m · L   (cambia el estado, T constante)</div>
+            <div class="eqn">Q cedido = Q ganado   (sistema aislado)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="guide" aria-label="Guía de la sesión">
+      <div class="guidegrid">
+        <div class="card"><div class="stagehead">Inicio</div><h2>Activa lo que ya sabes</h2>
+          <p style="margin:0 0 8px">Si mezclas agua a 20 °C con agua a 80 °C en cantidades iguales, ¿a cuántos grados queda? ¿Y si uno de los cuerpos es un metal?</p>
+          <p class="muted small" style="margin:0 0 10px">Escribe tu idea en el cuaderno, fija una predicción en el panel y contrástala con la simulación.</p>
+          <button class="btn" id="btnStart" type="button">Probar con metal en agua</button>
+        </div>
+        <div class="card"><div class="stagehead">Desarrollo</div><h2>Explora y gana Felipesos</h2>
+          <ul class="exps" id="exps"></ul>
+        </div>
+        <div class="card"><div class="stagehead">Cierre</div><h2>Ticket de salida</h2>
+          <div id="quiz"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ===== MOTOR FÍSICO (sin DOM) ===== */
+const SIG = 5.670374e-8;
+const MATS = {
+  agua:     { n:'Agua',     phase:true, c:[2090,4186,2010], Tm:0, Tb:100, Lf:334000, Lv:2260000, col:'#4aa3df' },
+  aluminio: { n:'Aluminio', c:900,  state:'sólido',  col:'#b9c2cc' },
+  cobre:    { n:'Cobre',    c:385,  state:'sólido',  col:'#b87333' },
+  hierro:   { n:'Hierro',   c:450,  state:'sólido',  col:'#7a828c' },
+  plomo:    { n:'Plomo',    c:130,  state:'sólido',  col:'#5d6571' },
+  vidrio:   { n:'Vidrio',   c:840,  state:'sólido',  col:'#9fd3d6' },
+  aceite:   { n:'Aceite',   c:1970, state:'líquido', col:'#d9b441' }
+};
+const RODS = {
+  cobre:    { n:'Cobre',    k:400,  col:'#b87333' },
+  aluminio: { n:'Aluminio', k:237,  col:'#aab3bd' },
+  acero:    { n:'Acero',    k:50,   col:'#7b848e' },
+  vidrio:   { n:'Vidrio',   k:1.0,  col:'#8fd0d6' },
+  madera:   { n:'Madera',   k:0.15, col:'#8b5a2b' }
+};
+const ROD_AREA = 0.002, ROD_LEN = 0.15;  // m² (barra de ~5 cm de diámetro), m
+const CONV_U = 30;                        // W/K por unidad de "sección"
+const RAD_AREA = 0.2;                     // m² por unidad de "superficie"
+const T_END = 130;                        // °C, fin de la curva de calentamiento
+
+/* Entalpía (J) con referencia: líquido a Tm = 0 */
+function Hinit(mat, m, T) {
+  if (!mat.phase) return m * mat.c * T;
+  const [cs, cl, cg] = mat.c;
+  if (T <= mat.Tm) return m * (cs * (T - mat.Tm) - mat.Lf);
+  if (T <= mat.Tb) return m * cl * (T - mat.Tm);
+  return m * (cl * (mat.Tb - mat.Tm) + mat.Lv + cg * (T - mat.Tb));
+}
+/* Estado a partir de la entalpía */
+function phase(mat, m, H) {
+  if (!mat.phase) return { T: H / (m * mat.c), ice: 0, vap: 0, liq: 1, C: m * mat.c, plat: null };
+  const [cs, cl, cg] = mat.c, Tm = mat.Tm, Tb = mat.Tb, Lf = mat.Lf, Lv = mat.Lv;
+  const h = H / m;
+  const f0 = -Lf, f1 = 0;
+  const b0 = cl * (Tb - Tm), b1 = b0 + Lv;
+  if (h <= f0) return { T: Tm + (h - f0) / cs, ice: 1, vap: 0, liq: 0, C: m * cs, plat: null };
+  if (h < f1)  return { T: Tm, ice: -h / Lf, vap: 0, liq: 1 + h / Lf, C: Infinity, plat: { lo: m * f0, hi: m * f1, kind: 'fusion' } };
+  if (h < b0)  return { T: Tm + h / cl, ice: 0, vap: 0, liq: 1, C: m * cl, plat: null };
+  if (h <= b0) return { T: Tb, ice: 0, vap: 0, liq: 1, C: m * cl, plat: null };
+  if (h < b1)  { const v = (h - b0) / Lv; return { T: Tb, ice: 0, vap: v, liq: 1 - v, C: Infinity, plat: { lo: m * b0, hi: m * b1, kind: 'boil' } }; }
+  return { T: Tb + (h - b1) / cg, ice: 0, vap: 1, liq: 0, C: m * cg, plat: null };
+}
+/* Rango de entalpía posible a una temperatura (hay rango solo en las mesetas) */
+function Hrange(mat, m, T) {
+  if (!mat.phase) { const v = m * mat.c * T; return [v, v]; }
+  const [cs, cl, cg] = mat.c, Tm = mat.Tm, Tb = mat.Tb, Lf = mat.Lf, Lv = mat.Lv;
+  const EPS = 1e-9;
+  if (T < Tm - EPS) { const v = m * (cs * (T - Tm) - Lf); return [v, v]; }
+  if (Math.abs(T - Tm) <= EPS) return [-m * Lf, 0];
+  if (T < Tb - EPS) { const v = m * cl * (T - Tm); return [v, v]; }
+  if (Math.abs(T - Tb) <= EPS) { const lo = m * cl * (Tb - Tm); return [lo, lo + m * Lv]; }
+  const v = m * (cl * (Tb - Tm) + Lv + cg * (T - Tb)); return [v, v];
+}
+/* Temperatura y composición de equilibrio (sistema aislado) */
+function solveEq(bodies) {
+  const Htot = bodies.reduce((s, b) => s + b.H, 0);
+  const sumHi = T => bodies.reduce((s, b) => s + Hrange(b.mat, b.m, T)[1], 0);
+  let lo = -400, hi = 3000;
+  for (let i = 0; i < 200; i++) { const mid = (lo + hi) / 2; if (sumHi(mid) < Htot) lo = mid; else hi = mid; }
+  let T = hi;
+  // ajustar a una meseta si corresponde
+  for (const b of bodies) if (b.mat.phase) for (const Tp of [b.mat.Tm, b.mat.Tb]) if (Math.abs(T - Tp) < 1e-6) T = Tp;
+  const rs = bodies.map(b => Hrange(b.mat, b.m, T));
+  const sLo = rs.reduce((s, r) => s + r[0], 0), sHi = rs.reduce((s, r) => s + r[1], 0);
+  const phi = sHi - sLo > 1e-9 ? Math.min(1, Math.max(0, (Htot - sLo) / (sHi - sLo))) : 0;
+  let ice = 0, vap = 0;
+  bodies.forEach((b, i) => {
+    const H = rs[i][0] + phi * (rs[i][1] - rs[i][0]);
+    const p = phase(b.mat, b.m, H);
+    ice += p.ice * b.m; vap += p.vap * b.m;
+  });
+  return { T, ice, vap, Htot };
+}
+/* Potencia de A hacia B (W) según el mecanismo */
+function flowP(sim, TA, TB) {
+  if (sim.mech === 'cond') return (RODS[sim.rod].k * ROD_AREA * sim.thick / ROD_LEN) * (TA - TB);
+  if (sim.mech === 'conv') return CONV_U * sim.carea * (TA - TB);
+  const a = TA + 273.15, b = TB + 273.15;
+  return sim.eps * SIG * RAD_AREA * sim.rarea * (a * a * a * a - b * b * b * b);
+}
+function Ueff(sim, TA, TB) {
+  if (sim.mech === 'cond') return RODS[sim.rod].k * ROD_AREA * sim.thick / ROD_LEN;
+  if (sim.mech === 'conv') return CONV_U * sim.carea;
+  const a = TA + 273.15, b = TB + 273.15;
+  return sim.eps * SIG * RAD_AREA * sim.rarea * (a + b) * (a * a + b * b);
+}
+function snap(body) {
+  const p = phase(body.mat, body.m, body.H);
+  if (p.plat) {
+    if (p.plat.hi - body.H < 1e-3) body.H = p.plat.hi;
+    else if (body.H - p.plat.lo < 1e-3) body.H = p.plat.lo;
+  }
+}
+/* Avanza el sistema de dos cuerpos dtTotal segundos (paso adaptativo) */
+function advanceEq(sim, dtTotal) {
+  let rem = dtTotal, guard = 0;
+  const A = sim.A, B = sim.B;
+  while (rem > 1e-9 && guard++ < 6000) {
+    const pa = phase(A.mat, A.m, A.H), pb = phase(B.mat, B.m, B.H);
+    const P = flowP(sim, pa.T, pb.T);
+    const eA = sim.env ? sim.Uenv * (pa.T - sim.Tamb) : 0;
+    const eB = sim.env ? sim.Uenv * (pb.T - sim.Tamb) : 0;
+    const nA = -P - eA, nB = P - eB;
+    const iA = isFinite(pa.C) ? 1 / pa.C : 0, iB = isFinite(pb.C) ? 1 / pb.C : 0;
+    const U = Ueff(sim, pa.T, pb.T) + (sim.env ? sim.Uenv : 0);
+    const rate = U * (iA + iB);
+    let dt = rem;
+    if (rate > 0) dt = Math.min(dt, 0.4 / rate);
+    const dTmax = Math.max(0.05, 0.15 * Math.abs(pa.T - pb.T));
+    if (isFinite(pa.C)) { if (Math.abs(nA) > 1e-9) dt = Math.min(dt, dTmax * pa.C / Math.abs(nA)); }
+    else if (pa.plat && Math.abs(nA) > 1e-9) dt = Math.min(dt, ((nA > 0 ? pa.plat.hi - A.H : A.H - pa.plat.lo)) / Math.abs(nA));
+    if (isFinite(pb.C)) { if (Math.abs(nB) > 1e-9) dt = Math.min(dt, dTmax * pb.C / Math.abs(nB)); }
+    else if (pb.plat && Math.abs(nB) > 1e-9) dt = Math.min(dt, ((nB > 0 ? pb.plat.hi - B.H : B.H - pb.plat.lo)) / Math.abs(nB));
+    if (dt < 1e-7) dt = 1e-7;
+    A.H += nA * dt; B.H += nB * dt;
+    sim.envLoss += (eA + eB) * dt;
+    sim.t += dt; rem -= dt;
+    snap(A); snap(B);
+  }
+  const pa = phase(A.mat, A.m, A.H), pb = phase(B.mat, B.m, B.H);
+  sim.P = flowP(sim, pa.T, pb.T);
+}
+/* Calentamiento de una muestra con potencia constante */
+function advanceHeat(sim, dt) {
+  const B = sim.B;
+  B.H += sim.power * dt; sim.Qin += sim.power * dt; sim.t += dt;
+  sim.P = sim.power;
+}
+/* Etapas de calentamiento de T0 a Tend */
+function stagesFor(mat, m, T0, Tend) {
+  if (!mat.phase) return [{ name: 'Calentar ' + mat.n.toLowerCase(), kind: 'sens', Q: m * mat.c * (Tend - T0), T0, T1: Tend }];
+  const [cs, cl, cg] = mat.c, Tm = mat.Tm, Tb = mat.Tb, out = [];
+  if (T0 <= Tm) {
+    if (T0 < Tm) out.push({ name: 'Calentar hielo', kind: 'sens', Q: m * cs * (Tm - T0), T0, T1: Tm });
+    out.push({ name: 'Fusión (calor latente)', kind: 'lat', Q: m * mat.Lf, T0: Tm, T1: Tm });
+    out.push({ name: 'Calentar agua líquida', kind: 'sens', Q: m * cl * (Tb - Tm), T0: Tm, T1: Tb });
+    out.push({ name: 'Ebullición (calor latente)', kind: 'lat', Q: m * mat.Lv, T0: Tb, T1: Tb });
+    out.push({ name: 'Calentar vapor', kind: 'sens', Q: m * cg * (Tend - Tb), T0: Tb, T1: Tend });
+  } else if (T0 <= Tb) {
+    if (T0 < Tb) out.push({ name: 'Calentar agua líquida', kind: 'sens', Q: m * cl * (Tb - T0), T0, T1: Tb });
+    out.push({ name: 'Ebullición (calor latente)', kind: 'lat', Q: m * mat.Lv, T0: Tb, T1: Tb });
+    out.push({ name: 'Calentar vapor', kind: 'sens', Q: m * cg * (Tend - Tb), T0: Tb, T1: Tend });
+  } else out.push({ name: 'Calentar vapor', kind: 'sens', Q: m * cg * (Tend - T0), T0, T1: Tend });
+  return out;
+}
+function newSim(s) {
+  const mk = o => { const mat = MATS[o.mat]; const H = Hinit(mat, o.m, o.T); return { mat, m: o.m, T0: o.T, H, H0: H, matKey: o.mat }; };
+  const sim = {
+    mode: s.mode, A: mk(s.A), B: mk(s.B),
+    mech: s.mech, rod: s.rod, thick: s.thick, carea: s.carea, eps: s.eps, rarea: s.rarea,
+    env: !!s.env, Tamb: 20, Uenv: 0.8, power: s.power,
+    t: 0, P: 0, envLoss: 0, Qin: 0, eq: false, done: false
+  };
+  if (sim.mode === 'eq') {
+    sim.pred = solveEq([sim.A, sim.B]);
+    sim.P = flowP(sim, phase(sim.A.mat, sim.A.m, sim.A.H).T, phase(sim.B.mat, sim.B.m, sim.B.H).T);
+  } else {
+    sim.stages = stagesFor(sim.B.mat, sim.B.m, sim.B.T0, T_END);
+    sim.Qtot = sim.stages.reduce((a, g) => a + g.Q, 0);
+  }
+  return sim;
+}
+/* Velocidad sugerida para que la simulación dure ~20 s reales */
+function autoSpeed(sim) {
+  let sp;
+  if (sim.mode === 'heat') sp = (sim.Qtot / Math.max(sim.power, 1)) / 20;
+  else {
+    const pa = phase(sim.A.mat, sim.A.m, sim.A.H), pb = phase(sim.B.mat, sim.B.m, sim.B.H);
+    const cA = isFinite(pa.C) ? pa.C : sim.A.m * (sim.A.mat.phase ? sim.A.mat.c[1] : sim.A.mat.c);
+    const cB = isFinite(pb.C) ? pb.C : sim.B.m * (sim.B.mat.phase ? sim.B.mat.c[1] : sim.B.mat.c);
+    const Tm = (pa.T + pb.T) / 2;
+    const U = Ueff(sim, Tm + 10, Tm - 10);
+    const tau = 1 / (U * (1 / cA + 1 / cB));
+    let extra = 1;
+    [sim.A, sim.B].forEach(b => { if (b.mat.phase) { const lat = b.m * (b.T0 <= 0 ? b.mat.Lf : 0) + b.m * (b.T0 > 100 ? b.mat.Lv : 0); extra += lat / (cA + cB) / 20; } });
+    sp = (tau * 6.5 * extra) / 20;
+  }
+  return Math.min(5000, Math.max(1, sp));
+}
+if (typeof module !== 'undefined') module.exports = { MATS, RODS, Hinit, phase, Hrange, solveEq, flowP, Ueff, advanceEq, advanceHeat, stagesFor, newSim, autoSpeed, T_END };
+
+/* ===== APLICACIÓN ===== */
+(function () {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const nf = (x, d = 1) => (Number.isFinite(x) ? x : 0).toFixed(d).replace('.', ',');
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmtDur = s => s < 90 ? nf(s, 0) + ' s' : s < 5400 ? nf(s / 60, 1) + ' min' : nf(s / 3600, 1) + ' h';
+
+/* ---------- Escala de color de temperatura ---------- */
+const RAMP = [[-30,[58,111,224]],[0,[79,179,232]],[25,[127,208,176]],[50,[241,208,75]],[80,[240,138,44]],[120,[216,52,43]],[150,[139,29,59]]];
+function ramp(T) {
+  if (T <= RAMP[0][0]) return RAMP[0][1];
+  for (let i = 1; i < RAMP.length; i++) if (T <= RAMP[i][0]) {
+    const f = (T - RAMP[i-1][0]) / (RAMP[i][0] - RAMP[i-1][0]), a = RAMP[i-1][1], b = RAMP[i][1];
+    return [a[0] + (b[0]-a[0])*f, a[1] + (b[1]-a[1])*f, a[2] + (b[2]-a[2])*f];
+  }
+  return RAMP[RAMP.length - 1][1];
+}
+const rgb = c => `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+const hexRGB = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const mixC = (a, b, f) => [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f, a[2]+(b[2]-a[2])*f];
+
+/* ---------- Experimentos rápidos ---------- */
+const PRESETS = [
+  { id:'metal-agua', mode:'eq', name:'Metal caliente en agua fría', A:{mat:'aluminio',m:0.5,T:90}, B:{mat:'agua',m:1,T:20}, mech:'cond', rod:'cobre', thick:2 },
+  { id:'agua-hierro', mode:'eq', name:'Misma masa, distinto material', A:{mat:'agua',m:0.5,T:80}, B:{mat:'hierro',m:0.5,T:20}, mech:'cond', rod:'cobre', thick:2 },
+  { id:'hielo-tibia', mode:'eq', name:'Hielo en agua tibia', A:{mat:'agua',m:0.3,T:-10}, B:{mat:'agua',m:1,T:40}, mech:'cond', rod:'cobre', thick:3 },
+  { id:'hielo-queda', mode:'eq', name:'Hielo que no alcanza a derretirse', A:{mat:'agua',m:0.8,T:-10}, B:{mat:'agua',m:0.5,T:30}, mech:'cond', rod:'cobre', thick:3 },
+  { id:'vapor-hielo', mode:'eq', name:'Vapor sobre hielo', A:{mat:'agua',m:0.2,T:120}, B:{mat:'agua',m:0.5,T:-15}, mech:'cond', rod:'cobre', thick:3 },
+  { id:'conveccion', mode:'eq', name:'Convección en agua', A:{mat:'agua',m:1,T:70}, B:{mat:'agua',m:1,T:20}, mech:'conv', carea:1.5 },
+  { id:'radiacion', mode:'eq', name:'Radiación sin contacto', A:{mat:'aluminio',m:0.4,T:120}, B:{mat:'aluminio',m:0.4,T:20}, mech:'rad', eps:0.9, rarea:2 },
+  { id:'curva', mode:'heat', name:'Calentar hielo hasta vapor', B:{mat:'agua',m:0.2,T:-20}, power:1000 }
+];
+const EXPS = [
+  { key:'pred', n:5, text:'Predice y acierta (±2 °C)', preset:'metal-agua' },
+  { key:'diffmat', n:3, text:'Misma masa, distinto material', preset:'agua-hierro' },
+  { key:'latent-melt', n:3, text:'Hielo que se derrite del todo', preset:'hielo-tibia' },
+  { key:'latent-ice', n:3, text:'Hielo que no se derrite del todo', preset:'hielo-queda' },
+  { key:'latent-vap', n:3, text:'Vapor que se condensa', preset:'vapor-hielo' },
+  { key:'conv', n:2, text:'Convección en un circuito', preset:'conveccion' },
+  { key:'rad', n:2, text:'Radiación sin contacto', preset:'radiacion' },
+  { key:'curve', n:4, text:'Curva de calentamiento completa', preset:'curva' }
+];
+
+/* ---------- Felipesos ---------- */
+let store = { total: 0, keys: {} };
+try { const s = localStorage.getItem('felipesos-equilibrio-v1'); if (s) store = JSON.parse(s) || store; } catch (e) {}
+function saveStore() { try { localStorage.setItem('felipesos-equilibrio-v1', JSON.stringify(store)); } catch (e) {} }
+function toast(html) {
+  const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = html;
+  $('#toasts').appendChild(el);
+  requestAnimationFrame(() => el.classList.add('in'));
+  setTimeout(() => { el.classList.remove('in'); setTimeout(() => el.remove(), 300); }, 3800);
+}
+function award(key, n, msg) {
+  if (store.keys[key]) return false;
+  store.keys[key] = n; store.total += n; saveStore();
+  $('#walletN').textContent = store.total;
+  toast('<b>+' + n + ' 🪙</b> ' + msg);
+  renderExps();
+  return true;
+}
+const ach = (k, msg) => { const e = EXPS.find(x => x.key === k); return award('ach:' + k, e.n, msg); };
+
+/* ---------- Estado ---------- */
+let mode = 'eq', presetId = null, setup = null, sim = null, running = false, speed = 10, predVal = null;
+let hist = null, chartsDirty = true, lastChart = 0, lastLive = '';
+const matLabel = k => MATS[k].n;
+
+function readSetup() {
+  const s = {
+    mode,
+    A: { mat: $('#matA').value, m: +$('#massA').value, T: +$('#tempA').value },
+    B: { mat: $('#matB').value, m: +$('#massB').value, T: +$('#tempB').value },
+    mech: $$('[data-mech]').find(b => b.getAttribute('aria-pressed') === 'true').dataset.mech,
+    rod: $('#rod').value, thick: +$('#thick').value, carea: +$('#carea').value,
+    eps: +$('#eps').value, rarea: +$('#rarea').value, env: $('#env').checked, power: +$('#power').value
+  };
+  if (mode === 'heat') s.A = { ...s.B };
+  return s;
+}
+function initLabel(key, T) {
+  const m = MATS[key];
+  if (m.phase) return T <= 0 ? 'Estado inicial: hielo (0 °C cuenta como hielo)' : T <= 100 ? 'Estado inicial: agua líquida' : 'Estado inicial: vapor';
+  return 'Estado: ' + m.state;
+}
+function syncOutputs() {
+  $('#massAo').textContent = nf(+$('#massA').value, 2) + ' kg';
+  $('#massBo').textContent = nf(+$('#massB').value, 2) + ' kg';
+  $('#tempAo').textContent = $('#tempA').value + ' °C';
+  $('#tempBo').textContent = $('#tempB').value + ' °C';
+  $('#phA').textContent = initLabel($('#matA').value, +$('#tempA').value);
+  $('#phB').textContent = initLabel($('#matB').value, +$('#tempB').value);
+  $('#thickO').textContent = '×' + nf(+$('#thick').value, 1);
+  $('#careaO').textContent = '×' + nf(+$('#carea').value, 1);
+  $('#epsO').textContent = nf(+$('#eps').value, 2);
+  $('#rareaO').textContent = '×' + nf(+$('#rarea').value, 1);
+  $('#powerO').textContent = $('#power').value + ' W';
+  const rd = RODS[$('#rod').value], U = rd.k * ROD_AREA * (+$('#thick').value) / ROD_LEN;
+  $('#kInfo').textContent = 'k = ' + nf(rd.k, rd.k < 1 ? 2 : 0) + ' W/(m·K) → conductancia ' + nf(U, U < 1 ? 3 : 1) + ' W/K';
+}
+function setSpeed(v) {
+  speed = clamp(v, 1, 5000);
+  $('#speed').value = Math.log10(speed) / 3.7 * 100;
+  $('#speedO').textContent = '×' + (speed < 10 ? nf(speed, 1) : nf(speed, 0));
+}
+function setMech(m) { $$('[data-mech]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mech === m))); showMechGroups(m); }
+function showMechGroups(m) { $('#gCond').hidden = m !== 'cond'; $('#gConv').hidden = m !== 'conv'; $('#gRad').hidden = m !== 'rad'; }
+
+function applyMode(m) {
+  mode = m;
+  $('#modeEq').setAttribute('aria-pressed', String(m === 'eq'));
+  $('#modeHeat').setAttribute('aria-pressed', String(m === 'heat'));
+  $('#fsA').hidden = m === 'heat'; $('#fsTrans').hidden = m === 'heat'; $('#fsPred').hidden = m === 'heat';
+  $('#fsHeat').hidden = m !== 'heat';
+  $('#titleB').textContent = m === 'heat' ? 'Muestra' : 'Cuerpo B';
+  $('#showTeq').closest('label').hidden = m === 'heat';
+  renderPresetButtons();
+}
+function renderPresetButtons() {
+  const box = $('#presets'); box.innerHTML = '';
+  PRESETS.filter(p => p.mode === mode).forEach(p => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pre'; b.textContent = p.name;
+    b.setAttribute('aria-pressed', String(p.id === presetId)); b.onclick = () => loadPreset(p.id);
+    box.appendChild(b);
+  });
+}
+function loadPreset(id) {
+  const p = PRESETS.find(x => x.id === id); presetId = id;
+  applyMode(p.mode);
+  if (p.A) { $('#matA').value = p.A.mat; $('#massA').value = p.A.m; $('#tempA').value = p.A.T; }
+  $('#matB').value = p.B.mat; $('#massB').value = p.B.m; $('#tempB').value = p.B.T;
+  if (p.mode === 'eq') {
+    setMech(p.mech);
+    if (p.rod) { $('#rod').value = p.rod; $('#thick').value = p.thick; }
+    if (p.carea) $('#carea').value = p.carea;
+    if (p.eps) { $('#eps').value = p.eps; $('#rarea').value = p.rarea; }
+    $('#env').checked = false;
+  } else $('#power').value = p.power;
+  predVal = null; $('#pred').value = ''; $('#predMsg').textContent = '';
+  resetSim();
+  renderPresetButtons();
+}
+function resetSim(keepSpeed) {
+  setup = readSetup(); syncOutputs();
+  sim = newSim(setup); running = false; sim.P0 = sim.P;
+  if (!keepSpeed) setSpeed(autoSpeed(sim));
+  sim.tAxis = speed * 22;
+  hist = { t: [], TA: [], TB: [], P: [], EA: [], EB: [], Q: [] }; sample();
+  if (V) { V.bind(sim); V.setMode(mode); V.setMech(sim); }
+  chartsDirty = true; lastLive = ''; updatePlay(); renderAll();
+}
+function applyLive() {
+  const s = readSetup(); syncOutputs();
+  sim.mech = s.mech; sim.rod = s.rod; sim.thick = s.thick; sim.carea = s.carea; sim.eps = s.eps; sim.rarea = s.rarea; sim.env = s.env; sim.power = s.power;
+  if (sim.t === 0) { setSpeed(autoSpeed(sim)); sim.tAxis = speed * 22; }
+  if (mode === 'eq') { sim.P = flowP(sim, phase(sim.A.mat, sim.A.m, sim.A.H).T, phase(sim.B.mat, sim.B.m, sim.B.H).T); if (sim.t === 0) sim.P0 = sim.P; }
+  if (V) V.setMech(sim);
+  chartsDirty = true; lastLive = '';
+}
+function updatePlay() {
+  const b = $('#btnPlay');
+  b.textContent = running ? '⏸ Pausar' : sim.done ? '↺ Repetir' : sim.t > 0 ? '▶ Continuar' : '▶ Iniciar';
+}
+function sample() {
+  const pa = phase(sim.A.mat, sim.A.m, sim.A.H), pb = phase(sim.B.mat, sim.B.m, sim.B.H);
+  hist.t.push(sim.t); hist.TA.push(pa.T); hist.TB.push(pb.T); hist.P.push(Math.abs(sim.P));
+  hist.EA.push((sim.A.H - sim.A.H0) / 1000); hist.EB.push((sim.B.H - sim.B.H0) / 1000); hist.Q.push(sim.Qin / 1000);
+  if (hist.t.length > 2600) for (const k in hist) hist[k] = hist[k].filter((_, i) => i % 2 === 0 || i === hist[k].length - 1);
+}
+
+/* ---------- Avance de la simulación ---------- */
+function stepSim(dts) {
+  if (sim.mode === 'eq') {
+    advanceEq(sim, dts);
+    const pa = phase(sim.A.mat, sim.A.m, sim.A.H), pb = phase(sim.B.mat, sim.B.m, sim.B.H);
+    sample();
+    if (!sim.eq && Math.abs(pa.T - pb.T) < 0.1) {
+      sim.eq = true; sim.tEq = sim.t; onEquilibrium(pa, pb);
+      if (!sim.env) { sim.done = true; running = false; updatePlay(); }
+    }
+    if (sim.env && sim.eq && Math.abs(pa.T - sim.Tamb) < 0.15 && Math.abs(pb.T - sim.Tamb) < 0.15) { sim.done = true; running = false; updatePlay(); }
+  } else {
+    const need = (sim.Qtot - sim.Qin) / sim.power;
+    if (dts >= need) { advanceHeat(sim, need); sim.done = true; running = false; updatePlay(); onHeatDone(); }
+    else advanceHeat(sim, dts);
+    sample();
+  }
+  chartsDirty = true;
+}
+function onEquilibrium(pa, pb) {
+  const pr = sim.pred, T = pa.T;
+  let msg = '';
+  if (predVal != null && !sim.env) {
+    const err = Math.abs(predVal - pr.T);
+    msg = 'Tu predicción: ' + nf(predVal) + ' °C · Calculado: ' + nf(pr.T) + ' °C · Diferencia: ' + nf(err) + ' °C. ';
+    if (err <= 2) ach('pred', '¡Predicción acertada!');
+    else if (err <= 5) award('near:' + JSON.stringify([setup.A, setup.B, setup.mech]), 2, 'Predicción cercana (±5 °C).');
+    $('#predMsg').textContent = msg;
+  }
+  if (!sim.env) {
+    const a = sim.A, b = sim.B;
+    if (Math.abs(a.m - b.m) < 0.011 && a.matKey !== b.matKey) ach('diffmat', 'Masas iguales, calor específico distinto.');
+    const startedIce = [a, b].some(x => x.mat.phase && x.T0 <= 0), startedVap = [a, b].some(x => x.mat.phase && x.T0 > 100);
+    if (startedIce && pr.ice < 1e-6 && pr.vap < 1e-6 && T > 0.01) ach('latent-melt', 'El hielo se fundió usando calor latente.');
+    if (Math.abs(T) < 0.01 && pr.ice > 1e-4) ach('latent-ice', 'Sobró hielo: el calor no alcanzó para fundirlo todo.');
+    if (startedVap && Math.abs(T - 100) < 0.01 && pr.vap > 1e-4) ach('latent-vap', 'Vapor que cede calor al condensarse.');
+    if (sim.mech === 'conv') ach('conv', 'Equilibrio por convección.');
+    if (sim.mech === 'rad') ach('rad', 'Equilibrio por radiación.');
+  }
+}
+function onHeatDone() {
+  const lat = sim.stages.filter(s => s.kind === 'lat').reduce((a, s) => a + s.Q, 0);
+  if (sim.B.mat.phase && sim.B.T0 <= 0) ach('curve', 'Curva completa: el ' + nf(lat / sim.Qtot * 100, 0) + ' % de la energía fue calor latente.');
+}
+
+/* ---------- Gráficos ---------- */
+function TC() { const g = cssv; return { fg: g('--fg'), muted: g('--muted'), line: g('--line'), grid: g('--grid'), a: g('--ca'), b: g('--cb'), amber: g('--amber'), good: g('--good'), surface: g('--surface'), lat: g('--lat') }; }
+function niceScale(min, max, n) {
+  if (!(max > min)) max = min + 1;
+  const raw = (max - min) / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw / mag;
+  const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+  const lo = Math.floor(min / step + 1e-9) * step, hi = Math.ceil(max / step - 1e-9) * step, ticks = [];
+  for (let v = lo; v <= hi + step * 0.001; v += step) ticks.push(+v.toFixed(10));
+  return { min: lo, max: hi, step, ticks, dec: step >= 1 ? 0 : Math.ceil(-Math.log10(step)) };
+}
+function prep(cv) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1), W = cv.clientWidth, H = cv.clientHeight;
+  if (!W || !H) return null;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  ctx.font = '11px Arial, Helvetica, sans-serif';
+  return { ctx, W, H };
+}
+function drawLine(cv, o, C) {
+  const p = prep(cv); if (!p) return; const { ctx, W, H } = p;
+  const xs = niceScale(o.xmin, o.xmax, 5), ys = niceScale(o.ymin, o.ymax, 5);
+  const lw = Math.max(...ys.ticks.map(v => ctx.measureText(nf(v, ys.dec)).width));
+  const m = { l: Math.ceil(lw) + 30, r: 14, t: o.legend ? 28 : 12, b: 38 };
+  const x0 = m.l, x1 = W - m.r, y0 = H - m.b, y1 = m.t;
+  const X = v => x0 + (v - xs.min) / (xs.max - xs.min) * (x1 - x0), Y = v => y0 - (v - ys.min) / (ys.max - ys.min) * (y0 - y1);
+  ctx.lineWidth = 1; ctx.strokeStyle = C.grid; ctx.fillStyle = C.muted; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ys.ticks.forEach(v => { const y = Y(v); ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.fillText(nf(v, ys.dec), x0 - 6, y); });
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  xs.ticks.forEach(v => { const x = X(v); ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y0); ctx.stroke(); ctx.fillText(nf(v, xs.dec), x, y0 + 5); });
+  ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+  ctx.fillStyle = C.muted; ctx.textAlign = 'center'; ctx.fillText(o.xlabel, (x0 + x1) / 2, H - 14);
+  ctx.save(); ctx.translate(10, (y0 + y1) / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'middle'; ctx.fillText(o.ylabel, 0, 0); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, y1 - 2, x1 - x0 + 2, y0 - y1 + 4); ctx.clip();
+  (o.hlines || []).forEach(h => {
+    if (h.y < ys.min || h.y > ys.max) return;
+    ctx.strokeStyle = h.color; ctx.lineWidth = h.w || 1; ctx.setLineDash(h.dash || [4, 4]); ctx.beginPath(); ctx.moveTo(x0, Y(h.y)); ctx.lineTo(x1, Y(h.y)); ctx.stroke(); ctx.setLineDash([]);
+    const near = Y(h.y) - y1 < 14; ctx.fillStyle = h.color; ctx.textAlign = 'right'; ctx.textBaseline = near ? 'top' : 'bottom'; ctx.fillText(h.label, x1 - 4, Y(h.y) + (near ? 3 : -2));
+  });
+  o.series.forEach(s => {
+    if (!s.x.length) return;
+    ctx.lineWidth = s.w || 2; ctx.strokeStyle = s.color; ctx.setLineDash(s.dash || []); ctx.beginPath();
+    s.x.forEach((xv, i) => { const px = X(xv), py = Y(s.y[i]); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }); ctx.stroke(); ctx.setLineDash([]);
+    if (s.fill) { ctx.lineTo(X(s.x[s.x.length - 1]), y0); ctx.lineTo(X(s.x[0]), y0); ctx.closePath(); ctx.globalAlpha = 0.16; ctx.fillStyle = s.color; ctx.fill(); ctx.globalAlpha = 1; }
+    if (s.dot) { const px = X(s.x[s.x.length - 1]), py = Y(s.y[s.y.length - 1]); ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(px, py, 4, 0, 7); ctx.fill(); ctx.strokeStyle = C.surface; ctx.lineWidth = 1.5; ctx.stroke(); }
+  });
+  ctx.restore();
+  if (o.legend) {
+    let lx = x0 + 4; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    o.series.filter(s => s.label).forEach(s => {
+      ctx.strokeStyle = s.color; ctx.lineWidth = 2.5; ctx.setLineDash(s.dash || []); ctx.beginPath(); ctx.moveTo(lx, 12); ctx.lineTo(lx + 16, 12); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = C.fg; ctx.fillText(s.label, lx + 21, 12); lx += 28 + ctx.measureText(s.label).width;
+    });
+  }
+}
+function drawBars(cv, items, C) {
+  const p = prep(cv); if (!p) return; const { ctx, W, H } = p;
+  const lw = 82, pr = 66, x0 = lw, x1 = W - pr, top = 14, bot = H - 30, rowH = (bot - top) / items.length;
+  const vmax = niceScale(0, Math.max(1e-6, ...items.map(i => Math.abs(i.v))) * 1.1, 3).max || 1;
+  const c = (x0 + x1) / 2, k = (x1 - x0) / 2 / vmax;
+  ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.fillStyle = C.muted; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  [-vmax, -vmax / 2, 0, vmax / 2, vmax].forEach(v => { const x = c + v * k; ctx.beginPath(); ctx.moveTo(x, top - 4); ctx.lineTo(x, bot); ctx.stroke(); ctx.fillText(nf(v, vmax < 4 ? 1 : 0), x, bot + 5); });
+  ctx.fillText('kJ', W - 14, bot + 5);
+  items.forEach((it, i) => {
+    const y = top + i * rowH, h = rowH * 0.52, yy = y + (rowH - h) / 2;
+    ctx.fillStyle = C.fg; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(it.label, 6, y + rowH / 2);
+    ctx.fillStyle = it.color; const w = it.v * k;
+    ctx.fillRect(Math.min(c, c + w), yy, Math.max(Math.abs(w), 1.5), h);
+    ctx.fillStyle = C.fg; ctx.textAlign = it.v >= 0 ? 'left' : 'right';
+    ctx.fillText((it.v > 0 ? '+' : '') + nf(it.v, 1), it.v >= 0 ? c + w + 5 : c + w - 5, y + rowH / 2);
+  });
+  ctx.strokeStyle = C.fg; ctx.beginPath(); ctx.moveTo(c, top - 4); ctx.lineTo(c, bot); ctx.stroke();
+}
+function drawStages(cv, C) {
+  const p = prep(cv); if (!p) return; const { ctx, W, H } = p;
+  const x0 = 10, x1 = W - 10, y0 = 62, hh = 84, tot = sim.Qtot, prog = sim.Qin / tot;
+  ctx.fillStyle = C.muted; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText('Total necesario: ' + nf(tot / 1000, 0) + ' kJ', x0, 14);
+  ctx.fillStyle = C.fg; ctx.fillText('Entregado: ' + nf(sim.Qin / 1000, 0) + ' kJ (' + nf(prog * 100, 0) + ' %)', x0, 32);
+  let acc = 0;
+  sim.stages.forEach(st => {
+    const a = x0 + (acc / tot) * (x1 - x0), w = Math.max(2, (st.Q / tot) * (x1 - x0)); acc += st.Q;
+    const col = st.kind === 'lat' ? C.lat : rgb(ramp((st.T0 + st.T1) / 2));
+    ctx.globalAlpha = 0.28; ctx.fillStyle = col; ctx.fillRect(a, y0, w, hh);
+    const fw = clamp(prog * (x1 - x0) - (a - x0), 0, w);
+    ctx.globalAlpha = 1; ctx.fillStyle = col; ctx.fillRect(a, y0, fw, hh);
+    if (st.kind === 'lat') { ctx.save(); ctx.beginPath(); ctx.rect(a, y0, w, hh); ctx.clip(); ctx.strokeStyle = C.surface; ctx.globalAlpha = 0.5; ctx.lineWidth = 2; for (let s = -hh; s < w + hh; s += 9) { ctx.beginPath(); ctx.moveTo(a + s, y0 + hh); ctx.lineTo(a + s + hh, y0); ctx.stroke(); } ctx.restore(); }
+    ctx.globalAlpha = 1; ctx.strokeStyle = C.surface; ctx.lineWidth = 2; ctx.strokeRect(a, y0, w, hh);
+  });
+  ctx.fillStyle = C.muted; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('Rayado = calor latente', x0, y0 + hh + 10);
+}
+function renderCharts() {
+  const C = TC(), s = sim;
+  const L = $('#lg3'); L.innerHTML = '';
+  if (s.mode === 'eq') {
+    const div = Math.max(s.tAxis, s.t * 1.02) < 120 ? 1 : Math.max(s.tAxis, s.t * 1.02) < 7200 ? 60 : 3600, tl = div === 1 ? 's' : div === 60 ? 'min' : 'h';
+    const xmax = Math.max(s.tAxis, s.t * 1.02) / div, tx = hist.t.map(v => v / div);
+    const showT = ($('#showTeq').checked || s.eq) && !s.env;
+    const wat = s.A.mat.phase || s.B.mat.phase;
+    const Ts = [s.A.T0, s.B.T0, s.pred.T].concat(hist.TA, hist.TB);
+    const hl = [];
+    if (wat) { hl.push({ y: 0, color: C.muted, label: 'fusión 0 °C', dash: [2, 4] }); hl.push({ y: 100, color: C.muted, label: 'ebullición 100 °C', dash: [2, 4] }); }
+    if (showT) hl.push({ y: s.pred.T, color: C.amber, label: 'T eq. = ' + nf(s.pred.T) + ' °C', w: 1.5, dash: [6, 4] });
+    if (s.env) hl.push({ y: s.Tamb, color: C.muted, label: 'ambiente 20 °C', dash: [6, 4] });
+    drawLine($('#c1'), { xmin: 0, xmax, ymin: Math.min(...Ts) - 5, ymax: Math.max(...Ts) + 5, xlabel: 'Tiempo (' + tl + ')', ylabel: 'Temperatura (°C)', legend: true, hlines: hl,
+      series: [{ x: tx, y: hist.TA, color: C.a, label: 'A · ' + s.A.mat.n, dot: true }, { x: tx, y: hist.TB, color: C.b, label: 'B · ' + s.B.mat.n, dot: true }] }, C);
+    const P0 = Math.abs(s.P0 != null ? s.P0 : hist.P[0]);
+    drawLine($('#c2'), { xmin: 0, xmax, ymin: 0, ymax: Math.max(1e-3, P0, ...hist.P) * 1.1, xlabel: 'Tiempo (' + tl + ')', ylabel: 'Potencia de calor (W)',
+      series: [{ x: tx, y: hist.P, color: C.amber, fill: true, dot: true }] }, C);
+    const items = [{ label: 'Cuerpo A', v: (s.A.H - s.A.H0) / 1000, color: C.a }, { label: 'Cuerpo B', v: (s.B.H - s.B.H0) / 1000, color: C.b }];
+    if (s.env) items.push({ label: 'Ambiente', v: s.envLoss / 1000, color: C.muted });
+    items.push({ label: 'Suma', v: items.reduce((a, i) => a + i.v, 0), color: C.fg });
+    drawBars($('#c3'), items, C);
+  } else {
+    const xmaxQ = s.Qtot / 1000, pts = { x: [0], y: [s.B.T0] }; let q = 0;
+    s.stages.forEach(g => { q += g.Q / 1000; pts.x.push(q); pts.y.push(g.T1); });
+    const div = Math.max(s.tAxis, s.t * 1.02) < 120 ? 1 : Math.max(s.tAxis, s.t * 1.02) < 7200 ? 60 : 3600, tl = div === 1 ? 's' : div === 60 ? 'min' : 'h';
+    const hl = [];
+    if (s.B.mat.phase) { hl.push({ y: 0, color: C.muted, label: 'fusión 0 °C', dash: [2, 4] }); hl.push({ y: 100, color: C.muted, label: 'ebullición 100 °C', dash: [2, 4] }); }
+    drawLine($('#c1'), { xmin: 0, xmax: xmaxQ, ymin: s.B.T0 - 5, ymax: T_END + 8, xlabel: 'Energía entregada (kJ)', ylabel: 'Temperatura (°C)', legend: true, hlines: hl,
+      series: [{ x: pts.x, y: pts.y, color: C.muted, dash: [5, 4], w: 1.5, label: 'Teórica' }, { x: hist.Q, y: hist.TB, color: C.amber, label: 'Simulada', dot: true }] }, C);
+    drawLine($('#c2'), { xmin: 0, xmax: Math.max(s.tAxis, s.t * 1.02) / div, ymin: s.B.T0 - 5, ymax: T_END + 8, xlabel: 'Tiempo (' + tl + ')', ylabel: 'Temperatura (°C)',
+      series: [{ x: hist.t.map(v => v / div), y: hist.TB, color: C.b, dot: true }] }, C);
+    drawStages($('#c3'), C);
+    s.stages.forEach(g => {
+      const li = document.createElement('li'), col = g.kind === 'lat' ? C.lat : rgb(ramp((g.T0 + g.T1) / 2));
+      li.innerHTML = '<i style="background:' + col + '"></i><span>' + g.name + '</span><span>' + nf(g.Q / 1000, 1) + ' kJ · ' + nf(g.Q / s.Qtot * 100, 0) + ' %</span>'; L.appendChild(li);
+    });
+  }
+}
+function setChartTexts() {
+  if (mode === 'eq') {
+    $('#t1').textContent = 'Temperatura de cada cuerpo'; $('#k1').textContent = 'Las dos curvas se acercan hasta encontrarse en la temperatura de equilibrio.';
+    $('#t2').textContent = 'Potencia de transferencia'; $('#k2').textContent = 'Cae hasta 0 W: sin diferencia de temperatura no hay flujo neto de calor.';
+    $('#t3').textContent = 'Balance de energía'; $('#k3').textContent = 'Lo que pierde un cuerpo lo gana el otro, por eso la suma se mantiene en 0.';
+  } else {
+    $('#t1').textContent = 'Curva de calentamiento'; $('#k1').textContent = 'Las mesetas son calor latente: entra energía, pero la temperatura no cambia.';
+    $('#t2').textContent = 'Temperatura en el tiempo'; $('#k2').textContent = 'Con potencia constante, cada tramo dura según la energía que necesita.';
+    $('#t3').textContent = 'Energía por etapa'; $('#k3').textContent = 'El ancho de cada tramo es la energía que necesita. Compara fusión y ebullición con el resto.';
+  }
+}
+
+/* ---------- Texto explicativo y tabla ---------- */
+function stateWord(b, p) {
+  if (!b.mat.phase) return b.mat.state;
+  if (p.ice >= 0.999) return 'hielo'; if (p.vap >= 0.999) return 'vapor';
+  if (p.plat && p.plat.kind === 'fusion') return 'hielo + agua (' + nf(p.ice * 100, 0) + ' % hielo)';
+  if (p.plat) return 'agua + vapor (' + nf(p.vap * 100, 0) + ' % vapor)';
+  return 'agua líquida';
+}
+function renderAll() {
+  setChartTexts(); renderCharts(); renderExplain(); chartsDirty = false;
+}
+function renderExplain() {
+  const s = sim, pa = phase(s.A.mat, s.A.m, s.A.H), pb = phase(s.B.mat, s.B.m, s.B.H);
+  let h = '', calc = '';
+  const cStr = m => m.phase ? m.c.join(' / ') : m.c;
+  if (s.mode === 'eq') {
+    const mech = { cond: 'conducción (barra de ' + RODS[s.rod].n.toLowerCase() + ')', conv: 'convección (circuito de fluido)', rad: 'radiación infrarroja' }[s.mech];
+    const nameA = 'A (' + s.A.mat.n.toLowerCase() + ')', nameB = 'B (' + s.B.mat.n.toLowerCase() + ')';
+    const dT = Math.abs(pa.T - pb.T), P = Math.abs(s.P);
+    if (s.t === 0 && !s.eq) {
+      h += '<p><b>Montaje.</b> El cuerpo ' + nameA + ' tiene ' + nf(s.A.m, 2) + ' kg a ' + nf(pa.T, 0) + ' °C y el cuerpo ' + nameB + ' tiene ' + nf(s.B.m, 2) + ' kg a ' + nf(pb.T, 0) + ' °C. Se conectan por ' + mech + ' y el conjunto está aislado.</p>';
+      h += dT < 0.1 ? '<p>Ya están a la misma temperatura: no habrá flujo de calor. Cambia alguna temperatura para ver cómo se equilibran.</p>'
+        : '<p>Pulsa <b>Iniciar</b>. Observa cómo la potencia es mayor al comienzo y disminuye a medida que las temperaturas se acercan.</p>';
+    } else if (!s.eq) {
+      const hot = pa.T > pb.T ? 'A' : 'B', cold = hot === 'A' ? 'B' : 'A';
+      h += '<p><b>' + hot + ' cede calor a ' + cold + '</b> por ' + mech + '. Potencia ahora: <b>' + nf(P, P < 10 ? 2 : 1) + ' W</b>, con una diferencia de ' + nf(dT, 1) + ' °C entre los cuerpos.</p>';
+      [[s.A, pa, 'A', s.P < 0], [s.B, pb, 'B', s.P > 0]].forEach(([b, p, n, gains]) => {
+        if (p.plat) h += '<p><b>' + n + '</b> está en ' + (p.plat.kind === 'fusion' ? 'fusión' : 'ebullición') + ': ' + (gains ? 'recibe' : 'cede') + ' calor, pero su temperatura se queda en ' + nf(p.T, 0) + ' °C. La energía se usa en cambiar de estado: es calor latente, Q = m·L.</p>';
+      });
+    } else {
+      h += '<p><b>Equilibrio térmico alcanzado.</b> A y B quedaron a <b>' + nf(pa.T) + ' °C</b> después de ' + fmtDur(s.tEq) + ' simulados. Ya no hay flujo neto de calor entre ellos.</p>';
+      const eA = (s.A.H - s.A.H0) / 1000, eB = (s.B.H - s.B.H0) / 1000;
+      h += '<p>El cuerpo A ' + (eA < 0 ? 'cedió ' : 'ganó ') + nf(Math.abs(eA)) + ' kJ y el cuerpo B ' + (eB < 0 ? 'cedió ' : 'ganó ') + nf(Math.abs(eB)) + ' kJ' + (s.env ? '; el resto se perdió al ambiente.' : ': lo que uno pierde, lo gana el otro.') + '</p>';
+      const ice = (pa.ice * s.A.m + pb.ice * s.B.m), vap = (pa.vap * s.A.m + pb.vap * s.B.m);
+      if (ice > 1e-4) h += '<p>Quedan ' + nf(ice * 1000, 0) + ' g de hielo sin derretir. Por eso la temperatura se detuvo en 0 °C: el calor disponible no alcanzó para fundirlo todo.</p>';
+      if (vap > 1e-4) h += '<p>Quedan ' + nf(vap * 1000, 0) + ' g de vapor sin condensar, por eso la temperatura quedó en 100 °C.</p>';
+    }
+    if (($('#showTeq').checked || s.eq) && !s.env) {
+      const simple = [s.A, s.B].every(b => !b.mat.phase || (b.T0 > 0 && b.T0 <= 100)) && s.pred.T > 0 && s.pred.T < 100 && s.pred.ice < 1e-9 && s.pred.vap < 1e-9;
+      const c = b => b.mat.phase ? b.mat.c[1] : b.mat.c;
+      if (simple) {
+        const nA = s.A.m * c(s.A), nB = s.B.m * c(s.B);
+        calc = '<h3 style="margin-top:10px">Cálculo del equilibrio</h3><div class="eqn">T_eq = (m_A·c_A·T_A + m_B·c_B·T_B) / (m_A·c_A + m_B·c_B)<br>= (' + nf(s.A.m, 2) + '·' + c(s.A) + '·' + nf(s.A.T0, 0) + ' + ' + nf(s.B.m, 2) + '·' + c(s.B) + '·' + nf(s.B.T0, 0) + ') / (' + nf(nA, 0) + ' + ' + nf(nB, 0) + ')<br>= <b>' + nf(s.pred.T, 1) + ' °C</b></div>';
+      } else calc = '<h3 style="margin-top:10px">Cálculo del equilibrio</h3><p class="small muted" style="margin:6px 0 0">Hay cambio de estado, así que la fórmula simple no basta: se suman los términos Q = m·c·ΔT (calentar o enfriar) y Q = m·L (fundir o evaporar) hasta que la energía que cede un cuerpo iguala la que recibe el otro. Resultado: <b>T_eq = ' + nf(s.pred.T, 1) + ' °C</b>.</p>';
+    } else if (s.env) calc = '<p class="small muted" style="margin:8px 0 0">Con pérdidas, el sistema no está aislado: ambos cuerpos terminan en la temperatura del ambiente (20 °C).</p>';
+    h += '';
+  } else {
+    const idx = (() => { let q = 0; for (let i = 0; i < s.stages.length; i++) { q += s.stages[i].Q; if (s.Qin < q - 1e-6) return i; } return s.stages.length - 1; })();
+    const g = s.stages[idx];
+    if (s.t === 0) h += '<p><b>Montaje.</b> Una muestra de ' + nf(s.B.m, 2) + ' kg de ' + s.B.mat.n.toLowerCase() + ' a ' + nf(s.B.T0, 0) + ' °C recibe calor con una potencia constante de ' + nf(s.power, 0) + ' W. Para llevarla hasta ' + T_END + ' °C hacen falta ' + nf(s.Qtot / 1000, 0) + ' kJ.</p><p>Pulsa <b>Iniciar</b> y fíjate en qué momentos la temperatura deja de subir.</p>';
+    else if (!s.done) h += '<p><b>Etapa actual: ' + g.name.toLowerCase() + '.</b> Has entregado ' + nf(s.Qin / 1000, 1) + ' kJ en ' + fmtDur(s.t) + '.</p><p>' + (g.kind === 'lat' ? 'La temperatura se queda en ' + nf(pb.T, 0) + ' °C aunque sigue entrando energía: se usa en separar las partículas y cambiar el estado (Q = m·L).' : 'La energía aumenta la agitación de las partículas y por eso sube la temperatura (Q = m·c·ΔT).') + '</p>';
+    else {
+      const lat = s.stages.filter(x => x.kind === 'lat').reduce((a, x) => a + x.Q, 0);
+      h += '<p><b>Curva completa.</b> Entregaste ' + nf(s.Qin / 1000, 0) + ' kJ en ' + fmtDur(s.t) + '.</p>' + (lat > 0 ? '<p>El ' + nf(lat / s.Qtot * 100, 0) + ' % de la energía se usó en cambios de estado (calor latente), sin subir la temperatura.</p>' : '<p>Este material no cambia de estado en este rango: la temperatura sube de forma continua, con una pendiente que depende de su calor específico.</p>');
+    }
+  }
+  if (h !== lastLive) { $('#live').innerHTML = h; lastLive = h; }
+  $('#calc').innerHTML = calc;
+  const row = (n, b, p) => '<tr><td><b>' + n + '</b></td><td>' + b.mat.n + '</td><td>' + nf(b.m, 2) + '</td><td>' + cStr(b.mat) + '</td><td>' + nf(b.T0, 0) + ' °C</td><td>' + nf(p.T, 1) + ' °C</td><td>' + stateWord(b, p) + '</td><td>' + nf((b.H - b.H0) / 1000, 1) + '</td></tr>';
+  $('#tbl').innerHTML = '<table><thead><tr><th>Cuerpo</th><th>Material</th><th>m (kg)</th><th>c (J/kg·K)</th><th>T inicial</th><th>T actual</th><th>Estado</th><th>ΔE (kJ)</th></tr></thead><tbody>' +
+    (s.mode === 'eq' ? row('A', s.A, pa) + row('B', s.B, pb) : row('Muestra', s.B, pb)) + '</tbody></table>';
+}
+
+/* ---------- Escena 3D ---------- */
+let V = null;
+function init3D() {
+  const T3 = window.THREE; if (!T3) throw new Error('three.js no cargó');
+  const vp = $('#viewport'), cv = $('#gl');
+  const renderer = new T3.WebGLRenderer({ canvas: cv, antialias: true });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  const scene = new T3.Scene(), camera = new T3.PerspectiveCamera(38, 1, 0.1, 120);
+  scene.add(new T3.HemisphereLight(0xffffff, 0x8aa0b8, 0.95));
+  const dl = new T3.DirectionalLight(0xffffff, 0.85); dl.position.set(5, 9, 6); scene.add(dl);
+  const dl2 = new T3.DirectionalLight(0xaecbff, 0.3); dl2.position.set(-6, 4, -4); scene.add(dl2);
+  const benchMat = new T3.MeshStandardMaterial({ color: 0xc5d2e1, roughness: 0.85 });
+  const bench = new T3.Mesh(new T3.BoxGeometry(11.5, 0.2, 5), benchMat); bench.position.y = -0.1; scene.add(bench);
+  const edgeMats = [];
+  const dc = document.createElement('canvas'); dc.width = dc.height = 64; const g2 = dc.getContext('2d');
+  const gr = g2.createRadialGradient(32, 32, 2, 32, 32, 30); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.65, 'rgba(255,255,255,.95)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g2.fillStyle = gr; g2.beginPath(); g2.arc(32, 32, 30, 0, 7); g2.fill();
+  const dot = new T3.CanvasTexture(dc);
+  function pts(n, size, color, vc) {
+    const geo = new T3.BufferGeometry(); geo.setAttribute('position', new T3.BufferAttribute(new Float32Array(n * 3), 3));
+    if (vc) geo.setAttribute('color', new T3.BufferAttribute(new Float32Array(n * 3), 3));
+    const mat = new T3.PointsMaterial({ size, map: dot, transparent: true, depthWrite: false, alphaTest: 0.04, sizeAttenuation: true, color, vertexColors: !!vc });
+    const p = new T3.Points(geo, mat); p.frustumCulled = false; return p;
+  }
+  const setC = (obj, c) => obj.color.setRGB(c[0] / 255, c[1] / 255, c[2] / 255);
+
+  /* --- cuerpos --- */
+  const NP = 125, bodies = [];
+  function buildBody() {
+    const g = new T3.Group(), v = { g };
+    const glass = new T3.Mesh(new T3.BoxGeometry(1.6, 1.8, 1.6), new T3.MeshStandardMaterial({ color: 0xcfe3f5, transparent: true, opacity: 0.13, roughness: 0.15, side: T3.DoubleSide, depthWrite: false })); glass.position.y = 0.9;
+    const em = new T3.LineBasicMaterial({ color: 0x6f859c, transparent: true, opacity: 0.85 }); edgeMats.push(em);
+    const edges = new T3.LineSegments(new T3.EdgesGeometry(glass.geometry), em); edges.position.y = 0.9;
+    const base = new T3.Mesh(new T3.BoxGeometry(1.7, 0.08, 1.7), new T3.MeshStandardMaterial({ color: 0x2b3a4b, roughness: 0.6 })); base.position.y = 0.04;
+    v.block = new T3.Mesh(new T3.BoxGeometry(1, 1, 1), new T3.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.35, roughness: 0.45, transparent: true }));
+    v.liquid = new T3.Mesh(new T3.BoxGeometry(1, 1, 1), new T3.MeshStandardMaterial({ color: 0x4aa3df, transparent: true, opacity: 0.72, roughness: 0.2, depthWrite: false }));
+    v.cubes = []; for (let i = 0; i < 18; i++) { const c = new T3.Mesh(new T3.BoxGeometry(0.4, 0.4, 0.4), new T3.MeshStandardMaterial({ color: 0xd8f0ff, transparent: true, opacity: 0.82, roughness: 0.1 })); c.visible = false; v.cubes.push(c); g.add(c); }
+    v.steam = pts(90, 0.22, 0xffffff); v.steam.material.opacity = 0.5;
+    v.bubbles = pts(30, 0.11, 0xffffff); v.bubbles.material.opacity = 0.8;
+    v.part = pts(NP, 0.1, 0xffffff); v.part.visible = false;
+    v.sph = []; v.pp = new Float32Array(NP * 3); v.vv = new Float32Array(NP * 3); v.fr = []; v.ph = [];
+    for (let i = 0; i < NP; i++) { v.fr.push([((i % 5) + 0.5) / 5, ((Math.floor(i / 25)) + 0.5) / 5, ((Math.floor(i / 5) % 5) + 0.5) / 5]); v.ph.push([Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28]); const a = Math.random() * 6.28, b = Math.acos(2 * Math.random() - 1); v.vv.set([Math.sin(b) * Math.cos(a), Math.cos(b), Math.sin(b) * Math.sin(a)], i * 3); }
+    v.sx = []; for (let i = 0; i < 90; i++) v.sx.push([Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random()]);
+    v.bx = []; for (let i = 0; i < 30; i++) v.bx.push([Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random()]);
+    v.pmode = ''; 
+    // termómetro
+    const th = new T3.Group(); th.position.set(-1.08, 0, 0.98);
+    const tube = new T3.Mesh(new T3.CylinderGeometry(0.06, 0.06, 2.0, 12), new T3.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 })); tube.position.y = 1.1;
+    const bulb = new T3.Mesh(new T3.SphereGeometry(0.11, 16, 12), new T3.MeshStandardMaterial({ color: 0xcc3333 })); bulb.position.y = 0.1;
+    v.fluid = new T3.Mesh(new T3.CylinderGeometry(0.035, 0.035, 1, 10), new T3.MeshStandardMaterial({ color: 0xcc3333 }));
+    v.bulb = bulb;
+    [0, 100].forEach(T => { const m = new T3.Mesh(new T3.BoxGeometry(0.2, 0.014, 0.2), new T3.MeshBasicMaterial({ color: 0x24313f })); m.position.y = 0.1 + 2.0 * (T + 40) / 190; th.add(m); });
+    th.add(tube, bulb, v.fluid);
+    g.add(base, v.block, v.liquid, v.part, v.bubbles, v.steam, glass, edges, th);
+    scene.add(g); return v;
+  }
+  bodies.push(buildBody(), buildBody());
+
+  /* --- puentes --- */
+  const XA = -2.4, XB = 2.4, bridge = new T3.Group(); scene.add(bridge);
+  const rod = new T3.Mesh(new T3.CylinderGeometry(1, 1, 1, 24), new T3.MeshStandardMaterial({ color: 0xb87333, metalness: 0.5, roughness: 0.4 }));
+  rod.rotation.z = Math.PI / 2; rod.position.set(0, 0.9, 0); bridge.add(rod);
+  const pipeMat = new T3.MeshStandardMaterial({ color: 0x9fb4c8, transparent: true, opacity: 0.4, roughness: 0.3 });
+  const pipes = [0.45, 1.35].map(y => { const p = new T3.Mesh(new T3.CylinderGeometry(1, 1, 1, 20), pipeMat); p.rotation.z = Math.PI / 2; p.position.set(0, y, 0); bridge.add(p); return p; });
+  const packets = pts(14, 0.2, 0xffa726), flow = pts(36, 0.14, 0xffffff, true), photons = pts(30, 0.16, 0xffb13a);
+  bridge.add(packets, flow, photons);
+  const gapL = XA + 0.8, gapR = XB - 0.8;
+  // placa calefactora
+  const heater = new T3.Group();
+  const plate = new T3.Mesh(new T3.BoxGeometry(2.3, 0.18, 2.3), new T3.MeshStandardMaterial({ color: 0x2a3340, roughness: 0.6 })); plate.position.y = 0.09; heater.add(plate);
+  const coil = new T3.Mesh(new T3.BoxGeometry(1.9, 0.02, 1.9), new T3.MeshStandardMaterial({ color: 0x552200, emissive: 0xff5a00, emissiveIntensity: 0 })); coil.position.y = 0.19; heater.add(coil);
+  const hpk = pts(24, 0.14, 0xff9a2f); heater.add(hpk); scene.add(heater);
+  const hseed = []; for (let i = 0; i < 24; i++) hseed.push([Math.random() * 2 - 1, Math.random() * 2 - 1]);
+
+  /* --- cámara --- */
+  const cam = { theta: 0, phi: 1.1, r: 10, rT: 10, target: new T3.Vector3(0, 0.95, 0), user: false };
+  function fit() {
+    const w = vp.clientWidth, h = vp.clientHeight, asp = w / h, hw = mode === 'eq' ? 4.7 : 2.3, vh = 2.1, t = Math.tan(19 * Math.PI / 180);
+    return clamp(Math.max(hw / (t * asp), vh / t) * 1.04, 6, 26);
+  }
+  function place() {
+    const sp = Math.sin(cam.phi);
+    camera.position.set(cam.target.x + cam.r * sp * Math.sin(cam.theta), cam.target.y + cam.r * Math.cos(cam.phi), cam.target.z + cam.r * sp * Math.cos(cam.theta));
+    camera.lookAt(cam.target);
+  }
+  const ptrs = new Map();
+  cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); });
+  cv.addEventListener('pointermove', e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    if (ptrs.size === 1) { cam.theta -= (e.clientX - p.x) * 0.007; cam.phi = clamp(cam.phi - (e.clientY - p.y) * 0.006, 0.2, 1.5); }
+    else if (ptrs.size === 2) {
+      const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1], d0 = Math.hypot(p.x - o.x, p.y - o.y), d1 = Math.hypot(e.clientX - o.x, e.clientY - o.y);
+      if (d0 > 0) { cam.rT = clamp(cam.rT * d0 / d1, 4, 26); cam.user = true; }
+    }
+    p.x = e.clientX; p.y = e.clientY;
+  });
+  const up = e => ptrs.delete(e.pointerId);
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); cam.rT = clamp(cam.rT * (1 + Math.sign(e.deltaY) * 0.08), 4, 26); cam.user = true; }, { passive: false });
+  function resize() {
+    const w = vp.clientWidth, h = vp.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    if (!cam.user) cam.rT = fit();
+  }
+  new ResizeObserver(resize).observe(vp); resize(); cam.r = cam.rT = fit();
+
+  function applyTheme() {
+    const sc = new T3.Color(cssv('--scene')); renderer.setClearColor(sc); scene.background = sc;
+    benchMat.color.set(cssv('--bench')); edgeMats.forEach(m => m.color.set(cssv('--edge')));
+  }
+  applyTheme();
+
+  /* --- chips --- */
+  const lab = $('#labels'), chips = [0, 1, 2].map(() => { const d = document.createElement('div'); d.className = 'chip'; lab.appendChild(d); return d; });
+  const proj = new T3.Vector3();
+  const setH = (el, h) => { if (el._h !== h) { el._h = h; el.innerHTML = h; } };
+  function putChip(c, x, y, z) {
+    proj.set(x, y, z).project(camera);
+    const w = vp.clientWidth, h = vp.clientHeight;
+    c.style.transform = 'translate(' + ((proj.x * 0.5 + 0.5) * w).toFixed(1) + 'px,' + ((-proj.y * 0.5 + 0.5) * h).toFixed(1) + 'px) translate(-50%,-100%)';
+  }
+
+  /* --- partículas --- */
+  function partUpdate(v, kind, rg, TK, t, dt) {
+    const k = Math.sqrt(Math.max(TK, 100) / 300), pp = v.pp;
+    if (v.pmode !== kind) { v.pmode = kind; }
+    const amp = 0.015 + 0.04 * k, w = 9 * k;
+    for (let i = 0; i < NP; i++) {
+      const i3 = i * 3;
+      if (kind === 'lat') {
+        const f = v.fr[i], p = v.ph[i];
+        pp[i3] = rg[0] + (rg[1] - rg[0]) * f[0] + amp * Math.sin(w * t + p[0]);
+        pp[i3 + 1] = rg[2] + (rg[3] - rg[2]) * f[1] + amp * Math.sin(w * t * 1.1 + p[1]);
+        pp[i3 + 2] = rg[4] + (rg[5] - rg[4]) * f[2] + amp * Math.sin(w * t * 0.9 + p[2]);
+      } else {
+        const sp = (kind === 'gas' ? 1.7 : 0.6) * k * dt;
+        for (let a = 0; a < 3; a++) {
+          const lo = rg[a * 2], hi = rg[a * 2 + 1]; let x = pp[i3 + a] + v.vv[i3 + a] * sp;
+          if (x < lo) { x = lo + (lo - x); v.vv[i3 + a] = Math.abs(v.vv[i3 + a]); }
+          if (x > hi) { x = hi - (x - hi); v.vv[i3 + a] = -Math.abs(v.vv[i3 + a]); }
+          pp[i3 + a] = clamp(x, lo, hi);
+        }
+      }
+    }
+    const att = v.part.geometry.attributes.position; att.array.set(pp); att.needsUpdate = true;
+  }
+
+  /* --- actualización por cuerpo --- */
+  function updBody(v, b, t, dt, label, partsOn) {
+    const p = phase(b.mat, b.m, b.H), T = p.T, col = ramp(T), mat = b.mat;
+    const f = clamp(0.25 + 0.75 * (b.m - 0.1) / 1.9, 0.25, 1), fill = 0.2 + 1.1 * f;
+    const kind = mat.phase ? 'water' : mat.state === 'líquido' ? 'oil' : 'solid';
+    const idc = hexRGB(mat.col);
+    // sólido
+    v.block.visible = kind === 'solid';
+    const hb = 0.45 + 0.85 * f;
+    if (kind === 'solid') { v.block.scale.set(1.05, hb, 1.05); v.block.position.y = 0.08 + hb / 2; setC(v.block.material, mixC(idc, col, 0.62)); v.block.material.opacity = partsOn ? 0.3 : 1; v.block.material.emissive.setRGB(col[0] / 255 * 0.05 * clamp((T - 60) / 60, 0, 1) * 3, 0, 0); }
+    // líquido
+    const liq = kind === 'oil' ? 1 : kind === 'water' ? p.liq : 0, hL = fill * liq;
+    v.liquid.visible = hL > 0.004;
+    if (v.liquid.visible) { v.liquid.scale.set(1.46, hL, 1.46); v.liquid.position.y = 0.08 + hL / 2; setC(v.liquid.material, kind === 'oil' ? mixC(idc, col, 0.5) : mixC([74, 163, 223], col, 0.7)); v.liquid.material.opacity = partsOn ? 0.28 : 0.72; }
+    // hielo
+    const nIce = kind === 'water' && p.ice > 0.001 ? Math.ceil(p.ice * 18) : 0, top = 0.08 + hL;
+    v.cubes.forEach((c, i) => {
+      c.visible = i < nIce;
+      if (c.visible) { const L = Math.floor(i / 9), r = i % 9; c.position.set((r % 3 - 1) * 0.47 + Math.sin(i * 7.3) * 0.04, top + (L === 0 ? 0.08 : 0.5) + (hL > 0.01 ? 0 : 0.1) + Math.sin(t * 1.3 + i) * 0.012, (Math.floor(r / 3) - 1) * 0.47 + Math.cos(i * 5.1) * 0.04); c.rotation.y = i * 0.7; c.material.opacity = partsOn ? 0.35 : 0.82; }
+    });
+    // vapor y burbujas
+    const vap = kind === 'water' ? p.vap : 0;
+    v.steam.visible = vap > 0.001;
+    if (v.steam.visible) {
+      v.steam.material.opacity = clamp(0.18 + vap * 0.6, 0, 0.8);
+      const a = v.steam.geometry.attributes.position.array, y0 = vap > 0.95 ? 0.15 : top + 0.05, y1 = vap > 0.95 ? 2.3 : 2.5;
+      v.sx.forEach((s, i) => { const u = (t * 0.2 + s[2]) % 1; a[i * 3] = s[0] * 0.65 + 0.12 * Math.sin(t * 1.2 + s[2] * 20); a[i * 3 + 1] = y0 + u * (y1 - y0); a[i * 3 + 2] = s[1] * 0.65 + 0.12 * Math.cos(t * 1.1 + s[2] * 17); });
+      v.steam.geometry.attributes.position.needsUpdate = true;
+    }
+    const boil = kind === 'water' && p.liq > 0.01 && T >= 99.9 && p.vap < 1;
+    v.bubbles.visible = boil && hL > 0.05;
+    if (v.bubbles.visible) { const a = v.bubbles.geometry.attributes.position.array; v.bx.forEach((s, i) => { const u = (t * 0.9 + s[2]) % 1; a[i * 3] = s[0] * 0.6; a[i * 3 + 1] = 0.12 + u * (hL - 0.05); a[i * 3 + 2] = s[1] * 0.6; }); v.bubbles.geometry.attributes.position.needsUpdate = true; }
+    // partículas
+    v.part.visible = partsOn;
+    if (partsOn) {
+      let pk, rg;
+      const gas = kind === 'water' && p.vap > 0.5, ice = kind === 'water' && p.ice > 0.5;
+      if (kind === 'solid') { pk = 'lat'; rg = [-0.5, 0.5, 0.1, 0.08 + hb - 0.03, -0.5, 0.5]; }
+      else if (gas) { pk = 'gas'; rg = [-0.75, 0.75, 0.12, 1.7, -0.75, 0.75]; }
+      else if (ice) { pk = 'lat'; rg = [-0.62, 0.62, 0.1, 0.1 + Math.max(0.35, fill * 0.55), -0.62, 0.62]; }
+      else { pk = 'liq'; rg = [-0.68, 0.68, 0.1, Math.max(0.2, hL - 0.03), -0.68, 0.68]; }
+      partUpdate(v, pk, rg, T + 273.15, t, dt);
+      const pc = mixC(col, [255, 255, 255], 0.28); setC(v.part.material, pc);
+    }
+    // termómetro
+    const hh = Math.max(0.02, 2.0 * clamp((T + 40) / 190, 0, 1)); v.fluid.scale.y = hh; v.fluid.position.y = 0.1 + hh / 2;
+    setC(v.fluid.material, col); setC(v.bulb.material, col);
+    // etiqueta
+    return { p, T, col, top: Math.max(hb + 0.1, fill) };
+  }
+
+  const api = {
+    sim: null,
+    bind(s) { this.sim = s; },
+    setMode(m) {
+      bodies[0].g.visible = m === 'eq'; bodies[0].g.position.set(XA, 0, 0);
+      bodies[1].g.position.set(m === 'eq' ? XB : 0, m === 'eq' ? 0 : 0.18, 0);
+      bridge.visible = m === 'eq'; heater.visible = m === 'heat';
+      if (!cam.user) cam.rT = fit(); else cam.rT = cam.rT;
+      chips[0].style.display = m === 'eq' ? '' : 'none'; chips[2].style.display = m === 'eq' ? '' : 'none';
+    },
+    setMech(s) {
+      if (!s || s.mode !== 'eq') return;
+      const L = 3.8;
+      rod.visible = s.mech === 'cond'; packets.visible = s.mech === 'cond';
+      const r = 0.07 * Math.sqrt(s.thick); rod.scale.set(r, L, r); rod.position.x = (gapL + gapR) / 2; rod.position.x = 0;
+      rod.material.color.set(RODS[s.rod].col); rod.material.transparent = s.rod === 'vidrio'; rod.material.opacity = s.rod === 'vidrio' ? 0.6 : 1;
+      pipes.forEach(p => { p.visible = s.mech === 'conv'; const pr = 0.06 * Math.sqrt(s.carea); p.scale.set(pr, L, pr); });
+      flow.visible = s.mech === 'conv'; photons.visible = s.mech === 'rad';
+    },
+    camReset() { cam.theta = 0; cam.phi = 1.1; cam.user = false; cam.rT = fit(); },
+    theme: applyTheme,
+    frame(t, dt) {
+      const s = this.sim; if (!s) return;
+      cam.r += (cam.rT - cam.r) * Math.min(1, dt * 6); place();
+      const partsOn = $('#parts').checked;
+      const ia = bodies[0].g.visible ? updBody(bodies[0], s.A, t, dt, 'A', partsOn) : null;
+      const ib = updBody(bodies[1], s.B, t, dt, 'B', partsOn);
+      const P = s.P, mag = Math.abs(P), inten = mag < 0.02 ? 0 : clamp(Math.log10(1 + mag) / 3, 0.05, 1);
+      if (s.mode === 'eq') {
+        const dir = P >= 0 ? 1 : -1, TA = ia.T, TB = ib.T;
+        if (s.mech === 'cond') {
+          const n = inten ? Math.ceil(14 * inten) : 0; packets.geometry.setDrawRange(0, n);
+          const a = packets.geometry.attributes.position.array, sp = 0.2 + 0.6 * inten;
+          for (let i = 0; i < n; i++) { const u = (t * sp + i / n) % 1, x = dir > 0 ? gapL + u * (gapR - gapL) : gapR - u * (gapR - gapL); a[i * 3] = x; a[i * 3 + 1] = 0.9 + 0.03 * Math.sin(i); a[i * 3 + 2] = 0; }
+          packets.geometry.attributes.position.needsUpdate = true;
+        } else if (s.mech === 'conv') {
+          const n = 36, a = flow.geometry.attributes.position.array, c = flow.geometry.attributes.color.array, sp = inten ? 0.04 + 0.22 * inten : 0.01, sg = dir;
+          const yT = 1.35, yB = 0.45, W = XB - XA, Hh = yT - yB, per = 2 * (W + Hh);
+          const Th = Math.max(TA, TB), Tc = Math.min(TA, TB);
+          for (let i = 0; i < n; i++) {
+            const u = (((t * sp * sg + i / n) % 1) + 1) % 1, d = u * per; let x, y, T;
+            if (d < W) { x = XA + d; y = yT; T = TA + (TB - TA) * (d / W); }
+            else if (d < W + Hh) { x = XB; y = yT - (d - W); T = TB; }
+            else if (d < 2 * W + Hh) { x = XB - (d - W - Hh); y = yB; T = TB + (TA - TB) * ((d - W - Hh) / W); }
+            else { x = XA; y = yB + (d - 2 * W - Hh); T = TA; }
+            a[i * 3] = x; a[i * 3 + 1] = y; a[i * 3 + 2] = 0.12;
+            const cc = ramp(T); c[i * 3] = cc[0] / 255; c[i * 3 + 1] = cc[1] / 255; c[i * 3 + 2] = cc[2] / 255;
+          }
+          flow.geometry.attributes.position.needsUpdate = true; flow.geometry.attributes.color.needsUpdate = true;
+        } else {
+          const n = inten ? Math.ceil(30 * inten) : 0; photons.geometry.setDrawRange(0, n);
+          const a = photons.geometry.attributes.position.array;
+          for (let i = 0; i < n; i++) { const u = (t * 0.7 + i / n) % 1, x = dir > 0 ? gapL + u * (gapR - gapL) : gapR - u * (gapR - gapL); a[i * 3] = x; a[i * 3 + 1] = 0.9 + 0.28 * Math.sin(u * 22 + i * 1.7); a[i * 3 + 2] = 0.34 * Math.sin(u * 15 + i * 2.3); }
+          photons.geometry.attributes.position.needsUpdate = true;
+        }
+      } else {
+        const on = running_ref() ? 1 : 0, pw = clamp(s.power / 3000, 0.1, 1);
+        coil.material.emissiveIntensity = (s.t > 0 && !s.done ? 0.3 + 1.4 * pw : s.done ? 0 : 0.15);
+        const n = on && !s.done ? Math.ceil(24 * pw) : 0; hpk.geometry.setDrawRange(0, n);
+        const a = hpk.geometry.attributes.position.array;
+        for (let i = 0; i < n; i++) { const u = (t * (0.5 + pw) + i / n) % 1; a[i * 3] = hseed[i][0] * 0.8; a[i * 3 + 1] = 0.22 + u * 0.7; a[i * 3 + 2] = hseed[i][1] * 0.8; }
+        hpk.geometry.attributes.position.needsUpdate = true;
+      }
+      // chips
+      const dotc = c => '<span class="dot" style="background:' + rgb(c) + '"></span>';
+      if (ia) { setH(chips[0], dotc(ia.col) + 'A · ' + s.A.mat.n + '<br><b>' + nf(ia.T, 1) + ' °C</b><br><span class="muted">' + stateWord(s.A, ia.p) + '</span>'); putChip(chips[0], XA, 2.15, 0); }
+      setH(chips[1], dotc(ib.col) + (s.mode === 'eq' ? 'B · ' : 'Muestra · ') + s.B.mat.n + '<br><b>' + nf(ib.T, 1) + ' °C</b><br><span class="muted">' + stateWord(s.B, ib.p) + '</span>');
+      putChip(chips[1], s.mode === 'eq' ? XB : 0, s.mode === 'eq' ? 2.15 : 2.35, 0);
+      if (s.mode === 'eq') {
+        const arrow = mag < 0.02 ? '' : (P > 0 ? 'A → B' : 'B → A');
+        setH(chips[2], mag < 0.02 ? '<span class="muted">sin flujo neto</span>' : arrow + ' · <b>' + nf(mag, mag < 10 ? 2 : 1) + ' W</b>');
+        putChip(chips[2], 0, 1.75, 0);
+      }
+      // HUD
+      setH($('#hud'), s.mode === 'eq'
+        ? '<span>t = <b>' + fmtDur(s.t) + '</b></span><span>Mecanismo: <b>' + { cond: 'conducción', conv: 'convección', rad: 'radiación' }[s.mech] + '</b></span>' + (s.env ? '<span>con pérdidas</span>' : '<span>sistema aislado</span>')
+        : '<span>t = <b>' + fmtDur(s.t) + '</b></span><span>Energía: <b>' + nf(s.Qin / 1000, 1) + ' kJ</b></span><span>Potencia: <b>' + nf(s.power, 0) + ' W</b></span>');
+      renderer.render(scene, camera);
+    }
+  };
+  api.camReset();
+  return api;
+}
+const running_ref = () => running;
+
+/* ---------- Guía: experimentos y quiz ---------- */
+function renderExps() {
+  $('#exps').innerHTML = EXPS.map(e => '<li><span class="tick' + (store.keys['ach:' + e.key] ? ' on' : '') + '">' + (store.keys['ach:' + e.key] ? '✓' : '') + '</span><span>' + e.text + ' <span class="muted">(+' + e.n + ')</span></span><button class="btn small" data-p="' + e.preset + '" type="button">Probar</button></li>').join('');
+  $$('#exps [data-p]').forEach(b => b.onclick = () => { loadPreset(b.dataset.p); $('#viewport').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+}
+const QUIZ = [
+  { q: 'Dos cuerpos a distinta temperatura quedan en contacto dentro de un recipiente aislado. ¿Qué ocurre al final?', o: ['El más frío sube hasta la temperatura inicial del más caliente.', 'Ambos llegan a la misma temperatura y deja de haber flujo neto de calor.', 'El calor pasa del cuerpo frío al caliente.', 'Las temperaturas no cambian.'], c: 1, e: 'En el equilibrio térmico las temperaturas se igualan y el calor que cede uno es el que gana el otro.' },
+  { q: 'Mientras el hielo se funde a 0 °C y recibe calor, su temperatura…', o: ['sube lentamente.', 'baja un poco.', 'la energía desaparece.', 'se mantiene constante porque la energía cambia su estado.'], c: 3, e: 'Es calor latente: la energía se usa en cambiar el estado (Q = m·L), no en subir la temperatura.' },
+  { q: 'Agua y hierro de igual masa se ponen en contacto a distinta temperatura. La temperatura final queda más cerca de la del agua porque…', o: ['el agua tiene mayor calor específico y necesita más energía para cambiar su temperatura.', 'el agua siempre está más caliente.', 'el hierro no transfiere calor.', 'el agua tiene menos masa.'], c: 0, e: 'Con calor específico alto (4186 J/kg·K) el agua cambia poco su temperatura al ganar o perder energía.' },
+  { q: '¿Qué mecanismo permite que la energía del Sol llegue a la Tierra a través del espacio vacío?', o: ['Conducción.', 'Convección.', 'Radiación.', 'Calor latente.'], c: 2, e: 'La radiación se propaga sin necesidad de un medio material; la conducción y la convección sí lo requieren.' }
+];
+function renderQuiz() {
+  const box = $('#quiz'); box.innerHTML = '';
+  QUIZ.forEach((q, qi) => {
+    const d = document.createElement('div'); d.className = 'q';
+    d.innerHTML = '<p>' + (qi + 1) + '. ' + q.q + '</p><div class="opts"></div><div class="fb"></div>';
+    const opts = $('.opts', d);
+    q.o.forEach((t, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = 'ABCD'[oi] + ') ' + t;
+      b.onclick = () => {
+        $$('.opt', d).forEach((x, xi) => { x.disabled = true; if (xi === q.c) x.classList.add('ok'); });
+        if (oi === q.c) { $('.fb', d).textContent = '¡Correcto! ' + q.e; award('quiz:' + qi, 1, 'Respuesta correcta en el ticket de salida.'); }
+        else { b.classList.add('no'); $('.fb', d).textContent = 'Revisa: ' + q.e; }
+      };
+      opts.appendChild(b);
+    });
+    box.appendChild(d);
+  });
+}
+
+/* ---------- Eventos ---------- */
+function fillSelects() {
+  ['matA', 'matB'].forEach(id => { $('#' + id).innerHTML = Object.keys(MATS).map(k => '<option value="' + k + '">' + MATS[k].n + (MATS[k].phase ? ' (con cambios de estado)' : '') + '</option>').join(''); });
+  $('#rod').innerHTML = Object.keys(RODS).map(k => '<option value="' + k + '">' + RODS[k].n + '</option>').join('');
+}
+function wire() {
+  ['matA', 'massA', 'tempA', 'matB', 'massB', 'tempB'].forEach(id => $('#' + id).addEventListener('input', () => { presetId = null; predVal = null; $('#predMsg').textContent = ''; resetSim(); renderPresetButtons(); }));
+  ['rod', 'thick', 'carea', 'eps', 'rarea', 'env', 'power'].forEach(id => $('#' + id).addEventListener('input', applyLive));
+  $$('[data-mech]').forEach(b => b.onclick = () => { setMech(b.dataset.mech); applyLive(); });
+  $('#modeEq').onclick = () => { if (mode !== 'eq') loadPreset('metal-agua'); };
+  $('#modeHeat').onclick = () => { if (mode !== 'heat') loadPreset('curva'); };
+  $('#btnPlay').onclick = () => {
+    if (sim.done) { resetSim(true); }
+    running = !running; if (running && sim.mode === 'eq' && !sim.eq && Math.abs(phase(sim.A.mat, sim.A.m, sim.A.H).T - phase(sim.B.mat, sim.B.m, sim.B.H).T) < 0.1) { sim.eq = true; sim.tEq = 0; sim.done = true; running = false; onEquilibrium(phase(sim.A.mat, sim.A.m, sim.A.H), phase(sim.B.mat, sim.B.m, sim.B.H)); }
+    updatePlay(); chartsDirty = true;
+  };
+  $('#btnReset').onclick = () => { resetSim(true); };
+  $('#btnAuto').onclick = () => { setSpeed(autoSpeed(sim)); sim.tAxis = Math.max(sim.tAxis, speed * 22); chartsDirty = true; };
+  $('#btnCam').onclick = () => V && V.camReset();
+  $('#speed').addEventListener('input', () => { setSpeed(Math.pow(10, +$('#speed').value / 100 * 3.7)); });
+  $('#showTeq').addEventListener('input', () => { chartsDirty = true; lastLive = ''; });
+  $('#predBtn').onclick = () => {
+    const v = parseFloat($('#pred').value);
+    if (!Number.isFinite(v)) { $('#predMsg').textContent = 'Escribe un número en °C.'; return; }
+    predVal = v; $('#predMsg').textContent = 'Predicción fijada: ' + nf(v) + ' °C. Ahora pulsa Iniciar.';
+  };
+  $('#btnStart').onclick = () => { loadPreset('metal-agua'); $('#pred').focus(); $('#viewport').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  window.addEventListener('resize', () => { chartsDirty = true; });
+  new ResizeObserver(() => { chartsDirty = true; }).observe($('.chartgrid'));
+  const themeChanged = () => { if (V) V.theme(); chartsDirty = true; };
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', themeChanged);
+  new MutationObserver(themeChanged).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+}
+
+/* ---------- Bucle ---------- */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (running && sim && !sim.done) stepSim(dt * speed);
+  if (V) { try { V.frame(now / 1000, dt); } catch (e) { console.error(e); V = null; $('#fallback').style.display = 'flex'; } }
+  if (chartsDirty && now - lastChart > 90) { lastChart = now; renderAll(); }
+  requestAnimationFrame(frame);
+}
+
+fillSelects(); wire(); renderExps(); renderQuiz();
+$('#walletN').textContent = store.total;
+try { V = init3D(); } catch (e) { console.error(e); V = null; $('#fallback').style.display = 'flex'; }
+loadPreset('metal-agua');
+requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>

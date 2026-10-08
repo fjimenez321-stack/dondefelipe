@@ -1,0 +1,999 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Operación Barrera 7mo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Concepto: sala de control oscura. A la izquierda el cuerpo con sus seis zonas; a la derecha amenazas en curso, consola de señales nerviosas y registro. Paleta navy / teal / ámbar del proyecto. */
+:root{
+  --ink:#071226; --panel:#0e1d3a; --panel-2:#152a52; --line:#27427a;
+  --text:#e8eefc; --mute:#9fb2d8; --teal:#2fd1c0; --amber:#ffb23f; --coral:#ff6279; --violet:#a58cff;
+  --f-display:'Chakra Petch','Trebuchet MS',sans-serif;
+  --f-body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--f-body);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:16px 28px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:.01em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.app{max-width:1240px;margin-inline:auto;display:grid;gap:14px}
+
+/* Barra superior */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand h1{font-size:1.45rem;line-height:1.1}
+.brand p{margin:2px 0 0;color:var(--mute);font-size:.82rem}
+.brand-mark{width:40px;height:40px;flex:none}
+.meters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
+.meter{min-width:130px}
+.meter .lbl{display:flex;justify-content:space-between;gap:8px;font-family:var(--f-display);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}
+.meter .lbl b{font-family:var(--f-mono);font-weight:500;color:var(--text);letter-spacing:0}
+.bar{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}
+.bar>i{display:block;height:100%;width:100%;background:var(--teal);transition:width .2s linear,background .2s}
+.bar.low>i{background:var(--coral)}
+.bar.energy>i{background:var(--amber)}
+.wave-chip{font-family:var(--f-display);font-weight:600;font-size:.95rem;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:8px 14px;font-family:var(--f-display);font-weight:600;letter-spacing:.02em}
+.btn:hover{background:var(--panel-2)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#04201d}
+.btn.primary:hover{background:#5fe0d2}
+
+/* Escenario */
+.stage{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.stage{grid-template-columns:minmax(0,250px) minmax(0,1fr);align-items:start}}
+@media (max-width:899px){.map-card svg{max-height:200px}}
+.map-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+.map-card svg{display:block;width:100%;height:auto;max-height:400px;margin-inline:auto}
+.map-card .cap{margin:6px 4px 0;font-size:.74rem;color:var(--mute)}
+.ops{display:grid;gap:14px;min-width:0}
+.sec-h{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+
+/* Mapa SVG */
+#body .shape{fill:var(--panel-2);stroke:var(--line);stroke-width:1.5}
+#body .organ{fill:#1b3566;stroke:#3b5c9e;stroke-width:1.2}
+#body .gut{fill:none;stroke:#3b5c9e;stroke-width:7;stroke-linejoin:round;stroke-linecap:round}
+#body .tube{fill:none;stroke:#3b5c9e;stroke-width:3}
+#body .nerve{fill:none;stroke:var(--teal);stroke-width:1.2;stroke-dasharray:3 4;opacity:.45}
+#body .zlabel{font-family:var(--f-display);font-size:15px;font-weight:600;fill:var(--text);paint-order:stroke;stroke:var(--panel);stroke-width:3px}
+#body .leader{stroke:var(--mute);stroke-width:.8;opacity:.5}
+#body .zone{cursor:pointer}
+#body .ring{fill:transparent;stroke:var(--line);stroke-width:1.5;stroke-dasharray:2 3}
+#body .zone.alert .ring{stroke:var(--amber);stroke-width:2.2;stroke-dasharray:none;animation:ping 1s ease-in-out infinite}
+#body .zone.sel .ring{stroke:#fff;stroke-width:2.6;stroke-dasharray:none}
+@keyframes ping{50%{stroke-opacity:.35}}
+#body .brain{fill:var(--teal);opacity:.92}
+#body .brain-fold{fill:none;stroke:#04201d;stroke-width:1.2}
+#body .pg{pointer-events:none}
+#body .pg.hostile{color:var(--coral)}
+#body .pg.friend{color:var(--teal)}
+#body .pg{transition:opacity .6s}
+#body .pg.hit .in{transform-box:fill-box;transform-origin:center;animation:hit .6s ease-out}
+@keyframes hit{50%{transform:scale(1.8)}}
+
+/* Amenazas */
+.threats{display:grid;gap:8px;min-height:92px;align-content:start}
+.empty{border:1px dashed var(--line);border-radius:8px;padding:18px;color:var(--mute);text-align:center}
+.threat{position:relative;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:4px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px 14px;cursor:pointer;overflow:hidden;text-align:left;width:100%}
+.threat.sel{border-color:#fff;background:var(--panel-2)}
+.threat .ico{width:34px;height:34px;color:var(--coral)}
+.threat.friend .ico{color:var(--teal)}
+.threat .zone-name{display:block;font-family:var(--f-display);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--amber)}
+.threat.friend .zone-name{color:var(--teal)}
+.threat .msg{display:block;font-size:.95rem}
+.threat .need{display:flex;gap:4px;align-items:center;font-family:var(--f-mono);font-size:.72rem;color:var(--mute);white-space:nowrap}
+.pip{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--mute)}
+.pip.on{background:var(--teal);border-color:var(--teal)}
+.threat .tm{position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--panel-2)}
+.threat .tm>i{display:block;height:100%;width:100%;background:var(--teal)}
+.threat.warn .tm>i{background:var(--amber)}
+.threat.crit .tm>i{background:var(--coral)}
+.threat.out-ok{border-color:var(--teal);opacity:.6}
+.threat.out-bad{border-color:var(--coral);opacity:.7}
+
+/* Consola */
+.console{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.cmds{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.cmd{position:relative;overflow:hidden;display:grid;gap:3px;text-align:left;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-height:84px;align-content:start}
+.cmd:hover:not(:disabled){border-color:var(--teal)}
+.cmd .row{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.cmd kbd{font-family:var(--f-mono);font-size:.72rem;border:1px solid var(--mute);border-radius:4px;padding:0 5px;color:var(--mute)}
+.cmd .cost{font-family:var(--f-mono);font-size:.72rem;color:var(--amber)}
+.cmd .nm{font-family:var(--f-display);font-weight:600;font-size:.92rem;line-height:1.15}
+.cmd .tags{display:flex;gap:4px;flex-wrap:wrap}
+.cmd .hint{font-size:.74rem;color:var(--mute);line-height:1.3}
+.cmd .cd{position:absolute;inset:0;background:rgba(7,18,38,.7);transform-origin:bottom;transform:scaleY(var(--cd,0));pointer-events:none}
+.cmd.low{opacity:.5}
+.cmd.guide,.btn.guide{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal);animation:glow 1.1s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 5px rgba(47,209,192,.3)}}
+.threat .guide{display:block;margin-top:4px;font-size:.84rem;font-weight:700;color:var(--teal)}
+.threat .guide:empty{display:none}
+.tag{font-size:.64rem;font-family:var(--f-display);font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:3px;padding:1px 5px;border:1px solid currentColor}
+.tag.mec{color:var(--violet)}
+.tag.qui{color:var(--amber)}
+.tag.mic{color:var(--teal)}
+.tag.ok{color:var(--teal)}
+.tag.bad{color:var(--coral)}
+.console-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px;color:var(--mute);font-size:.8rem}
+
+/* Registro */
+.feed-box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+#feed{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:230px;overflow-y:auto}
+#feed li{font-size:.86rem;padding-left:10px;border-left:3px solid var(--line)}
+#feed li.ok{border-color:var(--teal)}
+#feed li.bad{border-color:var(--coral)}
+#feed li.info{border-color:var(--amber)}
+#feed li .tag{margin-right:4px}
+
+/* Pantallas superpuestas */
+.overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(5,10,22,.86);overflow-y:auto}
+.card{width:100%;max-width:680px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;display:grid;gap:14px}
+.card h2{font-size:1.5rem}
+.card p{margin:0}
+.card .lead{color:var(--mute)}
+.steps{margin:0;padding-left:20px;display:grid;gap:6px}
+.modes{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.mode{display:block;border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;background:var(--panel-2)}
+.mode input{margin-right:6px;accent-color:var(--teal)}
+.mode b{font-family:var(--f-display)}
+.mode small{display:block;color:var(--mute);margin-top:2px}
+.mode:has(input:checked){border-color:var(--teal)}
+.stats{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.stat{background:var(--panel-2);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-family:var(--f-mono);font-weight:500;font-size:1.4rem}
+.stat span{font-size:.74rem;color:var(--mute);text-transform:uppercase;letter-spacing:.07em}
+.field{display:grid;gap:4px;font-size:.82rem;color:var(--mute)}
+.field input{font:inherit;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+.rankbox{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;border:1px solid var(--amber);border-radius:10px;padding:14px 16px;background:var(--panel-2)}
+.rankbox .stars{color:var(--amber);font-size:1.7rem;letter-spacing:.12em;line-height:1}
+.rankbox .rt{font-family:var(--f-display);font-weight:700;font-size:1.3rem;margin-top:4px}
+.rankbox .total{text-align:right}
+.rankbox .total b{display:block;font-family:var(--f-mono);font-weight:500;font-size:2.4rem;line-height:1.05;color:var(--amber)}
+.rankbox .total span{font-size:.72rem;color:var(--mute);text-transform:uppercase;letter-spacing:.09em}
+table.mini{min-width:0;max-width:420px}
+table.mini td{padding:4px 8px;border-bottom:1px solid var(--line)}
+table.mini td:last-child{text-align:right;font-family:var(--f-mono)}
+table.mini tr.sum td{font-weight:700;border-bottom:0;color:var(--amber)}
+.medals{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.medal{border:1px solid var(--line);border-radius:8px;padding:8px 10px;opacity:.5}
+.medal.on{opacity:1;border-color:var(--amber);background:var(--panel-2)}
+.medal b{display:block;font-family:var(--f-display);font-size:.92rem}
+.medal small{display:block;color:var(--mute);font-size:.76rem;line-height:1.3}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.84rem;min-width:520px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.bars{display:grid;gap:8px}
+.bars .br{display:grid;grid-template-columns:110px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:.84rem}
+.bars .bar{height:12px}
+.q{margin:0;padding-left:20px;display:grid;gap:6px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.note{font-size:.8rem;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:520px){.bars .br{grid-template-columns:90px minmax(0,1fr) 40px}.card{padding:16px}}
+</style>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 33 8v10c0 9-6 16-13 19C13 34 7 27 7 18V8z" fill="none" stroke="#2fd1c0" stroke-width="2.4" stroke-linejoin="round"/><path d="M14 20h4l2-5 3 10 2-5h2" fill="none" stroke="#ffb23f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>
+        <h1>Operación Barrera</h1>
+        <p>Centro de operaciones del sistema nervioso · barreras primarias</p>
+      </div>
+    </div>
+    <div class="meters">
+      <div class="wave-chip" id="waveChip">Oleada 1 de 3</div>
+      <div class="meter"><div class="lbl">Integridad <b id="integTxt">100</b></div><div class="bar" id="integBar"><i></i></div></div>
+      <div class="meter"><div class="lbl">Energía neuronal <b id="energyTxt">100</b></div><div class="bar energy"><i id="energyFill"></i></div></div>
+      <div class="meter" style="min-width:80px"><div class="lbl">Puntos <b id="scoreTxt">0</b></div></div>
+      <div class="meter" style="min-width:70px"><div class="lbl">Racha <b id="streakTxt">0</b></div></div>
+      <button class="btn" id="pauseBtn" type="button">Pausa</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <section class="map-card" aria-label="Mapa del cuerpo">
+      <svg id="body" viewBox="-40 0 380 520" role="img" aria-label="Mapa del cuerpo humano con las seis zonas protegidas por barreras primarias">
+        <defs>
+          <symbol id="p-bacteria" viewBox="-14 -14 28 28">
+            <rect x="-10" y="-5" width="20" height="10" rx="5" fill="currentColor"/>
+            <path d="M-10 -2q-5-3-4-7M10 2q5 3 4 7M-6 5q-2 5-6 6M6-5q2-5 6-6" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round"/>
+          </symbol>
+          <symbol id="p-virus" viewBox="-14 -14 28 28">
+            <circle r="7" fill="currentColor"/>
+            <path d="M0-7V-12M0 7V12M-7 0H-12M7 0H12M-5-5L-9-9M5-5L9-9M-5 5L-9 9M5 5L9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <g fill="currentColor"><circle cx="0" cy="-12.5" r="1.8"/><circle cx="0" cy="12.5" r="1.8"/><circle cx="-12.5" cy="0" r="1.8"/><circle cx="12.5" cy="0" r="1.8"/><circle cx="-9.5" cy="-9.5" r="1.8"/><circle cx="9.5" cy="-9.5" r="1.8"/><circle cx="-9.5" cy="9.5" r="1.8"/><circle cx="9.5" cy="9.5" r="1.8"/></g>
+          </symbol>
+          <symbol id="p-hongo" viewBox="-14 -14 28 28">
+            <g fill="currentColor"><circle cx="-5" cy="3" r="5"/><circle cx="5" cy="4" r="4.5"/><circle cx="0" cy="-5" r="5"/></g>
+            <path d="M-9-8L-12-12M9-6L12-10M-3 9L-5 13M8 9L11 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </symbol>
+        </defs>
+
+        <g class="shape">
+          <circle cx="150" cy="70" r="42"/>
+          <rect x="138" y="106" width="24" height="34"/>
+          <path d="M95 140Q150 126 205 140L196 305Q150 316 104 305Z"/>
+          <rect x="52" y="146" width="30" height="190" rx="15"/>
+          <rect x="218" y="146" width="30" height="190" rx="15"/>
+          <rect x="108" y="300" width="40" height="205" rx="18"/>
+          <rect x="152" y="300" width="40" height="205" rx="18"/>
+        </g>
+        <ellipse class="organ" cx="126" cy="192" rx="24" ry="40"/>
+        <ellipse class="organ" cx="174" cy="192" rx="24" ry="40"/>
+        <path class="tube" d="M150 112V160M150 160L132 178M150 160L168 178"/>
+        <path class="organ" d="M160 224C150 234 156 260 176 260C196 260 198 234 184 226C176 221 168 220 160 224Z"/>
+        <path class="gut" d="M118 272h64v14h-64v14h64v10h-52"/>
+        <ellipse cx="135" cy="62" rx="7" ry="4" fill="#071226" stroke="#3b5c9e"/>
+        <ellipse cx="165" cy="62" rx="7" ry="4" fill="#071226" stroke="#3b5c9e"/>
+        <path d="M150 68l-5 14h10z" fill="none" stroke="#3b5c9e" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M138 98q12 8 24 0" fill="none" stroke="#3b5c9e" stroke-width="1.6" stroke-linecap="round"/>
+        <ellipse class="brain" cx="150" cy="42" rx="17" ry="10"/>
+        <path class="brain-fold" d="M141 42q4-5 8 0t8 0M150 33v18"/>
+        <text x="150" y="16" text-anchor="middle" class="zlabel" style="font-size:12px">Centro de control</text>
+
+        <g id="nerves"></g>
+        <g id="zones"></g>
+        <g id="actors"></g>
+        <g id="pulses"></g>
+      </svg>
+      <p class="cap">Toca una zona para elegir su amenaza. Las líneas punteadas son los nervios.</p>
+    </section>
+
+    <section class="ops">
+      <div>
+        <div class="sec-h"><span>Amenazas detectadas</span><span id="threatCount" class="note"></span></div>
+        <div class="threats" id="threats" aria-live="polite"></div>
+      </div>
+
+      <div class="console">
+        <div class="sec-h"><span>Señales del sistema nervioso</span><span class="note">Elige una amenaza y envía la respuesta</span></div>
+        <div class="cmds" id="cmds"></div>
+        <div class="console-foot">
+          <button class="btn" id="letPass" type="button">Dejar pasar (D)</button>
+          <span>Usa las teclas 1 a 9 para enviar señales. Espacio pausa el juego.</span>
+        </div>
+      </div>
+
+      <div class="feed-box">
+        <div class="sec-h"><span>Registro de operaciones</span></div>
+        <ol id="feed" aria-live="polite"></ol>
+      </div>
+    </section>
+  </main>
+
+  <!-- Briefing inicial -->
+  <div class="overlay" id="introScr">
+    <div class="card" role="dialog" aria-labelledby="introTtl">
+      <h2 id="introTtl">Operación Barrera</h2>
+      <p class="lead">Eres el centro de control del cuerpo. Los patógenos llegan por los ojos, la boca, las vías respiratorias, la piel y el tubo digestivo. Tu trabajo es enviar la señal nerviosa correcta a tiempo, antes de que crucen la barrera.</p>
+      <ol class="steps">
+        <li>Mira qué zona está en alerta y qué entró por ahí.</li>
+        <li>Elige la amenaza y envía la respuesta que corresponde. Algunas necesitan dos señales.</li>
+        <li>Ojo: no todos los microorganismos son enemigos. Si algo no debe combatirse, usa <b>Dejar pasar</b>.</li>
+        <li>Cada señal gasta energía neuronal. Una señal equivocada pierde tiempo y energía.</li>
+      </ol>
+      <div class="modes" role="radiogroup" aria-label="Modo de juego">
+        <label class="mode"><input type="radio" name="mode" value="learn" checked><b>1. Aprendizaje</b><small>El sistema te indica qué señal usar en cada amenaza. Mucho tiempo.</small></label>
+        <label class="mode"><input type="radio" name="mode" value="train"><b>2. Entrenamiento</b><small>Sin indicaciones, pero cada botón muestra dónde actúa. Tiempo extra.</small></label>
+        <label class="mode"><input type="radio" name="mode" value="mission"><b>3. Misión</b><small>Tiempo real y sin pistas. Un error cuesta caro.</small></label>
+      </div>
+      <label class="field" for="teamName"><span>Equipo o estudiante (opcional)</span><input id="teamName" type="text" maxlength="30" placeholder="Por ejemplo: Los Cilios"></label>
+      <p class="note">Cada acierto seguido suma una racha con puntos extra. Al final recibes un puntaje, un ranking y logros.</p>
+      <div class="actions"><button class="btn primary" id="startBtn" type="button">Comenzar operación</button></div>
+    </div>
+  </div>
+
+  <!-- Entre oleadas -->
+  <div class="overlay" id="waveScr" hidden>
+    <div class="card" role="dialog" aria-labelledby="waveTtl">
+      <h2 id="waveTtl">Oleada completa</h2>
+      <div class="stats" id="waveStats"></div>
+      <p class="lead" id="waveMsg"></p>
+      <div class="actions"><button class="btn primary" id="nextWaveBtn" type="button">Siguiente oleada</button></div>
+    </div>
+  </div>
+
+  <!-- Pausa -->
+  <div class="overlay" id="pauseScr" hidden>
+    <div class="card" role="dialog" aria-labelledby="pauseTtl">
+      <h2 id="pauseTtl">Operación en pausa</h2>
+      <p class="lead">Los patógenos esperan. Cuando estés listo, continúa.</p>
+      <div class="actions"><button class="btn primary" id="resumeBtn" type="button">Continuar</button><button class="btn" id="quitBtn" type="button">Terminar y ver informe</button></div>
+    </div>
+  </div>
+
+  <!-- Informe final -->
+  <div class="overlay" id="reportScr" hidden>
+    <div class="card" role="dialog" aria-labelledby="repTtl">
+      <h2 id="repTtl"></h2>
+      <p class="note" id="repTeam"></p>
+      <p class="lead" id="repLead"></p>
+      <div class="rankbox">
+        <div><div class="stars" id="repStars" aria-hidden="true"></div><div class="rt" id="repRankTtl"></div><div class="note" id="repPerf"></div></div>
+        <div class="total"><b id="repTotal">0</b><span>Puntaje final</span></div>
+      </div>
+      <p class="note" id="repBest" aria-live="polite"></p>
+      <div class="tbl"><table class="mini"><tbody id="repBreak"></tbody></table></div>
+      <div class="stats" id="repStats"></div>
+      <div>
+        <div class="sec-h"><span>Logros</span><span class="note" id="repMedalCount"></span></div>
+        <div class="medals" id="repMedals"></div>
+      </div>
+      <div>
+        <div class="sec-h"><span>Éxito por tipo de barrera</span></div>
+        <div class="bars" id="repBars"></div>
+      </div>
+      <div>
+        <div class="sec-h"><span>Bitácora de la operación</span></div>
+        <div class="tbl"><table><thead><tr><th>Oleada</th><th>Evento</th><th>Barrera</th><th>Resultado</th></tr></thead><tbody id="repRows"></tbody></table></div>
+      </div>
+      <div>
+        <div class="sec-h"><span>Para tu cuaderno</span></div>
+        <ol class="q">
+          <li>Clasifica las nueve señales que enviaste en barreras mecánicas y químicas. ¿Cuáles cumplen las dos funciones?</li>
+          <li>Elige un evento donde el patógeno ingresó y explica qué señal faltó y por qué esa barrera era la indicada.</li>
+          <li>¿Por qué el juego castiga atacar a la flora normal? Responde con la barrera microbiológica.</li>
+        </ol>
+      </div>
+      <div class="actions"><button class="btn primary" id="againBtn" type="button">Jugar de nuevo</button><button class="btn" id="copyBtn" type="button">Copiar resumen</button></div>
+      <p class="note" id="copyNote" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+<script>
+/* ===== Datos del juego ===== */
+var BARRIER_NAMES = { mec: 'Mecánica', qui: 'Química', mic: 'Microbiológica' };
+
+var COMMANDS = [
+  { id: 'lagrimas', name: 'Lagrimeo y parpadeo', zone: 'ojos', cost: 10, types: ['mec', 'qui'],
+    where: 'Ojos: arrastra partículas y libera lisozima.' },
+  { id: 'saliva', name: 'Secretar saliva', zone: 'boca', cost: 10, types: ['qui', 'mec'],
+    where: 'Boca: lisozima y flujo que arrastra lo ingerido.' },
+  { id: 'mucus', name: 'Secretar mucus', zone: 'nariz', cost: 12, types: ['mec'],
+    where: 'Vías respiratorias: atrapa partículas y microbios.' },
+  { id: 'cilios', name: 'Mover los cilios', zone: 'nariz', cost: 12, types: ['mec'],
+    where: 'Vías respiratorias: empujan el mucus hacia la garganta.' },
+  { id: 'tos', name: 'Tos o estornudo', zone: 'nariz', cost: 16, types: ['mec'],
+    where: 'Vías respiratorias: flujo de aire que expulsa.' },
+  { id: 'sudor', name: 'Sudor y grasa de la piel', zone: 'piel', cost: 12, types: ['qui'],
+    where: 'Piel: ácidos grasos, pH ácido y lisozima.' },
+  { id: 'acido', name: 'Acidificar el estómago', zone: 'estomago', cost: 14, types: ['qui'],
+    where: 'Estómago: pH muy bajo y pepsina.' },
+  { id: 'cript', name: 'Péptidos del intestino', zone: 'intestino', cost: 14, types: ['qui'],
+    where: 'Intestino: criptidinas, péptidos antibacterianos.' },
+  { id: 'peristal', name: 'Movimiento intestinal', zone: 'intestino', cost: 14, types: ['mec'],
+    where: 'Tubo digestivo: flujo que arrastra lo que no se adhiere.' }
+];
+
+/* Rutas en el viewBox del mapa. target = punto de la barrera; route = camino del patógeno. */
+var ZONES = {
+  ojos:      { name: 'Ojos', target: [150, 62], side: 'R', ly: 62,
+               nerve: 'M150 44L150 62', route: [[330, 20], [150, 62]] },
+  nariz:     { name: 'Vías respiratorias', target: [150, 150], side: 'R', ly: 150,
+               nerve: 'M150 44C200 70 196 120 150 150', route: [[330, 105], [150, 92], [150, 150]] },
+  boca:      { name: 'Boca', target: [150, 99], side: 'L', ly: 99,
+               nerve: 'M150 44C112 60 112 90 150 99', route: [[-25, 135], [150, 100]] },
+  piel:      { name: 'Piel', target: [67, 235], side: 'L', ly: 235,
+               nerve: 'M150 44C96 90 64 150 67 235', route: [[-25, 330], [67, 238]] },
+  estomago:  { name: 'Estómago', target: [172, 242], side: 'R', ly: 242,
+               nerve: 'M150 44L150 130C150 190 158 215 172 242', route: [[-25, 135], [150, 100], [150, 150], [172, 242]] },
+  intestino: { name: 'Intestino', target: [150, 286], side: 'L', ly: 286,
+               nerve: 'M150 44L144 130C138 200 134 250 150 286', route: [[-25, 135], [150, 100], [150, 150], [172, 242], [150, 286]] }
+};
+
+/* kind: bacteria | virus | hongo | amigo. need: señales que lo detienen (amigo: ninguna). */
+var THREATS = [
+  { id: 't1', zone: 'ojos', kind: 'bacteria', title: 'Bacterias en el ojo', need: ['lagrimas'], barriers: ['mec', 'qui'],
+    text: 'Polvo con bacterias cae en tu ojo durante el recreo.',
+    why: 'Las lágrimas arrastran las partículas y contienen lisozima, una enzima que rompe la pared de muchas bacterias.' },
+  { id: 't2', zone: 'ojos', kind: 'virus', title: 'Virus en el ojo', need: ['lagrimas'], barriers: ['mec', 'qui'],
+    text: 'Te frotas el ojo con la mano después de saludar a alguien resfriado.',
+    why: 'El lagrimeo y el parpadeo lavan la superficie del ojo y la lisozima de las lágrimas ayuda a destruir microbios.' },
+  { id: 't3', zone: 'boca', kind: 'bacteria', title: 'Bacterias en la boca', need: ['saliva'], barriers: ['qui', 'mec'],
+    text: 'Un trozo de pan cayó al suelo y te lo comes igual.',
+    why: 'La saliva contiene lisozima y su flujo arrastra los microbios hacia el estómago, donde el ácido sigue el trabajo.' },
+  { id: 't8', zone: 'piel', kind: 'bacteria', title: 'Bacterias en la piel', need: ['sudor'], barriers: ['qui', 'mic'],
+    text: 'Después de Educación Física, bacterias se instalan en tu piel sudada.',
+    why: 'La piel intacta es una barrera mecánica. Además, los ácidos grasos y el pH ácido frenan a los microbios y el sudor aporta lisozima. La flora normal también compite con ellos.' },
+  { id: 't9', zone: 'piel', kind: 'hongo', title: 'Hongos en los pies', need: ['sudor'], barriers: ['qui', 'mic'],
+    text: 'Hongos del piso del camarín intentan colonizar la piel de tus pies.',
+    why: 'Los ácidos grasos y el pH ácido de la piel dificultan que los hongos crezcan, y la flora normal les quita espacio y nutrientes.' },
+  { id: 't10', zone: 'estomago', kind: 'bacteria', title: 'Salmonella en el estómago', need: ['acido'], barriers: ['qui'],
+    text: 'Comes un sándwich con mayonesa mal conservada.',
+    why: 'El estómago tiene un pH muy bajo y pepsina. Ese ambiente mata a muchas bacterias que llegan con los alimentos.' },
+  { id: 't4', zone: 'boca', kind: 'hongo', title: 'Levaduras ingeridas', need: ['saliva', 'acido'], barriers: ['qui', 'mec'],
+    text: 'Tomas jugo de una botella que quedó abierta varios días.',
+    why: 'La saliva arrastra y ataca a los microbios en la boca. Los que no se detienen allí llegan al estómago, donde el pH bajo los enfrenta.' },
+  { id: 't5', zone: 'nariz', kind: 'virus', title: 'Virus por estornudo', need: ['mucus', 'cilios'], barriers: ['mec'],
+    text: 'Un compañero estornuda cerca y respiras las gotitas con virus.',
+    why: 'El mucus atrapa las partículas y los cilios lo empujan hacia la garganta para tragarlo o expulsarlo.' },
+  { id: 't6', zone: 'nariz', kind: 'hongo', title: 'Esporas de moho', need: ['mucus', 'tos'], barriers: ['mec'],
+    text: 'Esporas del pan viejo flotan en el aire de la cocina.',
+    why: 'El mucus las atrapa y la tos o el estornudo crea un flujo de aire que las expulsa.' },
+  { id: 't7', zone: 'nariz', kind: 'bacteria', title: 'Bacterias en los bronquios', need: ['cilios', 'tos'], barriers: ['mec'],
+    text: 'Caminas por una calle con smog y las bacterias quedan pegadas al mucus.',
+    why: 'Los cilios llevan el mucus cargado hacia arriba y la tos termina de expulsarlo del sistema respiratorio.' },
+  { id: 't11', zone: 'estomago', kind: 'bacteria', title: 'Bacterias del agua', need: ['acido', 'peristal'], barriers: ['qui', 'mec'],
+    text: 'Bebes agua de un estero sin hervirla.',
+    why: 'El ácido del estómago elimina muchas bacterias y el movimiento del tubo digestivo arrastra a las que sobreviven.' },
+  { id: 't12', zone: 'intestino', kind: 'bacteria', title: 'Colonización del intestino', need: ['cript', 'peristal'], barriers: ['qui', 'mec', 'mic'],
+    text: 'Tomaste antibióticos, tu flora bajó y una bacteria oportunista intenta adherirse.',
+    why: 'Con menos flora hay menos competencia, así que pesan más los péptidos antibacterianos (criptidinas) y el flujo intestinal que arrastra lo que no se adhiere.' },
+  { id: 'f1', zone: 'intestino', kind: 'amigo', title: 'Lactobacilos del yogur', need: [], barriers: ['mic'],
+    text: 'Comes yogur y llegan lactobacilos al intestino.',
+    why: 'La flora normal compite por nutrientes y espacio con los patógenos y puede producir sustancias antibacterianas. Es parte de tu defensa.' },
+  { id: 'f2', zone: 'piel', kind: 'amigo', title: 'Flora de la piel', need: [], barriers: ['mic'],
+    text: 'Las bacterias de tu flora normal se multiplican en tus manos recién lavadas.',
+    why: 'La flora normal de la piel ocupa el lugar que querrían ocupar los patógenos. Atacarla debilita la barrera.' },
+  { id: 'f3', zone: 'boca', kind: 'amigo', title: 'Flora de la boca', need: [], barriers: ['mic'],
+    text: 'Bacterias de tu flora normal viven sobre la lengua y los dientes.',
+    why: 'Estos microorganismos compiten con los patógenos por unirse al epitelio. Combatirlos no protege, debilita.' }
+];
+
+/* Oleadas: cuántos de cada nivel. limit = segundos base, gap = segundos entre llegadas, maxActive = amenazas simultáneas. */
+var WAVES = [
+  { singles: 3, doubles: 0, friends: 1, limit: 16, gap: 6.5, maxActive: 2 },
+  { singles: 2, doubles: 2, friends: 1, limit: 13, gap: 5, maxActive: 3 },
+  { singles: 1, doubles: 4, friends: 1, limit: 11, gap: 4, maxActive: 4 }
+];
+var SINGLE_IDS = ['t1', 't2', 't3', 't8', 't9', 't10'];
+var DOUBLE_IDS = ['t4', 't5', 't6', 't7', 't11', 't12'];
+var FRIEND_IDS = ['f1', 'f2', 'f3'];
+/* ===== Utilidades ===== */
+var $ = function (id) { return document.getElementById(id); };
+var SVGNS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs, parent) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function byId(arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; return null; }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function pickN(arr, n) { return shuffle(arr.slice()).slice(0, n); }
+var KIND_ICON = { bacteria: 'p-bacteria', virus: 'p-virus', hongo: 'p-hongo', amigo: 'p-bacteria' };
+var KIND_LABEL = { bacteria: 'bacteria', virus: 'virus', hongo: 'hongo', amigo: 'microorganismo' };
+
+/* ===== Estado ===== */
+var S = null;
+function newState(mode) {
+  return {
+    mode: mode, factor: mode === 'learn' ? 2.4 : mode === 'train' ? 1.6 : 1, dmg: mode === 'learn' ? 5 : mode === 'train' ? 10 : 20,
+    wave: 0, queue: [], active: [], results: [], waveStart: 0,
+    integrity: 100, energy: 100, score: 0,
+    time: 0, lastSpawn: 0, lastEvent: 0, selected: null, cd: {}, pulses: [],
+    running: false, paused: false, uid: 0,
+    streak: 0, bestStreak: 0, cmdOk: {}, team: ''
+  };
+}
+
+/* ===== Mapa ===== */
+function buildMap() {
+  var nerves = $('nerves'), zones = $('zones');
+  Object.keys(ZONES).forEach(function (k) {
+    var z = ZONES[k];
+    z.nerveEl = svgEl('path', { d: z.nerve, 'class': 'nerve' }, nerves);
+    var g = svgEl('g', { 'class': 'zone', 'data-zone': k, tabindex: '0', role: 'button', 'aria-label': z.name }, zones);
+    z.ringEl = svgEl('circle', { cx: z.target[0], cy: z.target[1], r: 22, 'class': 'ring' }, g);
+    var left = z.side === 'L';
+    var t = svgEl('text', { x: left ? -34 : 334, y: z.ly + 4, 'class': 'zlabel', 'text-anchor': left ? 'start' : 'end' }, g);
+    t.textContent = z.name;
+    var bb = t.getBBox();
+    svgEl('line', { x1: left ? bb.x + bb.width + 4 : bb.x - 4, y1: z.ly, x2: z.target[0] + (left ? -22 : 22), y2: z.target[1], 'class': 'leader' }, g);
+    z.g = g;
+    g.addEventListener('click', function () { selectZone(k); });
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); selectZone(k); } });
+    var segs = [], total = 0;
+    for (var i = 1; i < z.route.length; i++) {
+      var dx = z.route[i][0] - z.route[i - 1][0], dy = z.route[i][1] - z.route[i - 1][1];
+      var len = Math.sqrt(dx * dx + dy * dy); segs.push(len); total += len;
+    }
+    z.segs = segs; z.total = total;
+  });
+}
+function posOnRoute(z, f) {
+  var d = Math.max(0, Math.min(1, f)) * z.total;
+  for (var i = 0; i < z.segs.length; i++) {
+    if (d <= z.segs[i] || i === z.segs.length - 1) {
+      var u = z.segs[i] ? Math.min(1, d / z.segs[i]) : 1;
+      var a = z.route[i], b = z.route[i + 1];
+      return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+    }
+    d -= z.segs[i];
+  }
+  return z.route[z.route.length - 1];
+}
+function makeActor(T) {
+  var g = svgEl('g', { 'class': 'pg hostile' }, $('actors'));
+  var inner = svgEl('g', { 'class': 'in' }, g);
+  var u = svgEl('use', { x: -14, y: -14, width: 28, height: 28 }, inner);
+  u.setAttribute('href', '#' + KIND_ICON[T.def.kind]);
+  var p = posOnRoute(ZONES[T.def.zone], 0);
+  g.setAttribute('transform', 'translate(' + p[0] + ',' + p[1] + ')');
+  return g;
+}
+function refreshZones() {
+  Object.keys(ZONES).forEach(function (k) {
+    var alert = false, sel = false;
+    S.active.forEach(function (T) {
+      if (T.def.zone === k) { alert = true; if (S.selected === T.uid) sel = true; }
+    });
+    ZONES[k].g.classList.toggle('alert', alert);
+    ZONES[k].g.classList.toggle('sel', sel);
+  });
+}
+
+/* ===== Pulsos nerviosos ===== */
+function sendPulse(zoneKey) {
+  var z = ZONES[zoneKey];
+  var dot = svgEl('circle', { r: 4.5, fill: '#2fd1c0' }, $('pulses'));
+  S.pulses.push({ dot: dot, path: z.nerveEl, len: z.nerveEl.getTotalLength(), t: 0, dur: 0.45, zone: zoneKey, burst: false });
+}
+function updatePulses(dt) {
+  S.pulses = S.pulses.filter(function (p) {
+    p.t += dt;
+    if (!p.burst) {
+      var f = Math.min(1, p.t / p.dur), pt = p.path.getPointAtLength(p.len * f);
+      p.dot.setAttribute('cx', pt.x); p.dot.setAttribute('cy', pt.y);
+      if (f >= 1) { p.burst = true; p.t = 0; p.dot.setAttribute('fill', 'none'); p.dot.setAttribute('stroke', '#2fd1c0'); p.dot.setAttribute('stroke-width', 2); }
+      return true;
+    }
+    var b = Math.min(1, p.t / 0.4);
+    p.dot.setAttribute('r', 4 + 20 * b); p.dot.setAttribute('opacity', 1 - b);
+    if (b >= 1) { p.dot.remove(); return false; }
+    return true;
+  });
+}
+
+/* ===== Oleadas ===== */
+function startWave(w) {
+  S.wave = w;
+  var cfg = WAVES[w];
+  var ids = [].concat(pickN(SINGLE_IDS, cfg.singles), pickN(DOUBLE_IDS, cfg.doubles), pickN(FRIEND_IDS, cfg.friends));
+  S.queue = shuffle(ids).map(function (id) { return byId(THREATS, id); });
+  S.waveStart = S.results.length;
+  S.lastSpawn = S.time - cfg.gap + 1.2; S.lastEvent = S.time;
+  S.energy = 100; S.running = true; S.paused = false;
+  setLast();
+  updateHud();
+  feed('info', 'Comienza la oleada ' + (w + 1) + ' de ' + WAVES.length + '.');
+}
+function spawn(def) {
+  var cfg = WAVES[S.wave];
+  var limit = (def.kind === 'amigo' ? 9 : cfg.limit + 3 * (def.need.length - 1)) * S.factor;
+  var T = { uid: ++S.uid, def: def, t: 0, limit: limit, done: [], wrongs: 0 };
+  T.actor = makeActor(T);
+  makeCard(T);
+  S.active.push(T);
+  S.lastSpawn = S.time; S.lastEvent = S.time;
+  if (S.selected === null) S.selected = T.uid;
+  refreshSelection();
+  feed('info', 'Alerta en ' + ZONES[def.zone].name.toLowerCase() + '.');
+}
+function tick(dt) {
+  S.time += dt;
+  S.energy = Math.min(100, S.energy + 6 * dt);
+  for (var k in S.cd) if (S.cd[k] > 0) S.cd[k] = Math.max(0, S.cd[k] - dt);
+  var cfg = WAVES[S.wave];
+  if (S.queue.length && S.active.length < cfg.maxActive) {
+    if (S.time - S.lastSpawn >= cfg.gap || (S.active.length === 0 && S.time - S.lastEvent >= 1.4)) spawn(S.queue.shift());
+  }
+  S.active.slice().forEach(function (T) {
+    T.t += dt;
+    if (T.t >= T.limit) { if (T.def.kind === 'amigo') pass(T); else breach(T, false); }
+    else drawThreat(T);
+  });
+  if (!S.running) return;
+  if (!S.queue.length && !S.active.length) waveDone();
+  updatePulses(dt);
+  updateHud();
+}
+
+/* ===== Decisiones ===== */
+function selectedThreat() {
+  for (var i = 0; i < S.active.length; i++) if (S.active[i].uid === S.selected) return S.active[i];
+  return null;
+}
+function selectThreat(uid) { S.selected = uid; refreshSelection(); }
+function selectZone(k) {
+  if (!S || !S.running || S.paused) return;
+  for (var i = 0; i < S.active.length; i++) if (S.active[i].def.zone === k) { selectThreat(S.active[i].uid); return; }
+}
+function press(cid) {
+  if (!S || !S.running || S.paused) return;
+  var c = byId(COMMANDS, cid);
+  if (S.cd[cid] > 0) return;
+  var T = selectedThreat();
+  if (!T) { feed('info', 'Primero elige una amenaza de la lista.'); return; }
+  if (S.energy < c.cost) { feed('info', 'No te alcanza la energía neuronal para esa señal. Espera un momento.'); return; }
+  S.energy -= c.cost; S.cd[cid] = 1;
+  sendPulse(c.zone);
+  if (T.def.kind === 'amigo') { harm(T); return; }
+  if (T.def.need.indexOf(cid) >= 0) {
+    if (T.done.indexOf(cid) >= 0) { S.energy += c.cost; S.cd[cid] = 0; feed('info', 'Esa señal ya está activa en esta amenaza.'); return; }
+    T.done.push(cid); S.cmdOk[cid] = true; drawPips(T);
+    if (T.done.length === T.def.need.length) stop(T);
+    else feed('ok', '<span class="tag ok">Correcto</span>' + c.name + '. Esta amenaza necesita otra respuesta más.');
+  } else {
+    T.wrongs++; T.t += 3; S.streak = 0;
+    feed('bad', '<span class="tag bad">Sin efecto</span>' + c.name + ' no sirve aquí. ' + c.where);
+  }
+}
+function letPass() {
+  if (!S || !S.running || S.paused) return;
+  var T = selectedThreat();
+  if (!T) { feed('info', 'Primero elige una amenaza de la lista.'); return; }
+  if (T.def.kind === 'amigo') pass(T); else breach(T, true);
+}
+function record(T, outcome, pts, missing) {
+  S.results.push({ wave: S.wave + 1, def: T.def, outcome: outcome, wrongs: T.wrongs, pts: pts || 0, missing: missing || [], frac: Math.min(1, T.t / T.limit) });
+}
+/* Racha: cada acierto seguido suma +10 extra (hasta +50). Un error, una brecha o dañar la flora la reinician. */
+function bumpStreak() {
+  S.streak++; if (S.streak > S.bestStreak) S.bestStreak = S.streak;
+  return Math.min(50, (S.streak - 1) * 10);
+}
+function stop(T) {
+  var bonus = bumpStreak();
+  var pts = Math.max(40, 100 + Math.round((1 - T.t / T.limit) * 50) - T.wrongs * 20) + bonus;
+  S.score += pts; record(T, 'stopped', pts);
+  feed('ok', '<span class="tag ok">Detenido</span><b>' + T.def.title + '.</b> ' + T.def.why + ' (+' + pts + (bonus ? ', racha ×' + S.streak : '') + ')');
+  finish(T, true);
+}
+function pass(T) {
+  var bonus = bumpStreak(), pts = 60 + bonus;
+  S.score += pts; record(T, 'passed', pts);
+  feed('ok', '<span class="tag ok">Buena decisión</span><b>' + T.def.title + '.</b> ' + T.def.why + ' (+' + pts + (bonus ? ', racha ×' + S.streak : '') + ')');
+  T.card.classList.add('friend'); T.actor.classList.replace('hostile', 'friend');
+  finish(T, true);
+}
+function harm(T) {
+  var d = Math.round(S.dmg / 2);
+  S.integrity = Math.max(0, S.integrity - d); S.streak = 0; record(T, 'harmed', 0);
+  feed('bad', '<span class="tag bad">Flora dañada</span><b>' + T.def.title + '.</b> Atacaste a microorganismos beneficiosos. ' + T.def.why + ' (−' + d + ' integridad)');
+  T.card.classList.add('friend'); T.actor.classList.replace('hostile', 'friend');
+  finish(T, false);
+  if (S.integrity <= 0) endGame(false);
+}
+function breach(T, voluntary) {
+  S.integrity = Math.max(0, S.integrity - S.dmg); S.streak = 0;
+  var missing = T.def.need.filter(function (n) { return T.done.indexOf(n) < 0; });
+  record(T, 'breach', 0, missing);
+  var names = missing.map(function (n) { return byId(COMMANDS, n).name.toLowerCase(); }).join(' y ');
+  feed('bad', '<span class="tag bad">Ingresó</span><b>' + T.def.title + '.</b> ' + (voluntary ? 'Lo dejaste pasar. ' : '') + 'Faltó: ' + names + '. ' + T.def.why + ' Ahora tendría que actuar la barrera secundaria (−' + S.dmg + ' integridad).');
+  T.t = T.limit; drawThreat(T);
+  T.actor.classList.add('hit');
+  finish(T, false);
+  if (S.integrity <= 0) endGame(false);
+}
+function finish(T, good) {
+  if (good) T.actor.style.opacity = '0';
+  S.active = S.active.filter(function (x) { return x !== T; });
+  S.lastEvent = S.time;
+  T.card.classList.add(good ? 'out-ok' : 'out-bad');
+  T.card.disabled = true;
+  var bar = T.card.querySelector('.tm i'); if (bar) bar.style.width = '0%';
+  setTimeout(function () { T.card.remove(); T.actor.remove(); updateEmpty(); }, 1500);
+  if (S.selected === T.uid) S.selected = S.active.length ? S.active[0].uid : null;
+  refreshSelection();
+}
+
+/* ===== Bucle ===== */
+var lastTs = 0;
+function setLast() { lastTs = performance.now(); }
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (!S || !S.running || S.paused) { lastTs = ts; return; }
+  var dt = Math.min(0.05, (ts - lastTs) / 1000); lastTs = ts;
+  tick(dt);
+}
+/* ===== Tarjetas de amenaza ===== */
+function makeCard(T) {
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'threat';
+  b.innerHTML =
+    '<svg class="ico" viewBox="-14 -14 28 28" aria-hidden="true"><use href="#' + KIND_ICON[T.def.kind] + '" x="-14" y="-14" width="28" height="28"/></svg>' +
+    '<span><span class="zone-name">' + ZONES[T.def.zone].name + ' · ' + KIND_LABEL[T.def.kind] + '</span><span class="msg">' + T.def.text + '</span><span class="guide"></span></span>' +
+    '<span class="need"><span class="pips"></span><span class="secs"></span></span>' +
+    '<span class="tm"><i></i></span>';
+  b.addEventListener('click', function () { if (S && S.running && !S.paused) selectThreat(T.uid); });
+  var box = $('threats');
+  var e = box.querySelector('.empty'); if (e) e.remove();
+  box.appendChild(b);
+  T.card = b; T.bar = b.querySelector('.tm i'); T.secs = b.querySelector('.secs'); T.pips = b.querySelector('.pips');
+  drawPips(T); drawThreat(T);
+}
+function drawPips(T) {
+  var h = '';
+  for (var i = 0; i < T.def.need.length; i++) h += '<i class="pip' + (i < T.done.length ? ' on' : '') + '"></i>';
+  T.pips.innerHTML = h;
+  T.pips.style.display = 'flex'; T.pips.style.gap = '4px';
+  if (S && S.active.indexOf(T) >= 0) updateGuide();
+}
+/* Modo Aprendizaje: el sistema indica qué señal usar */
+function updateGuide() {
+  var btns = $('cmds').children, learn = S && S.mode === 'learn';
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('guide');
+  $('letPass').classList.remove('guide');
+  S.active.forEach(function (T) {
+    var g = T.card.querySelector('.guide');
+    if (!learn) { g.textContent = ''; return; }
+    if (T.def.kind === 'amigo') { g.textContent = 'Indicación: es flora normal. No la ataques, usa «Dejar pasar».'; return; }
+    var rest = T.def.need.filter(function (n) { return T.done.indexOf(n) < 0; });
+    g.textContent = 'Indicación: usa ' + rest.map(function (n) { return '«' + byId(COMMANDS, n).name + '»'; }).join(' y ') + '.';
+  });
+  var sel = learn ? selectedThreat() : null;
+  if (!sel) return;
+  if (sel.def.kind === 'amigo') { $('letPass').classList.add('guide'); return; }
+  for (var j = 0; j < btns.length; j++) {
+    var id = COMMANDS[j].id;
+    if (sel.def.need.indexOf(id) >= 0 && sel.done.indexOf(id) < 0) btns[j].classList.add('guide');
+  }
+}
+function drawThreat(T) {
+  var f = Math.min(1, T.t / T.limit), left = T.limit - T.t;
+  T.bar.style.width = ((1 - f) * 100) + '%';
+  T.secs.textContent = Math.max(0, Math.ceil(left)) + ' s';
+  T.card.classList.toggle('warn', f >= 0.55 && f < 0.78);
+  T.card.classList.toggle('crit', f >= 0.78);
+  var p = posOnRoute(ZONES[T.def.zone], f);
+  T.actor.setAttribute('transform', 'translate(' + p[0].toFixed(1) + ',' + p[1].toFixed(1) + ')');
+}
+function refreshSelection() {
+  S.active.forEach(function (T) { T.card.classList.toggle('sel', S.selected === T.uid); });
+  refreshZones();
+  updateGuide();
+  $('threatCount').textContent = S.active.length ? S.active.length + (S.active.length === 1 ? ' activa' : ' activas') : '';
+}
+function updateEmpty() {
+  var box = $('threats'), has = box.querySelector('.threat'), e = box.querySelector('.empty');
+  if (!has && !e) {
+    e = document.createElement('div'); e.className = 'empty';
+    e.textContent = 'Sin amenazas por ahora. Los sensores siguen vigilando.';
+    box.appendChild(e);
+  } else if (has && e) e.remove();
+}
+
+/* ===== Registro ===== */
+function feed(type, html) {
+  var li = document.createElement('li');
+  li.className = type; li.innerHTML = html;
+  var ol = $('feed'); ol.insertBefore(li, ol.firstChild);
+  while (ol.children.length > 40) ol.removeChild(ol.lastChild);
+}
+
+/* ===== Consola ===== */
+function buildCmds() {
+  var box = $('cmds'); box.innerHTML = '';
+  COMMANDS.forEach(function (c, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'cmd'; b.setAttribute('data-id', c.id);
+    var tags = c.types.map(function (t) { return '<span class="tag ' + t + '">' + BARRIER_NAMES[t] + '</span>'; }).join('');
+    b.innerHTML =
+      '<span class="row"><kbd>' + (i + 1) + '</kbd><span class="cost">−' + c.cost + '</span></span>' +
+      '<span class="nm">' + c.name + '</span>' +
+      '<span class="tags">' + tags + '</span>' +
+      '<span class="hint">' + c.where + '</span>' +
+      '<span class="cd"></span>';
+    b.addEventListener('click', function () { press(c.id); });
+    box.appendChild(b);
+  });
+}
+function updateCmds() {
+  var btns = $('cmds').children;
+  for (var i = 0; i < btns.length; i++) {
+    var c = COMMANDS[i], cd = S.cd[c.id] || 0;
+    btns[i].style.setProperty('--cd', Math.min(1, cd));
+    btns[i].classList.toggle('low', S.energy < c.cost);
+  }
+}
+function updateHud() {
+  if (!S) return;
+  $('waveChip').textContent = 'Oleada ' + (S.wave + 1) + ' de ' + WAVES.length;
+  var ig = Math.round(S.integrity);
+  $('integTxt').textContent = ig;
+  $('integBar').firstElementChild.style.width = ig + '%';
+  $('integBar').classList.toggle('low', ig < 35);
+  var en = Math.round(S.energy);
+  $('energyTxt').textContent = en;
+  $('energyFill').style.width = en + '%';
+  $('scoreTxt').textContent = S.score;
+  $('streakTxt').textContent = S.streak ? '×' + S.streak : '0';
+  updateCmds();
+}
+
+/* ===== Flujo de pantallas ===== */
+function resetStage() {
+  $('threats').innerHTML = ''; $('actors').innerHTML = ''; $('pulses').innerHTML = ''; $('feed').innerHTML = '';
+  Object.keys(ZONES).forEach(function (k) { ZONES[k].g.classList.remove('alert', 'sel'); });
+  updateEmpty();
+}
+function startGame() {
+  var mode = document.querySelector('input[name="mode"]:checked').value;
+  S = newState(mode);
+  S.team = ($('teamName').value || '').trim();
+  resetStage();
+  var hints = document.querySelectorAll('.cmd .hint');
+  for (var i = 0; i < hints.length; i++) hints[i].hidden = (mode === 'mission');
+  $('introScr').hidden = true; $('reportScr').hidden = true;
+  $('threatCount').textContent = '';
+  startWave(0);
+}
+function waveDone() {
+  S.running = false;
+  if (S.wave >= WAVES.length - 1) { endGame('win'); return; }
+  var rs = S.results.slice(S.waveStart);
+  var ok = rs.filter(function (r) { return r.outcome === 'stopped' || r.outcome === 'passed'; }).length;
+  var pts = rs.reduce(function (a, r) { return a + r.pts; }, 0);
+  S.integrity = Math.min(100, S.integrity + 10);
+  $('waveTtl').textContent = 'Oleada ' + (S.wave + 1) + ' completa';
+  $('waveStats').innerHTML =
+    '<div class="stat"><b>' + ok + ' de ' + rs.length + '</b><span>Bien resueltas</span></div>' +
+    '<div class="stat"><b>+' + pts + '</b><span>Puntos de la oleada</span></div>' +
+    '<div class="stat"><b>' + S.score + '</b><span>Puntaje acumulado</span></div>' +
+    '<div class="stat"><b>' + Math.round(S.integrity) + '</b><span>Integridad</span></div>' +
+    '<div class="stat"><b>×' + S.bestStreak + '</b><span>Mejor racha</span></div>';
+  var next = WAVES[S.wave + 1];
+  $('waveMsg').textContent = 'Recuperas 10 puntos de integridad y toda tu energía. La próxima oleada trae ' +
+    (next.singles + next.doubles + next.friends) + ' eventos, llegan más seguidos y tendrás menos tiempo para responder.';
+  $('nextWaveBtn').textContent = 'Comenzar oleada ' + (S.wave + 2);
+  $('waveScr').hidden = false;
+  updateHud();
+}
+function togglePause() {
+  if (!S || !S.running) return;
+  S.paused = !S.paused;
+  $('pauseScr').hidden = !S.paused;
+  $('pauseBtn').textContent = S.paused ? 'Continuar' : 'Pausa';
+  if (!S.paused) setLast();
+}
+
+/* ===== Informe ===== */
+function outcomeInfo(r) {
+  if (r.outcome === 'stopped') return '<span class="tag ok">Detenido</span>' + (r.wrongs ? ' con ' + r.wrongs + (r.wrongs === 1 ? ' error' : ' errores') : '');
+  if (r.outcome === 'passed') return '<span class="tag ok">Bien</span> no la atacaste';
+  if (r.outcome === 'harmed') return '<span class="tag bad">Error</span> atacaste a la flora';
+  var names = r.missing.map(function (n) { return byId(COMMANDS, n).name.toLowerCase(); }).join(' y ');
+  return '<span class="tag bad">Ingresó</span> faltó: ' + names;
+}
+function summaryText() {
+  var good = S.results.filter(function (r) { return r.outcome === 'stopped' || r.outcome === 'passed'; }).length;
+  var lines = ['Operación Barrera' + (S.team ? ' · ' + S.team : ''),
+    'Nivel: ' + MODE_INFO[S.mode].name + ' · Puntaje final: ' + S.final.total + ' · ' + S.final.rank + ' (' + S.final.stars + ' de 3 estrellas)',
+    'Integridad: ' + Math.round(S.integrity) + ' · Bien resueltas: ' + good + ' de ' + S.results.length + ' · Logros: ' + S.final.earned + ' de ' + MEDALS.length];
+  S.results.forEach(function (r) {
+    var ok = r.outcome === 'stopped' || r.outcome === 'passed';
+    lines.push('- ' + r.def.title + ': ' + (ok ? 'bien' : 'falló'));
+  });
+  return lines.join('\n');
+}
+/* ===== Puntaje final, ranking y logros ===== */
+var MODE_INFO = {
+  learn: { name: 'Aprendizaje', mult: 1, label: '×1' },
+  train: { name: 'Entrenamiento', mult: 1.5, label: '×1,5' },
+  mission: { name: 'Misión', mult: 2, label: '×2' }
+};
+var MEDALS = [
+  { name: 'Operación completa', desc: 'Superaste las 3 oleadas.',
+    test: function (s, r, reason) { return reason === 'win'; } },
+  { name: 'Sin brechas', desc: 'Ningún patógeno logró entrar.',
+    test: function (s, r) { return r.length > 0 && r.every(function (x) { return x.outcome !== 'breach'; }); } },
+  { name: 'Flora a salvo', desc: 'Dejaste pasar a todos los microorganismos beneficiosos.',
+    test: function (s, r) { var f = r.filter(function (x) { return x.def.kind === 'amigo'; }); return f.length > 0 && f.every(function (x) { return x.outcome === 'passed'; }); } },
+  { name: 'Doble señal perfecta', desc: 'Detuviste todas las amenazas de dos señales sin errores.',
+    test: function (s, r) { var d = r.filter(function (x) { return x.def.need.length === 2; }); return d.length > 0 && d.every(function (x) { return x.outcome === 'stopped' && x.wrongs === 0; }); } },
+  { name: 'Racha de 5', desc: 'Cinco aciertos seguidos.',
+    test: function (s) { return s.bestStreak >= 5; } },
+  { name: 'Reflejos', desc: 'Respondiste en menos de la mitad del tiempo, en promedio (mínimo 3 aciertos).',
+    test: function (s, r) { var o = r.filter(function (x) { return x.outcome === 'stopped'; }); if (o.length < 3) return false; return o.reduce(function (a, x) { return a + x.frac; }, 0) / o.length < 0.5; } },
+  { name: 'Cobertura total', desc: 'Usaste bien las 9 señales al menos una vez.',
+    test: function (s) { return COMMANDS.every(function (c) { return s.cmdOk[c.id]; }); } }
+];
+function scoreReport(reason, good) {
+  var mi = MODE_INFO[S.mode], R = S.results;
+  var integB = reason === 'win' ? Math.round(S.integrity) * 5 : 0;
+  var compB = reason === 'win' ? 200 : 0;
+  var total = Math.round((S.score + integB + compB) * mi.mult);
+  var perf = R.length ? Math.round(good / R.length * 70 + S.integrity * 0.3) : 0;
+  var stars = perf >= 90 ? 3 : perf >= 75 ? 2 : perf >= 55 ? 1 : 0;
+  var rank = perf >= 90 ? 'Defensa impecable' : perf >= 75 ? 'Defensa sólida' : perf >= 55 ? 'Defensa en desarrollo' : 'Defensa en entrenamiento';
+  var earned = MEDALS.filter(function (m) { return m.test(S, R, reason); }).length;
+  S.final = { total: total, rank: rank, stars: stars, perf: perf, earned: earned };
+  $('repTeam').textContent = (S.team ? 'Equipo: ' + S.team + ' · ' : '') + 'Nivel: ' + mi.name;
+  $('repStars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+  $('repRankTtl').textContent = rank;
+  $('repPerf').textContent = 'Desempeño ' + perf + ' de 100';
+  $('repTotal').textContent = total;
+  $('repBreak').innerHTML =
+    '<tr><td>Puntos por eventos, con racha</td><td>' + S.score + '</td></tr>' +
+    '<tr><td>Bonus por integridad restante</td><td>+' + integB + '</td></tr>' +
+    '<tr><td>Bonus por completar las 3 oleadas</td><td>+' + compB + '</td></tr>' +
+    '<tr><td>Multiplicador del nivel ' + mi.name + '</td><td>' + mi.label + '</td></tr>' +
+    '<tr class="sum"><td>Puntaje final</td><td>' + total + '</td></tr>';
+  $('repMedals').innerHTML = MEDALS.map(function (m) {
+    var on = m.test(S, R, reason);
+    return '<div class="medal' + (on ? ' on' : '') + '"><b>' + (on ? '★ ' : '') + m.name + '</b><small>' + m.desc + '</small></div>';
+  }).join('');
+  $('repMedalCount').textContent = earned + ' de ' + MEDALS.length;
+  var best = 0, isNew = false, key = 'opbarrera-best-' + S.mode;
+  try {
+    best = parseInt(localStorage.getItem(key), 10) || 0;
+    if (total > best) { localStorage.setItem(key, String(total)); isNew = true; }
+  } catch (e) {}
+  $('repBest').textContent = isNew && total > 0 ? 'Nuevo récord en este dispositivo para el nivel ' + mi.name + '.'
+    : best ? 'Récord en este dispositivo para el nivel ' + mi.name + ': ' + best + '.' : '';
+}
+function endGame(reason) {
+  if (!S || S.ended) return;
+  if (reason === true) reason = 'win'; else if (reason === false) reason = 'lose';
+  S.ended = true; S.running = false; S.paused = false;
+  $('pauseScr').hidden = true; $('waveScr').hidden = true; $('pauseBtn').textContent = 'Pausa';
+  var good = S.results.filter(function (r) { return r.outcome === 'stopped' || r.outcome === 'passed'; }).length;
+  var wrongs = S.results.reduce(function (a, r) { return a + r.wrongs; }, 0);
+  scoreReport(reason, good);
+  $('repTtl').textContent = reason === 'win' ? 'Cuerpo protegido' : reason === 'lose' ? 'Las barreras primarias fueron superadas' : 'Operación terminada';
+  $('repLead').textContent = reason === 'win'
+    ? 'Resististe las ' + WAVES.length + ' oleadas. Revisa la bitácora para ver qué decisiones salieron mejor y cuáles se pueden afinar.'
+    : reason === 'lose'
+      ? 'Demasiados patógenos cruzaron las barreras. En un cuerpo real, aquí entraría a actuar la barrera secundaria. Revisa qué señal faltó en cada caso.'
+      : 'Terminaste antes de completar las oleadas. Esto es lo que alcanzaste a resolver.';
+  $('repStats').innerHTML =
+    '<div class="stat"><b>×' + S.bestStreak + '</b><span>Mejor racha</span></div>' +
+    '<div class="stat"><b>' + Math.round(S.integrity) + '</b><span>Integridad</span></div>' +
+    '<div class="stat"><b>' + good + ' de ' + S.results.length + '</b><span>Bien resueltas</span></div>' +
+    '<div class="stat"><b>' + wrongs + '</b><span>Señales equivocadas</span></div>';
+  var bars = '';
+  ['mec', 'qui', 'mic'].forEach(function (t) {
+    var rs = S.results.filter(function (r) { return r.def.barriers.indexOf(t) >= 0; });
+    var ok = rs.filter(function (r) { return r.outcome === 'stopped' || r.outcome === 'passed'; }).length;
+    var pct = rs.length ? Math.round(ok / rs.length * 100) : 0;
+    bars += '<div class="br"><span><span class="tag ' + t + '">' + BARRIER_NAMES[t] + '</span></span>' +
+      '<div class="bar"><i style="width:' + pct + '%"></i></div><span>' + (rs.length ? ok + '/' + rs.length : '—') + '</span></div>';
+  });
+  $('repBars').innerHTML = bars;
+  var rows = '';
+  S.results.forEach(function (r) {
+    var tg = r.def.barriers.map(function (t) { return '<span class="tag ' + t + '">' + BARRIER_NAMES[t] + '</span>'; }).join(' ');
+    rows += '<tr><td>' + r.wave + '</td><td><b>' + r.def.title + '</b><br><span class="note">' + ZONES[r.def.zone].name + '</span></td><td>' + tg + '</td><td>' + outcomeInfo(r) + '</td></tr>';
+  });
+  $('repRows').innerHTML = rows || '<tr><td colspan="4" class="note">Aún no hay eventos resueltos.</td></tr>';
+  $('copyNote').textContent = '';
+  $('reportScr').hidden = false;
+}
+
+/* ===== Conexiones ===== */
+$('startBtn').addEventListener('click', startGame);
+$('nextWaveBtn').addEventListener('click', function () { $('waveScr').hidden = true; startWave(S.wave + 1); });
+$('pauseBtn').addEventListener('click', togglePause);
+$('resumeBtn').addEventListener('click', togglePause);
+$('quitBtn').addEventListener('click', function () { endGame('quit'); });
+$('letPass').addEventListener('click', letPass);
+$('againBtn').addEventListener('click', function () {
+  $('reportScr').hidden = true; S = null; resetStage(); $('introScr').hidden = false;
+  $('integTxt').textContent = '100'; $('integBar').firstElementChild.style.width = '100%'; $('integBar').classList.remove('low');
+  $('scoreTxt').textContent = '0'; $('streakTxt').textContent = '0'; $('waveChip').textContent = 'Oleada 1 de ' + WAVES.length;
+});
+$('copyBtn').addEventListener('click', function () {
+  var txt = summaryText();
+  function fallback() { $('copyNote').textContent = 'No se pudo copiar automáticamente. Selecciona y copia este texto: ' + txt.replace(/\n/g, ' | '); }
+  try {
+    navigator.clipboard.writeText(txt).then(function () { $('copyNote').textContent = 'Resumen copiado.'; }, fallback);
+  } catch (e) { fallback(); }
+});
+document.addEventListener('keydown', function (e) {
+  if (!S || !S.running) return;
+  if (e.key === ' ' || e.key === 'Escape') { if (document.activeElement && document.activeElement.closest && document.activeElement.closest('.zone')) { if (e.key === ' ') return; } e.preventDefault(); togglePause(); return; }
+  if (S.paused) return;
+  if (e.key >= '1' && e.key <= '9') { var c = COMMANDS[+e.key - 1]; if (c) press(c.id); }
+  else if (e.key === 'd' || e.key === 'D') letPass();
+});
+document.addEventListener('visibilitychange', function () { if (document.hidden && S && S.running && !S.paused) togglePause(); });
+
+buildMap(); buildCmds(); updateEmpty();
+requestAnimationFrame(frame);
+</script>
+
+</body></html>
