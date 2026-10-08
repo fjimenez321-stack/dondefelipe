@@ -27,7 +27,7 @@ h1 span{color:var(--acid)}
 .card h3{margin:0 0 6px;font-size:1.05rem}
 .card p{margin:0 0 14px;color:var(--mute);font-size:.88rem;line-height:1.5;flex:1}
 .go{font-size:.78rem;font-weight:700;color:var(--c,var(--acid))}
-.bio{--c:#7ddc8a}.fis{--c:var(--cyan)}
+.bio{--c:#7ddc8a}.cc{--c:var(--gold)}.fis{--c:var(--cyan)}
 .hide{display:none}
 </style>
 </head>
@@ -40,12 +40,14 @@ h1 span{color:var(--acid)}
     <button class="on" data-f="todos">Todos</button>
     <button data-f="bio">Biología</button>
     <button data-f="fis">Física</button>
+    <button data-f="cc">Ciudadanía</button>
   </div>
   <div id="list"></div>
 </div>
 <script>
 /* Para agregar un simulador nuevo: copia su .html a esta carpeta y añade una línea aquí. */
 var SIMS=[
+ {curso:'3° Medio',m:'cc',t:'Medieval',d:'Actividad interactiva de Ciencias para la Ciudadanía ambientada en la época medieval.',f:'../tercero/ciencia/medieval.html'},
  {curso:'4° Medio',m:'bio',t:'Laboratorio de herencia',d:'Laboratorio de herencia mendeliana: genes, alelos y cruzamientos.',f:'gen.html'},
  {curso:'3° Medio',m:'bio',t:'Bosque esclerófilo',d:'Sucesión ecológica y red trófica del bosque de la zona central de Chile.',f:'bosque.html'},
  {curso:'3° Medio',m:'bio',t:'Simulador de ladera',d:'Un mismo cerro, dos laderas: energía solar, humedad del suelo y vegetación.',f:'simuladorladera.html'},
@@ -63,7 +65,7 @@ function render(){
     var xs=SIMS.filter(function(s){return s.curso===c&&(cur==='todos'||s.m===cur)});
     if(!xs.length)return;
     h+='<section class="group"><h2>'+c+'</h2><div class="grid">'+xs.map(function(s){
-      return '<a class="card '+s.m+'" href="'+s.f+'"><span class="tag">'+(s.m==='bio'?'Biología':'Física')+'</span><h3>'+s.t+'</h3><p>'+s.d+'</p><span class="go">Abrir simulador →</span></a>';
+      return '<a class="card '+s.m+'" href="'+s.f+'"><span class="tag">'+(s.m==='bio'?'Biología':s.m==='cc'?'Ciudadanía':'Física')+'</span><h3>'+s.t+'</h3><p>'+s.d+'</p><span class="go">Abrir simulador →</span></a>';
     }).join('')+'</div></section>';
   });
   document.getElementById('list').innerHTML=h||'<p class="sub">No hay simuladores en esta categoría.</p>';
