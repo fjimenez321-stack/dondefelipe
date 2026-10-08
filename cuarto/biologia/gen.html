@@ -165,6 +165,23 @@ table.pun th{box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 2px 4px rgba(20,33
 .person:hover .sym{transform:translateY(-2px) scale(1.05)}
 .gloss{pointer-events:none}
 @media (prefers-reduced-motion:reduce){ table.pun td, .person .sym{transition:none} }
+
+/* analogías, ideas clave y glosario */
+.ideas{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin-top:.8rem}
+.idea,.gl{background:var(--chip); border:1.5px solid var(--line); border-radius:12px; padding:12px 14px}
+.idea h4,.gl h4{margin:0 0 .3rem; font-family:"Source Serif 4",Georgia,serif; font-size:1.02rem; line-height:1.25}
+.idea p,.gl p{margin:.3rem 0; font-size:.95rem}
+.ana,.here,.read{border-left:4px solid var(--dom); background:var(--dom-bg); border-radius:0 8px 8px 0; padding:.45rem .7rem; margin:.45rem 0}
+.here{border-left-color:var(--rec); background:var(--rec-bg)}
+.read{margin-top:.8rem; border-left-color:var(--aff)}
+.clue{border-left-color:var(--rec); background:var(--rec-bg)}
+.lbl{display:block; font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:.1rem}
+dl.info dd.ana-dd{background:var(--dom-bg); border-left:4px solid var(--dom); border-radius:0 8px 8px 0; padding:.35rem .6rem}
+.ideas-d>summary{cursor:pointer; padding:.1rem 0}
+.l3d-ana{margin:.7rem 0 0; padding:.6rem .8rem; border-left:4px solid var(--dom); background:var(--dom-bg); border-radius:0 8px 8px 0; font-size:.95rem}
+#glossFilter{width:100%; max-width:28rem; padding:.55rem .75rem; border:1.5px solid var(--line); border-radius:9px; background:var(--panel)}
+.gloss-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; margin-top:.9rem}
+ol.detective{margin:.4rem 0 0; padding-left:1.2rem} ol.detective li{margin:.45rem 0}
 </style>
 </head>
 <body>
@@ -180,6 +197,7 @@ table.pun th{box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 2px 4px rgba(20,33
 <div class="tabs" role="tablist" aria-label="Simuladores">
   <button role="tab" id="tab-cruzas" aria-controls="p-cruzas" aria-selected="true">1. Cruzas</button>
   <button role="tab" id="tab-arboles" aria-controls="p-arboles" aria-selected="false">2. Árboles genealógicos</button>
+  <button role="tab" id="tab-glosario" aria-controls="p-glosario" aria-selected="false">Glosario</button>
   <button role="tab" id="tab-docente" aria-controls="p-docente" aria-selected="false">Docente</button>
 </div>
 
@@ -199,6 +217,7 @@ table.pun th{box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 2px 4px rgba(20,33
     <label style="display:flex; gap:.5rem; align-items:center; margin-top:.8rem"><input type="checkbox" id="predMode"> Modo predicción: respondo antes de ver el cuadro</label>
   </div>
   <div class="panel" id="infoCard"></div>
+  <div class="panel" id="ideasBox"></div>
   <div class="grid2">
     <div class="panel" id="motherBox"></div>
     <div class="panel" id="fatherBox"></div>
@@ -226,6 +245,7 @@ table.pun th{box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 2px 4px rgba(20,33
       <span><i class="sw mom"></i> Rosado = madre y sus gametos</span>
       <span><i class="sw dad"></i> Azul = padre y sus gametos</span>
     </div>
+    <div class="l3d-ana" id="l3dAna" aria-live="polite"></div>
     <p class="small muted" style="margin:.5rem 0 0">El halo del cigoto: verde = sin la condición · ámbar = portador/a o mezcla · rojo = con la condición. Los gametos aparecen en el mismo orden que las filas y columnas del cuadro de Punnett. En el celular, usa los botones Padres, Gametos y Cigoto para acercarte, o la pantalla completa.</p>
   </div>
   <div class="panel" id="punBox"></div>
@@ -262,14 +282,25 @@ table.pun th{box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 2px 4px rgba(20,33
         <h3>2. Elige el patrón</h3>
         <div class="opts" id="patternOpts"></div>
         <label style="display:flex; gap:.5rem; align-items:flex-start; margin-top:.7rem"><input type="checkbox" id="rareChk" checked style="margin-top:.3rem"> <span>Suponer que es una condición rara: quien se une a la familia no porta el alelo.</span></label>
-        <details><summary>Pistas de este patrón</summary><p id="hint" class="small" style="margin:.4rem 0 0"></p></details>
+        <details><summary>Pistas de este patrón</summary><div id="hint" class="small" style="margin:.4rem 0 0"></div></details>
       </div>
       <div class="panel">
         <h3>3. ¿Qué patrones son compatibles?</h3>
         <div class="compat" id="compat"></div>
         <p class="small muted" id="compatNote" style="margin:.6rem 0 0"></p>
       </div>
+      <details class="panel"><summary><b>Método del detective: 4 preguntas</b></summary><ol class="detective" id="detective"></ol></details>
     </aside>
+  </div>
+</section>
+
+<!-- ============ GLOSARIO ============ -->
+<section id="p-glosario" role="tabpanel" aria-labelledby="tab-glosario" hidden>
+  <div class="panel">
+    <h2>Glosario con analogías</h2>
+    <p class="muted" style="margin-top:0">Cada término tiene una definición, una analogía para entender lo difícil y un ejemplo de salud. Escribe para filtrar.</p>
+    <input type="search" id="glossFilter" placeholder="Buscar: alelo, portador, hemicigoto…" aria-label="Buscar en el glosario">
+    <div class="gloss-grid" id="glossList"></div>
   </div>
 </section>
 
@@ -377,6 +408,181 @@ function targetText(t){ return t.kind==="NEU" ? "el rasgo dominante ("+t.dom+")"
 const S = {mode:"mono", t1:"fq", t2:"albinismo", gM:[], gF:[], pickF:null, pickM:null, pred:{on:false, revealed:false, value:""}, sim:{n:0, counts:{}}};
 const $ = id=>document.getElementById(id);
 const autoList = TRAITS.filter(t=>["AD","AR","NEU"].includes(t.kind));
+/* ===================== CONTENIDO: ANALOGÍAS, IDEAS CLAVE Y GLOSARIO ===================== */
+// Analogía general por tipo de herencia
+const KIND_ANA = {
+  AD:"<b>Una gota de tinta en un vaso de agua.</b> Con una sola copia alterada el efecto ya se nota, aunque la otra copia sea normal. Por eso la condición no “se salta” generaciones: quien la tiene suele tener un progenitor afectado.",
+  AR:"<b>Dos bombillas en un pasillo.</b> Con que una funcione, hay luz. Solo si las dos están quemadas (<b>aa</b>) el pasillo queda a oscuras. La persona portadora tiene una bombilla buena y una quemada: el pasillo se ve igual de iluminado.",
+  XR:"<b>Un archivo sin copia de seguridad.</b> Una mujer tiene dos tomos X (el segundo hace de respaldo); un varón tiene un solo tomo X y su Y no trae esos capítulos. Si el único ejemplar tiene una errata, no hay respaldo.",
+  XD:"<b>Una gota de tinta que viaja en el X.</b> Basta una copia alterada, en mujeres y en varones. Un padre afectado entrega su X a todas sus hijas y su Y a todos sus hijos: por eso las hijas se afectan y los hijos varones no.",
+  NEU:"<b>La carta guardada en la manga.</b> Mendel esperaba una mezcla, como pintura blanca con negra. Pero el rasgo recesivo no se diluye: queda guardado, intacto, bajo el dominante, y reaparece intacto en la generación siguiente."
+};
+// Analogía o ejemplo específico de cada condición (concepto sofisticado que ilustra)
+const TRAIT_ANA = {
+  huntington:["Una bomba de tiempo","El alelo está desde el nacimiento, pero “se activa” en la adultez. Por eso una persona puede tener hijos (y transmitir 50% de probabilidad a cada uno) antes de saber que es portadora. Concepto: <i>aparición tardía</i>."],
+  acondroplasia:["Un error de tipeo al copiar un libro","Cerca del 80% de los casos nacen de padres de talla promedio: el cambio ocurrió en el óvulo o el espermatozoide (<i>mutación nueva</i> o <i>de novo</i>). Desde ese hijo en adelante sí se hereda como dominante. Con dos copias (AA) el efecto es el doble de grave."],
+  hipercol:["Menos buzones para recibir cartas","El gen LDLR fabrica los receptores que sacan el colesterol LDL de la sangre. Con una copia alterada hay menos “buzones” y el colesterol se acumula; con dos copias casi no hay. Concepto: <i>efecto de dosis</i>: una copia da un efecto, dos copias dan uno mayor."],
+  marfan:["Un elástico defectuoso en muchos lugares a la vez","El gen FBN1 fabrica fibrilina, que da elasticidad al tejido conectivo. Un solo gen alterado afecta aorta, ojos y esqueleto. Concepto: <i>pleiotropía</i> (un gen, varios efectos)."],
+  fq:["Un portero que abre la puerta del moco","El gen CFTR fabrica un canal por donde sale cloro (y con él, agua) de la célula. Con un portero que trabaje, el moco queda fluido. Con ninguno (ff), el moco se espesa. El portador (Ff) tiene un portero de turno: le alcanza."],
+  falciforme:["Un defecto que también protege","En zonas con malaria, las personas portadoras (heterocigotas) resisten mejor la infección. Por eso el alelo se mantiene frecuente en esas poblaciones: es un ejemplo clásico de selección natural. Concepto: <i>ventaja del heterocigoto</i>."],
+  pku:["Una línea de producción sin una máquina","Falta la enzima PAH: la fenilalanina se acumula como basura en la cinta y daña el cerebro. Si se detecta al nacer y se controla la dieta, se evita el daño. Concepto: el fenotipo depende del genotipo <b>y</b> del ambiente."],
+  albinismo:["Una fábrica de pintura sin la máquina clave","El gen TYR fabrica tirosinasa, la enzima que produce melanina (el pigmento de piel, pelo y ojos). Sin ella, no se “pinta”. Los portadores (Tt) tienen una máquina buena y fabrican pigmento normal."],
+  hemofilia:["Fichas de dominó que se caen en cadena","La coagulación es una cascada: cada factor activa al siguiente. En la hemofilia A falta una ficha (el factor VIII) y la cadena no se completa. Como el gen está en el X, un varón con un alelo alterado no tiene respaldo."],
+  daltonismo:["Sensores de color de la retina","Los conos son sensores de color y los genes OPN1LW/OPN1MW fabrican los de rojo y verde. Si uno falla, rojo y verde se parecen. En poblaciones europeas afecta a cerca de 1 de cada 12 varones, pero a cerca de 1 de cada 200 mujeres."],
+  duchenne:["Una viga de soporte que falta","El gen DMD fabrica distrofina, que sostiene la fibra muscular. Sin ella, el músculo se daña con cada contracción. Es un gen muy grande, por lo que también aparecen mutaciones nuevas con frecuencia."],
+  raquitismo:["Una llave de agua que gotea fosfato","El gen PHEX regula cuánto fosfato retiene el riñón. Con el gen alterado el fosfato se pierde por la orina y el hueso no se endurece. Es dominante ligado al X: la herencia sigue la ruta del cromosoma X."],
+  semilla_forma:["Más azúcar, más agua, más arrugas","El alelo rugoso (r) tiene un trozo de ADN “saltarín” (transposón) que apaga una enzima del almidón. La semilla acumula más azúcar, absorbe agua y, al secarse, se arruga. El alelo liso (R) conserva la enzima: una copia basta."],
+  semilla_color:["Un pigmento que se degrada… o no","La semilla amarilla es la que degrada su clorofila al madurar; la verde conserva el pigmento verde. La verde (yy) tiene dos copias del alelo “que no degrada”."]
+};
+function anaRows(t){
+  const a=TRAIT_ANA[t.id];
+  return `<dt>Analogía</dt><dd class="ana-dd">${KIND_ANA[t.kind]}</dd>`
+    + (a?`<dt>En este gen</dt><dd><b>${a[0]}.</b> ${a[1]}</dd>`:"");
+}
+
+// ---- Tarjeta “ideas clave” (cambia con el modo y el caso) ----
+const GEN_FG = (c)=> c;                      // marcador
+function gaList(genos, L){                    // lista de letras de gametos: "F o f"
+  const set=[...new Set(genos.split(""))].map(x=>up(x,L));
+  return set.join(" o ");
+}
+function ideasFor(c, show){
+  const ts = S.mode==="di" ? [T[S.t1],T[S.t2]] : [T[S.t1]];
+  const t=ts[0], L=t.L;
+  const out=[];
+  const tgt = targetText(t);
+  if(S.mode==="mono"){
+    out.push({h:"Cada gameto lleva una sola “carta”", p:"Cada progenitor tiene dos alelos por gen. Al formar un gameto (meiosis) reparte uno solo, al azar. El hijo recibe una carta del mazo de la madre y otra del mazo del padre.",
+      a:"Un mazo de dos cartas por gen: barajas y entregas una. La otra se queda contigo.",
+      d: show? `Aquí: la madre (${fa(S.gM[0],L)}) entrega ${gaList(S.gM[0],L)}; el padre (${fa(S.gF[0],L)}) entrega ${gaList(S.gF[0],L)}.`:""});
+    out.push({h:"El cuadro de Punnett es un mapa del azar", p:"Cada fila es un gameto de la madre y cada columna uno del padre. Cada celda es una combinación posible y todas tienen la misma probabilidad.",
+      a:"Una tabla de multiplicar de probabilidades: ½ (gameto de la madre) × ½ (gameto del padre) = ¼ por celda.",
+      d: show? `Aquí hay ${c.total} celdas; cada una vale ${pct(1,c.total)}.`:""});
+    out.push({h:"Probabilidad no es cuota", p:"Un 25% no significa “de cada 4 hijos, 1 sale enfermo”. Significa que <b>cada hijo</b> tiene 25% de probabilidad, sin importar lo que le pasó a sus hermanos.",
+      a:"Lanzar una moneda 4 veces no garantiza 2 caras. La moneda no tiene memoria. Con muchos lanzamientos, el resultado se acerca al esperado (puedes comprobarlo en “Simula muchos hijos”).",
+      d: show? `Aquí: cada hijo/a tiene ${pct(c.pT,1)} de probabilidad de tener ${tgt}.`:""});
+    if(t.kind==="AR") out.push({h:"Portador no es enfermo", p:"La persona portadora (Aa) tiene una copia alterada y otra normal. No tiene la enfermedad, pero puede transmitir el alelo a sus hijos.",
+      a:"La receta alterada está guardada en el cajón, pero la cocina usa la receta buena. Dos portadores pueden, sin saberlo, juntar las dos recetas guardadas en un hijo.", d:""});
+    else if(t.kind==="AD") out.push({h:"Dominante no significa “más frecuente”", p:"Dominante solo dice <b>qué alelo se expresa</b> cuando hay uno de cada tipo. No dice cuán común es en la población ni cuán grave es.",
+      a:"Hay rasgos dominantes muy raros (como Huntington) y recesivos muy comunes. “Dominante” es una regla de quién gana en la expresión, no una medida de popularidad.", d:""});
+    else out.push({h:"Lo recesivo no desaparece", p:"En la generación F1 todas las plantas eran lisas y el rasgo rugoso parecía haber desaparecido. Pero en la F2 volvió, en proporción 3 : 1.",
+      a:"Una carta guardada en la manga: sigue en el mazo aunque no se vea, y sale a la mesa cuando se juntan dos copias.", d:""});
+  } else if(S.mode==="di"){
+    const t2=ts[1];
+    out.push({h:"Dos sorteos a la vez", p:"Un individuo que es heterocigoto para dos genes (por ejemplo RrYy) forma 4 tipos de gametos: RY, Ry, rY y ry, todos con la misma probabilidad. Cada gen se reparte por separado.",
+      a:"Lanzar dos monedas al mismo tiempo: cara-cara, cara-sello, sello-cara y sello-sello. Son 4 resultados igual de probables.",
+      d: show? `Aquí cada progenitor produce ${c.fG.length} tipos de gametos, así que el cuadro tiene ${c.fG.length} × ${c.mG.length} = ${c.total} celdas.`:""});
+    const p1=c.flat.filter(x=>x.ph[0].target).length/c.total, p2=c.flat.filter(x=>x.ph[1].target).length/c.total, pb=c.flat.filter(x=>x.target).length/c.total;
+    out.push({h:"Independencia: las probabilidades se multiplican", p:"Si los dos genes se heredan de forma independiente, la probabilidad de que ocurran ambas cosas es el producto de las probabilidades. Por eso 9&nbsp;:&nbsp;3&nbsp;:&nbsp;3&nbsp;:&nbsp;1 es lo mismo que (3&nbsp;:&nbsp;1)&nbsp;×&nbsp;(3&nbsp;:&nbsp;1).",
+      a:"Dos ruletas separadas: lo que sale en una no cambia lo que sale en la otra.",
+      d: show? `Aquí: ${pct(p1,1)} × ${pct(p2,1)} = ${pct(pb,1)} de probabilidad de tener ${esc(targetText(t))} y ${esc(targetText(t2))}.`:""});
+    out.push({h:"“Y” multiplica, “o” suma", p:"Para “el primer rasgo <b>y</b> el segundo” se multiplican las probabilidades. Para “uno <b>o</b> el otro” (sin importar lo demás) se suman las celdas que cumplen.",
+      a:"Obtener cara en dos monedas seguidas: ½ × ½. Obtener al menos una cara de dos tiros: sumas las formas en que puede ocurrir.",
+      d: show? `Aquí, sin importar el segundo gen, la probabilidad del primer rasgo se obtiene sumando celdas: ${pct(p1,1)}.`:""});
+    out.push({h:"Genes en el mismo cromosoma viajan juntos", p:"La 2ª ley de Mendel (distribución independiente) vale cuando los genes están en cromosomas distintos o muy separados. Si están cerca en el mismo cromosoma, se heredan juntos (<i>ligamiento</i>) y la proporción cambia.",
+      a:"Dos pasajeros en el mismo auto: llegan juntos al destino, salvo que el auto se detenga en el camino (entrecruzamiento) y se cambien de lugar.",
+      d: show? `Aquí: ${esc(t.name)} (${t.chr==="-"?"rasgo clásico de Mendel":"cromosoma "+t.chr}) y ${esc(t2.name)} (${t2.chr==="-"?"rasgo clásico de Mendel":"cromosoma "+t2.chr}): el simulador los trata como genes independientes.`:""});
+  } else {
+    out.push({h:"El padre decide el sexo; la madre solo da X", p:"Los óvulos siempre llevan un X. Los espermatozoides llevan X o Y con igual probabilidad. Quien da el Y determina que el hijo sea varón.",
+      a:"Una moneda del padre (cara = X, sello = Y) y una moneda de la madre con las dos caras iguales (siempre X).",
+      d: show? `Aquí: ${c.flat.filter(x=>x.sex==="F").length} de ${c.total} celdas son hijas y ${c.flat.filter(x=>x.sex==="M").length} de ${c.total} son hijos varones.`:""});
+    out.push({h:"Hemicigoto: un solo ejemplar de cada gen del X", p:"El Y es pequeño y casi no tiene los genes que están en el X. Un varón tiene un solo alelo para esos genes (es <b>hemicigoto</b>), así que no tiene un alelo normal que compense. Por eso lo recesivo se expresa con una sola copia.",
+      a:"Un libro del que existe un único ejemplar: si tiene una errata, no hay otra copia con la que comparar. Una mujer tiene dos ejemplares (dos X).",
+      d: t.kind==="XR" && t.id==="daltonismo" ? "En poblaciones europeas: cerca de 1 de cada 12 varones y 1 de cada 200 mujeres tienen daltonismo rojo-verde." : (show? `Aquí: ${pct(c.flat.filter(x=>x.sex==="M"&&x.target).length/Math.max(1,c.flat.filter(x=>x.sex==="M").length),1)} de los hijos varones tendrá ${tgt}.`:"")});
+    if(t.kind==="XR") out.push({h:"La portadora es un mosaico", p:"En cada célula de una mujer se desactiva al azar uno de los dos X. Una portadora (X<sup>A</sup>X<sup>a</sup>) queda como un mosaico: en unas células funciona un X y en otras el otro. Por eso suele estar sana, aunque a veces tiene síntomas leves.",
+      a:"Un piso de baldosas de dos colores: aunque algunas baldosas sean de un color, el piso cumple su función.", d:""});
+    else out.push({h:"Las hijas de un varón afectado heredan su X", p:"Un varón afectado entrega su X a todas sus hijas y su Y a todos sus hijos. En un patrón dominante, todas las hijas quedan afectadas y ningún hijo varón.",
+      a:"Una gota de tinta que viaja solo por el X: si el padre entrega el Y, la tinta se queda en casa.", d:""});
+  }
+  out.push({h:"Genotipo no es fenotipo", p:"El <b>genotipo</b> son los alelos que tienes. El <b>fenotipo</b> es lo que se observa. Dos genotipos distintos (FF y Ff) pueden dar el mismo fenotipo. Además, el ambiente puede cambiar el fenotipo.",
+    a:"El plano de una casa (genotipo) y la casa construida (fenotipo): dos planos distintos pueden dar casas parecidas, y el clima y los materiales también influyen.",
+    d:""});
+  return out;
+}
+function renderIdeas(c){
+  const box=$("ideasBox");
+  const show=!(S.pred.on&&!S.pred.revealed);
+  const items=ideasFor(c,show);
+  box.innerHTML=`<details class="ideas-d" open><summary><b>Ideas clave con analogías</b> <span class="muted small">(cambian con el tipo de herencia y el caso)</span></summary>
+    <div class="ideas">${items.map(i=>`<article class="idea"><h4>${i.h}</h4><p>${i.p}</p><p class="ana"><span class="lbl">Analogía</span>${i.a}</p>${i.d?`<p class="here"><span class="lbl">En este caso</span>${i.d}</p>`:""}</article>`).join("")}</div></details>`;
+}
+// ---- Cómo leer los resultados (se agrega a “Resultados esperados”) ----
+function readNote(c){
+  const t=T[S.t1];
+  if(S.mode==="mono"){
+    const L=t.L; let extra="";
+    if(t.kind==="AR" && c.flat.some(x=>x.cls==="carrier")) extra=" Las celdas ámbar son portadoras: tienen la condición “guardada en el cajón”, pero no la presentan.";
+    return `<p class="read"><span class="lbl">Cómo leerlo</span>La proporción de genotipos mira los alelos (la receta); la de fenotipos mira lo que se observa (el plato). Pueden ser distintas porque los alelos dominantes “tapan” a los recesivos.${extra}</p>`;
+  }
+  if(S.mode==="di") return `<p class="read"><span class="lbl">Cómo leerlo</span>Cada columna de la proporción es el producto de dos sorteos independientes. Prueba cambiar un progenitor a heterocigoto para un solo gen (por ejemplo Aabb): la proporción se acerca a 3 : 1 o 1 : 1, porque solo un gen “reparte” variedad.</p>`;
+  return `<p class="read"><span class="lbl">Cómo leerlo</span>Compara hijas e hijos por separado: en la herencia ligada al X la proporción cambia según el sexo, porque el hijo recibe su X solo de la madre y la hija recibe un X de cada progenitor.</p>`;
+}
+// ---- Analogía de la vista 3D según etapa ----
+const L3D_ANA = {
+  all:"<b>Imagina cada cromosoma como un tomo de enciclopedia.</b> El tomo rosado vino de la madre y el azul del padre. Ambos tienen el mismo capítulo (el <i>locus</i> del gen), pero con redacción distinta: esa redacción es el alelo. Los gametos son medias enciclopedias: un solo tomo de cada par.",
+  parents:"<b>Las células de los padres tienen los dos tomos</b> (son <i>diploides</i>, 2n). La banda marca el capítulo del gen que estudiamos: lisa = alelo dominante, rayada = alelo recesivo.",
+  gametes:"<b>Meiosis = repartir un mazo.</b> Cada gameto recibe un solo tomo de cada par, elegido al azar (<i>haploide</i>, n). Por eso un Ff produce gametos F o f, nunca Ff. En el modo dihíbrido, cada par se reparte por separado, como dos mazos distintos.",
+  zygote:"<b>Fecundación = juntar dos medias enciclopedias.</b> Se vuelve a formar el par completo: un tomo de la madre y uno del padre. Los alelos que quedan juntos determinan el genotipo del hijo; el halo muestra su fenotipo."
+};
+function setL3dAna(stage){ const el=$("l3dAna"); if(el) el.innerHTML = L3D_ANA[stage]||L3D_ANA.all; }
+
+// ---- Árboles: explicación de cada patrón y método del detective ----
+const PAT_EXTRA = {
+  AD:{ana:"Una gota de tinta: con una sola copia alterada ya se nota. Por eso no se salta generaciones: cada afectado suele tener un progenitor afectado.", clue:"Si un afectado tiene a ambos progenitores sanos, descarta la herencia dominante (salvo que sea una mutación nueva, como en la acondroplasia)."},
+  AR:{ana:"Dos bombillas: los padres “sanos” son portadores (una buena y una quemada). Si ambos transmiten la quemada (1 de 4), el hijo queda sin luz. Es una carta en la manga: puede esconderse varias generaciones.", clue:"Afectados con padres sanos y ambos sexos afectados por igual apuntan a recesiva autosómica. Si los padres son parientes, es más probable que ambos porten el mismo alelo raro."},
+  XR:{ana:"Un archivo sin copia de seguridad: el varón tiene un solo X. La condición viaja de abuelo a nieto pasando por una hija portadora (la que “guarda” el alelo).", clue:"Muchos varones afectados y casi ninguna mujer; nunca de padre a hijo varón; los hijos varones de una portadora tienen 50% de probabilidad."},
+  XD:{ana:"Una gota de tinta que viaja en el X: un padre afectado la transmite a todas sus hijas y a ninguno de sus hijos varones.", clue:"Si un padre afectado tiene una hija sana, descarta XD. Si tiene un hijo varón afectado y la madre es sana, descarta XD (el hijo recibe el Y)."}
+};
+function patExtraHtml(m){
+  const p=PAT_EXTRA[m]; if(!p) return "";
+  return `<p class="ana" style="margin:.5rem 0 0"><span class="lbl">Analogía</span>${p.ana}</p><p class="ana clue" style="margin:.5rem 0 0"><span class="lbl">Pista de detective</span>${p.clue}</p>`;
+}
+const DETECTIVE_STEPS = [
+  ["¿Hay afectados con padres sanos?","Sí → descarta los patrones dominantes (AD y XD). Quedan los recesivos."],
+  ["¿Afecta a hombres y mujeres por igual?","Sí → apunta a autosómica. Mucho más en varones → apunta a ligada al X."],
+  ["¿Un varón afectado tiene hijos varones afectados?","Sí → apunta a autosómica: con herencia ligada al X, el hijo recibe el Y del padre y no su X."],
+  ["¿Un varón afectado tiene hijas afectadas, y todos sus hijos varones sanos?","Eso es típico de la dominante ligada al X."]
+];
+function renderDetective(){
+  const el=$("detective"); if(!el) return;
+  el.innerHTML=DETECTIVE_STEPS.map((s,i)=>`<li><b>${s[0]}</b><br><span class="muted">${s[1]}</span></li>`).join("");
+}
+
+// ---- Glosario ----
+const GLOSS = [
+  ["Gen","Segmento de ADN con las instrucciones para fabricar una proteína o una característica.","Una receta dentro de un libro de cocina (el cromosoma).","El gen CFTR contiene la receta del canal de cloro."],
+  ["Alelo","Cada versión alternativa de un mismo gen. Una persona tiene dos alelos por gen: uno de su madre y otro de su padre.","Dos ediciones de la misma receta: una dice “1 cucharada” y otra “2 cucharadas”.","F (canal funcional) y f (canal alterado) son alelos del gen CFTR."],
+  ["Locus","Posición física de un gen en un cromosoma.","La dirección fija de una casa en una calle: siempre es la misma, aunque viva alguien distinto.","El gen CFTR siempre está en el cromosoma 7."],
+  ["Cromosomas homólogos","Par de cromosomas con los mismos genes en las mismas posiciones: uno viene de la madre y otro del padre.","Dos tomos de una misma enciclopedia, de editoriales distintas.","Las personas tienen 23 pares: 22 pares de autosomas y un par sexual."],
+  ["Genotipo","La combinación de alelos que una persona tiene para un gen. Se escribe con letras.","El plano de una casa.","Ff, FF o ff."],
+  ["Fenotipo","Lo que se observa en la persona (aspecto, función, enfermedad). Resulta del genotipo y también del ambiente.","La casa ya construida.","Ff y FF dan el mismo fenotipo: sin fibrosis quística."],
+  ["Homocigoto","Persona con los dos alelos iguales para un gen (AA o aa).","Dos llaves idénticas del mismo llavero.","ff: tiene dos copias del alelo alterado."],
+  ["Heterocigoto","Persona con dos alelos distintos para un gen (Aa).","Dos llaves distintas, una de cada casa.","Ff: tiene un alelo funcional y uno alterado."],
+  ["Dominante","Alelo que se expresa en el fenotipo aunque haya una sola copia. Se escribe con mayúscula.","La tinta que tiñe el agua con una gota.","H de Huntington: basta un alelo H."],
+  ["Recesivo","Alelo que se expresa solo cuando hay dos copias. Se escribe con minúscula.","Una bombilla de repuesto: la otra bombilla mantiene la luz.","f en fibrosis quística."],
+  ["Portador o portadora","Persona heterocigota para una condición recesiva: no la tiene, pero puede transmitir el alelo.","La receta guardada en el cajón: está, pero no se usa en la cocina.","Una persona Ff para fibrosis quística."],
+  ["Gameto","Célula sexual (óvulo o espermatozoide) con la mitad de los cromosomas: un solo alelo de cada gen.","Una mitad de un mazo repartida al azar.","Un Ff forma gametos F o f."],
+  ["Meiosis","División celular que forma los gametos y reparte un cromosoma de cada par.","Barajar y repartir las cartas de un mazo en dos montones.","Una célula 2n origina cuatro gametos n."],
+  ["Cigoto","Célula que resulta de la fecundación: reúne el material genético de la madre y del padre.","Dos medias enciclopedias que se juntan en una completa.","Ff + Ff → FF, Ff o ff."],
+  ["Autosómico","Gen ubicado en uno de los 22 pares de cromosomas no sexuales.","Un capítulo del libro que tienen igual los hombres y las mujeres.","Fibrosis quística, Huntington, albinismo."],
+  ["Ligado al sexo (ligado al X)","Gen ubicado en un cromosoma sexual, casi siempre el X. El patrón de herencia cambia según el sexo.","Un tomo especial que no es igual en hombres y mujeres.","Hemofilia, daltonismo, Duchenne."],
+  ["Hemicigoto","Persona con un solo alelo para un gen: el varón respecto de los genes del X.","Un libro con un solo ejemplar: no hay copia de respaldo.","Un varón X<sup>h</sup>Y tiene hemofilia con una sola copia."],
+  ["Cruce de prueba","Cruzar un individuo de fenotipo dominante con uno homocigoto recesivo para averiguar si es homocigoto o heterocigoto.","Hacer una pregunta a la que solo responde el recesivo.","Aa × aa da 50% Aa y 50% aa; AA × aa da 100% Aa."],
+  ["Primera ley de Mendel (segregación)","Los dos alelos de un gen se separan al formarse los gametos: cada gameto lleva solo uno.","Repartir un mazo de dos cartas.","Un Ff nunca produce un gameto Ff."],
+  ["Segunda ley de Mendel (distribución independiente)","Los alelos de genes distintos se reparten de forma independiente en los gametos, si los genes están en cromosomas distintos.","Dos ruletas que giran por separado.","RrYy produce RY, Ry, rY y ry con igual probabilidad."],
+  ["Regla del producto","La probabilidad de que ocurran dos hechos independientes a la vez es el producto de sus probabilidades.","Dos monedas: ½ × ½ = ¼ de dos caras.","Fibrosis quística y albinismo, ambos con 1/4: 1/16 de tener las dos."],
+  ["Dominancia incompleta","El heterocigoto muestra un fenotipo intermedio.","Mezclar pintura roja y blanca: sale rosada.","Flor dondiego de noche: roja × blanca = rosada."],
+  ["Codominancia","En el heterocigoto se expresan los dos alelos a la vez, sin mezclarse.","Una camiseta a rayas rojas y blancas: se ven los dos colores.","Grupo sanguíneo AB (alelos A y B)."],
+  ["Mutación nueva (de novo)","Cambio en el ADN que aparece por primera vez en un individuo, sin estar en sus padres.","Un error de tipeo al copiar un libro.","Cerca del 80% de los casos de acondroplasia."],
+  ["Ligamiento","Los genes que están cerca en un mismo cromosoma tienden a heredarse juntos.","Dos pasajeros del mismo auto.","Se desvían de la proporción 9 : 3 : 3 : 1."]
+];
+function renderGloss(q){
+  const box=$("glossList"); if(!box) return;
+  const f=(q||"").trim().toLowerCase();
+  const items=GLOSS.filter(g=>!f || g.join(" ").toLowerCase().includes(f));
+  box.innerHTML=items.length? items.map(g=>`<article class="gl"><h4>${g[0]}</h4><p>${g[1]}</p><p class="ana"><span class="lbl">Analogía</span>${g[2]}</p><p class="small muted" style="margin:.35rem 0 0"><b>Ejemplo:</b> ${g[3]}</p></article>`).join("") : `<p class="muted">No hay términos que coincidan con “${esc(f)}”.</p>`;
+}
+
 
 function defaults(){
   if(S.mode==="di"){ S.gM=["Aa","Aa"]; S.gF=["Aa","Aa"]; return; }
@@ -470,7 +676,7 @@ function renderInfo(){
       <h3>${esc(t.name)} <span class="tag ${KIND_CLASS[t.kind]}">${KIND_NAME[t.kind]}</span></h3>
       <dl class="info"><dt>Regla</dt><dd>${rule}</dd>
       ${t.gene!=="-"?`<dt>Gen</dt><dd>${t.gene} · cromosoma ${t.chr}</dd>`:""}
-      <dt>Dato</dt><dd>${esc(t.info)}</dd></dl></div>`;
+      <dt>Dato</dt><dd>${esc(t.info)}</dd>${anaRows(t)}</dl></div>`;
   }).join("");
 }
 function genoOptions(t, isFather){
@@ -572,7 +778,7 @@ function renderTable(c){
     html += `<p style="margin:.8rem 0 .2rem"><b>Entre las hijas:</b> ${dA} de ${d.length} con la condición (${d.length?pct(dA,d.length):"–"}).</p>
              <p style="margin:.2rem 0"><b>Entre los hijos varones:</b> ${sA} de ${s.length} con la condición (${s.length?pct(sA,s.length):"–"}).</p>`;
   }
-  box.innerHTML = html;
+  box.innerHTML = html + readNote(c);
 }
 function renderSim(c){
   const box=$("simBox");
@@ -588,7 +794,7 @@ function renderSim(c){
   box.innerHTML = `<h3>Simula muchos hijos</h3>
     <p class="small muted" style="margin:0 0 .5rem">Cada hijo es un evento independiente: el azar no “compensa” lo que ya pasó. La marca roja indica el porcentaje esperado.</p>
     <div class="actions"><button class="btn" data-n="1">+1 hijo/a</button><button class="btn" data-n="10">+10</button><button class="btn" data-n="100">+100</button><button class="btn" data-n="1000">+1000</button><button class="btn" id="btnSimReset">Reiniciar</button></div>
-    <p style="margin:.6rem 0 0"><b>Hijos simulados:</b> ${n}</p><div class="bars">${bars}</div>`;
+    <p style="margin:.6rem 0 0"><b>Hijos simulados:</b> ${n}</p><div class="bars">${bars}</div>${n>0&&n<20?`<p class="read"><span class="lbl">Analogía</span>Con pocos lanzamientos, el azar se aleja mucho de lo esperado (4 lanzamientos de moneda pueden dar 4 caras). Es normal.</p>`:""}${n>=100?`<p class="read"><span class="lbl">Analogía</span>Con muchos lanzamientos el resultado se acerca a lo esperado: es la <i>ley de los grandes números</i>. Pero cada hijo sigue siendo una tirada nueva.</p>`:""}`;
   box.querySelectorAll("button[data-n]").forEach(b=>b.addEventListener("click",()=>{
     const k=+b.dataset.n;
     for(let i=0;i<k;i++){
@@ -601,7 +807,7 @@ function renderSim(c){
 }
 function renderResults(){
   const c=compute();
-  renderPred(c); renderPunnett(c); renderTable(c); renderSim(c);
+  renderPred(c); renderIdeas(c); renderPunnett(c); renderTable(c); renderSim(c);
 }
 function renderAll(){ fillSelects(); renderInfo(); renderParents(); renderResults(); }
 
@@ -896,7 +1102,7 @@ function analyseState(mode){ try{ return exists(mode,PED.rare,null)?"yes":"no"; 
 function renderPatternOpts(){
   $("patternOpts").innerHTML = Object.entries(PATTERNS).map(([m,pt])=>`<label><input type="radio" name="pat" value="${m}" ${PED.mode===m?"checked":""}><span><b>${pt.name}</b><br><span class="small muted">${pt.ex} · ${pt.letters.replace(/X\^(\w)/g,"X$1")}</span></span></label>`).join("");
   $("patternOpts").querySelectorAll("input").forEach(i=>i.addEventListener("change",()=>{ PED.mode=i.value; renderPed(); }));
-  $("hint").textContent=PATTERNS[PED.mode].hint;
+  $("hint").innerHTML=`<p style="margin:0">${esc(PATTERNS[PED.mode].hint)}</p>`+patExtraHtml(PED.mode);
 }
 function renderLegend(){
   const h=18, y=34;
@@ -939,6 +1145,11 @@ const QBANK=[
  ["¿Cuántos tipos de gametos produce un individuo AaBb? Nómbralos.","Cuatro: AB, Ab, aB y ab, cada uno con probabilidad 1/4."],
  ["Mira este árbol: un hijo afectado de padres sanos. ¿Qué patrón descartas y por qué?","Descarto los dominantes (AD y XD): en ellos todo afectado tiene al menos un progenitor afectado. Quedan los recesivos."],
  ["¿Qué quiere decir “suponer una condición rara” al analizar un árbol?","Que quien se une a la familia (y no tiene parentesco) probablemente no porta el alelo; sin ese supuesto habría muchas más posibilidades de genotipo."],
+ ["Usa la analogía de las dos bombillas para explicar por qué una persona portadora de fibrosis quística no está enferma.","Tiene una copia funcional (bombilla buena) y una alterada (quemada). Con una copia funcional el canal de cloro se fabrica en cantidad suficiente. Solo con las dos bombillas quemadas (ff) aparece la enfermedad."],
+ ["Un matrimonio Ff × Ff tiene 4 hijos sanos. ¿El quinto hijo tiene más probabilidad de estar enfermo? Explícalo con la analogía de la moneda.","No, sigue siendo 25%. Cada fecundación es una tirada nueva; la moneda no tiene memoria. Cuatro caras seguidas no hacen más probable un sello."],
+ ["Usa la idea del “libro de un solo ejemplar” para explicar por qué un varón con un alelo recesivo del X presenta la condición.","El varón es hemicigoto: tiene un solo X y su Y no trae esos genes. Sin un segundo alelo normal que compense, el alelo alterado se expresa. Una mujer tiene dos X y el segundo actúa como respaldo."],
+ ["¿Por qué la acondroplasia puede aparecer en hijos de padres de talla promedio, si es dominante?","Por una mutación nueva (de novo) en el óvulo o el espermatozoide. Desde ese hijo, la condición se hereda como dominante."],
+ ["¿Por qué dos genes en el mismo cromosoma pueden no dar la proporción 9 : 3 : 3 : 1?","Porque se heredan juntos (ligamiento) y no se reparten de forma independiente. La 2ª ley de Mendel vale para genes en cromosomas distintos o muy separados."],
  ["Explica con un ejemplo la diferencia entre genotipo y fenotipo.","Una persona Ff para fibrosis quística tiene genotipo Ff (dos alelos distintos) pero fenotipo sano: es portadora y no presenta la enfermedad."],
 ];
 const ANSWERS=[
@@ -976,13 +1187,16 @@ $("btnPick").onclick=()=>{
 $("btnResetPick").onclick=()=>{ drawn=new Set(); $("pickOut").innerHTML=""; $("pickInfo").textContent="Sorteo reiniciado."; };
 
 /* ---------- pestañas ---------- */
-const tabs=["cruzas","arboles","docente"];
+const tabs=["cruzas","arboles","glosario","docente"];
 tabs.forEach(t=>{
   $("tab-"+t).addEventListener("click",()=>{
     tabs.forEach(o=>{ $("tab-"+o).setAttribute("aria-selected",o===t); $("p-"+o).hidden = o!==t; });
     if(t==="arboles") renderPed();
   });
 });
+renderGloss(""); renderDetective(); setL3dAna("all");
+$("glossFilter").addEventListener("input",e=>renderGloss(e.target.value));
+document.querySelectorAll("#l3dBar .l3b[data-stage]").forEach(b=>b.addEventListener("click",()=>setL3dAna(b.dataset.stage)));
 window.__lab={S,PED,PRESETS,PATTERNS,exists,analyse,clearPed,renderPed,compute,T,__ap:addPerson,__lk:link,__K:K,__W:W};
 </script>
 <script>/* three.js r186 (MIT) + OrbitControls */
