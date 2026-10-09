@@ -6,583 +6,631 @@
 <title>Banco Felipeso</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
+/* ═════════════════════════════════════════════════════════
+   BANCO FELIPESO · diseño "neobanco juvenil"
+   Solo estilos y marcado; la lógica JS es la original.
+   ═════════════════════════════════════════════════════════ */
 :root {
-  --perg:    #f2e8d0;
-  --perg-dk: #e8d9b5;
-  --perg-xs: #f8f2e3;
-  --ink:     #1c1207;
-  --ink-lt:  #4a3a1e;
-  --ink-md:  #2e2009;
-  --gold:    #8b6914;
-  --gold-lt: #c9a84c;
-  --gold-xs: #f5e8c0;
-  --rust:    #7a2412;
-  --green:   #1a4a1a;
-  --border:  #b09050;
-  --border-lt: #d4be8a;
-  --shadow:  rgba(28,18,7,0.18);
+  --bg:        #F1F2F7;
+  --surface:   #FFFFFF;
+  --surface-2: #F6F6FA;
+  --ink:       #12131F;
+  --ink-2:     #50536A;
+  --line:      #E2E3EC;
+  --brand:     #4F2FE8;
+  --brand-ink: #FFFFFF;
+  --brand-soft:#ECE8FF;
+  --lime:      #C8F55A;
+  --card:      #16122E;
+  --card-ink:  #F4F2FF;
+  --card-ink-2:#B9B3DA;
+  --pos:       #0E7A48;
+  --neg:       #C0352B;
+  --gold:      #E9A814;
+  --silver:    #A3A8B6;
+  --bronze:    #C2733A;
+  --radius:    18px;
+  --radius-sm: 12px;
+  --shadow:    0 1px 2px rgba(18,19,31,.05), 0 6px 20px rgba(18,19,31,.06);
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0D0E16; --surface:#171826; --surface-2:#1F2133; --ink:#F1F2F8; --ink-2:#A9ACC2;
+    --line:#2B2D42; --brand:#9C88FF; --brand-ink:#12131F; --brand-soft:#262046;
+    --card:#221B4D; --pos:#4BD08C; --neg:#FF7A6E;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0D0E16; --surface:#171826; --surface-2:#1F2133; --ink:#F1F2F8; --ink-2:#A9ACC2;
+  --line:#2B2D42; --brand:#9C88FF; --brand-ink:#12131F; --brand-soft:#262046;
+  --card:#221B4D; --pos:#4BD08C; --neg:#FF7A6E;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; }
-
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
 body {
-  background-color: #2a1f0e;
-  background-image:
-    radial-gradient(ellipse at 50% 0%, rgba(139,105,20,0.10), transparent 60%),
-    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.07) 39px, rgba(0,0,0,0.07) 40px),
-    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
-  min-height: 100vh;
-  padding: 1rem;
+  background: var(--bg);
   color: var(--ink);
-  font-family: 'EB Garamond', serif;
+  font-family: var(--font-body);
+  line-height: 1.45;
+  min-height: 100vh;
+  padding: 16px;
 }
 
-/* ── Pergamino contenedor ─────────────────────────────── */
-.pergamino {
-  max-width: 500px;
-  margin: 0 auto;
-  background: var(--perg);
-  background-image: radial-gradient(ellipse at 20% 10%, rgba(139,105,20,0.06), transparent 55%),
-                     radial-gradient(ellipse at 85% 90%, rgba(139,105,20,0.05), transparent 50%);
-  border: 2px solid var(--border);
-  border-radius: 4px;
-  box-shadow: 0 0 0 4px #1a1206, 0 0 0 6px var(--border), 0 16px 48px rgba(0,0,0,0.65), 0 4px 16px rgba(0,0,0,0.4);
-  overflow: hidden;
-  animation: desenrollar .5s cubic-bezier(.2,.7,.3,1) both;
+/* ── Fondo animado: Felipesos flotando ─────────────────── */
+.fondo-dinero {
+  position: fixed; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
 }
-@keyframes desenrollar {
-  from { opacity: 0; transform: translateY(10px) scale(.985); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* ── Cabecera ─────────────────────────────────────────── */
-.cabecera {
-  background: var(--ink-md);
-  padding: 1.5rem 1.25rem 1.25rem;
-  text-align: center;
-  position: relative;
-  border-bottom: 3px solid var(--gold);
-}
-.cabecera::before, .cabecera::after {
-  content: '⚜';
+.fondo-dinero span {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gold-lt);
-  font-size: 1.4rem;
-  opacity: .7;
+  bottom: -120px;
+  left: var(--x);
+  display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 800;
+  color: var(--brand);
+  opacity: 0;
+  animation: flotar var(--d) linear var(--delay) infinite;
 }
-.cabecera::before { left: 1rem; }
-.cabecera::after  { right: 1rem; }
+.fondo-dinero .moneda {
+  width: var(--s); height: var(--s);
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  box-shadow: inset 0 0 0 4px var(--bg), inset 0 0 0 5px currentColor;
+  font-size: calc(var(--s) * .45);
+}
+.fondo-dinero .billete {
+  width: calc(var(--s) * 1.9); height: var(--s);
+  border-radius: 8px;
+  border: 2px solid currentColor;
+  font-size: calc(var(--s) * .42);
+}
+.fondo-dinero .billete::before, .fondo-dinero .billete::after {
+  content: ''; position: absolute; top: 50%;
+  width: calc(var(--s) * .22); height: calc(var(--s) * .22);
+  margin-top: calc(var(--s) * -.11);
+  border-radius: 50%; border: 1.5px solid currentColor;
+}
+.fondo-dinero .billete::before { left: 10%; }
+.fondo-dinero .billete::after  { right: 10%; }
+@keyframes flotar {
+  0%   { transform: translate(0, 0) rotate(var(--r)); opacity: 0; }
+  10%  { opacity: var(--o); }
+  50%  { transform: translate(var(--dx), -55vh) rotate(calc(var(--r) + 25deg)); }
+  90%  { opacity: var(--o); }
+  100% { transform: translate(0, calc(-100vh - 160px)) rotate(calc(var(--r) + 50deg)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .fondo-dinero { display: none; } }
 
+/* ── Contenedor ─────────────────────────────────────────── */
+.pergamino {
+  position: relative; z-index: 1;
+  max-width: 1080px;
+  margin: 0 auto;
+  animation: entrar .45s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes entrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── Cabecera ──────────────────────────────────────────── */
+.cabecera {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 8px 4px 20px;
+}
 .sello-corona {
-  width: 48px; height: 48px;
-  margin: 0 auto .5rem;
-  background: radial-gradient(circle at 35% 30%, var(--gold-lt), var(--gold) 65%, #6b5010 100%);
-  border-radius: 50%;
-  border: 2px solid var(--gold-lt);
-  box-shadow: 0 2px 6px rgba(0,0,0,.4), inset 0 1px 2px rgba(255,255,255,.4), inset 0 -2px 4px rgba(0,0,0,.35);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem;
-  color: var(--ink-md);
+  width: 52px; height: 52px; flex-shrink: 0;
+  border-radius: 16px;
+  background: var(--brand);
+  color: var(--lime);
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 1.75rem;
+  transform: rotate(-6deg);
+  box-shadow: 4px 4px 0 var(--lime);
 }
+.marca { flex: 1; min-width: 180px; }
 .banco-titulo {
-  font-family: 'Cinzel', serif;
-  font-size: clamp(1.5rem, 6vw, 2.1rem);
-  font-weight: 700;
-  color: var(--gold-lt);
-  letter-spacing: .08em;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  letter-spacing: -.02em;
   line-height: 1;
-  text-shadow: 0 1px 0 rgba(0,0,0,.5), 0 0 18px rgba(201,168,76,.25);
 }
-.banco-subtitulo {
-  font-family: 'IM Fell English', serif;
-  font-style: italic;
-  font-size: .85rem;
-  color: rgba(201,168,76,.65);
-  margin-top: .3rem;
-  letter-spacing: .04em;
-}
+.banco-subtitulo { font-size: .88rem; color: var(--ink-2); margin-top: 4px; }
+
 .estado-live {
-  display: inline-flex; align-items: center; gap: .4rem;
-  margin-top: .75rem;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(201,168,76,.3);
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
   border-radius: 999px;
-  padding: .2rem .8rem;
-  font-family: 'EB Garamond', serif;
-  font-size: .78rem;
-  color: rgba(201,168,76,.8);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 .85rem var(--font-body);
   cursor: pointer;
-  transition: background .15s, border-color .15s;
+  box-shadow: var(--shadow);
+  transition: transform .15s, border-color .15s;
 }
-.estado-live:hover {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(201,168,76,.55);
-}
+.estado-live:hover { transform: translateY(-1px); border-color: var(--brand); }
+.estado-live:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.estado-live svg { width: 16px; height: 16px; color: var(--ink-2); }
 .dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #5cb85c;
-  box-shadow: 0 0 5px #5cb85c;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #22B864;
+  box-shadow: 0 0 0 4px rgba(34,184,100,.18);
   animation: pulsar 2s ease-in-out infinite;
 }
-.dot.offline { background: #c0392b; box-shadow: 0 0 5px #c0392b; animation: none; }
-@keyframes pulsar { 0%,100%{opacity:1}50%{opacity:.35} }
+.dot.offline { background: var(--neg); box-shadow: 0 0 0 4px rgba(192,53,43,.18); animation: none; }
+@keyframes pulsar { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
 
-/* ── Divisor ornamental ───────────────────────────────── */
-.divisor {
-  display: flex; align-items: center; gap: .5rem;
-  padding: 0 1.25rem;
-  margin: 1.1rem 0 .6rem;
+/* ── Cuerpo y secciones ────────────────────────────────── */
+.cuerpo { display: grid; gap: 16px; }
+.layout { display: grid; gap: 16px; }
+@media (min-width: 920px) {
+  .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; }
 }
-.divisor-linea { flex: 1; height: 1px; background: var(--border-lt); }
-.divisor-texto {
-  font-family: 'Cinzel', serif;
-  font-size: .6rem;
-  letter-spacing: .18em;
-  color: var(--gold);
-  text-transform: uppercase;
-  white-space: nowrap;
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
 }
-.divisor-glyph { color: var(--gold-lt); font-size: .85rem; }
+.panel-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.panel-icono {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  display: grid; place-items: center;
+}
+.panel-icono svg { width: 20px; height: 20px; }
+.panel-titulo { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: -.01em; }
+.panel-ayuda { font-size: .82rem; color: var(--ink-2); margin-top: 2px; }
 
-/* ── Cuerpo ────────────────────────────────────────────── */
-.cuerpo { padding: 0 1.25rem 1.5rem; }
-
-/* ── KPIs ──────────────────────────────────────────────── */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .6rem;
-  margin-bottom: .3rem;
+/* ── Filtro de curso ───────────────────────────────────── */
+.filtro {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px 10px 16px;
+  box-shadow: var(--shadow);
 }
-.kpi-card {
-  background: var(--perg-xs);
-  border: 1px solid var(--border-lt);
-  border-radius: 3px;
-  padding: .8rem .9rem;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(28,18,7,.08), inset 0 1px 0 rgba(255,255,255,.5);
-  transition: transform .18s ease, box-shadow .18s ease;
+.filtro-label {
+  font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-2); white-space: nowrap;
 }
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(28,18,7,.16), inset 0 1px 0 rgba(255,255,255,.5);
-}
-.kpi-card.ancho { grid-column: 1 / -1; }
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-.kpi-rotulo {
-  font-family: 'Cinzel', serif;
-  font-size: .56rem;
-  letter-spacing: .14em;
-  color: var(--gold);
-  text-transform: uppercase;
-  margin-bottom: .25rem;
-}
-.kpi-valor {
-  font-family: 'IM Fell English', serif;
-  font-size: 1.75rem;
-  color: var(--ink);
-  line-height: 1;
-  transition: transform .2s;
-}
-.kpi-valor.oro { color: var(--gold); font-size: 1.5rem; }
-.kpi-valor.verde { color: var(--green); }
-.kpi-pie {
-  font-size: .68rem;
-  color: var(--ink-lt);
-  margin-top: .2rem;
-  font-style: italic;
-}
-
-/* ── Tabs de curso ────────────────────────────────────── */
 .tabs-wrap {
-  display: flex; gap: .35rem;
+  display: flex; gap: 6px;
   overflow-x: auto; scrollbar-width: none;
-  padding-bottom: .1rem;
+  flex: 1; min-width: 0;
 }
 .tabs-wrap::-webkit-scrollbar { display: none; }
 .tab {
   flex-shrink: 0;
-  background: transparent;
-  border: 1px solid var(--border-lt);
-  border-radius: 2px;
-  padding: .28rem .75rem;
-  font-family: 'Cinzel', serif;
-  font-size: .65rem;
-  letter-spacing: .08em;
-  color: var(--ink-lt);
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 500 .88rem var(--font-body);
   cursor: pointer;
-  transition: all .15s;
+  transition: background .15s, color .15s, border-color .15s;
 }
-.tab:hover { border-color: var(--gold); color: var(--gold); }
-.tab:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
-.tab.activo {
-  background: var(--ink-md);
-  border-color: var(--gold);
-  color: var(--gold-lt);
-  box-shadow: 0 2px 6px rgba(28,18,7,.25);
+.tab:hover { border-color: var(--brand); color: var(--brand); }
+.tab:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.tab.activo { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+
+/* ── KPIs ──────────────────────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (min-width: 720px) { .kpi-grid { grid-template-columns: 1.6fr 1fr 1fr; } }
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.kpi-card.ancho {
+  grid-column: 1 / -1;
+  background: var(--card);
+  border-color: transparent;
+  color: var(--card-ink);
+  min-height: 170px;
+}
+@media (min-width: 720px) { .kpi-card.ancho { grid-column: auto; } }
+/* "tarjeta bancaria": chip + círculos de marca */
+.kpi-card.ancho::before, .kpi-card.ancho::after {
+  content: ''; position: absolute; border-radius: 50%; width: 120px; height: 120px; top: -36px;
+}
+.kpi-card.ancho::before { right: 36px; background: var(--brand); opacity: .9; }
+.kpi-card.ancho::after  { right: -28px; background: var(--lime); mix-blend-mode: screen; opacity: .85; }
+.chip {
+  width: 38px; height: 28px; border-radius: 6px;
+  background: linear-gradient(135deg, #E9C66A, #B98B2B);
+  margin-bottom: 14px;
+  position: relative; z-index: 1;
+}
+.kpi-rotulo {
+  font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-2);
+  position: relative; z-index: 1;
+}
+.kpi-card.ancho .kpi-rotulo { color: var(--card-ink-2); }
+.kpi-valor {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 5vw, 2rem);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin-top: 6px;
+  transition: transform .2s;
+  transform-origin: left center;
+  position: relative; z-index: 1;
+}
+.kpi-valor.oro { color: var(--lime); font-size: clamp(2rem, 7vw, 2.7rem); }
+.kpi-valor.verde { color: var(--pos); }
+.kpi-pie { font-size: .8rem; color: var(--ink-2); margin-top: auto; padding-top: 8px; position: relative; z-index: 1; }
+.kpi-card.ancho .kpi-pie { color: var(--card-ink-2); }
+.formula {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: .72rem;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 6px; padding: 2px 6px; color: var(--ink);
+}
+
+/* ── Resumen por curso ─────────────────────────────────── */
+.cursos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.curso-carta {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  transition: transform .18s, border-color .18s;
+}
+.curso-carta:hover { transform: translateY(-2px); border-color: var(--brand); }
+.curso-grado { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; letter-spacing: -.01em; }
+.curso-dato { font-size: .78rem; color: var(--ink-2); margin-top: 2px; }
+.curso-monto {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: var(--font-mono); font-weight: 700; font-size: .85rem;
+  color: var(--pos);
 }
 
 /* ── Ranking ───────────────────────────────────────────── */
-.ranking { display: flex; flex-direction: column; gap: .4rem; }
+.ranking { display: flex; flex-direction: column; gap: 8px; }
 .rank-fila {
-  display: flex; align-items: center; gap: .6rem;
-  background: var(--perg-xs);
-  border: 1px solid var(--border-lt);
-  border-radius: 3px;
-  padding: .55rem .85rem;
-  animation: aparecer .3s ease both;
-  transition: border-color .15s, transform .15s, box-shadow .15s;
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  animation: aparecer .35s ease both;
+  transition: border-color .15s, transform .15s;
 }
-.rank-fila:hover {
-  border-color: var(--gold);
-  transform: translateX(2px);
-  box-shadow: -2px 0 0 var(--gold);
-}
-.rank-fila.primero {
-  background: var(--gold-xs);
-  border-color: var(--gold);
-  box-shadow: 0 2px 8px rgba(139,105,20,.15);
-}
-@keyframes aparecer { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+.rank-fila:nth-child(2) { animation-delay: .04s; } .rank-fila:nth-child(3) { animation-delay: .08s; }
+.rank-fila:nth-child(4) { animation-delay: .12s; } .rank-fila:nth-child(5) { animation-delay: .16s; }
+.rank-fila:nth-child(n+6) { animation-delay: .2s; }
+.rank-fila:hover { border-color: var(--brand); transform: translateX(3px); }
+.rank-fila.primero { background: var(--brand-soft); border-color: var(--brand); padding: 14px; }
+@keyframes aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .rank-num {
-  font-family: 'Cinzel', serif;
-  font-size: 1rem;
-  font-weight: 700;
-  min-width: 1.5rem;
-  text-align: center;
-  color: var(--border);
-  flex-shrink: 0;
+  width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 800; font-size: .9rem;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--line);
 }
-.rank-num.p1 { color: var(--gold); font-size: 1.15rem; }
-.rank-num.p2 { color: #9e9e9e; }
-.rank-num.p3 { color: #8b5a2b; }
+.rank-num.p1, .rank-num.p2, .rank-num.p3 { color: #12131F; border-color: transparent; font-family: var(--font-mono); font-size: .78rem; }
+.rank-num.p1 { background: var(--gold); width: 40px; height: 40px; box-shadow: 0 0 0 4px rgba(233,168,20,.25); }
+.rank-num.p2 { background: var(--silver); }
+.rank-num.p3 { background: var(--bronze); }
 .rank-info { flex: 1; min-width: 0; }
-.rank-nombre {
-  font-size: .85rem;
-  font-weight: 500;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: var(--ink);
-}
+.rank-nombre { font-weight: 700; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-fila.primero .rank-nombre { font-size: 1rem; }
 .rank-tag {
   display: inline-block;
-  font-family: 'Cinzel', serif;
-  font-size: .55rem;
-  letter-spacing: .08em;
-  background: var(--perg-dk);
-  border: 1px solid var(--border-lt);
-  border-radius: 2px;
-  padding: .05rem .4rem;
-  color: var(--gold);
-  margin-top: .15rem;
+  font-size: .7rem; font-weight: 700;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 999px; padding: 1px 8px;
+  color: var(--ink-2);
+  margin-top: 3px;
 }
-.rank-barra-wrap {
-  height: 2px;
-  background: var(--perg-dk);
-  border-radius: 1px;
-  margin-top: .3rem;
-  overflow: hidden;
-}
-.rank-barra {
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold), var(--gold-lt));
-  border-radius: 1px;
-  transition: width .7s cubic-bezier(.4,0,.2,1);
-}
-.rank-saldo {
-  font-family: 'IM Fell English', serif;
-  font-size: .95rem;
-  color: var(--ink);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
+.rank-barra-wrap { height: 6px; background: var(--line); border-radius: 999px; margin-top: 8px; overflow: hidden; }
+.rank-barra { height: 100%; background: var(--brand); border-radius: 999px; transition: width .7s cubic-bezier(.4,0,.2,1); }
+.rank-fila.primero .rank-barra { background: var(--gold); }
+.rank-saldo { font-family: var(--font-mono); font-weight: 700; font-size: .9rem; white-space: nowrap; flex-shrink: 0; }
 
-/* ── Tabla de cuentas ────────────────────────────────── */
+/* ── Libro mayor (tabla) ───────────────────────────────── */
 .tabla-wrap {
-  border: 1px solid var(--border-lt);
-  border-radius: 3px;
-  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: auto;
+  max-height: 560px;
   -webkit-overflow-scrolling: touch;
 }
-table {
-  width: 100%;
-  min-width: 380px;
-  border-collapse: collapse;
-  background: var(--perg-xs);
-  font-size: .8rem;
-  table-layout: fixed;
-}
-thead th { position: sticky; top: 0; z-index: 1; }
+table { width: 100%; min-width: 380px; border-collapse: collapse; font-size: .86rem; table-layout: fixed; }
 colgroup col:nth-child(1) { width: 22%; }
 colgroup col:nth-child(2) { width: 40%; }
 colgroup col:nth-child(3) { width: 16%; }
 colgroup col:nth-child(4) { width: 22%; }
-thead tr {
-  background: var(--ink-md);
-}
+thead th { position: sticky; top: 0; z-index: 1; }
 th {
-  font-family: 'Cinzel', serif;
-  font-size: .55rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--gold-lt);
-  padding: .5rem .7rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-2);
+  padding: 12px;
   text-align: left;
-  font-weight: 400;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 th.der { text-align: right; }
 td {
-  padding: .42rem .7rem;
-  border-bottom: 1px solid var(--border-lt);
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-td.mono {
-  font-size: .7rem;
-  color: var(--ink-lt);
-  font-style: italic;
-}
-td.saldo {
-  text-align: right;
-  font-family: 'IM Fell English', serif;
-  font-size: .9rem;
-  color: var(--ink);
-}
-td.saldo.neg { color: var(--rust); }
+td.mono { font-family: var(--font-mono); font-size: .75rem; color: var(--ink-2); }
+td.saldo { text-align: right; font-family: var(--font-mono); font-weight: 700; font-size: .85rem; color: var(--pos); }
+td.saldo.neg { color: var(--neg); }
 tr:last-child td { border-bottom: none; }
-tr:nth-child(even) td { background: rgba(176,144,80,0.07); }
 tbody tr { transition: background .12s; }
-tbody tr:hover td { background: rgba(139,105,20,0.1); }
+tbody tr:hover td { background: var(--brand-soft); }
 .curso-pill {
-  font-family: 'Cinzel', serif;
-  font-size: .55rem;
-  letter-spacing: .06em;
-  background: var(--perg-dk);
-  border: 1px solid var(--border-lt);
-  border-radius: 2px;
-  padding: .06rem .4rem;
-  color: var(--gold);
+  font-size: .72rem; font-weight: 700;
+  background: var(--brand-soft); color: var(--brand);
+  border-radius: 999px; padding: 2px 8px;
   white-space: nowrap;
 }
 
-/* ── Resumen por curso ───────────────────────────────── */
-.cursos-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .55rem;
+/* ── Mini glosario ─────────────────────────────────────── */
+.glosario { display: grid; gap: 8px; }
+@media (min-width: 720px) { .glosario { grid-template-columns: 1fr 1fr; } }
+.glosario details {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0 14px;
 }
-.curso-carta {
-  background: var(--perg-xs);
-  border: 1px solid var(--border-lt);
-  border-radius: 3px;
-  padding: .75rem .9rem;
-  position: relative;
-  overflow: hidden;
-  transition: transform .18s ease, box-shadow .18s ease;
+.glosario summary {
+  min-height: 48px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  cursor: pointer; list-style: none;
+  font-weight: 700; font-size: .92rem;
 }
-.curso-carta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(28,18,7,.14);
+.glosario summary::-webkit-details-marker { display: none; }
+.glosario summary::after {
+  content: '+'; font-family: var(--font-mono); font-size: 1.1rem; color: var(--brand);
+  transition: transform .2s;
 }
-.curso-carta::after {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 2px;
-  background: var(--gold);
-}
-.curso-grado {
-  font-family: 'Cinzel', serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ink);
-}
-.curso-dato {
-  font-size: .7rem;
-  color: var(--ink-lt);
-  font-style: italic;
-  margin-top: .1rem;
-}
-.curso-monto {
-  font-family: 'IM Fell English', serif;
-  font-size: .88rem;
-  color: var(--green);
-  margin-top: .4rem;
-}
+.glosario details[open] summary::after { transform: rotate(45deg); }
+.glosario summary:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 8px; }
+.glosario p { font-size: .86rem; color: var(--ink-2); padding: 0 0 14px; }
+.glosario strong { color: var(--ink); }
 
-/* ── Footer ──────────────────────────────────────────── */
-.pie {
-  background: var(--ink-md);
-  border-top: 2px solid var(--gold);
-  padding: .7rem 1.25rem;
-  text-align: center;
-}
-.pie-texto {
-  font-family: 'IM Fell English', serif;
-  font-style: italic;
-  font-size: .72rem;
-  color: rgba(201,168,76,.55);
-  line-height: 1.8;
-}
+/* ── Footer ────────────────────────────────────────────── */
+.pie { text-align: center; padding: 24px 8px 8px; }
+.pie-texto { font-size: .8rem; color: var(--ink-2); line-height: 1.8; }
+.pie-texto span { font-family: var(--font-mono); }
 
-/* ── Estado/error ────────────────────────────────────── */
-.cargando {
-  text-align: center;
-  padding: 1.5rem;
-  font-family: 'IM Fell English', serif;
-  font-style: italic;
-  color: var(--ink-lt);
-  font-size: .9rem;
-}
+/* ── Estado / error ────────────────────────────────────── */
+.cargando { text-align: center; padding: 20px; color: var(--ink-2); font-size: .9rem; }
 .error-carta {
-  background: var(--perg-xs);
-  border: 1px solid var(--rust);
-  border-left: 3px solid var(--rust);
-  border-radius: 3px;
-  padding: .85rem 1rem;
-  font-size: .78rem;
-  color: var(--rust);
+  background: var(--surface);
+  border: 1px solid var(--neg);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: .86rem;
+  color: var(--neg);
   line-height: 1.6;
-  font-style: italic;
-  box-shadow: 0 2px 6px rgba(122,36,18,.1);
+}
+
+@media (max-width: 480px) {
+  .panel { padding: 16px; }
+  .filtro { flex-direction: column; align-items: stretch; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 </style>
 </head>
 <body>
 
+<!-- Fondo animado (decorativo) -->
+<div class="fondo-dinero" aria-hidden="true">
+  <span class="moneda"  style="--x:4%;  --s:46px; --d:34s; --delay:-2s;  --dx:30px;  --r:-10deg; --o:.10">₣</span>
+  <span class="billete" style="--x:14%; --s:40px; --d:42s; --delay:-18s; --dx:-40px; --r:12deg;  --o:.08">₣</span>
+  <span class="moneda"  style="--x:23%; --s:30px; --d:28s; --delay:-9s;  --dx:20px;  --r:5deg;   --o:.09">₣</span>
+  <span class="moneda"  style="--x:33%; --s:56px; --d:46s; --delay:-30s; --dx:-25px; --r:-20deg; --o:.07">₣</span>
+  <span class="billete" style="--x:44%; --s:34px; --d:38s; --delay:-5s;  --dx:35px;  --r:-8deg;  --o:.08">₣</span>
+  <span class="moneda"  style="--x:53%; --s:36px; --d:31s; --delay:-22s; --dx:-20px; --r:15deg;  --o:.10">₣</span>
+  <span class="moneda"  style="--x:62%; --s:26px; --d:26s; --delay:-13s; --dx:25px;  --r:0deg;   --o:.09">₣</span>
+  <span class="billete" style="--x:71%; --s:44px; --d:48s; --delay:-36s; --dx:-35px; --r:-15deg; --o:.07">₣</span>
+  <span class="moneda"  style="--x:80%; --s:50px; --d:40s; --delay:-7s;  --dx:30px;  --r:20deg;  --o:.08">₣</span>
+  <span class="moneda"  style="--x:89%; --s:32px; --d:30s; --delay:-25s; --dx:-30px; --r:-5deg;  --o:.10">₣</span>
+  <span class="billete" style="--x:94%; --s:30px; --d:36s; --delay:-15s; --dx:-45px; --r:8deg;   --o:.08">₣</span>
+  <span class="moneda"  style="--x:8%;  --s:28px; --d:44s; --delay:-40s; --dx:40px;  --r:10deg;  --o:.09">₣</span>
+</div>
+
 <div class="pergamino">
 
   <!-- Cabecera -->
-  <div class="cabecera">
-    <div class="sello-corona">⚜</div>
-    <div class="banco-titulo">Banco Felipeso</div>
-    <div class="banco-subtitulo">Colegio San Agustín · Villa Alemana</div>
-    <div class="estado-live" onclick="actualizar()" title="Actualizar ahora">
+  <header class="cabecera">
+    <div class="sello-corona" aria-hidden="true">₣</div>
+    <div class="marca">
+      <div class="banco-titulo">Banco Felipeso</div>
+      <div class="banco-subtitulo">Colegio San Agustín · Villa Alemana</div>
+    </div>
+    <button type="button" class="estado-live" onclick="actualizar()" title="Actualizar ahora">
       <span class="dot" id="liveDot"></span>
       <span id="liveText">Conectando…</span>
-    </div>
-  </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+    </button>
+  </header>
 
-  <div class="cuerpo">
+  <main class="cuerpo">
 
-    <div id="mensajeError" style="display:none; margin-top:.8rem;"></div>
+    <div id="mensajeError" style="display:none;"></div>
     <div id="baraCarga" class="cargando" style="display:none">
       Consultando los registros del banco…
     </div>
 
-    <!-- KPIs -->
-    <div class="divisor">
-      <div class="divisor-linea"></div>
-      <span class="divisor-glyph">§</span>
-      <span class="divisor-texto">Arcas del Banco</span>
-      <span class="divisor-glyph">§</span>
-      <div class="divisor-linea"></div>
+    <!-- Filtro por curso -->
+    <div class="filtro">
+      <span class="filtro-label">Ver curso</span>
+      <div class="tabs-wrap" id="tabsCurso">
+        <button class="tab activo" data-curso="todos" onclick="filtrar(this)">Todos</button>
+      </div>
     </div>
 
-    <div class="kpi-grid">
+    <!-- KPIs -->
+    <section class="kpi-grid" aria-label="Resumen del banco">
       <div class="kpi-card ancho">
-        <div class="kpi-rotulo">Total en circulación</div>
+        <div class="chip" aria-hidden="true"></div>
+        <div class="kpi-rotulo">Dinero en circulación</div>
         <div class="kpi-valor oro" id="kpi-total">—</div>
-        <div class="kpi-pie">Felipesos (₣) en todas las cuentas activas</div>
+        <div class="kpi-pie">Suma de los Felipesos (₣) de todas las cuentas activas</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-rotulo">Cuentas activas</div>
         <div class="kpi-valor" id="kpi-cuentas">—</div>
-        <div class="kpi-pie">titulares</div>
+        <div class="kpi-pie">estudiantes con cuenta abierta</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-rotulo">Saldo promedio</div>
         <div class="kpi-valor verde" id="kpi-promedio">—</div>
-        <div class="kpi-pie">₣ por estudiante</div>
+        <div class="kpi-pie"><span class="formula">total ÷ cuentas</span></div>
       </div>
+    </section>
+
+    <div class="layout">
+
+      <div class="cuerpo">
+        <!-- Ranking -->
+        <section class="panel">
+          <div class="panel-head">
+            <div class="panel-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>
+            </div>
+            <div>
+              <h2 class="panel-titulo">Top 10 ahorradores</h2>
+              <p class="panel-ayuda">La barra compara cada saldo con el del primer lugar (100%).</p>
+            </div>
+          </div>
+          <div class="ranking" id="rankingLista">
+            <div class="cargando">—</div>
+          </div>
+        </section>
+
+        <!-- Por curso -->
+        <section class="panel">
+          <div class="panel-head">
+            <div class="panel-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10M10 21V5M15 21v-8M20 21V8"/></svg>
+            </div>
+            <div>
+              <h2 class="panel-titulo">Ahorro por curso</h2>
+              <p class="panel-ayuda">Ordenado de mayor a menor total ahorrado.</p>
+            </div>
+          </div>
+          <div class="cursos-grid" id="cursosGrid">
+            <div class="cargando" style="grid-column:1/-1">—</div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Libro mayor -->
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4V4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+          </div>
+          <div>
+            <h2 class="panel-titulo">Libro mayor</h2>
+            <p class="panel-ayuda">El registro oficial de todas las cuentas y sus saldos.</p>
+          </div>
+        </div>
+        <div class="tabla-wrap">
+          <table>
+            <colgroup><col><col><col><col></colgroup>
+            <thead>
+              <tr>
+                <th>N° Cuenta</th>
+                <th>Titular</th>
+                <th>Curso</th>
+                <th class="der">Saldo</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCuerpo">
+              <tr><td colspan="4" class="cargando">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
     </div>
 
-    <!-- Por curso -->
-    <div class="divisor">
-      <div class="divisor-linea"></div>
-      <span class="divisor-glyph">§</span>
-      <span class="divisor-texto">Por Curso</span>
-      <span class="divisor-glyph">§</span>
-      <div class="divisor-linea"></div>
-    </div>
-    <div class="cursos-grid" id="cursosGrid">
-      <div class="cargando" style="grid-column:1/-1">—</div>
-    </div>
+    <!-- Glosario -->
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>
+        </div>
+        <div>
+          <h2 class="panel-titulo">Mini glosario financiero</h2>
+          <p class="panel-ayuda">Toca cada concepto para ver qué significa.</p>
+        </div>
+      </div>
+      <div class="glosario">
+        <details>
+          <summary>Saldo</summary>
+          <p>Lo que tienes en tu cuenta <strong>ahora</strong>: lo que has ganado menos lo que has gastado.</p>
+        </details>
+        <details>
+          <summary>Dinero en circulación</summary>
+          <p>La suma de los saldos de <strong>todas</strong> las cuentas. Si el banco emite más Felipesos, este número sube.</p>
+        </details>
+        <details>
+          <summary>Promedio</summary>
+          <p>Se calcula como <span class="formula">total ÷ n° de cuentas</span>. Un promedio alto no significa que todos tengan mucho: unos pocos saldos grandes lo pueden subir.</p>
+        </details>
+        <details>
+          <summary>Libro mayor</summary>
+          <p>El registro contable donde un banco anota cada cuenta y su saldo. Sirve para que todo sea <strong>transparente</strong> y se pueda revisar.</p>
+        </details>
+        <details>
+          <summary>Ahorro</summary>
+          <p>Guardar parte de lo que ganas en vez de gastarlo hoy, para poder usarlo en algo más valioso después.</p>
+        </details>
+        <details>
+          <summary>Saldo negativo</summary>
+          <p>Aparece en <strong style="color:var(--neg)">rojo</strong>: significa que la cuenta debe Felipesos al banco.</p>
+        </details>
+      </div>
+    </section>
 
-    <!-- Filtro tabs -->
-    <div class="divisor" style="margin-top:1.1rem">
-      <div class="divisor-linea"></div>
-      <span class="divisor-glyph">§</span>
-      <span class="divisor-texto">Registros</span>
-      <span class="divisor-glyph">§</span>
-      <div class="divisor-linea"></div>
-    </div>
-    <div class="tabs-wrap" id="tabsCurso" style="margin-bottom:.8rem">
-      <button class="tab activo" data-curso="todos" onclick="filtrar(this)">Todos</button>
-    </div>
+  </main>
 
-    <!-- Ranking -->
-    <div class="divisor" style="margin:.6rem 0 .6rem">
-      <div class="divisor-linea"></div>
-      <span class="divisor-glyph">✦</span>
-      <span class="divisor-texto">Tabla de Honor</span>
-      <span class="divisor-glyph">✦</span>
-      <div class="divisor-linea"></div>
-    </div>
-    <div class="ranking" id="rankingLista">
-      <div class="cargando">—</div>
-    </div>
-
-    <!-- Tabla de cuentas -->
-    <div class="divisor" style="margin-top:1.1rem">
-      <div class="divisor-linea"></div>
-      <span class="divisor-glyph">§</span>
-      <span class="divisor-texto">Libro Mayor</span>
-      <span class="divisor-glyph">§</span>
-      <div class="divisor-linea"></div>
-    </div>
-    <div class="tabla-wrap">
-      <table>
-        <colgroup><col><col><col><col></colgroup>
-        <thead>
-          <tr>
-            <th>N° Cuenta</th>
-            <th>Titular</th>
-            <th>Curso</th>
-            <th class="der">Saldo</th>
-          </tr>
-        </thead>
-        <tbody id="tablaCuerpo">
-          <tr><td colspan="4" class="cargando">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-  </div><!-- /cuerpo -->
-
-  <div class="pie">
+  <footer class="pie">
     <div class="pie-texto">
       Última consulta: <span id="ultimaHora">—</span><br>
       Refrescado cada XXX · Banco Felipeso © <span id="anio"></span>
     </div>
-  </div>
+  </footer>
 
 </div><!-- /pergamino -->
 
