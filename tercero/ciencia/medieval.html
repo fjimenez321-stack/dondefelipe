@@ -2125,7 +2125,13 @@ function isOnline(){return NET.on}
 function netNow(){return Date.now()+NET.offset}
 function cleanName(s){return String(s||'').replace(/[^\p{L}\p{N} ._-]/gu,'').trim().slice(0,16)}
 function cleanRoom(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,20)}
-function hasFirebaseConfig(){const c=window.FIREBASE_CONFIG;return!!(c&&c.apiKey&&c.databaseURL&&!/PEGA|TU_/i.test(c.apiKey))}
+function firebaseConfigProblem(){const c=window.FIREBASE_CONFIG;
+  if(!c||typeof c!=='object')return'No se encontró firebase-config.js junto a index.html, o tiene un error de escritura. Debe empezar con window.FIREBASE_CONFIG = {';
+  if(!c.apiKey||/^PEGA_AQUI$/.test(c.apiKey))return'firebase-config.js todavía dice PEGA_AQUI en apiKey.';
+  if(!c.databaseURL||/tu-proyecto/.test(c.databaseURL))return'A firebase-config.js le falta databaseURL (está arriba de la pestaña Datos de Realtime Database).';
+  if(!c.projectId||/tu-proyecto/.test(c.projectId))return'A firebase-config.js le falta projectId.';
+  return''}
+function hasFirebaseConfig(){return!firebaseConfigProblem()}
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('No se pudo cargar '+src));document.head.appendChild(s)})}
 
 /* ---------- caballeros de colores para los demás ---------- */
@@ -2284,7 +2290,7 @@ function setupOnlineUI(){
   inName.value=saved.name||'';inRoom.value=saved.room||'';
   const localOK=/[?&#]local\b/.test(location.href);
   const cfgOK=hasFirebaseConfig();
-  if(!cfgOK&&!localOK){$('#btnOnline').disabled=true;msg.textContent='El modo en línea se activa cuando el docente configura Firebase (ver LEEME-MULTIJUGADOR).'}
+  if(!cfgOK&&!localOK){$('#btnOnline').disabled=true;msg.textContent='Modo en línea no disponible: '+firebaseConfigProblem()}
   $('#btnOnline').onclick=async()=>{
     const name=cleanName(inName.value),room=cleanRoom(inRoom.value);
     if(name.length<2){msg.textContent='Escribe tu nombre (al menos 2 letras).';inName.focus();return}
