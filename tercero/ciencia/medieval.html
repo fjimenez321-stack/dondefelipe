@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Mercado de Villa Verde</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -71,8 +71,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--coin);outl
 #goals li small{display:block;font-weight:600;color:var(--on-glass-dim);text-decoration:none}
 
 #mapwrap{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:6px;z-index:4;cursor:pointer}
-#minimap{display:block;width:210px;height:154px;border-radius:11px}
-#mapwrap.big #minimap{width:min(78vw,620px);height:auto;aspect-ratio:2400/1760}
+#minimap{display:block;width:210px;height:150px;border-radius:11px}
+#mapwrap.big #minimap{width:min(78vw,620px);height:auto;aspect-ratio:3500/2500}
 #mapwrap .cap{position:absolute;left:14px;bottom:12px;font:700 10px/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:#fff;text-shadow:0 1px 2px #000}
 
 #prompt{position:absolute;z-index:6;transform:translate(-50%,-100%);display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;font:700 14px/1 var(--f-body);white-space:nowrap;pointer-events:auto;cursor:pointer;animation:bob 1.6s ease-in-out infinite}
@@ -98,7 +98,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--coin);outl
 #tRun{right:calc(124px + env(safe-area-inset-right,0px));bottom:calc(214px + env(safe-area-inset-bottom,0px));width:58px;height:58px;background:rgba(17,28,23,.6);font-size:13px}
 #tRun.on{background:var(--sky)}
 .is-touch #mapwrap{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
-.is-touch #mapwrap #minimap{width:150px;height:110px}
+.is-touch #mapwrap #minimap{width:150px;height:107px}
 
 /* ---------- sheets (modals) ---------- */
 #modal{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,16,12,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
@@ -220,7 +220,6 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-</head><body>
 <div id="app">
   <canvas id="game" tabindex="0" aria-label="Mundo de Villa Verde"></canvas>
 
@@ -240,7 +239,7 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
   </header>
 
   <aside id="goals" class="glass" aria-live="polite"><h3>Hoy</h3><ul id="goalList"></ul></aside>
-  <div id="mapwrap" class="glass" title="Mapa (M)"><canvas id="minimap" width="420" height="308"></canvas><span class="cap">Mapa · M</span></div>
+  <div id="mapwrap" class="glass" title="Mapa (M)"><canvas id="minimap" width="420" height="300"></canvas><span class="cap">Mapa · M</span></div>
   <div id="prompt" class="glass" hidden><kbd id="pKey">E</kbd><span id="pText"></span></div>
   <div id="toasts"></div>
 
@@ -425,17 +424,26 @@ function buildTextures(){
 }
 
 /* ---------- mundo ---------- */
-const WW=2400,WH=1760;
+const WW=3500,WH=2500;
+const GROW_T=1440; // minutos de juego para que un brote regado sea árbol (~12 min reales)
 const RIVER={y1:1150,y2:1330};
 const BRIDGE={x1:1130,x2:1270};
+const BRIDGE2={x1:2690,x2:2830};
+const RESERVE={x:60,y:1380,w:1140,h:1080};
+function inReserve(x,y){return x>RESERVE.x&&x<RESERVE.x+RESERVE.w&&y>RESERVE.y&&y<RESERVE.y+RESERVE.h}
 const STREETS=[
-  {x:150,y:470,w:2100,h:80},
-  {x:150,y:940,w:2100,h:80},
+  {x:150,y:470,w:3150,h:80},
+  {x:150,y:940,w:3150,h:80},
   {x:1160,y:470,w:80,h:680},
 ];
 const PLAZA={x:1200,y:745,r:175};
 const SOUTH_PATH=[[1200,1325],[1205,1430],[1290,1540],[1450,1612],[1700,1600]];
 const RESERVE_TRAIL=[[1205,1430],[1000,1460],[820,1500],[600,1480],[380,1520],[230,1600]];
+const EAST_PATH=[[2760,1020],[2760,1340],[2730,1560],[2600,1800],[2300,2000],[1800,2120],[1350,2060]];
+const HOME_SOUTH=[[1450,1612],[1380,1820],[1350,2060]];
+const RESERVE_EXT=[[230,1600],[330,1860],[700,2120],[1050,2170],[1350,2060]];
+const FOREST_TRAIL=[[2950,550],[3010,700],[3120,820],[3060,940]];
+const PATHS=[{p:SOUTH_PATH,w:78},{p:RESERVE_TRAIL,w:46},{p:EAST_PATH,w:64},{p:HOME_SOUTH,w:54},{p:RESERVE_EXT,w:46},{p:FOREST_TRAIL,w:40}];
 
 /* Edificios: base = borde inferior (línea de la puerta), d = profundidad */
 const PLACES=[
@@ -496,6 +504,10 @@ function makeRock(seed){const R=rng(seed),c=mk(50,34),g=c.getContext('2d');g.fil
 function makeFlowerBed(seed){const R=rng(seed),c=mk(110,44),g=c.getContext('2d');g.fillStyle=g.createPattern(TEX.planks,'repeat');rr(g,4,20,102,20,4);g.fill();g.fillStyle='#5b3d27';g.fillRect(8,20,94,5);g.fillStyle='#4f8a4f';for(let i=0;i<14;i++){g.beginPath();g.arc(10+i*7,20-R()*4,6,0,7);g.fill()}const fc=['#f06a7b','#f5c242','#b07ad8','#ffffff','#ff9b52'];for(let i=0;i<16;i++){g.fillStyle=fc[(R()*fc.length)|0];g.beginPath();g.arc(10+R()*90,10+R()*10,3,0,7);g.fill()}return{c,ax:55,ay:40}}
 function makeSignpost(text){g0.font=`700 13px ${FONT_D}`;const tw=g0.measureText(text).width+24;const c=mk(tw+10,80),g=c.getContext('2d');g.fillStyle='#5a3f2b';g.fillRect(c.width/2-3,24,6,56);g.fillStyle=g.createPattern(TEX.planks,'repeat');rr(g,5,4,tw,26,6);g.fill();g.strokeStyle='#4a3020';g.lineWidth=2;rr(g,5,4,tw,26,6);g.stroke();g.fillStyle='#fff6df';g.font=`700 13px ${FONT_D}`;g.textAlign='center';g.textBaseline='middle';g.fillText(text,c.width/2,18);return{c,ax:c.width/2,ay:78}}
 const g0=mk(4,4).getContext('2d');
+function makeStump(){const c=mk(60,40),g=c.getContext('2d');g.fillStyle='rgba(10,30,15,.25)';g.beginPath();g.ellipse(32,30,24,8,0,0,7);g.fill();
+  g.fillStyle='#6b4a32';g.beginPath();g.moveTo(16,28);g.lineTo(18,14);g.lineTo(42,14);g.lineTo(44,28);g.quadraticCurveTo(30,34,16,28);g.fill();
+  g.fillStyle='#c9a36e';g.beginPath();g.ellipse(30,14,12,5,0,0,7);g.fill();g.strokeStyle='#9a7448';g.lineWidth=1;for(const r of[8,5,2.5]){g.beginPath();g.ellipse(30,14,r,r*.42,0,0,7);g.stroke()}
+  return{c,ax:30,ay:30}}
 function makeBoard(){const c=mk(110,110),g=c.getContext('2d');g.fillStyle='#4a3020';g.fillRect(14,40,8,66);g.fillRect(88,40,8,66);
   g.fillStyle=g.createPattern(TEX.planks,'repeat');rr(g,6,6,98,62,6);g.fill();g.strokeStyle='#3b2618';g.lineWidth=3;rr(g,6,6,98,62,6);g.stroke();
   g.fillStyle='#3b2618';g.beginPath();g.moveTo(0,10);g.lineTo(55,-2);g.lineTo(110,10);g.lineTo(104,14);g.lineTo(6,14);g.closePath();g.fill();
@@ -626,14 +638,14 @@ function buildGround(){
   g.fillStyle='#93b97a';g.fillRect(0,0,WW,WH);
   if(IMG.grass){g.fillStyle=scaledPattern(g,IMG.grass,.62);g.fillRect(0,0,WW,WH)}
   // variación de color en el pasto
-  for(let i=0;i<220;i++){const x=R()*WW,y=R()*WH,r=90+R()*200,gr=g.createRadialGradient(x,y,0,x,y,r);const dark=R()<.55;gr.addColorStop(0,dark?'rgba(40,90,40,.16)':'rgba(230,240,160,.14)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,2*r,2*r)}
+  for(let i=0;i<440;i++){const x=R()*WW,y=R()*WH,r=90+R()*200,gr=g.createRadialGradient(x,y,0,x,y,r);const dark=R()<.55;gr.addColorStop(0,dark?'rgba(40,90,40,.16)':'rgba(230,240,160,.14)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,2*r,2*r)}
   // riberas
   g.fillStyle=g.createPattern(TEX.sand,'repeat');g.fillRect(0,RIVER.y1-34,WW,40);g.fillRect(0,RIVER.y2-6,WW,40);
   const bk=g.createLinearGradient(0,RIVER.y1-34,0,RIVER.y1-20);bk.addColorStop(0,'rgba(60,90,40,.35)');bk.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=bk;g.fillRect(0,RIVER.y1-34,WW,14);
   for(let i=0;i<160;i++){const x=R()*WW,top=R()<.5,y=top?RIVER.y1-30+R()*24:RIVER.y2+2+R()*28;g.fillStyle=shade('#8a8f86',(R()-.5)*.4);g.beginPath();g.ellipse(x,y,3+R()*6,2+R()*3,R(),0,7);g.fill()}
   // senderos de tierra
   const strokePath=(pts,w)=>{g.save();g.lineCap='round';g.lineJoin='round';g.strokeStyle='rgba(70,60,30,.25)';g.lineWidth=w+10;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)g.lineTo(pts[i][0],pts[i][1]);g.stroke();g.strokeStyle=g.createPattern(TEX.dirt,'repeat');g.lineWidth=w;g.stroke();g.restore()};
-  strokePath(SOUTH_PATH,78);strokePath(RESERVE_TRAIL,46);
+  for(const P of PATHS)strokePath(P.p,P.w);
   strokePath([[1990,1560],[1990,1600],[1760,1600]],40);
   // calles de adoquín con soleras
   for(const s of STREETS){g.fillStyle='#7c7468';rr(g,s.x-8,s.y-8,s.w+16,s.h+16,14);g.fill()}
@@ -664,25 +676,25 @@ function buildGround(){
   g.save();g.translate(520,1600);g.fillStyle='#d9c79a';g.beginPath();g.ellipse(0,0,176,74,0,0,7);g.fill();const pg=g.createRadialGradient(-30,-10,10,0,0,170);pg.addColorStop(0,'#5fb3c4');pg.addColorStop(1,'#2f7f97');g.fillStyle=pg;g.beginPath();g.ellipse(0,0,160,62,0,0,7);g.fill();
   for(let i=0;i<6;i++){g.fillStyle='#3e8a52';g.beginPath();g.ellipse(-100+i*38,(i%2?-24:18),12,7,i,0,7);g.fill()}g.restore();
   // matas de pasto y flores silvestres
-  for(let i=0;i<900;i++){const x=R()*WW,y=R()*WH;if(onPaved(x,y)||(y>RIVER.y1-40&&y<RIVER.y2+40))continue;
+  for(let i=0;i<2000;i++){const x=R()*WW,y=R()*WH;if(onPaved(x,y)||(y>RIVER.y1-40&&y<RIVER.y2+40))continue;
     if(R()<.7){g.strokeStyle=R()<.5?'rgba(60,110,50,.55)':'rgba(170,210,120,.6)';g.lineWidth=1.6;g.beginPath();for(let k=0;k<4;k++){g.moveTo(x+k*2.5,y);g.quadraticCurveTo(x+k*2.5-2,y-5,x+k*2.5+(R()-.5)*4,y-8-R()*5)}g.stroke()}
     else{g.fillStyle=['#fff5f8','#f6d64a','#e9839a','#b392e0'][(R()*4)|0];g.beginPath();g.arc(x,y,2.4,0,7);g.fill()}}
-  for(let i=0;i<500;i++){const x=80+R()*920,y=1380+R()*340;if(nearPath(x,y,RESERVE_TRAIL,30))continue;g.fillStyle=['#fff5f8','#f6d64a','#e9839a','#b392e0','#ff9b52'][(R()*5)|0];g.beginPath();g.arc(x,y,2.6,0,7);g.fill()}
+  for(let i=0;i<1100;i++){const x=80+R()*1100,y=1380+R()*1060;if(onPaved(x,y))continue;g.fillStyle=['#fff5f8','#f6d64a','#e9839a','#b392e0','#ff9b52'][(R()*5)|0];g.beginPath();g.arc(x,y,2.6,0,7);g.fill()}
   GROUND=c;
 }
-function onPaved(x,y){for(const s of STREETS)if(x>s.x-20&&x<s.x+s.w+20&&y>s.y-20&&y<s.y+s.h+20)return true;if(Math.hypot(x-PLAZA.x,y-PLAZA.y)<PLAZA.r+20)return true;for(const p of[...PLACES,...DECO_HOUSES])if(x>p.x-30&&x<p.x+p.w+30&&y>p.base-p.d-20&&y<(p.base<500?470:p.base<1000?940:p.base+50))return true;if(nearPath(x,y,SOUTH_PATH,55)||nearPath(x,y,RESERVE_TRAIL,35))return true;if(x>HUERTO.x-20&&x<HUERTO.x+HUERTO.w+20&&y>HUERTO.y-20&&y<HUERTO.y+HUERTO.h+40)return true;if(Math.hypot((x-520)/190,(y-1600)/90)<1)return true;return false}
+function onPaved(x,y){for(const s of STREETS)if(x>s.x-20&&x<s.x+s.w+20&&y>s.y-20&&y<s.y+s.h+20)return true;if(Math.hypot(x-PLAZA.x,y-PLAZA.y)<PLAZA.r+20)return true;for(const p of[...PLACES,...DECO_HOUSES])if(x>p.x-30&&x<p.x+p.w+30&&y>p.base-p.d-20&&y<(p.base<500?470:p.base<1000?940:p.base+50))return true;for(const P of PATHS)if(nearPath(x,y,P.p,P.w*.5+20))return true;if(x>HUERTO.x-20&&x<HUERTO.x+HUERTO.w+20&&y>HUERTO.y-20&&y<HUERTO.y+HUERTO.h+40)return true;if(Math.hypot((x-520)/190,(y-1600)/90)<1)return true;return false}
 
 /* Puente (sobre el agua) */
-let BRIDGE_IMG=null;
-function buildBridge(){
-  const x1=BRIDGE.x1,x2=BRIDGE.x2,y1=RIVER.y1-30,y2=RIVER.y2+24,c=mk(x2-x1+40,y2-y1+40),g=c.getContext('2d');g.translate(20,20);
+let BRIDGE_IMG=null;const BRIDGE_IMGS=[];
+function buildBridge(B=BRIDGE){
+  const x1=B.x1,x2=B.x2,y1=RIVER.y1-30,y2=RIVER.y2+24,c=mk(x2-x1+40,y2-y1+40),g=c.getContext('2d');g.translate(20,20);
   const w=x2-x1,h=y2-y1;
   g.fillStyle='rgba(0,30,40,.35)';g.fillRect(8,10,w,h);
   g.save();rr(g,0,0,w,h,6);g.clip();g.save();g.translate(0,0);g.rotate(0);
   const pl=texPlanks(256,99,'#9a6a3e');g.fillStyle=g.createPattern(pl,'repeat');g.fillRect(0,0,w,h);g.restore();
   g.fillStyle='rgba(0,0,0,.12)';for(let y=0;y<h;y+=32)g.fillRect(0,y,w,2);g.restore();
   for(const rx of[0,w-12]){g.fillStyle='#5a3b24';g.fillRect(rx,0,12,h);g.fillStyle='#7a5234';g.fillRect(rx+2,0,4,h);for(let y=6;y<h;y+=46){g.fillStyle='#4a2f1c';rr(g,rx-3,y,18,18,4);g.fill();g.fillStyle='rgba(255,255,255,.15)';g.fillRect(rx-1,y+2,14,3)}}
-  BRIDGE_IMG={c,x:x1-20,y:y1-20};
+  const im={c,x:x1-20,y:y1-20};BRIDGE_IMGS.push(im);if(B===BRIDGE)BRIDGE_IMG=im;return im;
 }
 
 /* ---------- objetos estáticos y colisiones ---------- */
@@ -695,7 +707,7 @@ function buildWorld(){
   const R=rng(777);
   SPR.trees=[makeTree(1,'round'),makeTree(2,'dark'),makeTree(3,'blossom'),makeTree(4,'olive'),makeTree(5,'pine'),makeTree(6,'round'),makeTree(7,'dark'),makeTree(8,'pine')];
   SPR.bushes=[makeBush(1,'#4f9152'),makeBush(2,'#3e7a45'),makeBush(3,'#6aa25a')];
-  SPR.lamp=makeLamp();SPR.bench=makeBench();SPR.barrel=makeBarrel();SPR.bins=makeBins();
+  SPR.stump=makeStump();SPR.lamp=makeLamp();SPR.bench=makeBench();SPR.barrel=makeBarrel();SPR.bins=makeBins();
   SPR.crateA=makeCrate(['#e2462f','#ef7d32']);SPR.crateB=makeCrate(['#7bbf45','#3e9a54']);SPR.crateC=makeCrate(['#f5d547','#f2a33a']);SPR.crate=makeCrate(null);
   SPR.rocks=[makeRock(1),makeRock(2)];SPR.bed=makeFlowerBed(3);SPR.bed2=makeFlowerBed(8);
   // edificios
@@ -703,16 +715,17 @@ function buildWorld(){
   for(const p of DECO_HOUSES){p.spr=makeBuilding(p,false);SOLIDS.push({x:p.x,y:p.base-p.d,w:p.w,h:p.d-2});addObj({kind:'building',x:p.x,y:p.base,b:p})}
   // agua
   SOLIDS.push({x:-50,y:RIVER.y1-6,w:BRIDGE.x1+12+50,h:RIVER.y2-RIVER.y1+12});
-  SOLIDS.push({x:BRIDGE.x2-12,y:RIVER.y1-6,w:WW-BRIDGE.x2+62,h:RIVER.y2-RIVER.y1+12});
+  SOLIDS.push({x:BRIDGE.x2-12,y:RIVER.y1-6,w:BRIDGE2.x1-BRIDGE.x2+24,h:RIVER.y2-RIVER.y1+12});
+  SOLIDS.push({x:BRIDGE2.x2-12,y:RIVER.y1-6,w:WW-BRIDGE2.x2+62,h:RIVER.y2-RIVER.y1+12});
   CIRCLES.push({x:520,y:1600,r:150,ell:2.4});
   // fuente
   CIRCLES.push({x:PLAZA.x,y:PLAZA.y,r:66});
   addObj({kind:'fountain',x:PLAZA.x,y:PLAZA.y+40});
   // faroles
   const lampAt=(x,y)=>{addObj({kind:'spr',spr:SPR.lamp,x,y});CIRCLES.push({x,y:y-4,r:8});LIGHTS.push({x,y:y-100,r:170})};
-  for(let x=230;x<2200;x+=260){if(Math.abs(x-1200)<120)continue;lampAt(x,560);lampAt(x,1030)}
+  for(let x=230;x<WW-250;x+=260){if(Math.abs(x-1200)<120||Math.abs(x-2760)<80)continue;lampAt(x,560);lampAt(x,1030)}
   for(let a=0;a<4;a++){const an=a*Math.PI/2+Math.PI/4;lampAt(PLAZA.x+Math.cos(an)*(PLAZA.r-14),PLAZA.y+Math.sin(an)*(PLAZA.r-14)+10)}
-  lampAt(1112,1110);lampAt(1290,1110);lampAt(1112,1372);lampAt(1290,1372);lampAt(1530,1590);
+  lampAt(1112,1110);lampAt(1290,1110);lampAt(1112,1372);lampAt(1290,1372);lampAt(1530,1590);lampAt(2672,1110);lampAt(2850,1110);lampAt(2672,1372);lampAt(2850,1372);
   // bancas en la plaza
   for(const[x,y]of[[1085,640],[1315,640],[1085,880],[1315,880]]){addObj({kind:'spr',spr:SPR.bench,x,y,bench:true});SOLIDS.push({x:x-42,y:y-20,w:84,h:18})}
   // puestos y cajas frente al mercado
@@ -728,12 +741,17 @@ function buildWorld(){
   addObj({kind:'spr',spr:makeSignpost('Reserva natural'),x:1050,y:1440});
   addObj({kind:'spr',spr:makeSignpost('Puente Verde'),x:1370,y:1098});
   addObj({kind:'spr',spr:makeSignpost('Tu huerto'),x:2175,y:1590});
+  addObj({kind:'spr',spr:makeSignpost('Bosque comunitario'),x:2600,y:600});
+  addObj({kind:'spr',spr:makeSignpost('Puente del Bosque'),x:2930,y:1098});
+  addObj({kind:'spr',spr:makeSignpost('Sendero sur'),x:1480,y:1840});
+  addObj({kind:'spr',spr:makeSignpost('Reserva: no talar'),x:1240,y:2110});
   // cerco del huerto (sólido) y tablón de anuncios de la plaza
   SOLIDS.push({x:HUERTO.x,y:HUERTO.y,w:HUERTO.w,h:HUERTO.h-6});
   SPR.board=makeBoard();addObj({kind:'spr',spr:SPR.board,x:BOARD.x,y:BOARD.y});SOLIDS.push({x:BOARD.x-46,y:BOARD.y-14,w:92,h:12});
   // árboles
   const treeOK=(x,y)=>{if(onPaved(x,y))return false;if(y>RIVER.y1-60&&y<RIVER.y2+50)return false;for(const s of SOLIDS)if(x>s.x-50&&x<s.x+s.w+50&&y>s.y-30&&y<s.y+s.h+90)return false;for(const o of OBJECTS)if(o.kind==='tree'&&Math.hypot(o.x-x,o.y-y)<70)return false;if(Math.hypot(x-1700,y-1480)<220)return false;if(x>HUERTO.x-70&&x<HUERTO.x+HUERTO.w+70&&y>HUERTO.y-20&&y<HUERTO.y+HUERTO.h+210)return false;return true};
-  const plant=(x,y,v)=>{if(!treeOK(x,y))return;const spr=SPR.trees[v];addObj({kind:'tree',spr,x,y,sway:R()*6,s:.85+R()*.35});CIRCLES.push({x,y:y-4,r:14})};
+  let tid=0;
+  const plant=(x,y,v)=>{if(!treeOK(x,y))return;const spr=SPR.trees[v];const circ={x,y:y-4,r:14};CIRCLES.push(circ);addObj({kind:'tree',spr,x,y,v,tid:'t'+(tid++),circ,sway:R()*6,s:.85+R()*.35,fixed:x<140||x>WW-140||y<230||y>WH-130})};
   for(let x=40;x<WW;x+=60+R()*40){plant(x,90+R()*90,(R()*8)|0);plant(x,30+R()*40,(R()*8)|0)}
   for(let y=200;y<WH;y+=70+R()*40){plant(40+R()*60,y,(R()*8)|0);plant(WW-40-R()*60,y,(R()*8)|0)}
   for(let i=0;i<70;i++)plant(100+R()*950,1390+R()*340,[0,1,3,4,7][(R()*5)|0]);
@@ -741,8 +759,13 @@ function buildWorld(){
   for(let i=0;i<45;i++)plant(150+R()*2100,580+R()*330,[0,2,3,5][(R()*4)|0]);
   for(let i=0;i<40;i++)plant(150+R()*2100,1040+R()*70,[0,1,2,3][(R()*4)|0]);
   plant(1250,1650,2);plant(1100,1690,0);
-  for(let i=0;i<60;i++){const x=80+R()*2240,y=200+R()*1520;if(!treeOK(x,y))continue;addObj({kind:'spr',spr:SPR.bushes[(R()*3)|0],x,y})}
-  for(let i=0;i<30;i++){const x=80+R()*2240,y=200+R()*1520;if(!treeOK(x,y))continue;addObj({kind:'spr',spr:SPR.rocks[(R()*2)|0],x,y})}
+  // terreno nuevo: bosque comunitario (noreste), bosque y praderas del sur
+  for(let i=0;i<450;i++)plant(2330+R()*1080,170+R()*780,[0,1,3,4,5,6,7][(R()*7)|0]);
+  for(let i=0;i<360;i++)plant(2250+R()*1150,1390+R()*1020,[0,1,2,3,4,5,6,7][(R()*8)|0]);
+  for(let i=0;i<320;i++)plant(110+R()*1060,1760+R()*680,[0,1,3,4,7][(R()*5)|0]);
+  for(let i=0;i<150;i++)plant(1250+R()*1000,1800+R()*620,[0,2,3,5,6][(R()*5)|0]);
+  for(let i=0;i<130;i++){const x=80+R()*(WW-160),y=200+R()*(WH-280);if(!treeOK(x,y))continue;addObj({kind:'spr',spr:SPR.bushes[(R()*3)|0],x,y})}
+  for(let i=0;i<70;i++){const x=80+R()*(WW-160),y=200+R()*(WH-280);if(!treeOK(x,y))continue;addObj({kind:'spr',spr:SPR.rocks[(R()*2)|0],x,y})}
   // contorno: bordes del mundo
   SOLIDS.push({x:-100,y:-100,w:WW+200,h:120},{x:-100,y:WH-20,w:WW+200,h:120},{x:-100,y:-100,w:120,h:WH+200},{x:WW-20,y:-100,w:120,h:WH+200});
 }
@@ -821,7 +844,7 @@ function drawParts(g,layer){for(const p of PARTS){if((p.layer||'world')!==layer)
 /* ---------- colisiones ---------- */
 function circleHit(x,y,r){
   for(const s of SOLIDS){const cx=clamp(x,s.x,s.x+s.w),cy=clamp(y,s.y,s.y+s.h);if((x-cx)**2+(y-cy)**2<r*r)return true}
-  for(const c of CIRCLES){if(c.ell){if(Math.hypot((x-c.x)/(c.r*1.1),(y-c.y)/(c.r*1.1/c.ell))<1)return true;continue}if(Math.hypot(x-c.x,y-c.y)<c.r+r)return true}
+  for(const c of CIRCLES){if(c.off)continue;if(c.ell){if(Math.hypot((x-c.x)/(c.r*1.1),(y-c.y)/(c.r*1.1/c.ell))<1)return true;continue}if(Math.hypot(x-c.x,y-c.y)<c.r+r)return true}
   return false;
 }
 
@@ -857,6 +880,27 @@ function drawFountain(g,x,y){
   g.fillStyle='#a49d8f';rr(g,cx-9,cy-58,18,60,6);g.fill();g.fillStyle='#c9c2b3';g.beginPath();g.ellipse(cx,cy-58,26,9,0,0,7);g.fill();g.fillStyle='#7cc8d8';g.beginPath();g.ellipse(cx,cy-60,20,6,0,0,7);g.fill();
   g.strokeStyle='rgba(200,240,255,.75)';g.lineWidth=2.5;for(let i=0;i<6;i++){const a=i/6*Math.PI*2+T*.3,dx=Math.cos(a)*30,dy=Math.sin(a)*12;g.beginPath();g.moveTo(cx,cy-64);g.quadraticCurveTo(cx+dx*.6,cy-82+dy*.3,cx+dx,cy-50+dy);g.stroke()}
   g.restore();
+}
+
+/* ---------- árboles: talar y plantar ---------- */
+function drawSapling(g,x,y,t,wet){const k=.5+t/.3*.6;g.save();g.translate(x,y);g.fillStyle='rgba(10,30,15,.22)';g.beginPath();g.ellipse(0,0,12,4,0,0,7);g.fill();
+  g.fillStyle='#5a3b27';g.beginPath();g.ellipse(0,0,9,3.5,0,0,7);g.fill();
+  const sw=Math.sin(T*2+x)*1.5;g.strokeStyle='#6b4a32';g.lineWidth=2.4;g.beginPath();g.moveTo(0,0);g.lineTo(sw*.5,-22*k);g.stroke();
+  g.fillStyle='#5aa34e';g.beginPath();g.ellipse(-6*k+sw,-18*k,6*k,3.2*k,-.5,0,7);g.ellipse(6*k+sw,-22*k,6*k,3.2*k,.5,0,7);g.ellipse(sw,-27*k,4*k,6*k,0,0,7);g.fill();
+  if(!wet){g.fillStyle='rgba(255,255,255,.92)';g.strokeStyle='#5fb3e0';g.lineWidth=2.5;g.beginPath();g.arc(0,-46,11,0,7);g.fill();g.stroke();g.font='13px system-ui,"Segoe UI Emoji","Apple Color Emoji"';g.textAlign='center';g.textBaseline='middle';g.fillText('💧',0,-45)}
+  g.restore()}
+function drawTree(g,o){
+  if(o.hide)return;
+  if(o.stump&&!o.fall){g.drawImage(SPR.stump.c,o.x-SPR.stump.ax,o.y-SPR.stump.ay);return}
+  let sc=o.s,alpha=1,rot=0;
+  if(o.planted){const t=clamp(o.planted.prog/GROW_T,0,1);if(t<.3&&!o.fall){drawSapling(g,o.x,o.y,t,o.planted.wet>0);return}sc=o.s*(.35+.65*t);
+    if(t<1&&!(o.planted.wet>0)){g.save();g.fillStyle='rgba(255,255,255,.92)';g.strokeStyle='#5fb3e0';g.lineWidth=2.5;g.beginPath();g.arc(o.x,o.y-200*sc,11,0,7);g.fill();g.stroke();g.font='13px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText('💧',o.x,o.y-199*sc);g.restore()}}
+  if(o.fall){const t=clamp((T-o.fall)/.9,0,1);rot=t*t*1.45*(o.fallDir||1);alpha=1-Math.max(0,(t-.55)/.45);
+    if(!o.planted)g.drawImage(SPR.stump.c,o.x-SPR.stump.ax,o.y-SPR.stump.ay);
+    if(t>=1){o.fall=null;if(o.planted){removeTreeObj(o);return}o.stump=true;return}}
+  g.save();g.translate(o.x,o.y);
+  if(!o.fall){g.fillStyle='rgba(10,30,15,.28)';g.beginPath();g.ellipse(10*sc,0,40*sc,13*sc,0,0,7);g.fill()}
+  g.rotate(rot);g.globalAlpha=alpha;g.scale(sc,sc);g.transform(1,0,Math.sin(T*1.1+o.sway)*.03+(o.shake&&T-o.shake<.4?Math.sin((T-o.shake)*60)*.04:0),1,0,0);g.drawImage(o.spr.c,-o.spr.ax,-o.spr.ay);g.restore();
 }
 
 /* ---------- huerto dinámico ---------- */
@@ -968,7 +1012,7 @@ function render(){
   const x0=Math.max(0,Math.floor(view.camX)),y0=Math.max(0,Math.floor(view.camY)),sw=Math.min(WW-x0,Math.ceil(vw)+2),sh=Math.min(WH-y0,Math.ceil(vh)+2);
   if(GROUND&&sw>0&&sh>0)ctx.drawImage(GROUND,x0,y0,sw,sh,x0,y0,sw,sh);
   // agua
-  if(view.camY+vh>RIVER.y1-40&&view.camY<RIVER.y2+40){drawWater(ctx,view.camX-10,view.camX+vw+10,clamp(Math.max(0,S.landfill-(S.riverCleaned||0))/90,0,.6));if(BRIDGE_IMG)ctx.drawImage(BRIDGE_IMG.c,BRIDGE_IMG.x,BRIDGE_IMG.y)}
+  if(view.camY+vh>RIVER.y1-40&&view.camY<RIVER.y2+40){drawWater(ctx,view.camX-10,view.camX+vw+10,clamp(Math.max(0,S.landfill-(S.riverCleaned||0))/90,0,.6));for(const b of BRIDGE_IMGS)if(b.x<view.camX+vw+40&&b.x+b.c.width>view.camX-40)ctx.drawImage(b.c,b.x,b.y)}
   // laguna brillos
   if(view.camY+vh>1500&&view.camX<720){ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=2;for(let i=0;i<4;i++){const x=440+i*40+Math.sin(T+i)*10;ctx.beginPath();ctx.moveTo(x,1590+i*8);ctx.lineTo(x+20,1590+i*8);ctx.stroke()}}
   drawHuertoPlants(ctx);
@@ -983,7 +1027,7 @@ function render(){
   const nightA=lightState(S.min).dark/.6;
   for(const o of list){
     if(o.kind==='building'){const b=o.b,s=b.spr;ctx.drawImage(s.c,b.x-s.ox,b.base-s.oy);if(nightA>0.02){ctx.globalAlpha=Math.min(1,nightA);ctx.drawImage(s.night,b.x-s.ox,b.base-s.oy);ctx.globalAlpha=1}}
-    else if(o.kind==='tree'){ctx.save();ctx.translate(o.x,o.y);ctx.fillStyle='rgba(10,30,15,.28)';ctx.beginPath();ctx.ellipse(10*o.s,0,40*o.s,13*o.s,0,0,7);ctx.fill();ctx.scale(o.s,o.s);ctx.transform(1,0,Math.sin(T*1.1+o.sway)*.03,1,0,0);ctx.drawImage(o.spr.c,-o.spr.ax,-o.spr.ay);ctx.restore()}
+    else if(o.kind==='tree')drawTree(ctx,o);
     else if(o.kind==='spr'){ctx.drawImage(o.spr.c,o.x-o.spr.ax,o.y-o.spr.ay)}
     else if(o.kind==='fountain')drawFountain(ctx);
     else if(o.kind==='player')drawPlayer(ctx);
@@ -1020,7 +1064,7 @@ function drawLighting(cw,ch,z){
   const ls=lightState(S.min);
   if(ls.warm>0){ctx.save();ctx.globalCompositeOperation='multiply';ctx.fillStyle=`rgba(255,185,120,${ls.warm})`;ctx.fillRect(0,0,cw,ch);ctx.restore()}
   // neblina por huella de carbono
-  const haze=clamp((S.co2-25)/260,0,.22);if(haze>0){ctx.save();ctx.fillStyle=`rgba(150,135,110,${haze})`;ctx.fillRect(0,0,cw,ch);ctx.restore()}
+  // El CO₂ es invisible y actúa a escala global: no se dibuja como neblina local.
   if(ls.dark>0){
     const lw=lightCv.width,lh=lightCv.height,k=lw/cw;
     lctx.globalCompositeOperation='source-over';lctx.clearRect(0,0,lw,lh);lctx.fillStyle=`rgba(12,18,46,${ls.dark})`;lctx.fillRect(0,0,lw,lh);
@@ -1041,11 +1085,11 @@ function drawLighting(cw,ch,z){
 /* ---------- minimapa ---------- */
 const mm=$('#minimap'),mmx=mm.getContext('2d');let MM_BASE=null;
 function buildMinimap(){
-  const c=mk(420,308),g=c.getContext('2d'),s=420/WW;g.drawImage(GROUND,0,0,420,308);
-  g.fillStyle='#3a93aa';g.fillRect(0,RIVER.y1*s,420,(RIVER.y2-RIVER.y1)*s);g.fillStyle='#9a6a3e';g.fillRect(BRIDGE.x1*s,RIVER.y1*s,(BRIDGE.x2-BRIDGE.x1)*s,(RIVER.y2-RIVER.y1)*s);
+  const c=mk(420,300),g=c.getContext("2d"),s=420/WW;g.drawImage(GROUND,0,0,420,300);
+  g.fillStyle='#3a93aa';g.fillRect(0,RIVER.y1*s,420,(RIVER.y2-RIVER.y1)*s);g.fillStyle='#9a6a3e';for(const B of[BRIDGE,BRIDGE2])g.fillRect(B.x1*s,RIVER.y1*s,(B.x2-B.x1)*s,(RIVER.y2-RIVER.y1)*s);g.strokeStyle='rgba(255,255,255,.35)';g.setLineDash([3,3]);g.strokeRect(RESERVE.x*s,RESERVE.y*s,RESERVE.w*s,RESERVE.h*s);g.setLineDash([]);
   for(const o of OBJECTS)if(o.kind==='tree'){g.fillStyle='rgba(40,90,50,.7)';g.beginPath();g.arc(o.x*s,(o.y-30)*s,3,0,7);g.fill()}
   for(const p of[...DECO_HOUSES,...PLACES]){g.fillStyle=p.roof;rr(g,p.x*s,(p.base-p.d)*s,p.w*s,p.d*s,3);g.fill()}
-  const vg=g.createRadialGradient(210,154,100,210,154,260);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.35)');g.fillStyle=vg;g.fillRect(0,0,420,308);
+  const vg=g.createRadialGradient(210,150,100,210,150,260);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.35)');g.fillStyle=vg;g.fillRect(0,0,420,300);
   MM_BASE=c;
 }
 function drawMinimap(){
@@ -1071,28 +1115,28 @@ const PRODUCTS=[
  {id:'fruta',cat:'fresh',name:'Fruta de temporada',emoji:'🍎',origin:'Valle de Aconcagua',price:1400,co2:.3,por:3,shelf:6,pack:'none',nutri:2,organic:true},
  {id:'berries',cat:'fresh',name:'Berries fuera de temporada',emoji:'🫐',origin:'Importados por avión',price:3900,co2:4.5,por:2,shelf:4,pack:'plastico',nutri:2},
  {id:'tomate',cat:'fresh',name:'Tomates de temporada',emoji:'🍅',origin:'Huertos de Limache',price:1300,co2:.4,por:3,shelf:5,pack:'none',nutri:2,organic:true},
- {id:'papas',cat:'fresh',name:'Papas a granel (1,5 kg)',emoji:'🥔',origin:'Feria local',price:1200,co2:.3,por:5,shelf:20,pack:'none',nutri:1,organic:true},
+ {id:'papas',cat:'fresh',name:'Papas a granel (1,5 kg)',emoji:'🥔',origin:'Feria local',price:1200,co2:.7,por:5,shelf:20,pack:'none',nutri:1,organic:true},
  {id:'palta',cat:'fresh',name:'Paltas (3)',emoji:'🥑',origin:'Quillota',price:2400,co2:1.2,por:2,shelf:4,pack:'none',nutri:2,organic:true,note:'Su cultivo necesita mucha agua en una zona con sequía.'},
  {id:'pan',cat:'fresh',name:'Pan de panadería',emoji:'🥖',origin:'Panadería del barrio',price:1200,co2:.5,por:2,shelf:2,pack:'papel',nutri:1},
- {id:'huevos',cat:'fresh',name:'Huevos de campo (6)',emoji:'🥚',origin:'Granja local',price:1900,co2:1.4,por:3,shelf:14,pack:'papel',nutri:2,organic:true},
- {id:'pollo',cat:'fresh',name:'Pollo (500 g)',emoji:'🍗',origin:'Nacional',price:3200,co2:3,por:2,shelf:3,pack:'plastico',nutri:2},
+ {id:'huevos',cat:'fresh',name:'Huevos de campo (6)',emoji:'🥚',origin:'Granja local',price:1900,co2:1.7,por:3,shelf:14,pack:'papel',nutri:2,organic:true},
+ {id:'pollo',cat:'fresh',name:'Pollo (500 g)',emoji:'🍗',origin:'Nacional',price:3200,co2:4.9,por:2,shelf:3,pack:'plastico',nutri:2},
  {id:'jurel',cat:'fresh',name:'Jurel fresco (500 g)',emoji:'🐟',origin:'Caleta de San Antonio',price:2600,co2:1.5,por:2,shelf:2,pack:'papel',nutri:2},
- {id:'queso',cat:'fresh',name:'Queso (250 g)',emoji:'🧀',origin:'Lechería del sur',price:2900,co2:3.4,por:3,shelf:12,pack:'plastico',nutri:2},
- {id:'vacuno',cat:'fresh',name:'Carne de vacuno (500 g)',emoji:'🥩',origin:'Importada',price:5200,co2:13,por:2,shelf:3,pack:'plastico',nutri:2},
- {id:'lentg',cat:'dry',name:'Lentejas a granel (1 kg)',emoji:'🫘',origin:'Nacional',price:1700,co2:.9,por:5,shelf:60,pack:'granel',nutri:2},
- {id:'lentb',cat:'dry',name:'Lentejas en bolsa (1 kg)',emoji:'🫘',origin:'Importadas',price:1500,co2:1.1,por:5,shelf:60,pack:'plastico',nutri:2},
- {id:'arroz',cat:'dry',name:'Arroz a granel (1 kg)',emoji:'🍚',origin:'Importado',price:1400,co2:2.7,por:5,shelf:90,pack:'granel',nutri:1},
+ {id:'queso',cat:'fresh',name:'Queso (250 g)',emoji:'🧀',origin:'Lechería del sur',price:2900,co2:6,por:3,shelf:12,pack:'plastico',nutri:2},
+ {id:'vacuno',cat:'fresh',name:'Carne de vacuno (500 g)',emoji:'🥩',origin:'Importada',price:5200,co2:30,por:2,shelf:3,pack:'plastico',nutri:2},
+ {id:'lentg',cat:'dry',name:'Lentejas a granel (1 kg)',emoji:'🫘',origin:'Nacional',price:1700,co2:1.8,por:5,shelf:60,pack:'granel',nutri:2},
+ {id:'lentb',cat:'dry',name:'Lentejas en bolsa (1 kg)',emoji:'🫘',origin:'Importadas',price:1500,co2:2,por:5,shelf:60,pack:'plastico',nutri:2},
+ {id:'arroz',cat:'dry',name:'Arroz a granel (1 kg)',emoji:'🍚',origin:'Importado',price:1400,co2:4.5,por:5,shelf:90,pack:'granel',nutri:1},
  {id:'fideos',cat:'dry',name:'Fideos (400 g)',emoji:'🍝',origin:'Nacional',price:1100,co2:.7,por:3,shelf:90,pack:'plastico',nutri:1},
- {id:'avena',cat:'dry',name:'Avena a granel (1 kg)',emoji:'🥣',origin:'Nacional',price:1100,co2:.5,por:6,shelf:120,pack:'granel',nutri:2},
+ {id:'avena',cat:'dry',name:'Avena a granel (1 kg)',emoji:'🥣',origin:'Nacional',price:1100,co2:2.5,por:6,shelf:120,pack:'granel',nutri:2},
  {id:'atun',cat:'dry',name:'Atún en lata',emoji:'🥫',origin:'Importado',price:1600,co2:1.6,por:2,shelf:365,pack:'lata',nutri:2},
- {id:'lechec',cat:'dry',name:'Leche en caja (1 L)',emoji:'🥛',origin:'Industrial',price:1150,co2:1.3,por:2,shelf:7,pack:'tetra',nutri:2},
- {id:'lecher',cat:'dry',name:'Leche en botella retornable (1 L)',emoji:'🍼',origin:'Lechería del sur',price:1350,co2:1.2,por:2,shelf:7,pack:'retornable',nutri:2,note:'Devuelves la botella en tu próxima compra y se reutiliza.'},
+ {id:'lechec',cat:'dry',name:'Leche en caja (1 L)',emoji:'🥛',origin:'Industrial',price:1150,co2:3.2,por:2,shelf:7,pack:'tetra',nutri:2},
+ {id:'lecher',cat:'dry',name:'Leche en botella retornable (1 L)',emoji:'🍼',origin:'Lechería del sur',price:1350,co2:3.1,por:2,shelf:7,pack:'retornable',nutri:2,note:'Devuelves la botella en tu próxima compra y se reutiliza.'},
  {id:'galletas',cat:'dry',name:'Galletas en paquete',emoji:'🍪',origin:'Industrial',price:1300,co2:.8,por:2,shelf:60,pack:'plastico',nutri:0},
  {id:'snack',cat:'dry',name:'Snack ultraprocesado',emoji:'🍟',origin:'Industrial',price:1600,co2:.9,por:1,shelf:30,pack:'plastico',nutri:0},
  {id:'agua',cat:'dry',name:'Agua embotellada (6 × 1,5 L)',emoji:'💧',origin:'Industrial',price:3000,co2:1.6,por:0,pack:'plastico',packN:6,note:'En Villa Verde el agua de la llave y de la pileta es potable.'},
  {id:'menu',cat:'eat',name:'Menú del día en la cocinería',emoji:'🍲',origin:'Cocinería de la feria',price:3800,co2:1.2,eat:{food:34,health:2,mood:4},time:40,pack:'none',nutri:2},
  {id:'colacion',cat:'eat',name:'Colación para llevar',emoji:'🥡',origin:'Comida rápida',price:3500,co2:1.4,eat:{food:28,health:0,mood:2},time:15,pack:'plastico',packN:2,nutri:1},
- {id:'empanada',cat:'eat',name:'Empanada de pino',emoji:'🥟',origin:'Panadería de la plaza',price:2200,co2:1.6,eat:{food:26,health:1,mood:4},time:15,pack:'papel',nutri:1},
+ {id:'empanada',cat:'eat',name:'Empanada de pino',emoji:'🥟',origin:'Panadería de la plaza',price:2200,co2:3.5,eat:{food:26,health:1,mood:4},time:15,pack:'papel',nutri:1},
  {id:'sopaip',cat:'eat',name:'Sopaipillas del carro',emoji:'🫓',origin:'Carro de la esquina',price:800,co2:.3,eat:{food:12,health:-1,mood:4},time:10,pack:'papel',nutri:0},
  {id:'cafev',cat:'eat',name:'Café en vaso desechable',emoji:'☕',origin:'Cafetería',price:1500,co2:.4,eat:{energy:12,mood:2},time:10,pack:'plastico',nutri:1},
  {id:'cafet',cat:'eat',name:'Café en tu taza',emoji:'☕',origin:'Cafetería',price:1300,co2:.3,eat:{energy:12,mood:3},time:10,pack:'none',nutri:1,req:'taza',note:'Necesitas una taza reutilizable (Almacén). Te descuentan $200.'},
@@ -1156,10 +1200,12 @@ const TIPS=[
  'En Chile la Ley 21.100 prohíbe que el comercio entregue bolsas plásticas. Llevar tu propia bolsa evita también las de papel.',
  'La Ley REP (20.920) obliga a quienes venden productos envasados a financiar su recolección y reciclaje.',
  'Según la FAO, cerca de un tercio de los alimentos producidos en el mundo se pierde o se desperdicia.',
- 'La carne de vacuno tiene una de las huellas de carbono más altas: decenas de kg de CO₂e por kilo.',
+ 'La carne de vacuno tiene una de las huellas de carbono más altas: entre 30 y 100 kg de CO₂e por kilo según cómo se produce (Poore y Nemecek, 2018).',
+ 'El CO₂ no se ve ni se queda en tu barrio: se mezcla en la atmósfera de todo el planeta y la calienta. Por eso la huella es invisible, pero real.',
  'Reparar alarga la vida útil de un objeto y evita fabricar uno nuevo.',
  'Comer de temporada y de cerca reduce transporte y refrigeración.',
  'Un huerto en casa produce alimentos sin envases ni transporte, y aprovecha el compost de tus restos orgánicos.',
+ 'Los árboles guardan carbono en su madera y raíces. Un árbol tarda décadas en crecer y segundos en caer.',
 ];
 
 /* ---------- estado ---------- */
@@ -1170,7 +1216,7 @@ function newState(){return{
   pantry:[{pid:'fideos',name:'Fideos (400 g)',emoji:'🍝',por:2,exp:30,nutri:1},{pid:'huevos',name:'Huevos de campo (6)',emoji:'🥚',por:1,exp:3,nutri:2,organic:true}],
   bin:{plastico:1,papel:0,vidrio:0,organico:0},carry:{plastico:0,papel:0,vidrio:0,organico:0},
   owned:{},wants:[],needs:{},meals:0,lastMealMin:0,
-  garden:{compost:0},plots:[null,null,null,null,null,null],seeds:{lechuga:2,hierbas:1,zanahoria:1},riverCleaned:0,skills:{},harvested:0,flags:{},log:[],daily:[],started:false,over:false,warned:{},
+  garden:{compost:0},plots:[null,null,null,null,null,null],seeds:{lechuga:2,hierbas:1,zanahoria:1},wood:0,saplings:[],cut:{},planted:[],nextTree:1,treesCut:0,treesPlanted:0,axeDay:0,riverCleaned:0,skills:{},harvested:0,flags:{},log:[],daily:[],started:false,over:false,warned:{},
   cart:{},cartOwner:null
 }}
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({S,p:{x:player.x,y:player.y,scene:player.scene}}))}catch(e){}}
@@ -1247,7 +1293,7 @@ function refreshHUD(){
   $('#hTime').textContent=hhmm(S.min);
   const ls=lightState(S.min);$('#hSun').innerHTML=ls.dark>.3?ICONS.moon:ICONS.sun;
   $('#hDayBar').style.width=clamp((S.min-DAY_START)/(LATE-DAY_START)*100,0,100)+'%';
-  const sig=JSON.stringify([S.day,S.meals,S.needs,pantryPortions(),S.carry,S.bin,S.min>=LATE,S.garden,S.owned,S.seeds,(S.plots||[]).map(p=>p?(p.dead?3:p.ready?2:p.wet>0?1:0):-1)]);
+  const sig=JSON.stringify([(S.saplings||[]).length,(S.planted||[]).map(p=>p.wet>0?1:0).join(''),S.day,S.meals,S.needs,pantryPortions(),S.carry,S.bin,S.min>=LATE,S.garden,S.owned,S.seeds,(S.plots||[]).map(p=>p?(p.dead?3:p.ready?2:p.wet>0?1:0):-1)]);
   if(sig!==hudSig){hudSig=sig;renderGoals()}
 }
 function renderGoals(){
@@ -1258,6 +1304,8 @@ function renderGoals(){
   if(S.plots){const rd=S.plots.filter(p=>p&&p.ready&&!p.dead).length,dry=S.plots.filter(p=>p&&!p.ready&&!p.dead&&!(p.wet>0)).length,emp=S.plots.filter(p=>!p).length;
     if(rd)items.push({done:false,alert:true,t:`Cosechar ${rd} parcela${rd===1?'':'s'} del huerto`,s:'Si esperas más de un día, se marchitan'});
     if(dry)items.push({done:false,t:`Regar ${dry} parcela${dry===1?'':'s'} del huerto`,s:'Sin agua crecen muy lento'});
+    if(S.saplings&&S.saplings.length)items.push({done:false,t:`Plantar ${S.saplings.length} brote${S.saplings.length===1?'':'s'} de árbol`,s:'Párate en el pasto y presiona E'});
+    {const dry=S.planted.filter(p=>p.prog<GROW_T&&!(p.wet>0)).length;if(dry)items.push({done:false,t:`Regar ${dry} árbol${dry===1?'':'es'} joven${dry===1?'':'es'}`,s:'Sin agua crecen lento'})}
     if(emp&&seedCount())items.push({done:false,t:`Tienes ${emp} parcela${emp===1?'':'s'} libre${emp===1?'':'s'} y ${seedCount()} semilla${seedCount()===1?'':'s'}`,s:'Planta al costado de tu casa'});}
   const bw=S.bin.plastico+S.bin.papel+S.bin.vidrio+S.bin.organico;
   if(bw>0)items.push({done:false,t:`Separar ${bw} residuo${bw===1?'':'s'} en casa`,s:'Lo que no separes se va al vertedero en la noche'});
@@ -1381,7 +1429,10 @@ function renderShop(tab){
   if(tab==='vivero'){
     const seeds=CROPS.map(c=>`<div class="card"><div class="c-top"><div class="c-em">${c.emoji}</div><div style="min-width:0"><p class="c-name">Semillas de ${c.name.toLowerCase()}</p><div class="c-sub">Tienes ${S.seeds[c.id]||0} sobre${(S.seeds[c.id]||0)===1?'':'s'}</div></div></div><div class="tags">${tag(c.yield+' porciones por cosecha','b')}${tag('Crece en ~'+realMin(c.grow)+' min','g')}${tag('Dura '+c.shelf+' días','')}</div><div class="c-row"><span class="price">${fmt(c.seed)}</span><button class="btn" style="margin-left:auto" data-act="buySeed" data-arg="${c.id}" ${S.money<c.seed?'disabled':''}>Comprar sobre</button></div></div>`).join('');
     const fert=`<div class="card"><div class="c-top"><div class="c-em">🪴</div><div><p class="c-name">Saco de abono (3 usos)</p><div class="c-sub">Alternativa a tu propio compost</div></div><div class="grade g-${ecoGrade({co2:1.2,waste:{plastico:1}})}">${ecoGrade({co2:1.2,waste:{plastico:1}})}</div></div><div class="tags">${co2Tag(1.2)}${tag('Saco plástico','r')}</div><p class="c-desc">Las parcelas abonadas crecen 50% más rápido y dan 1 porción más.</p><div class="c-row"><span class="price">${fmt(2000)}</span><button class="btn" style="margin-left:auto" data-act="buyFert" ${S.money<2000?'disabled':''}>Comprar</button></div></div>`;
-    return{body:info('🌱','Cada sobre alcanza para una parcela. Siembras al costado de tu casa: una cosecha no tiene envases ni transporte.')+`<div class="grid">${seeds}${fert}</div>`};
+    const forest=`<div class="card"><div class="c-top"><div class="c-em">🪓</div><div><p class="c-name">Hacha</p><div class="c-sub">Para talar árboles fuera de la reserva</div></div><div class="grade g-${ecoGrade({co2:5,waste:{papel:1}})}">${ecoGrade({co2:5,waste:{papel:1}})}</div></div><div class="tags">${co2Tag(5)}${tag('También se presta gratis','g')}</div><div class="c-row"><span class="price">${fmt(6990)}</span><button class="btn" style="margin-left:auto" data-act="buyAxe" ${S.owned.hacha||S.money<6990?'disabled':''}>${S.owned.hacha?'Ya la tienes':'Comprar'}</button></div></div>
+      <div class="card"><div class="c-top"><div class="c-em">🌱</div><div><p class="c-name">Brote de árbol nativo</p><div class="c-sub">Quillay, peumo, boldo o litre. Tienes ${S.saplings.length}.</div></div></div><div class="tags">${tag('Se planta en cualquier lugar con pasto','g')}</div><div class="c-row"><span class="price">${fmt(1200)}</span><button class="btn" style="margin-left:auto" data-act="buySapling" ${S.money<1200?'disabled':''}>Comprar</button></div></div>
+      <div class="card"><div class="c-top"><div class="c-em">🪵</div><div><p class="c-name">Vender madera</p><div class="c-sub">Tienes ${S.wood} madera${S.wood===1?'':'s'}</div></div></div><p class="c-desc">La compra la barraca del pueblo a ${fmt(600)} cada una.</p><div class="c-row"><button class="btn wide" data-act="sellWood" ${S.wood?'':'disabled'}>Vender todo · ${fmt(S.wood*600)}</button></div></div>`;
+    return{body:info('🌱','Cada sobre alcanza para una parcela. Siembras al costado de tu casa: una cosecha no tiene envases ni transporte.')+`<div class="grid">${seeds}${fert}</div><p class="sec-t">Árboles y madera</p><div class="grid">${forest}</div>`};
   }
   if(tab==='reuse')return{body:info('♻️','Cuestan algo al principio, pero evitan residuos cada día.')+`<div class="grid">${REUSABLES.map(r=>`<div class="card ${S.owned[r.id]?'dim':''}"><div class="c-top"><div class="c-em">${r.emoji}</div><div><p class="c-name">${r.name}</p></div></div><p class="c-desc">${r.desc}</p><div class="tags">${co2Tag(r.co2)}</div><div class="c-row"><span class="price">${fmt(r.price)}</span><button class="btn" style="margin-left:auto" data-act="buyReuse" data-arg="${r.id}" ${S.owned[r.id]||S.money<r.price?'disabled':''}>${S.owned[r.id]?'Ya lo tienes':'Comprar'}</button></div></div>`).join('')}</div>`};
   const disc=S.day===6;
@@ -1402,6 +1453,8 @@ function renderRecycle(tab){
     return{body:info('🤝','Actividades del barrio. No dan dinero, pero cambian el pueblo y cómo te sientes.')+`<div class="grid">
       ${rowA('🧤','Voluntariado: limpiar el río','Sacas envases de la orilla junto a otros vecinos.',tag('2 horas','b')+tag('−15 energía','y')+tag('+8 bienestar','g')+tag('Río más limpio','g'),`<button class="btn wide" data-act="cleanRiver" ${cleaned||late||S.energy<15?'disabled':''}>${cleaned?'Ya fuiste hoy':late?'Es tarde':S.energy<15?'Te falta energía':'Participar'}</button>`)}
       ${rowA('🪛','Taller: aprende a reparar','Desde hoy tus reparaciones cuestan la mitad.',tag('90 min','b')+tag(fmt(1500),'y')+tag('Habilidad permanente','g'),`<button class="btn wide" data-act="learnRepair" ${learned||S.money<1500?'disabled':''}>${learned?'Ya sabes reparar':'Inscribirse'}</button>`)}
+      ${rowA('🪓','Biblioteca de objetos: hacha','Te prestan un hacha por el día. Compartir herramientas evita fabricar una para cada casa.',tag('Gratis','g')+tag('Solo hoy','b'),`<button class="btn wide" data-act="borrowAxe" ${hasAxe()?'disabled':''}>${S.owned.hacha?'Ya tienes una':S.axeDay===S.day?'Ya la tienes hoy':'Pedir prestada'}</button>`)}
+      ${rowA('🪵','Taller: compostera de madera','Construyes tu propia compostera con 4 maderas.',tag('4 maderas','y')+tag('1 hora','b')+tag('Sin comprar nada','g'),`<button class="btn wide" data-act="buildCompost" ${S.owned.compost||S.wood<4?'disabled':''}>${S.owned.compost?'Ya tienes compostera':S.wood<4?`Tienes ${S.wood} de 4`:'Construir'}</button>`)}
       ${rowA('📚','Biblioteca de semillas','Llevas un sobre gratis una vez al día. Hoy: '+(CROPS[(S.day*3)%CROPS.length].name).toLowerCase()+'.',tag('Gratis','g')+tag('10 min','b'),`<button class="btn wide" data-act="seedLibrary" ${S.flags.seedlib===S.day?'disabled':''}>${S.flags.seedlib===S.day?'Ya retiraste hoy':'Retirar semillas'}</button>`)}
     </div>`};
   }
@@ -1429,7 +1482,7 @@ function openKitchen(){openSheet({kind:'kitchen',title:'Cocina',emoji:'🍳',col
     return{body:head+`<div class="list">${cand.map(p=>`<div class="row"><span class="c-em">${p.emoji}</span><div class="grow"><div class="t">${p.name}</div><div class="tags" style="margin-top:4px">${expLabel(p)}${tag(p.por+' porc.','b')}</div></div><button class="btn" data-act="preserve" data-arg="${S.pantry.indexOf(p)}" ${S.owned.jar?'':'disabled'}>Hacer conserva · 40 min</button></div>`).join('')}</div>`};
   }
   if(!items.length)return{body:`<div class="empty">Tu despensa está vacía. Compra alimentos en el Mercado o cosecha tu huerto.</div>`};
-  return{body:info('⏳','Ordenado por vencimiento: conviene cocinar primero lo que vence antes.')+`<div class="list">${items.map(p=>`<div class="row"><span class="c-em">${p.emoji}</span><div class="grow"><div class="t">${p.name}</div><div class="tags" style="margin-top:4px">${expLabel(p)}${nutriLabel(p.nutri)}${tag(p.por+' porc.','b')}${p.co2pp===0?tag('0 kg CO₂e','g'):''}</div></div><button class="btn" data-act="cook" data-arg="${S.pantry.indexOf(p)}" ${S.food>=96?'disabled':''}>${S.food>=96?'Sin hambre':'Cocinar · 30 min'}</button></div>`).join('')}</div>`}}})}
+  return{body:info('⏳','Ordenado por vencimiento: conviene cocinar primero lo que vence antes.')+`<div class="list">${items.map(p=>`<div class="row"><span class="c-em">${p.emoji}</span><div class="grow"><div class="t">${p.name}</div><div class="tags" style="margin-top:4px">${expLabel(p)}${nutriLabel(p.nutri)}${tag(p.por+' porc.','b')}${p.co2pp===0?tag('Casi 0 kg CO₂e','g'):''}</div></div><button class="btn" data-act="cook" data-arg="${S.pantry.indexOf(p)}" ${S.food>=96?'disabled':''}>${S.food>=96?'Sin hambre':'Cocinar · 30 min'}</button></div>`).join('')}</div>`}}})}
 function openLiving(){openSheet({kind:'living',title:'Sala de estar',emoji:'🛋️',color:'#3e7a5a',sub:()=>`Energía ${Math.round(S.energy)} · Bienestar ${Math.round(S.mood)} · ${hhmm(S.min)}`,render:()=>{
   const called=S.flags.call===S.day;
   const opt=(em,t,d,tags,act,dis,lab)=>`<div class="row"><span class="c-em">${em}</span><div class="grow"><div class="t">${t}</div><div class="s">${d}</div><div class="tags" style="margin-top:5px">${tags}</div></div><button class="btn" data-act="${act}" ${dis?'disabled':''}>${lab}</button></div>`;
@@ -1447,6 +1500,7 @@ function openBoard(){
     S.day===6?['🎧','<b>Almacén:</b> audífonos con 40% de descuento solo hoy.']:['🌻','<b>Vivero:</b> buscan ayudantes. Pagan con dinero y semillas.'],
     ['🧤','<b>Junta de vecinos:</b> limpieza del río todos los días en el Centro de Reutilización.'],
     ['📚','<b>Biblioteca de semillas:</b> un sobre gratis al día por vecino.'],
+    ['🌳','<b>Bosque comunitario (al este):</b> se permite talar con hacha y se pide replantar. En la reserva natural está prohibido.'],
     ['💡',TIPS[(S.day+2)%TIPS.length]],
   ];
   openSheet({kind:'board',title:'Tablón del pueblo',emoji:'📌',color:'#7a5a34',sub:`${DAYS[S.day-1]} · Noticias de Villa Verde`,render:()=>({body:notes.map(n=>info(n[0],n[1])).join('')})});
@@ -1460,6 +1514,7 @@ function giveSeeds(n){const got=[];for(let i=0;i<n;i++){const c=CROPS[(Math.rand
 function isRaining(){return!!(S&&S.started&&(S.day===3||S.day===6)&&S.min<13*60&&player.scene)}
 let quietGrow=false;
 function growPlots(min){
+  growTrees(min);
   if(!S||!S.plots)return;const rain=isRaining();
   S.plots.forEach((pl,i)=>{if(!pl||pl.dead)return;const C=cropOf(pl.c);
     if(rain)pl.wet=Math.max(pl.wet||0,WET);
@@ -1481,7 +1536,7 @@ function renderGarden(){
       return`<div class="card"><div class="c-top"><div class="c-em">🟫</div><div><p class="c-name">Parcela ${i+1}</p><div class="c-sub">Vacía · elige qué plantar</div></div></div>${avail.length?`<div class="tags">${avail.map(c=>`<button class="btn ghost" style="padding:8px 10px" data-act="plant" data-arg="${i}|${c.id}">${c.emoji} ${c.name} ×${S.seeds[c.id]}</button>`).join('')}</div>`:`<p class="c-desc">No tienes semillas. Cómpralas en el Almacén (Vivero) o pídelas en la biblioteca de semillas del Centro de Reutilización.</p>`}</div>`}
     const C=cropOf(pl.c);
     if(pl.dead)return`<div class="card dim"><div class="c-top"><div class="c-em">🥀</div><div><p class="c-name">${C.name}</p><div class="c-sub">Se marchitó</div></div></div><div class="c-row"><button class="btn ghost wide" data-act="clearPlot" data-arg="${i}">Limpiar y compostar</button></div></div>`;
-    if(pl.ready){const y=C.yield+(pl.fert?1:0);return`<div class="card hl"><div class="c-top"><div class="c-em">${C.emoji}</div><div><p class="c-name">${C.name}</p><div class="c-sub">¡Lista para cosechar!</div></div></div><div class="tags">${tag(y+' porciones','b')}${tag('0 kg CO₂e','g')}${tag('Sin envase','g')}</div><div class="c-row"><button class="btn coin wide" data-act="harvest" data-arg="${i}">Cosechar · 10 min</button></div></div>`}
+    if(pl.ready){const y=C.yield+(pl.fert?1:0);return`<div class="card hl"><div class="c-top"><div class="c-em">${C.emoji}</div><div><p class="c-name">${C.name}</p><div class="c-sub">¡Lista para cosechar!</div></div></div><div class="tags">${tag(y+' porciones','b')}${tag('Casi 0 kg CO₂e','g')}${tag('Sin envase','g')}</div><div class="c-row"><button class="btn coin wide" data-act="harvest" data-arg="${i}">Cosechar · 10 min</button></div></div>`}
     const pct=Math.round(pl.prog/C.grow*100),eta=plotEta(pl);
     return`<div class="card"><div class="c-top"><div class="c-em">${C.emoji}</div><div style="flex:1;min-width:0"><p class="c-name">${C.name}</p><div class="c-sub">${pct}% · lista en ~${realMin(eta)} min reales</div></div></div><div class="pbar"><i style="width:${pct}%"></i></div><div class="tags">${pl.wet>0?tag('Regada','b'):tag('Necesita agua','r')}${pl.fert?tag('Abonada','g'):''}</div><div class="c-row" style="gap:6px"><button class="btn wide" data-act="water" data-arg="${i}" ${pl.wet>60?'disabled':''}>${pl.wet>60?'Húmeda':'Regar'}</button>${pl.fert?'':`<button class="btn ghost wide" data-act="fert" data-arg="${i}" ${S.garden.compost>0?'':'disabled'}>Abonar</button>`}</div></div>`;
   }).join('');
@@ -1495,7 +1550,7 @@ function openBins(){openSheet({kind:'bins',title:'Separar residuos',emoji:'♻�
   return{body:(n?info('🗑️','Si no separas, el camión de la basura se lleva todo al vertedero esta noche.','warn'):info('✨','No tienes residuos pendientes.'))+`<div class="list">${rows}</div>`,foot:`<span class="c-sub" style="flex:1">Ya cargas ${wasteCount(S.carry)} reciclables.</span><button class="btn" data-act="separate" ${n?'':'disabled'}>Separar · 10 min</button>`}}})}
 function openDesk(){openSheet({kind:'desk',title:'Bitácora de la semana',emoji:'📒',color:'#5a6b3a',tab:'res',tabs:[{id:'res',label:'Resumen'},{id:'log',label:'Decisiones'},{id:'tip',label:'Datos útiles'}],render:renderDesk})}
 function renderDesk(tab){
-  if(tab==='res'){const pp=pantryPortions();return{body:`<div class="kv"><div><small>Dinero</small><b>${fmt(S.money)}</b></div><div><small>Huella total</small><b>${kg(S.co2)} kg</b></div><div><small>Hoy</small><b>${kg(S.co2Day[S.day]||0)} kg</b></div><div><small>Reciclado</small><b>${S.recycled}</b></div><div><small>Al vertedero</small><b>${Math.round(S.landfill)}</b></div><div><small>Comida botada</small><b>${S.foodWasted} porc.</b></div><div><small>Despensa</small><b>${pp} porc.</b></div><div><small>Cosechado</small><b>${S.harvested||0} porc.</b></div><div><small>Semillas</small><b>${seedCount()}</b></div></div>
+  if(tab==='res'){const pp=pantryPortions();return{body:`<div class="kv"><div><small>Dinero</small><b>${fmt(S.money)}</b></div><div><small>Huella total</small><b>${kg(S.co2)} kg</b></div><div><small>Hoy</small><b>${kg(S.co2Day[S.day]||0)} kg</b></div><div><small>Reciclado</small><b>${S.recycled}</b></div><div><small>Al vertedero</small><b>${Math.round(S.landfill)}</b></div><div><small>Comida botada</small><b>${S.foodWasted} porc.</b></div><div><small>Despensa</small><b>${pp} porc.</b></div><div><small>Árboles plantados</small><b>${S.treesPlanted||0}</b></div><div><small>Cosechado</small><b>${S.harvested||0} porc.</b></div><div><small>Semillas</small><b>${seedCount()}</b></div></div>
     <p class="sec-t">Plan de compras</p>${info('🧮',`Necesitas 2 porciones al día. Con lo que tienes alcanzas para <b>${Math.floor(pp/2)} día${Math.floor(pp/2)===1?'':'s'}</b>. Faltan ${LAST_DAY-S.day} días después de hoy.`)}`}}
   if(tab==='log')return{body:S.log.length?`<div class="list">${[...S.log].reverse().map(l=>`<div class="row"><div class="grow"><div class="t">${l.text}</div><div class="s">${DAYS[l.day-1]}${l.co2!=null?' · '+kg(l.co2)+' kg CO₂e':''}${l.price!=null?' · '+fmt(l.price):''}</div></div></div>`).join('')}</div>`:`<div class="empty">Aún no registras decisiones.</div>`};
   return{body:`<div class="list">${TIPS.map(t=>`<div class="row"><span class="c-em">💡</span><div class="grow"><div class="s" style="color:var(--ink);font-size:14px">${t}</div></div></div>`).join('')}</div>`};
@@ -1515,7 +1570,7 @@ function openBed(){
 /* ---------- MOCHILA ---------- */
 function openBag(){openSheet({kind:'bag',title:'Tu mochila',emoji:'🎒',color:'#3d5a4a',tab:'pantry',tabs:[{id:'pantry',label:'Despensa'},{id:'carry',label:'Llevas'},{id:'needs',label:'Pendientes'}],render:tab=>{
   if(tab==='pantry'){const it=[...S.pantry].filter(p=>p.por>0).sort((a,b)=>a.exp-b.exp);return{body:it.length?`<div class="list">${it.map(p=>`<div class="row"><span class="c-em">${p.emoji}</span><div class="grow"><div class="t">${p.name}</div><div class="tags" style="margin-top:4px">${expLabel(p)}${nutriLabel(p.nutri)}</div></div><b>${p.por} porc.</b></div>`).join('')}</div>`:`<div class="empty">Despensa vacía.</div>`}}
-  if(tab==='carry'){const own=[...REUSABLES.filter(r=>S.owned[r.id]).map(r=>r.emoji+' '+r.name),...S.wants.map(id=>{const w=WANTS.find(x=>x.id===id);return w.emoji+' '+w.name})];return{body:`<p class="sec-t">Reciclables separados</p><div class="kv"><div><small>Plástico</small><b>${S.carry.plastico}</b></div><div><small>Papel</small><b>${S.carry.papel}</b></div><div><small>Vidrio</small><b>${S.carry.vidrio}</b></div><div><small>Orgánicos</small><b>${S.carry.organico}</b></div></div><p class="sec-t">Objetos</p>${own.length?`<div class="list">${own.map(o=>`<div class="row"><div class="grow t">${o}</div></div>`).join('')}</div>`:'<div class="empty">Nada por ahora.</div>'}`}}
+  if(tab==='carry'){const own=[...(S.owned.hacha?['🪓 Hacha (propia)']:S.axeDay===S.day?['🪓 Hacha (prestada hoy)']:[]),...(S.wood?['🪵 '+S.wood+' madera'+(S.wood===1?'':'s')]:[]),...(S.saplings.length?['🌱 '+S.saplings.length+' brote'+(S.saplings.length===1?'':'s')+' de árbol']:[]),...REUSABLES.filter(r=>S.owned[r.id]).map(r=>r.emoji+' '+r.name),...S.wants.map(id=>{const w=WANTS.find(x=>x.id===id);return w.emoji+' '+w.name})];return{body:`<p class="sec-t">Reciclables separados</p><div class="kv"><div><small>Plástico</small><b>${S.carry.plastico}</b></div><div><small>Papel</small><b>${S.carry.papel}</b></div><div><small>Vidrio</small><b>${S.carry.vidrio}</b></div><div><small>Orgánicos</small><b>${S.carry.organico}</b></div></div><p class="sec-t">Objetos</p>${own.length?`<div class="list">${own.map(o=>`<div class="row"><div class="grow t">${o}</div></div>`).join('')}</div>`:'<div class="empty">Nada por ahora.</div>'}`}}
   const n=activeNeeds();return{body:n.length?`<div class="list">${n.map(x=>`<div class="row"><span class="c-em">${x.emoji}</span><div class="grow"><div class="t">${x.title}</div><div class="s">Plazo: ${DAYS[x.due-1]} · ${x.opts.map(o=>o.label+' ('+(o.where==='shop'?'Almacén':'Reutilización')+')').join(' · ')}</div></div></div>`).join('')}</div>`:`<div class="empty">Sin pendientes.</div>`};
 }})}
 
@@ -1561,6 +1616,11 @@ const ACTIONS={
     apply({food:f,health:h,mood:2,time:30,waste:p.organic?{organico:1}:{}});if(p.por<=0)S.pantry.splice(+idx,1);beep('good');toast('🍳',`Cocinaste ${p.name.toLowerCase()}.${p.nutri===0?' Llena poco y no aporta mucho.':''}`,'good');drawSheet(true)},
   separate(){const b=S.bin;if(!wasteCount(b))return;for(const k of['plastico','papel','vidrio'])S.carry[k]+=b[k];if(S.owned.compost){S.garden.compost+=b.organico;S.composted+=b.organico}else S.carry.organico+=b.organico;const n=wasteCount(b);S.bin={plastico:0,papel:0,vidrio:0,organico:0};apply({time:10,mood:1});log('separación',`Separaste ${n} residuos`);beep('good');toast('♻️',`Separaste ${n} residuos.${S.owned.compost&&S.garden.compost?' Los orgánicos fueron a tu compostera.':' Llévalos al Punto Limpio.'}`,'good');drawSheet(true)},
   sleep(){closeSheet();sleep()},
+  buyAxe(){if(S.owned.hacha||S.money<6990)return;S.owned.hacha=1;apply({money:-6990,co2:5,waste:{papel:1},time:10});log('compra','Hacha',{co2:5,price:6990});beep('coin');toast('🪓','Compraste un hacha. Recuerda: en la reserva no se tala.');drawSheet(true)},
+  buySapling(){if(S.money<1200)return;S.saplings.push([0,1,3,4][(Math.random()*4)|0]);apply({money:-1200,co2:.2,time:5});beep('coin');toast('🌱','Compraste un brote nativo. Plántalo en cualquier lugar con pasto.','good');drawSheet(true)},
+  sellWood(){if(!S.wood)return;const v=S.wood*600;log('venta',`Vendiste ${S.wood} maderas`,{price:v});S.wood=0;apply({money:v,time:10});beep('coin');drawSheet(true)},
+  borrowAxe(){if(hasAxe())return;S.axeDay=S.day;apply({time:10});beep('good');toast('🪓','Te prestaron un hacha hasta el final del día.','good');drawSheet(true)},
+  buildCompost(){if(S.owned.compost||S.wood<4)return;S.wood-=4;S.owned.compost=1;closeSheet();fade(()=>{apply({time:60,mood:5});log('taller','Construiste una compostera con madera');toast('🪵','Construiste tu compostera con madera que tú mismo obtuviste.','good')},'🪵 Taller de reutilización','1 hora después…')},
   buySeed(id){const c=cropOf(id);if(S.money<c.seed)return;S.seeds[id]=(S.seeds[id]||0)+1;apply({money:-c.seed,co2:.05,time:2});beep('coin');toast(c.emoji,`Compraste semillas de ${c.name.toLowerCase()}. Siémbralas en tu huerto.`,'good');drawSheet(true)},
   buyFert(){if(S.money<2000)return;S.garden.compost+=3;apply({money:-2000,co2:1.2,waste:{plastico:1},time:5});log('compra','Saco de abono',{co2:1.2,price:2000});beep('coin');toast('🪴','Tienes 3 usos de abono. El saco plástico va a tus residuos.');drawSheet(true)},
   plant(arg){const[i,id]=arg.split('|');if(S.plots[+i]||!(S.seeds[id]>0))return;S.seeds[id]--;S.plots[+i]={c:id,prog:0,wet:isRaining()?WET:0,fert:false,ready:false};apply({time:10,mood:1});const c=cropOf(id);beep('good');toast(c.emoji,`Plantaste ${c.name.toLowerCase()}. ${isRaining()?'La lluvia la riega.':'Ahora riégala.'}`,'good');drawSheet(true)},
@@ -1570,7 +1630,7 @@ const ACTIONS={
   harvest(i){const pl=S.plots[+i];if(!pl||!pl.ready||pl.dead)return;const C=cropOf(pl.c),y=C.yield+(pl.fert?1:0);
     S.pantry.push({pid:'h_'+C.id,name:`${C.name} de tu huerto`,emoji:C.emoji,por:y,exp:S.day+C.shelf-1,nutri:C.nutri,organic:true,co2pp:0});
     S.plots[+i]=null;S.harvested=(S.harvested||0)+y;if(S.owned.compost){S.garden.compost++;S.composted++}else S.bin.organico+=1;
-    apply({mood:5,time:10});log('cosecha',`Cosechaste ${C.name.toLowerCase()} (${y} porciones, 0 kg CO₂e)`);beep('good');
+    apply({mood:5,time:10});log('cosecha',`Cosechaste ${C.name.toLowerCase()} (${y} porciones, casi 0 kg CO₂e)`);beep('good');
     const P=PLOTS[+i];for(let k=0;k<6;k++)puff({x:P.x+P.w/2+(Math.random()-.5)*40,y:P.y,vy:-40-Math.random()*30,vx:(Math.random()-.5)*30,life:1.2,max:1.2,size:3,color:'rgba(255,214,107,A)'});
     toast(C.emoji,`Cosechaste <b>${y} porciones</b> de ${C.name.toLowerCase()}. Sin envases ni transporte.`,'good');drawSheet(true)},
   clearPlot(i){if(!S.plots[+i])return;S.plots[+i]=null;if(S.owned.compost){S.garden.compost++;S.composted++}else S.bin.organico+=1;apply({time:5});toast('🍂','Limpiaste la parcela. Los restos sirven como compost.');drawSheet(true)},
@@ -1609,7 +1669,65 @@ function worldSpots(){
 }
 function nearestSpot(){
   const list=player.scene==='home'?HSPOTS:worldSpots();let best=null,bd=1e9;
-  for(const s of list){const d=Math.hypot(player.x-s.x,player.y-s.y);if(d<s.r&&d<bd){bd=d;best=s}}return best;
+  for(const s of list){const d=Math.hypot(player.x-s.x,player.y-s.y);if(d<s.r&&d<bd){bd=d;best=s}}
+  if(player.scene==='world'&&!best){best=treeSpot();if(!best&&S.saplings&&S.saplings.length){const[px,py]=plantPoint();if(canPlantAt(px,py))best={id:'plantTree',x:px,y:py,r:1,label:`Plantar un brote aquí (${S.saplings.length})`}}}
+  return best;
+}
+/* ---------- ÁRBOLES: talar y plantar ---------- */
+const NATIVE=['Quillay','Peumo','Boldo','Litre','Maitén','Bollén','Molle','Espino'];
+function treeName(v){return NATIVE[v%NATIVE.length]}
+function hasAxe(){return!!(S.owned.hacha||S.axeDay===S.day)}
+function plantPoint(){return[player.x+player.face*38,player.y+8]}
+function canPlantAt(x,y){
+  if(x<130||x>WW-130||y<240||y>WH-130)return false;
+  if(onPaved(x,y))return false;if(y>RIVER.y1-70&&y<RIVER.y2+60)return false;
+  if(circleHit(x,y,22))return false;
+  for(const o of OBJECTS){if(o.kind==='tree'&&!o.hide&&!o.stump&&Math.hypot(o.x-x,o.y-y)<64)return false;if(o.kind==='spr'&&Math.hypot(o.x-x,o.y-y)<40)return false}
+  return true;
+}
+function treeSpot(){
+  let best=null,bd=62;
+  for(const o of OBJECTS){if(o.kind!=='tree'||o.hide||o.fall||o.fixed)continue;const d=Math.hypot(player.x-o.x,player.y-(o.y+6));if(d>=bd)continue;
+    if(o.stump){if(S.saplings.length){bd=d;best={id:'plantStump',o,x:o.x,y:o.y,r:62,label:`Plantar un brote donde estaba el árbol (${S.saplings.length})`}}continue}
+    if(o.planted&&o.planted.prog<GROW_T){bd=d;const pct=Math.round(o.planted.prog/GROW_T*100);best={id:'sapling',o,x:o.x,y:o.y,r:62,label:o.planted.wet>0?`Brote de ${treeName(o.v).toLowerCase()} regado (${pct}%)`:`Regar el brote de ${treeName(o.v).toLowerCase()} (${pct}%)`};continue}
+    bd=d;best={id:'chop',o,x:o.x,y:o.y,r:62,label:inReserve(o.x,o.y)?`${treeName(o.v)} de la reserva (protegido)`:hasAxe()?`Talar ${treeName(o.v).toLowerCase()} (30 min)`:`${treeName(o.v)}: necesitas un hacha para talar`};}
+  return best;
+}
+function addPlantedObj(p){const circ={x:p.x,y:p.y-4,r:14,off:p.prog<GROW_T};CIRCLES.push(circ);const o={kind:'tree',planted:p,x:p.x,y:p.y,v:p.v,spr:SPR.trees[p.v%SPR.trees.length],tid:'p'+p.id,circ,sway:Math.random()*6,s:.95};OBJECTS.push(o);return o}
+function removeTreeObj(o){const i=OBJECTS.indexOf(o);if(i>=0)OBJECTS.splice(i,1);const j=CIRCLES.indexOf(o.circ);if(j>=0)CIRCLES.splice(j,1)}
+function syncTrees(){
+  for(let i=OBJECTS.length-1;i>=0;i--)if(OBJECTS[i].planted)removeTreeObj(OBJECTS[i]);
+  for(const o of OBJECTS)if(o.kind==='tree'&&o.tid){const c=S.cut[o.tid];o.stump=!!c&&c!=='r';o.hide=c==='r';o.fall=null;if(o.circ)o.circ.off=!!c}
+  for(const p of S.planted)addPlantedObj(p);
+}
+function growTrees(min){
+  if(!S||!S.planted)return;const rain=isRaining();
+  for(const p of S.planted){if(p.prog>=GROW_T)continue;if(rain)p.wet=Math.max(p.wet||0,600);
+    const w=Math.min(min,Math.max(0,p.wet||0));p.wet=Math.max(0,(p.wet||0)-min);p.prog+=w+(min-w)*.35;
+    if(p.prog>=GROW_T){p.prog=GROW_T;const o=OBJECTS.find(x=>x.planted===p);if(o)o.circ.off=false;if(!quietGrow&&S.started)toast('🌳',`El ${treeName(p.v).toLowerCase()} que plantaste ya es un árbol.`,'good')}}
+}
+function chopTree(o){
+  if(inReserve(o.x,o.y)){toast('🛑','En la reserva natural no se puede talar. Aquí los árboles protegen el suelo, el agua y a los animales.','bad');return}
+  if(!hasAxe()){toast('🪓','Necesitas un hacha. Pídela prestada gratis en el Centro de Reutilización (Comunidad) o cómprala en el Almacén.');return}
+  if(S.energy<8){toast('😮‍💨','Estás sin energía para talar.');return}
+  o.fall=T;o.fallDir=player.x<o.x?1:-1;o.shake=T;if(o.circ)o.circ.off=true;
+  const wood=2+((Math.random()*3)|0);const r=Math.random(),n=r<.25?0:r<.8?1:2;
+  for(let i=0;i<n;i++)S.saplings.push(o.v);S.wood+=wood;S.treesCut++;
+  if(o.planted){S.planted=S.planted.filter(p=>p!==o.planted)}else S.cut[o.tid]=S.day;
+  apply({energy:-8,time:30});log('tala',`Talaste un ${treeName(o.v).toLowerCase()}: ${wood} maderas${n?` y ${n} brote${n>1?'s':''}`:''}`);beep('click');
+  for(let k=0;k<10;k++)puff({x:o.x+(Math.random()-.5)*20,y:o.y-20-Math.random()*30,vx:(Math.random()-.5)*120,vy:-60-Math.random()*60,g:260,life:.8,max:.8,size:3,color:'rgba(201,163,110,A)'});
+  floatText(player.x,player.y,`+${wood} madera${n?` · +${n} brote${n>1?'s':''}`:''}`,'#ffe2a0');
+  if(!S.flags.chopTip){S.flags.chopTip=1;setTimeout(()=>toast('🌳','Un árbol adulto guarda carbono, da sombra y refugio a las aves. Si talas, vuelve a plantar: los brotes que caen sirven para eso.'),900)}
+  else toast('🪓',`Talaste un ${treeName(o.v).toLowerCase()}. ${n?`Cayeron ${n} brote${n>1?'s':''}.`:'No cayeron brotes esta vez.'}`);
+}
+function plantSapling(x,y,stumpObj){
+  if(!S.saplings.length)return;const v=S.saplings.shift();
+  const p={id:S.nextTree++,x:Math.round(x),y:Math.round(y),v,prog:0,wet:isRaining()?600:0};S.planted.push(p);addPlantedObj(p);
+  if(stumpObj){stumpObj.hide=true;S.cut[stumpObj.tid]='r'}
+  S.treesPlanted++;apply({time:10,energy:-2,mood:3});log('plantación',`Plantaste un ${treeName(v).toLowerCase()}`);beep('good');
+  for(let k=0;k<6;k++)puff({x:x+(Math.random()-.5)*24,y:y-4,vx:(Math.random()-.5)*40,vy:-30,life:.6,max:.6,size:3,color:'rgba(140,110,70,A)'});
+  if(!S.flags.plantTip){S.flags.plantTip=1;toast('🌱',`Plantaste un ${treeName(v).toLowerCase()}. Riégalo para que crezca: en la vida real tarda años; aquí, unos 12 minutos.`,'good')}
+  else toast('🌱',`Plantaste un ${treeName(v).toLowerCase()}.`,'good');
 }
 function interact(){
   if(busy||modal||!S.started)return;const s=nearestSpot();if(!s)return;beep('click');
@@ -1627,6 +1745,10 @@ function interact(){
     case'fountain':{const max=S.owned.botella?2:1;S.flags.fountN=S.flags.fount===S.day?(S.flags.fountN||0):0;if(S.flags.fountN<max){S.flags.fount=S.day;S.flags.fountN++;apply({energy:S.owned.botella?6:3});toast('💧',S.owned.botella?'Llenaste tu botella: agua potable, gratis y sin plástico.':'Agua potable y gratis. No necesitas comprar agua embotellada.','good')}else toast('💧','Ya tomaste agua. Te sientes fresco.');break}
     case'bench':fade(()=>{apply({energy:6,mood:2,time:30});toast('🪑','Descansaste media hora mirando la plaza.')});break;
     case'garden':openGarden();break;
+    case'chop':chopTree(s.o);break;
+    case'sapling':if(s.o.planted.wet>60){toast('🌱','El brote ya está húmedo. Vuelve más tarde.')}else{s.o.planted.wet=600;apply({time:5});beep('click');for(let k=0;k<8;k++)puff({x:s.o.x+(Math.random()-.5)*24,y:s.o.y-10,vy:30,life:.5,max:.5,size:2.5,color:'rgba(140,200,255,A)'});toast('💦','Regaste el brote.')}break;
+    case'plantStump':plantSapling(s.o.x,s.o.y,s.o);break;
+    case'plantTree':plantSapling(s.x,s.y,null);break;
   }
 }
 /* ---------- fin del día ---------- */
@@ -1674,7 +1796,8 @@ function showDaySummary(sm){
 
 /* ---------- informe final ---------- */
 function computeScore(){
-  const eco=30*clamp((90-S.co2)/65,0,1);
+  const netCut=Math.max(0,(S.treesCut||0)-(S.treesPlanted||0));
+  const eco=Math.max(0,30*clamp((120-S.co2)/90,0,1)-Math.min(8,netCut*2));
   const rate=S.recycled+S.composted+S.landfill>0?(S.recycled+S.composted)/(S.recycled+S.composted+S.landfill):1;
   const waste=clamp(20*rate-S.foodWasted*1.5,0,20);
   let needs=0;for(const n of NEEDS){const r=S.needs[n.id];needs+=r?(r.kind==='nuevo'?1.5:3.75):0}
@@ -1695,6 +1818,7 @@ function showReport(){
     ['🧘','Autocuidado','Salud y bienestar promedio sobre 70',sc.avgH>=70&&sc.avgM>=70],
     ['🛍️','Sin caprichos','No compraste cosas que no necesitabas',!S.log.some(l=>l.type==='capricho')],
     ['🌱','Del huerto a la mesa','Cosechaste tu propio huerto',S.log.some(l=>l.type==='cosecha')],
+    ['🌳','Reforestación','Plantaste 3 o más árboles y no talaste más de los que plantaste',(S.treesPlanted||0)>=3&&(S.treesPlanted||0)>=(S.treesCut||0)],
   ];
   const maxC=Math.max(5,...S.daily.map(d=>d.co2));const W=560,H=200,pl=40,pb=28,bw=(W-pl-10)/7;
   const ticks=[0,maxC/2,maxC].map(v=>Math.round(v));
@@ -1704,7 +1828,7 @@ function showReport(){
   openSheet({kind:'report',locked:true,title:'Informe de la semana',emoji:'📊',color:'#2f6b4f',sub:'Tu forma de consumir en Villa Verde',render:()=>({body:`
     <div class="score"><svg class="ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#dbe6de" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="#2f8f5b" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C*t/100} ${C}" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="30" font-weight="700" fill="#16231c" font-family="Fredoka,Nunito,sans-serif">${t}</text></svg>
       <div style="flex:1;min-width:200px"><p class="sec-t" style="margin:0 0 4px;font-size:22px">${title}</p><div class="c-sub" style="font-size:14px">Huella ${Math.round(sc.eco)}/30 · Residuos ${Math.round(sc.waste)}/20 · Imprevistos ${Math.round(sc.needs)}/15 · Bienestar ${Math.round(sc.well)}/20 · Ahorro ${Math.round(sc.money)}/15</div></div></div>
-    <div class="kv" style="margin-top:14px"><div><small>Huella total</small><b>${kg(S.co2)} kg</b></div><div><small>Reciclado y compostado</small><b>${Math.round(sc.rate*100)}%</b></div><div><small>Comida botada</small><b>${S.foodWasted} porc.</b></div><div><small>Reparado o usado</small><b>${nRe} de ${NEEDS.length}</b></div><div><small>Comprado nuevo</small><b>${nNew}</b></div><div><small>Dinero final</small><b>${fmt(S.money)}</b></div></div>
+    <div class="kv" style="margin-top:14px"><div><small>Huella total</small><b>${kg(S.co2)} kg</b></div><div><small>Reciclado y compostado</small><b>${Math.round(sc.rate*100)}%</b></div><div><small>Comida botada</small><b>${S.foodWasted} porc.</b></div><div><small>Reparado o usado</small><b>${nRe} de ${NEEDS.length}</b></div><div><small>Árboles talados / plantados</small><b>${S.treesCut||0} / ${S.treesPlanted||0}</b></div><div><small>Comprado nuevo</small><b>${nNew}</b></div><div><small>Dinero final</small><b>${fmt(S.money)}</b></div></div>
     <p class="sec-t">Huella de carbono por día (kg CO₂e)</p><div style="overflow-x:auto"><svg class="chart" viewBox="0 0 ${W} ${H}" style="min-width:420px">${grid}${bars}</svg></div>
     <p class="sec-t">Logros</p><div class="badges">${badges.map(b=>`<div class="badge ${b[3]?'':'off'}" title="${b[2]}"><span style="font-size:20px">${b[0]}</span><span>${b[1]}<br><small style="font-weight:600;color:var(--muted)">${b[2]}</small></span></div>`).join('')}</div>
     <p class="sec-t">Para conversar en clase</p><ol class="q"><li>¿Qué compra de la semana repetirías y cuál cambiarías? ¿Por qué?</li><li>¿Hubo algún momento en que compraste algo que querías pero no necesitabas? ¿Cómo te sentiste al día siguiente?</li><li>Compara reparar, comprar usado y comprar nuevo: ¿qué ganaste y qué perdiste en cada caso?</li><li>¿Cómo se relacionan tu bienestar, tu dinero y tu huella? ¿Se puede mejorar uno sin empeorar los otros?</li></ol>
@@ -1831,7 +1955,7 @@ function frame(now){
 /* ---------- inicio ---------- */
 function startNew(){
   musicPlay();
-  S=newState();S.started=true;player.scene='home';player.x=190;player.y=400;player.vx=player.vy=0;hudSig='';
+  S=newState();syncTrees();S.started=true;player.scene='home';player.x=190;player.y=400;player.vx=player.vy=0;hudSig='';
   $('#title').hidden=true;refreshHUD();snapCamera();save();
   openSheet({kind:'intro',title:'Bienvenida a Villa Verde',emoji:'🌿',color:'#2f8f5b',sub:'Lunes · Día 1 de 7',render:()=>({body:`
     ${info('🏡','Despiertas en tu casa. Tienes <b>'+fmt(START_MONEY)+'</b>, un poco de comida y una semana por delante.')}
@@ -1840,12 +1964,13 @@ function startNew(){
       <div class="row"><span class="c-em">🛠️</span><div class="grow"><div class="t">Gana dinero en el Centro de Oficios</div><div class="s">Cada trabajo gasta horas y energía.</div></div></div>
       <div class="row"><span class="c-em">🎒</span><div class="grow"><div class="t">Resuelve imprevistos</div><div class="s">Cosas se rompen o se acaban. Puedes reparar, comprar usado o comprar nuevo.</div></div></div>
       <div class="row"><span class="c-em">🌱</span><div class="grow"><div class="t">Cultiva tu huerto</div><div class="s">Al costado de tu casa hay 6 parcelas. Tienes algunas semillas: planta, riega y vuelve en unos minutos a cosechar.</div></div></div>
+      <div class="row"><span class="c-em">🌳</span><div class="grow"><div class="t">Tala y replanta</div><div class="s">Con un hacha puedes talar árboles fuera de la reserva. A veces caen brotes: plántalos en el pasto y riégalos.</div></div></div>
       <div class="row"><span class="c-em">♻️</span><div class="grow"><div class="t">Separa tus residuos</div><div class="s">En los contenedores de tu cocina. Lo que no separes llega al vertedero, y desde ahí al río.</div></div></div>
       <div class="row"><span class="c-em">🌙</span><div class="grow"><div class="t">Duerme en casa antes de las 22:00</div><div class="s">El día termina cuando te acuestas. El domingo en la noche verás tu informe.</div></div></div>
     </div>`,foot:`<button class="btn wide" data-act="close">Empezar</button>`})});
 }
-function migrate(st){if(!st.plots)st.plots=[null,null,null,null,null,null];if(!st.seeds)st.seeds={lechuga:2,hierbas:1,zanahoria:1};if(st.riverCleaned==null)st.riverCleaned=0;if(!st.skills)st.skills={};if(st.harvested==null)st.harvested=0;if(!st.garden)st.garden={compost:0};return st}
-function continueGame(d){musicPlay();S=migrate(d.S);player.scene=d.p.scene||'world';player.x=d.p.x;player.y=d.p.y;hudSig='';$('#title').hidden=true;S.started=true;refreshHUD();snapCamera();toast('💾',`Continuando: ${DAYS[S.day-1]}, ${hhmm(S.min)}.`)}
+function migrate(st){if(!st.plots)st.plots=[null,null,null,null,null,null];if(!st.seeds)st.seeds={lechuga:2,hierbas:1,zanahoria:1};if(st.riverCleaned==null)st.riverCleaned=0;if(!st.skills)st.skills={};if(st.harvested==null)st.harvested=0;if(!st.garden)st.garden={compost:0};if(st.wood==null)st.wood=0;if(!st.saplings)st.saplings=[];if(!st.cut)st.cut={};if(!st.planted)st.planted=[];if(!st.nextTree)st.nextTree=1;if(st.treesCut==null)st.treesCut=0;if(st.treesPlanted==null)st.treesPlanted=0;return st}
+function continueGame(d){musicPlay();S=migrate(d.S);syncTrees();player.scene=d.p.scene||'world';player.x=d.p.x;player.y=d.p.y;hudSig='';$('#title').hidden=true;S.started=true;refreshHUD();snapCamera();toast('💾',`Continuando: ${DAYS[S.day-1]}, ${hhmm(S.min)}.`)}
 
 async function boot(){
   resize();
@@ -1853,11 +1978,13 @@ async function boot(){
   try{await Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,1500))])}catch(e){}
   paintMusicBtn();
   S=newState();
-  buildTextures();buildWorld();buildGround();buildBridge();buildHome();buildMinimap();buildHUD();
+  buildTextures();buildWorld();buildGround();buildBridge();buildBridge(BRIDGE2);buildHome();buildMinimap();buildHUD();
   player.scene='world';player.x=1200;player.y=1000;snapCamera();refreshHUD();
   const d=load();if(d){$('#btnCont').hidden=false;$('#btnCont').onclick=()=>continueGame(d)}
   $('#btnNew').onclick=()=>{beep('click');startNew()};
   requestAnimationFrame(frame);
 }
 boot();
-</script></body></html>
+</script>
+
+</body></html>
