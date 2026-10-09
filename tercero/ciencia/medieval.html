@@ -82,6 +82,23 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--coin);outl
 .t-fields input{font:700 15px/1 var(--f-body);padding:11px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:#fff}
 .t-fields input:focus{outline:2px solid var(--coin);outline-offset:1px}
 .t-fields .btn{padding:12px 16px}
+#chatWrap{position:absolute;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:6;width:min(380px,calc(100vw - 260px));display:flex;flex-direction:column;gap:6px;pointer-events:none}
+#chatLog{display:flex;flex-direction:column;gap:3px;max-height:170px;overflow:auto;pointer-events:auto;scrollbar-width:thin}
+#chatLog .cl{align-self:flex-start;max-width:100%;padding:5px 9px;border-radius:10px;background:rgba(17,28,23,.7);color:#f2f7f1;font:600 13px/1.3 var(--f-body);word-wrap:break-word}
+#chatLog .cl b{color:#9fe0b0}
+#chatLog .cl.me b{color:#ffd66b}
+#chatWrap:not(.open) #chatLog{opacity:.85}
+#chatBox{display:none;gap:6px;padding:6px;flex-wrap:wrap;pointer-events:auto}
+#chatWrap.open #chatBox{display:flex}
+#chatIn{flex:1;min-width:0;font:600 14px/1 var(--f-body);padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.3);color:#fff}
+#chatIn:focus{outline:2px solid var(--coin)}
+#chatBox .btn{padding:9px 12px}
+#chatHint{flex-basis:100%;margin:0;font:600 11px/1.2 var(--f-body);color:var(--on-glass-dim)}
+#chatToggle{pointer-events:auto;align-self:flex-start;position:relative;font-size:20px}
+#chatBadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font:800 11px/18px var(--f-body);text-align:center;padding:0 4px}
+.is-touch #chatWrap{bottom:auto;top:calc(200px + env(safe-area-inset-top,0px));width:min(320px,calc(100vw - 24px))}
+.np-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.np-mute{border:0;border-radius:8px;background:rgba(255,255,255,.1);color:var(--on-glass-dim);font:700 11px/1 var(--f-body);padding:5px 7px}
 #goals{position:absolute;left:12px;top:calc(96px + env(safe-area-inset-top,0px));width:250px;padding:12px 14px;z-index:4;pointer-events:none}
 #goals h3{margin:0 0 8px;font:600 13px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--on-glass-dim)}
 #goals ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
@@ -268,6 +285,15 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
   <div id="prompt" class="glass" hidden><kbd id="pKey">E</kbd><span id="pText"></span></div>
   <div id="toasts"></div>
   <div id="emotes" class="glass" hidden></div>
+  <div id="chatWrap" hidden>
+    <div id="chatLog" aria-live="polite"></div>
+    <div id="chatBox" class="glass">
+      <input id="chatIn" maxlength="120" autocomplete="off" placeholder="Escribe un mensaje (Enter para enviar)">
+      <button class="btn" id="chatSend">Enviar</button>
+      <p id="chatHint">El profesor puede revisar el chat del curso.</p>
+    </div>
+    <button id="chatToggle" class="iconbtn" title="Chat (Enter o T)" aria-label="Chat">💬<span id="chatBadge" hidden></span></button>
+  </div>
 
   <div id="touch">
     <div id="stick"><i></i></div>
@@ -1964,12 +1990,14 @@ function showReport(){
 const keys=new Set();let runToggle=false;
 const KEYMAP={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};
 window.addEventListener('keydown',e=>{
+  if(e.target&&e.target.id==='chatIn')return;
   if(!$('#title').hidden&&!modal){if(e.code==='Enter'){($('#btnCont').hidden?$('#btnNew'):$('#btnCont')).click()}return}
   if(modal){if(e.code==='Escape'||(e.code==='KeyI'&&modal.kind==='bag')){e.preventDefault();if(!modal.locked)closeSheet()}return}
   const d=KEYMAP[e.code];
   if(d){e.preventDefault();keys.add(d);return}
   if(e.code==='ShiftLeft'||e.code==='ShiftRight'){keys.add('run');return}
   if(e.repeat)return;
+  if(NET.on&&(e.code==='Enter'||e.code==='KeyT')){e.preventDefault();openChat();return}
   if(e.code==='KeyE'||e.code==='Space'||e.code==='Enter'){e.preventDefault();interact()}
   else if(e.code==='KeyI'||e.code==='Tab'){e.preventDefault();if(S.started)openBag()}
   else if(e.code==='KeyN'){toggleMusic()}
@@ -2118,7 +2146,7 @@ boot();
    Cada jugador mantiene su propia semana, dinero y despensa.
    ========================================================= */
 const NET={on:false,mode:null,room:'',name:'',uid:'',color:0,peers:{},world:{cut:{},pl:{},lf:0,cl:0,who:{}},
-  lastSent:0,lastKey:'',lastBeat:0,offset:0,adapter:null,emote:null,emoteT:0};
+  lastSent:0,lastKey:'',lastBeat:0,offset:0,adapter:null,emote:null,emoteT:0,chat:[],chatIds:{},muted:{},unread:0,say:'',sayT:0};
 const PEER_HUES=[0,40,90,150,200,250,300,330];
 const EMOTES=['👋','😀','👍','♻️','🌳','❓'];
 function isOnline(){return NET.on}
@@ -2164,6 +2192,7 @@ function firebaseAdapter(){
       const L=base.child('w/pl');L.on('child_added',s=>h.pl(s.key,s.val()));L.on('child_changed',s=>h.pl(s.key,s.val()));L.on('child_removed',s=>h.pl(s.key,null));
       base.child('w/lf').on('value',s=>h.num('lf',s.val()||0));base.child('w/cl').on('value',s=>h.num('cl',s.val()||0));
       base.child('w/who').on('value',s=>h.who(s.val()||{}));
+      base.child('chat').limitToLast(30).on('child_added',s=>h.chat(s.key,s.val()));
       return uid;
     },
     presence(d){if(me)me.set({...d,t:TS()})},
@@ -2173,6 +2202,7 @@ function firebaseAdapter(){
     water(id){return base.child('w/pl/'+id+'/wa').transaction(cur=>cur?undefined:Date.now()+NET.offset)},
     async removePlanted(id){const r=await base.child('w/pl/'+id).transaction(cur=>cur?null:undefined);return r.committed},
     add(key,n){return base.child('w/'+key).transaction(v=>(v||0)+n)},
+    sendChat(m){return base.child('chat').push({by:NET.uid,n:NET.name,m,t:TS()})},
     leave(){if(me)me.remove()}
   };
 }
@@ -2192,6 +2222,7 @@ function localAdapter(){
         else if(m.type==='pl')h.pl(m.id,m.v);
         else if(m.type==='num')h.num(m.key,m.v);
         else if(m.type==='who')h.who({...W.who,[m.uid]:true});
+        else if(m.type==='chat')h.chat(m.id,m.v);
         else if(m.type==='hello'){send({type:'p',uid:NET.uid,d:NET.lastInfo});send({type:'state',w:W})}
         else if(m.type==='state'){for(const k in m.w.cut)if(!W.cut[k])h.cut(k,m.w.cut[k]);for(const k in m.w.pl)if(!W.pl[k])h.pl(k,m.w.pl[k]);if(m.w.lf>W.lf)h.num('lf',m.w.lf);if(m.w.cl>W.cl)h.num('cl',m.w.cl);h.who({...W.who,...m.w.who})}
       };
@@ -2206,6 +2237,7 @@ function localAdapter(){
     async water(id){const p=W.pl[id];if(!p||p.wa)return;const v={...p,wa:Date.now()};h.pl(id,v);send({type:'pl',id,v})},
     async removePlanted(id){if(!W.pl[id])return false;h.pl(id,null);send({type:'pl',id,v:null});return true},
     async add(key,n){const v=(W[key]||0)+n;h.num(key,v);send({type:'num',key,v})},
+    async sendChat(m){const id='c'+Date.now()+Math.random().toString(36).slice(2,5),v={by:NET.uid,n:NET.name,m,t:Date.now()};h.chat(id,v);send({type:'chat',id,v})},
     leave(){send({type:'bye',uid:NET.uid});ch&&ch.close()}
   };
 }
@@ -2227,6 +2259,10 @@ const NET_HANDLERS={
     if(S)addPlantedObj(netPlantedState(id,v));},
   num(key,v){NET.world[key]=Math.max(NET.world[key]||0,v)},
   who(w){NET.world.who=w;renderNetPill()},
+  chat(id,v){if(!v||NET.chatIds[id])return;NET.chatIds[id]=1;const m=filterChat(String(v.m||'')).slice(0,120),n=cleanName(v.n)||'Alguien';
+    const muted=NET.muted[v.by];const entry={id,by:v.by,n,m,t:v.t||Date.now(),me:v.by===NET.uid};NET.chat.push(entry);if(NET.chat.length>60)NET.chat.shift();
+    if(!muted){const p=NET.peers[v.by];if(p){p.say=m;p.sayT=performance.now()}if(entry.me){NET.say=m;NET.sayT=performance.now()}}
+    renderChat();if(!entry.me&&!muted&&!chatOpen())NET.unread++;},
 };
 function netPlantedState(id,v){return{id,netId:id,x:v.x,y:v.y,v:v.v|0,at:v.at,wa:v.wa||0,by:v.by,prog:netProg(v),wet:v.wa?1:0,online:true}}
 function netProg(v){const now=netNow(),wa=v.wa||0;const a=Math.max(0,((wa||now)-v.at))*.35,b=wa?Math.max(0,now-wa):0;return Math.min(GROW_T,(a+b)/1000*2)}
@@ -2238,7 +2274,7 @@ async function netConnect(room,name,mode){
   const info={n:name,c:NET.color,x:Math.round(player.x),y:Math.round(player.y),f:1,m:0,s:'h'};
   NET.uid=await NET.adapter.connect(room,info,NET_HANDLERS);NET.on=true;
   try{localStorage.setItem('vv_net',JSON.stringify({name,room}))}catch(e){}
-  if(!PEER_SPR.length)buildPeerSprites();renderNetPill();$('#emotes').hidden=false;
+  if(!PEER_SPR.length)buildPeerSprites();renderNetPill();$('#emotes').hidden=false;$('#chatWrap').hidden=false;
 }
 function netTick(dt){
   if(!NET.on)return;
@@ -2271,17 +2307,39 @@ function drawPeer(g,p){
   g.font=`700 13px ${FONT_B}`;const tw=g.measureText(p.n).width+16;
   g.fillStyle='rgba(17,28,23,.78)';rr(g,-tw/2,-122,tw,20,10);g.fill();g.fillStyle=col;g.beginPath();g.arc(-tw/2+9,-112,3.5,0,7);g.fill();
   g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(p.n,4,-111.5);
+  if(p.say&&performance.now()-p.sayT<6000){g.restore();drawSay(g,p.rx,p.ry-128,p.say);return}
   if(p.e&&Date.now()-(p.et||0)<3500+Math.abs(NET.offset)){g.fillStyle='rgba(255,255,255,.95)';g.beginPath();g.arc(0,-146,17,0,7);g.fill();g.beginPath();g.moveTo(-5,-131);g.lineTo(0,-123);g.lineTo(5,-131);g.fill();g.font='20px system-ui,"Segoe UI Emoji","Apple Color Emoji"';g.fillText(p.e,0,-145)}
   g.restore();
 }
-function drawSelfEmote(g){if(!NET.on||!NET.emote||performance.now()-NET.emoteT>3500||player.scene!=='world')return;g.save();g.translate(player.x,player.y);g.fillStyle='rgba(255,255,255,.95)';g.beginPath();g.arc(0,-136,17,0,7);g.fill();g.beginPath();g.moveTo(-5,-121);g.lineTo(0,-113);g.lineTo(5,-121);g.fill();g.font='20px system-ui,"Segoe UI Emoji","Apple Color Emoji"';g.textAlign='center';g.textBaseline='middle';g.fillText(NET.emote,0,-135);g.restore()}
+function drawSelfSay(g){if(NET.on&&NET.say&&performance.now()-NET.sayT<6000&&player.scene==='world')drawSay(g,player.x,player.y-128,NET.say)}
+function drawSelfEmote(g){drawSelfSay(g);if(!NET.on||!NET.emote||performance.now()-NET.emoteT>3500||player.scene!=='world')return;g.save();g.translate(player.x,player.y);g.fillStyle='rgba(255,255,255,.95)';g.beginPath();g.arc(0,-136,17,0,7);g.fill();g.beginPath();g.moveTo(-5,-121);g.lineTo(0,-113);g.lineTo(5,-121);g.fill();g.font='20px system-ui,"Segoe UI Emoji","Apple Color Emoji"';g.textAlign='center';g.textBaseline='middle';g.fillText(NET.emote,0,-135);g.restore()}
+/* ---------- chat ---------- */
+const BAD_WORDS=['conchetumare','conchetumadre','conchatumadre','ctm','csm','culiao','culiado','qliao','ql','weon','aweonao','ahueonao','hueon','huevon','maricon','maraco','puta','puto','putas','putos','mierda','chucha','chuchetumare','pendejo','pendeja','cabron','idiota','imbecil','estupido','estupida','tonto','tonta','gordo','gorda','feo','fea','perra','perro','zorra','pajero','paja','verga','pene','vagina','sexo','droga','matar','muerete','muere','odio'];
+function normWord(w){return w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[0@]/g,'o').replace(/[1!]/g,'i').replace(/3/g,'e').replace(/4/g,'a').replace(/[5$]/g,"s").replace(/(.)\1+/g,'$1')}
+const BAD_SET=new Set(BAD_WORDS.map(normWord));
+function filterChat(t){return t.replace(/[<>]/g,'').split(/(\s+)/).map(w=>{const k=normWord(w.replace(/[^\p{L}\p{N}@$!]/gu,''));return k&&(BAD_SET.has(k)||[...BAD_SET].some(b=>b.length>5&&k.includes(b)))?'*'.repeat(Math.max(3,w.length)):w}).join('').trim()}
+function chatOpen(){return!$('#chatBox').hidden&&document.activeElement===$('#chatIn')}
+function renderChat(){const el=$('#chatLog');if(!el)return;const now=Date.now();
+  el.innerHTML=NET.chat.filter(c=>!NET.muted[c.by]).slice(-8).map(c=>`<div class="cl ${c.me?'me':''}"><b>${escapeHtml(c.n)}:</b> ${escapeHtml(c.m)}</div>`).join('');
+  el.scrollTop=el.scrollHeight;$('#chatBadge').textContent=NET.unread?NET.unread:'';$('#chatBadge').hidden=!NET.unread}
+function openChat(){if(!NET.on)return;$('#chatBox').hidden=false;$('#chatWrap').classList.add('open');NET.unread=0;renderChat();keys.clear();setTimeout(()=>$('#chatIn').focus(),0)}
+function closeChat(){$('#chatIn').blur();$('#chatWrap').classList.remove('open');cv.focus({preventScroll:true})}
+function submitChat(){const inp=$('#chatIn');let t=inp.value.replace(/\s+/g,' ').trim();if(!t){closeChat();return}
+  const now=performance.now();if(now-(NET.lastChat||0)<2500){$('#chatHint').textContent='Espera un momento antes de enviar otro mensaje.';return}
+  t=filterChat(t).slice(0,120);NET.lastChat=now;inp.value='';$('#chatHint').textContent='El profesor puede revisar el chat del curso.';
+  NET.adapter.sendChat(t).catch?.(()=>toast('📡','No se pudo enviar el mensaje.','bad'));}
+function drawSay(g,x,y,text){g.save();g.font=`700 13px ${FONT_B}`;const words=text.split(' ');const lines=[];let cur='';for(const w of words){const t=cur?cur+' '+w:w;if(g.measureText(t).width>200&&cur){lines.push(cur);cur=w}else cur=t}if(cur)lines.push(cur);const L=lines.slice(0,3);
+  const w=Math.min(220,Math.max(...L.map(l=>g.measureText(l).width))+18),h=L.length*16+12,top=y-h;
+  g.fillStyle='rgba(255,255,255,.96)';rr(g,x-w/2,top,w,h,10);g.fill();g.beginPath();g.moveTo(x-6,top+h);g.lineTo(x,top+h+8);g.lineTo(x+6,top+h);g.fill();
+  g.fillStyle='#16231c';g.textAlign='center';g.textBaseline='top';L.forEach((l,i)=>g.fillText(l,x,top+7+i*16));g.restore()}
 function sendEmote(i){if(!NET.on)return;NET.emote=EMOTES[i];NET.emoteT=performance.now();NET.lastKey=''}
 
 /* ---------- interfaz en línea ---------- */
 function renderNetPill(){const el=$('#netPill');if(!NET.on){el.hidden=true;return}el.hidden=false;
   const ps=peerList();const n=ps.length+1;
-  const open=$('#netList')&&!$('#netList').hidden;el.innerHTML=`<button id="netBtn" class="np-btn" title="Curso ${NET.room}"><i class="dot"></i><b>${n}</b></button><div class="np-list" id="netList" ${open?'':'hidden'}><div class="np-room">Curso ${NET.room} · ${n} en línea</div><div class="np-me">${escapeHtml(NET.name)} (tú)</div>${ps.map(p=>`<div><i style="background:hsl(${(210+PEER_HUES[p.c])%360} 70% 55%)"></i>${escapeHtml(p.n)}${p.s==='h'?' <small>en casa</small>':''}</div>`).join('')}<p class="np-note">Río del curso: ${Math.round(riverLoad())} residuos por jugador · ${Object.values(NET.world.cut).filter(v=>!v.r).length} árboles talados · ${Object.keys(NET.world.pl).length} plantados</p></div>`;
+  const open=$('#netList')&&!$('#netList').hidden;el.innerHTML=`<button id="netBtn" class="np-btn" title="Curso ${NET.room}"><i class="dot"></i><b>${n}</b></button><div class="np-list" id="netList" ${open?'':'hidden'}><div class="np-room">Curso ${NET.room} · ${n} en línea</div><div class="np-me">${escapeHtml(NET.name)} (tú)</div>${ps.map(p=>`<div class="np-row"><span><i style="background:hsl(${(210+PEER_HUES[p.c])%360} 70% 55%)"></i>${escapeHtml(p.n)}${p.s==='h'?' <small>en casa</small>':''}</span><button class="np-mute" data-mute="${p.uid}">${NET.muted[p.uid]?'Activar chat':'Silenciar'}</button></div>`).join('')}<p class="np-note">Río del curso: ${Math.round(riverLoad())} residuos por jugador · ${Object.values(NET.world.cut).filter(v=>!v.r).length} árboles talados · ${Object.keys(NET.world.pl).length} plantados</p></div>`;
   $('#netBtn').onclick=()=>{const l=$('#netList');l.hidden=!l.hidden};
+  el.querySelectorAll('[data-mute]').forEach(b=>b.onclick=()=>{const u=b.dataset.mute;NET.muted[u]=!NET.muted[u];renderNetPill();renderChat()});
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function setupOnlineUI(){
@@ -2305,5 +2363,9 @@ function setupOnlineUI(){
   };
   $('#emotes').addEventListener('click',e=>{const b=e.target.closest('[data-em]');if(b)sendEmote(+b.dataset.em)});
   $('#emotes').innerHTML=EMOTES.map((e,i)=>`<button data-em="${i}" title="Tecla ${i+1}">${e}</button>`).join('');
+  $('#chatToggle').onclick=()=>{$('#chatWrap').classList.contains('open')?closeChat():openChat()};
+  $('#chatSend').onclick=()=>submitChat();
+  $('#chatIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();submitChat()}else if(e.key==='Escape'){e.preventDefault();closeChat()}});
+  $('#chatIn').addEventListener('keyup',e=>e.stopPropagation());
 }
 </script></body></html>
