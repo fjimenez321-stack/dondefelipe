@@ -1,0 +1,45 @@
+MULTIJUGADOR EN LÍNEA · Mercado de Villa Verde
+==============================================
+
+Qué hace
+- Todo el curso entra al mismo pueblo con un código (por ejemplo 7A-2026).
+- Cada estudiante ve a los demás caminando, con su nombre, y puede mandar emotes (👋 😀 👍 ♻️ 🌳 ❓,
+  con los botones de abajo o las teclas 1 a 6). No hay chat de texto.
+- El mundo es compartido: los árboles que tala uno desaparecen para todos, los que se plantan crecen para
+  todos, y la basura que cada uno manda al vertedero ensucia el río del curso (se muestra el promedio
+  por jugador). El voluntariado de limpieza del río lo limpia para todos.
+- Cada estudiante mantiene su propia semana, reloj, dinero, despensa y banco.
+
+Configuración (una sola vez, unos 15 minutos)
+1. Entra a https://console.firebase.google.com con tu cuenta de Google y crea un proyecto
+   (puedes desactivar Google Analytics).
+2. Menú Compilación > Authentication > Comenzar > pestaña "Método de acceso" > "Anónimo" > Habilitar > Guardar.
+3. Menú Compilación > Realtime Database > Crear base de datos > elige una ubicación > "Comenzar en modo bloqueado".
+4. En Realtime Database, pestaña "Reglas": borra lo que hay, pega el contenido de database.rules.json y
+   presiona Publicar.
+5. Engranaje (Configuración del proyecto) > General > "Tus apps" > ícono Web (</>) > registra la app
+   (no necesitas Hosting). Copia los valores de firebaseConfig y pégalos en firebase-config.js.
+   Revisa que incluya databaseURL (está en la página de Realtime Database).
+6. Sube la carpeta completa (index.html, firebase-config.js y assets) a tu sitio, Netlify o GitHub Pages.
+   Tiene que abrirse desde una dirección web (https://…), no con doble clic en el archivo.
+
+En clase
+- Da a todo el curso el mismo código. Cada curso con un código distinto tiene su propio pueblo.
+- Pide que escriban solo su nombre y la inicial del apellido. No se pide correo ni cuenta:
+  Firebase entrega a cada uno una identidad anónima.
+- Cada partida (dinero, día, despensa) se guarda en el navegador de cada estudiante, por código de curso.
+- Para reiniciar un pueblo: Realtime Database > Datos > rooms > el código del curso > eliminar.
+
+Probar sin Firebase
+- Abre el juego con ?local al final de la dirección (por ejemplo http://localhost:8000/index.html?local)
+  en dos o más pestañas del mismo navegador. Se ven entre ellas, pero no entre computadores distintos.
+
+Límites del plan gratuito de Firebase (Spark)
+- 100 conexiones simultáneas: alcanza para un curso de 40.
+- 10 GB de descarga al mes. Estimo que una clase de 40 estudiantes durante 45 minutos usa unos cientos de MB,
+  así que alcanza para varias clases al mes. Puedes revisar el consumo en Realtime Database > Uso.
+
+Seguridad
+- La "apiKey" de Firebase no es secreta: lo que protege los datos son las reglas de database.rules.json.
+  Cada jugador solo puede escribir su propia posición; un árbol talado no se puede "destalar"; los contadores
+  del río solo suben de a poco. No se guardan datos personales más allá del nombre escrito.

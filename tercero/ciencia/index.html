@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="es"><head>
 <title>Mercado de Villa Verde</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -60,6 +60,28 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--coin);outl
 .iconbtn:hover{background:rgba(30,50,40,.85)}
 .iconbtn.off{color:var(--on-glass-dim)}
 
+#netPill{padding:4px;pointer-events:auto;position:relative;align-self:flex-start}
+.np-btn{display:flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--on-glass);font:700 12px/1 var(--f-body);padding:8px 10px;white-space:nowrap}
+.np-btn b{font:700 13px/1 var(--f-display);letter-spacing:.04em}
+.np-btn span{color:var(--on-glass-dim)}
+.np-btn .dot{width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+.np-list{position:absolute;top:calc(100% + 6px);left:0;min-width:220px;max-height:50vh;overflow:auto;padding:10px 12px;border-radius:14px;background:rgba(17,28,23,.92);border:1px solid var(--glass-line);font:700 13px/1.3 var(--f-body);color:var(--on-glass);display:grid;gap:6px;z-index:9}
+.np-list i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px}
+.np-list small{color:var(--on-glass-dim);font-weight:600}
+.np-me{color:#9fe0b0}
+.np-room{font:600 12px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--on-glass-dim)}
+.np-note{margin:4px 0 0;font:600 11.5px/1.35 var(--f-body);color:var(--on-glass-dim)}
+#emotes{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:4px;padding:5px;z-index:5}
+#emotes button{width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.08);font-size:20px}
+#emotes button:hover{background:rgba(255,255,255,.2)}
+.is-touch #emotes{bottom:auto;top:calc(150px + env(safe-area-inset-top,0px))}
+.t-online{margin-top:20px;padding:14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.t-online h4{margin:0 0 10px;font:600 14px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#9fe0b0}
+.t-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.t-fields label{display:grid;gap:5px;font:700 12px/1 var(--f-body);color:#c4d6c9;flex:1;min-width:140px}
+.t-fields input{font:700 15px/1 var(--f-body);padding:11px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:#fff}
+.t-fields input:focus{outline:2px solid var(--coin);outline-offset:1px}
+.t-fields .btn{padding:12px 16px}
 #goals{position:absolute;left:12px;top:calc(96px + env(safe-area-inset-top,0px));width:250px;padding:12px 14px;z-index:4;pointer-events:none}
 #goals h3{margin:0 0 8px;font:600 13px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--on-glass-dim)}
 #goals ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
@@ -144,6 +166,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--coin);outl
 .btn.warn{background:var(--warn)}
 .btn.coin{background:var(--coin);color:#3a2600}
 .btn.wide{flex:1}
+.btn.ghost:disabled,.btn.coin:disabled,.btn.warn:disabled{background:#d5ddd7;color:#8a9a90;box-shadow:none;cursor:not-allowed}
 .qty{display:flex;align-items:center;gap:4px;margin-left:auto}
 .qty button{width:34px;height:34px;border-radius:10px;border:0;background:#e2ebe4;font:800 18px/1 var(--f-body);color:var(--ink)}
 .qty b{min-width:22px;text-align:center;font:800 15px/1 var(--f-body)}
@@ -220,6 +243,7 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+</head><body>
 <div id="app">
   <canvas id="game" tabindex="0" aria-label="Mundo de Villa Verde"></canvas>
 
@@ -229,6 +253,7 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
       <div class="time"><span id="hTime">08:00</span><span id="hSun"></span></div>
       <div class="daybar"><i id="hDayBar"></i></div>
     </div>
+    <div class="glass netpill" id="netPill" hidden></div>
     <div class="stats glass" id="stats"></div>
     <div class="hudBtns">
       <button class="iconbtn" id="bGoals" title="Objetivos del día" aria-label="Objetivos del día"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L6.8 5M3.5 12l1.2 1.2 2.1-2.2M3.5 18l1.2 1.2 2.1-2.2"/></svg></button>
@@ -242,6 +267,7 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
   <div id="mapwrap" class="glass" title="Mapa (M)"><canvas id="minimap" width="420" height="300"></canvas><span class="cap">Mapa · M</span></div>
   <div id="prompt" class="glass" hidden><kbd id="pKey">E</kbd><span id="pText"></span></div>
   <div id="toasts"></div>
+  <div id="emotes" class="glass" hidden></div>
 
   <div id="touch">
     <div id="stick"><i></i></div>
@@ -267,6 +293,15 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
           <button class="btn coin" id="btnNew">Nueva semana</button>
           <button class="btn ghost" id="btnCont" hidden>Continuar partida</button>
         </div>
+        <div class="t-online">
+          <h4>Multijugador del curso</h4>
+          <div class="t-fields">
+            <label>Tu nombre<input id="inName" maxlength="16" autocomplete="off" placeholder="Ej: Sofía R."></label>
+            <label>Código del curso<input id="inRoom" maxlength="20" autocomplete="off" placeholder="Ej: 7A-2026"></label>
+            <button class="btn" id="btnOnline">Jugar en línea</button>
+          </div>
+          <p class="t-note" id="tNetMsg">Todo el curso comparte el mismo pueblo: el río y los árboles son de todos.</p>
+        </div>
         <div class="t-keys">
           <div><kbd class="k">W</kbd><kbd class="k">A</kbd><kbd class="k">S</kbd><kbd class="k">D</kbd> o flechas: caminar</div>
           <div><kbd class="k">Shift</kbd> correr</div>
@@ -281,6 +316,7 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
     </div>
   </div>
 </div>
+<script src="firebase-config.js"></script>
 <script>
 'use strict';
 /* =========================================================
@@ -451,6 +487,7 @@ const PLACES=[
   {id:'work',name:'Centro de Oficios',short:'Oficios',icon:'🛠️',x:1620,base:440,w:420,d:170,wallH:112,roofH:120,wallTex:'stone',wall:'#9aa3a6',roof:'#3f6e9e',style:'work',hdr:'#2f5d8a'},
   {id:'recycle',name:'Centro de Reutilización',short:'Reutilización',icon:'♻️',x:360,base:910,w:420,d:170,wallH:108,roofH:116,wallTex:'wood',wall:'#7fa36e',roof:'#4f8a4f',style:'recycle',hdr:'#2f7a46'},
   {id:'shop',name:'Almacén y Bazar',short:'Almacén',icon:'🏪',x:1620,base:910,w:420,d:170,wallH:112,roofH:120,wall:'#e9dce6',roof:'#7b4a7a',style:'shop',hdr:'#6b3d6a'},
+  {id:'bank',name:'Banco Villa Verde',short:'Banco',icon:'🏦',x:2200,base:910,w:380,d:170,wallH:114,roofH:118,wallTex:'stone',wall:'#9aa3a6',roof:'#5d6b7a',style:'bank',hdr:'#2f4a6b'},
   {id:'home',name:'Tu hogar',short:'Hogar',icon:'🏡',x:1560,base:1560,w:280,d:150,wallH:100,roofH:112,wall:'#f1e3c6',roof:'#b5653f',style:'home',hdr:'#9a5532'},
 ];
 const DECO_HOUSES=[
@@ -585,7 +622,16 @@ function makeBuilding(p,isPlace){
     const n=Math.max(2,Math.floor((w-door.w-40)/100)*2);
     const slots=[];const avail=(w-door.w)/2-20;const per=Math.max(1,Math.floor(avail/90));
     for(let i=0;i<per;i++){const s=avail/per;slots.push(10+s*i+s/2-ww/2);slots.push(w-10-s*i-s/2-ww/2)}
-    slots.forEach(x=>windowAt(g,x,wy,ww,wh2,true,lights));
+    if(p.style==='bank'){
+      // columnas clásicas a ambos lados de la puerta
+      const cols=[];const avail2=(w-door.w)/2-34;for(let i=0;i<3;i++){cols.push(18+i*avail2/2.4);cols.push(w-18-i*avail2/2.4-22)}
+      for(const cx of cols){const top=-wh+16;g.fillStyle='rgba(0,0,0,.18)';g.fillRect(cx+4,top,22,wh-30);
+        const cg=g.createLinearGradient(cx,0,cx+22,0);cg.addColorStop(0,'#e9e6dc');cg.addColorStop(.5,'#fbfaf5');cg.addColorStop(1,'#c9c4b6');g.fillStyle=cg;g.fillRect(cx,top+8,22,wh-38);
+        g.fillStyle='rgba(0,0,0,.08)';for(let k=4;k<20;k+=5)g.fillRect(cx+k,top+8,1.5,wh-38);
+        g.fillStyle='#ece8dd';g.fillRect(cx-4,top,30,9);g.fillRect(cx-4,-32,30,8)}
+      g.fillStyle='#ece8dd';g.fillRect(0,-wh+6,w,10);g.fillStyle='rgba(0,0,0,.15)';g.fillRect(0,-wh+15,w,2);
+      g.fillStyle='#d7b65a';g.font=`700 13px ${FONT_D}`;g.textAlign='center';g.textBaseline='middle';
+    }else slots.forEach(x=>windowAt(g,x,wy,ww,wh2,true,lights));
     if(p.style==='recycle'){g.fillStyle='rgba(255,255,255,.85)';g.font=`700 40px ${FONT_B}`;g.textAlign='center';}
   }
   // puerta
@@ -862,7 +908,7 @@ function drawWater(g,x0,x1,dirt){
   for(let row=0,y=y1+20;y<y2-14;y+=19,row++){const off=(T*(18+row%3*6)+row*41)%110;for(let x=Math.floor(x0/110)*110-110;x<x1;x+=110){const xx=x+off,yy=y+Math.sin(xx*.02+T)*2;g.strokeStyle=`rgba(255,255,255,${.16+.1*Math.sin(T*2+x)})`;g.beginPath();g.moveTo(xx,yy);g.quadraticCurveTo(xx+13,yy-4,xx+28,yy);g.stroke()}}
   for(let i=0;i<14;i++){const x=x0+((i*173+T*25)%(x1-x0+1)),y=y1+20+((i*61)%(y2-y1-40)),a=Math.max(0,Math.sin(T*3+i*2));g.fillStyle=`rgba(255,255,255,${a*.8})`;g.beginPath();g.arc(x,y,1.6,0,7);g.fill()}
   // basura flotante según residuos al vertedero
-  const n=Math.min(LITTER.length,Math.floor(Math.max(0,S.landfill-(S.riverCleaned||0))/1.5));
+  const n=Math.min(LITTER.length,Math.floor(riverLoad()/1.5));
   for(let i=0;i<n;i++){const L=LITTER[i],x=((L.x+T*14)%(WW+40))-20;if(x<x0-20||x>x1+20)continue;const y=L.y+Math.sin(T*1.5+i)*2;
     g.save();g.translate(x,y);g.rotate(L.r+Math.sin(T+i)*.2);
     if(L.k===0){g.fillStyle='rgba(220,235,245,.9)';rr(g,-L.s/2,-3,L.s,6,3);g.fill();g.fillStyle='#3b78c4';g.fillRect(L.s/2-3,-2,3,4)}
@@ -1012,7 +1058,7 @@ function render(){
   const x0=Math.max(0,Math.floor(view.camX)),y0=Math.max(0,Math.floor(view.camY)),sw=Math.min(WW-x0,Math.ceil(vw)+2),sh=Math.min(WH-y0,Math.ceil(vh)+2);
   if(GROUND&&sw>0&&sh>0)ctx.drawImage(GROUND,x0,y0,sw,sh,x0,y0,sw,sh);
   // agua
-  if(view.camY+vh>RIVER.y1-40&&view.camY<RIVER.y2+40){drawWater(ctx,view.camX-10,view.camX+vw+10,clamp(Math.max(0,S.landfill-(S.riverCleaned||0))/90,0,.6));for(const b of BRIDGE_IMGS)if(b.x<view.camX+vw+40&&b.x+b.c.width>view.camX-40)ctx.drawImage(b.c,b.x,b.y)}
+  if(view.camY+vh>RIVER.y1-40&&view.camY<RIVER.y2+40){drawWater(ctx,view.camX-10,view.camX+vw+10,clamp(riverLoad()/90,0,.6));for(const b of BRIDGE_IMGS)if(b.x<view.camX+vw+40&&b.x+b.c.width>view.camX-40)ctx.drawImage(b.c,b.x,b.y)}
   // laguna brillos
   if(view.camY+vh>1500&&view.camX<720){ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=2;for(let i=0;i<4;i++){const x=440+i*40+Math.sin(T+i)*10;ctx.beginPath();ctx.moveTo(x,1590+i*8);ctx.lineTo(x+20,1590+i*8);ctx.stroke()}}
   drawHuertoPlants(ctx);
@@ -1021,6 +1067,7 @@ function render(){
   const list=[];
   for(const o of OBJECTS){if(o.kind==='building'){const b=o.b;if(b.x+b.w<L||b.x>Rr||b.base<Tp||b.base-b.wallH-b.roofH>B)continue}else if(o.x<L||o.x>Rr||o.y<Tp||o.y>B)continue;list.push(o)}
   list.push({kind:'player',y:player.y});
+  if(NET.on)for(const id in NET.peers){const p=NET.peers[id];if(p.s==='w'&&p.rx>L&&p.rx<Rr&&p.ry>Tp&&p.ry<B)list.push({kind:'peer',y:p.ry,p})}
   list.push({kind:'cat',y:cat.y},{kind:'peng',y:penguin.y});
   for(const r of rabbits)if(r.x>L&&r.x<Rr&&r.y>Tp&&r.y<B)list.push({kind:'rab',y:r.y,r});
   list.sort((a,b)=>a.y-b.y);
@@ -1031,12 +1078,13 @@ function render(){
     else if(o.kind==='spr'){ctx.drawImage(o.spr.c,o.x-o.spr.ax,o.y-o.spr.ay)}
     else if(o.kind==='fountain')drawFountain(ctx);
     else if(o.kind==='player')drawPlayer(ctx);
+    else if(o.kind==='peer')drawPeer(ctx,o.p);
     else if(o.kind==='cat')drawSpriteAnimal(ctx,IMG.cat,cat,62);
     else if(o.kind==='peng')drawSpriteAnimal(ctx,IMG.peng,penguin,58);
     else if(o.kind==='rab')drawRabbit(ctx,o.r);
   }
   for(const b of butterflies)if(nightA<.5)drawButterfly(ctx,b);
-  drawParts(ctx,'world');
+  drawParts(ctx,'world');drawSelfEmote(ctx);
   for(const b of birds)if(nightA<.5)drawBird(ctx,b);
   ctx.restore();
   drawRain(cw,ch);
@@ -1216,12 +1264,13 @@ function newState(){return{
   pantry:[{pid:'fideos',name:'Fideos (400 g)',emoji:'🍝',por:2,exp:30,nutri:1},{pid:'huevos',name:'Huevos de campo (6)',emoji:'🥚',por:1,exp:3,nutri:2,organic:true}],
   bin:{plastico:1,papel:0,vidrio:0,organico:0},carry:{plastico:0,papel:0,vidrio:0,organico:0},
   owned:{},wants:[],needs:{},meals:0,lastMealMin:0,
-  garden:{compost:0},plots:[null,null,null,null,null,null],seeds:{lechuga:2,hierbas:1,zanahoria:1},wood:0,saplings:[],cut:{},planted:[],nextTree:1,treesCut:0,treesPlanted:0,axeDay:0,riverCleaned:0,skills:{},harvested:0,flags:{},log:[],daily:[],started:false,over:false,warned:{},
+  garden:{compost:0},plots:[null,null,null,null,null,null],seeds:{lechuga:2,hierbas:1,zanahoria:1},bank:{save:0,term:null,debt:{credito:0,avance:0},inv:{bono:0,solar:0,feria:0,cadena:0},hist:[]},wood:0,saplings:[],cut:{},planted:[],nextTree:1,treesCut:0,treesPlanted:0,axeDay:0,riverCleaned:0,skills:{},harvested:0,flags:{},log:[],daily:[],started:false,over:false,warned:{},
   cart:{},cartOwner:null
 }}
-function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({S,p:{x:player.x,y:player.y,scene:player.scene}}))}catch(e){}}
-function load(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d&&d.S&&!d.S.over)return d}catch(e){}return null}
-function wipe(){try{localStorage.removeItem(SAVE_KEY)}catch(e){}}
+let SAVE_SLOT='';
+function save(){try{localStorage.setItem(SAVE_KEY+SAVE_SLOT,JSON.stringify({S,p:{x:player.x,y:player.y,scene:player.scene}}))}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY+SAVE_SLOT)||'null');if(d&&d.S&&!d.S.over)return d}catch(e){}return null}
+function wipe(){try{localStorage.removeItem(SAVE_KEY+SAVE_SLOT)}catch(e){}}
 
 /* ---------- utilidades de reglas ---------- */
 function pantryPortions(){return S.pantry.reduce((a,p)=>a+p.por,0)}
@@ -1293,7 +1342,7 @@ function refreshHUD(){
   $('#hTime').textContent=hhmm(S.min);
   const ls=lightState(S.min);$('#hSun').innerHTML=ls.dark>.3?ICONS.moon:ICONS.sun;
   $('#hDayBar').style.width=clamp((S.min-DAY_START)/(LATE-DAY_START)*100,0,100)+'%';
-  const sig=JSON.stringify([(S.saplings||[]).length,(S.planted||[]).map(p=>p.wet>0?1:0).join(''),S.day,S.meals,S.needs,pantryPortions(),S.carry,S.bin,S.min>=LATE,S.garden,S.owned,S.seeds,(S.plots||[]).map(p=>p?(p.dead?3:p.ready?2:p.wet>0?1:0):-1)]);
+  const sig=JSON.stringify([bankDebt(),(S.saplings||[]).length,(S.planted||[]).map(p=>p.wet>0?1:0).join(''),S.day,S.meals,S.needs,pantryPortions(),S.carry,S.bin,S.min>=LATE,S.garden,S.owned,S.seeds,(S.plots||[]).map(p=>p?(p.dead?3:p.ready?2:p.wet>0?1:0):-1)]);
   if(sig!==hudSig){hudSig=sig;renderGoals()}
 }
 function renderGoals(){
@@ -1307,6 +1356,7 @@ function renderGoals(){
     if(S.saplings&&S.saplings.length)items.push({done:false,t:`Plantar ${S.saplings.length} brote${S.saplings.length===1?'':'s'} de árbol`,s:'Párate en el pasto y presiona E'});
     {const dry=S.planted.filter(p=>p.prog<GROW_T&&!(p.wet>0)).length;if(dry)items.push({done:false,t:`Regar ${dry} árbol${dry===1?'':'es'} joven${dry===1?'':'es'}`,s:'Sin agua crecen lento'})}
     if(emp&&seedCount())items.push({done:false,t:`Tienes ${emp} parcela${emp===1?'':'s'} libre${emp===1?'':'s'} y ${seedCount()} semilla${seedCount()===1?'':'s'}`,s:'Planta al costado de tu casa'});}
+  {const d=bankDebt();if(d>0)items.push({done:false,alert:true,t:`Pagar tu deuda: ${fmt(d)}`,s:'Crece cada noche. Págala en el Banco antes del domingo'})}
   const bw=S.bin.plastico+S.bin.papel+S.bin.vidrio+S.bin.organico;
   if(bw>0)items.push({done:false,t:`Separar ${bw} residuo${bw===1?'':'s'} en casa`,s:'Lo que no separes se va al vertedero en la noche'});
   if(wasteCount(S.carry)>0)items.push({done:false,t:`Llevar ${wasteCount(S.carry)} reciclable${wasteCount(S.carry)===1?'':'s'} al Punto Limpio`,s:'Centro de Reutilización'});
@@ -1325,7 +1375,7 @@ const music=TRACKS.out;
 let musicOn=true;try{musicOn=localStorage.getItem('vv_music')!=='0'}catch(e){}
 let musicLive=false; // se activa con la primera interacción (requisito de los navegadores)
 const MUSIC_VOL=.32,MUSIC_DUCK=.16;
-const INDOOR_SHEETS=new Set(['market','shop','recycle','work']);
+const INDOOR_SHEETS=new Set(['market','shop','recycle','work','bank']);
 function wantedTrack(){if(player.scene==='home')return'in';if(modal&&INDOOR_SHEETS.has(modal.kind))return'in';return'out'}
 function updateMusic(dt){
   const want=(musicOn&&musicLive&&!document.hidden)?wantedTrack():null;
@@ -1500,11 +1550,70 @@ function openBoard(){
     S.day===6?['🎧','<b>Almacén:</b> audífonos con 40% de descuento solo hoy.']:['🌻','<b>Vivero:</b> buscan ayudantes. Pagan con dinero y semillas.'],
     ['🧤','<b>Junta de vecinos:</b> limpieza del río todos los días en el Centro de Reutilización.'],
     ['📚','<b>Biblioteca de semillas:</b> un sobre gratis al día por vecino.'],
+    ['🏦','<b>Banco Villa Verde:</b> abrió junto al Almacén. Cuentas de ahorro, préstamos e inversiones.'],
     ['🌳','<b>Bosque comunitario (al este):</b> se permite talar con hacha y se pide replantar. En la reserva natural está prohibido.'],
     ['💡',TIPS[(S.day+2)%TIPS.length]],
   ];
   openSheet({kind:'board',title:'Tablón del pueblo',emoji:'📌',color:'#7a5a34',sub:`${DAYS[S.day-1]} · Noticias de Villa Verde`,render:()=>({body:notes.map(n=>info(n[0],n[1])).join('')})});
 }
+
+/* ---------- BANCO ---------- */
+const RATES={save:.02,term:.15,credito:.03,avance:.10};
+const INVEST=[
+ {id:'bono',name:'Bono municipal',emoji:'🏛️',risk:'Bajo',rc:'g',desc:'Le prestas al municipio para arreglar calles. Paga poco, pero siempre lo mismo: 2% por noche.',step:d=>.02},
+ {id:'solar',name:'Cooperativa solar del barrio',emoji:'☀️',risk:'Medio',rc:'y',desc:'Paneles solares comunitarios. Gana 5% en noches después de días soleados y pierde 1% después de días de lluvia.',step:d=>(d===3||d===6)?-.01:.05},
+ {id:'feria',name:'Fondo de productores locales',emoji:'🧺',risk:'Medio',rc:'y',desc:'Apoya a agricultores de la zona. Suele subir, pero algunas noches baja.',step:d=>-.04+Math.random()*.14},
+ {id:'cadena',name:'Acciones de MegaBurger',emoji:'🍔',risk:'Alto',rc:'r',desc:'Una cadena de comida rápida. Puede subir mucho o bajar mucho de una noche a otra.',step:d=>-.25+Math.random()*.5},
+];
+function bankDebt(){const b=S&&S.bank;return b?Math.round(b.debt.credito+b.debt.avance):0}
+function invTotal(){const b=S.bank;return Object.values(b.inv).reduce((a,v)=>a+v,0)}
+function netWorth(){const b=S.bank;return Math.round(S.money+b.save+(b.term?b.term.amt:0)+invTotal()-bankDebt())}
+function hasWorked(){return S.log.some(l=>l.type==='trabajo')}
+function bankNight(){
+  const b=S.bank,out=[];const day=S.day;
+  if(b.save>0){const i=Math.round(b.save*RATES.save);b.save+=i;out.push(['🐷',`Tu cuenta de ahorro ganó <b>${fmt(i)}</b> de interés.`,'good'])}
+  if(b.term&&day+1>=b.term.until){const g=Math.round(b.term.amt*RATES.term);b.save+=b.term.amt+g;out.push(['📅',`Venció tu depósito a plazo: ganaste ${fmt(g)}. El total pasó a tu cuenta de ahorro.`,'good']);b.term=null}
+  for(const k of['credito','avance'])if(b.debt[k]>0){const i=Math.round(b.debt[k]*RATES[k]);b.debt[k]+=i;out.push(['💳',`Tu ${k==='credito'?'crédito':'avance rápido'} sumó <b>${fmt(i)}</b> de intereses. Debes ${fmt(b.debt[k])}.`,'bad'])}
+  for(const iv of INVEST){const v=b.inv[iv.id];if(v>0){const r=iv.step(day);const nv=Math.max(0,Math.round(v*(1+r)));b.inv[iv.id]=nv;out.push([iv.emoji,`${iv.name}: ${r>=0?'subió':'bajó'} ${Math.abs(Math.round(r*100))}% (${fmt(nv)}).`,r>=0?'good':'bad'])}}
+  b.hist.push({day,net:netWorth()});
+  return out;
+}
+function openBank(){openSheet({kind:'bank',title:'Banco Villa Verde',emoji:'🏦',color:'#2f4a6b',tab:'res',tabs:[{id:'res',label:'Resumen'},{id:'save',label:'Ahorrar'},{id:'loan',label:'Préstamos'},{id:'inv',label:'Invertir'}],sub:()=>`Dinero en mano ${fmt(S.money)} · Patrimonio neto ${fmt(netWorth())}`,render:renderBank})}
+function amtBtns(act,list,max){return list.map(a=>{const v=a==='all'?max:a;return`<button class="btn ${a==='all'?'':'ghost'}" data-act="${act}" data-arg="${v}" ${v<=0||v>max?'disabled':''}>${a==='all'?'Todo ('+fmt(Math.max(0,max))+')':fmt(a)}</button>`}).join('')}
+function renderBank(tab){
+  const b=S.bank;
+  if(tab==='res'){
+    const rows=[['💵','Dinero en mano',S.money],['🐷','Cuenta de ahorro',b.save],['📅','Depósito a plazo',b.term?b.term.amt:0],['📈','Inversiones',invTotal()],['💳','Deudas',-bankDebt()]];
+    return{body:info('🧮','Tu <b>patrimonio neto</b> es todo lo que tienes menos lo que debes. Es la mejor medida de tu situación, mejor que solo mirar el dinero en mano.')+`<div class="list">${rows.map(r=>`<div class="row"><span class="c-em">${r[0]}</span><div class="grow"><div class="t">${r[1]}</div></div><b style="font-variant-numeric:tabular-nums;${r[2]<0?'color:var(--bad)':''}">${fmt(r[2])}</b></div>`).join('')}<div class="row" style="border-color:var(--leaf)"><span class="c-em">🏦</span><div class="grow"><div class="t">Patrimonio neto</div></div><b>${fmt(netWorth())}</b></div></div>`+info('ℹ️','Las tasas de este banco están exageradas para que veas su efecto en una semana. En la vida real son mucho más bajas, pero funcionan igual.')};
+  }
+  if(tab==='save'){
+    const tm=b.term;
+    return{body:`<p class="sec-t">Cuenta de ahorro · 2% por noche</p>${info('🐷','El dinero ahorrado gana interés cada noche, y el interés también gana interés: eso es el <b>interés compuesto</b>. Puedes sacarlo cuando quieras.')}
+      <div class="kv" style="margin-bottom:10px"><div><small>Ahorrado</small><b>${fmt(b.save)}</b></div><div><small>Ganarías esta noche</small><b>${fmt(Math.round(b.save*RATES.save))}</b></div></div>
+      <div class="c-row" style="flex-wrap:wrap;gap:6px;margin-bottom:6px"><b style="min-width:80px">Depositar</b>${amtBtns('deposit',[1000,5000,'all'],S.money)}</div>
+      <div class="c-row" style="flex-wrap:wrap;gap:6px"><b style="min-width:80px">Retirar</b>${amtBtns('withdraw',[1000,5000,'all'],b.save)}</div>
+      <p class="sec-t">Depósito a plazo · 15% en 3 noches</p>${info('📅','Ganas más que en la cuenta de ahorro, pero no puedes tocar el dinero hasta que venza.')}
+      ${tm?`<div class="row"><span class="c-em">📅</span><div class="grow"><div class="t">${fmt(tm.amt)} depositados</div><div class="s">Vence el ${DAYS[Math.min(6,tm.until-1)].toLowerCase()} en la mañana · ganarás ${fmt(Math.round(tm.amt*RATES.term))}</div></div></div>`:
+      `<div class="c-row" style="flex-wrap:wrap;gap:6px">${[5000,10000].map(v=>`<button class="btn" data-act="term" data-arg="${v}" ${S.money<v||S.day+3>LAST_DAY+1?'disabled':''}>Depositar ${fmt(v)} a 3 noches</button>`).join('')}</div>${S.day+3>LAST_DAY+1?'<p class="c-sub">Ya no alcanza a vencer antes del fin de la semana.</p>':''}`}`};
+  }
+  if(tab==='loan'){
+    const w=hasWorked();
+    const card=(k,t,d,rate,max,req)=>`<div class="card"><div class="c-top"><div class="c-em">${k==='credito'?'🏦':'⚡'}</div><div><p class="c-name">${t}</p><div class="c-sub">${d}</div></div></div><div class="tags">${tag(Math.round(rate*100)+'% de interés por noche',rate>.05?'r':'y')}${tag('Máximo '+fmt(max),'b')}${req?tag(req,w?'g':'r'):tag('Sin requisitos','')}</div>
+      <p class="c-desc">Si pides ${fmt(10000)} y no pagas en 3 noches, deberás ${fmt(Math.round(10000*Math.pow(1+rate,3)))}.</p>
+      <div class="c-row" style="flex-wrap:wrap;gap:6px">${[5000,10000].filter(v=>v<=max).map(v=>`<button class="btn ghost" data-act="borrow" data-arg="${k}|${v}" ${(req&&!w)||S.bank.debt[k]+v>max?'disabled':''}>Pedir ${fmt(v)}</button>`).join('')}</div>
+</div>`;
+    return{body:info('💳','Un préstamo te da dinero hoy, pero devuelves más de lo que recibiste. La diferencia son los <b>intereses</b>, y crecen cada noche que no pagas. Antes de pedir, pregúntate si lo que vas a comprar lo necesitas.')+`<div class="grid">${card('credito','Crédito del banco','Para quien tiene ingresos.',RATES.credito,20000,'Haber trabajado al menos una vez')}${card('avance','Avance rápido','Fácil de pedir, caro de pagar.',RATES.avance,10000,'')}</div>`+(bankDebt()?`<p class="sec-t">Tus deudas</p><div class="list">${['credito','avance'].filter(k=>S.bank.debt[k]>0).map(k=>`<div class="row"><span class="c-em">💳</span><div class="grow"><div class="t">${k==='credito'?'Crédito del banco':'Avance rápido'}: debes ${fmt(S.bank.debt[k])}</div><div class="s">Esta noche crecerá ${fmt(Math.round(S.bank.debt[k]*RATES[k]))}</div></div><button class="btn ghost" data-act="repay" data-arg="${k}|5000" ${S.money<1?'disabled':''}>Pagar ${fmt(Math.min(5000,S.bank.debt[k]))}</button><button class="btn" data-act="repay" data-arg="${k}|all" ${S.money<1?'disabled':''}>Pagar todo</button></div>`).join('')}</div>`:'')+info('⚠️','El domingo en la noche el banco cobra lo que debas desde tu dinero y tus ahorros. Si no alcanza, la deuda queda en tu informe.','warn')};
+  }
+  const own=S.owned.bici;
+  return{body:`<p class="sec-t">Invertir en el pueblo</p>${info('📈','Invertir es poner dinero en algo que puede crecer. A mayor <b>riesgo</b>, más puede subir… o bajar. El valor cambia cada noche. Nunca inviertas dinero que vas a necesitar para comer.')}
+    <div class="grid">${INVEST.map(iv=>`<div class="card"><div class="c-top"><div class="c-em">${iv.emoji}</div><div style="min-width:0"><p class="c-name">${iv.name}</p><div class="c-sub">Tienes ${fmt(S.bank.inv[iv.id])}</div></div></div><div class="tags">${tag('Riesgo '+iv.risk.toLowerCase(),iv.rc)}</div><p class="c-desc">${iv.desc}</p><div class="c-row" style="flex-wrap:wrap;gap:6px"><button class="btn ghost" data-act="invest" data-arg="${iv.id}|2000" ${S.money<2000?'disabled':''}>+${fmt(2000)}</button><button class="btn ghost" data-act="invest" data-arg="${iv.id}|5000" ${S.money<5000?'disabled':''}>+${fmt(5000)}</button><button class="btn" data-act="divest" data-arg="${iv.id}" ${S.bank.inv[iv.id]>0?'':'disabled'}>Vender</button></div></div>`).join('')}</div>
+    <p class="sec-t">Invertir en tu vida</p>${info('🚲','Algunas compras son inversiones: te ahorran tiempo o dinero después.')}
+    <div class="grid"><div class="card ${own?'dim':''}"><div class="c-top"><div class="c-em">🚲</div><div><p class="c-name">Bicicleta usada</p><div class="c-sub">Te mueves 30% más rápido por el pueblo. El reparto en bicicleta paga ${fmt(2000)} más.</div></div><div class="grade g-A">A</div></div><div class="tags">${co2Tag(1)}${tag('Segunda mano','g')}</div><div class="c-row"><span class="price">${fmt(8000)}</span><button class="btn" style="margin-left:auto" data-act="buyBike" ${own||S.money<8000?'disabled':''}>${own?'Ya la tienes':'Comprar'}</button></div></div></div>`};
+}
+function bankSettle(){const b=S.bank,out=[];const d=bankDebt();if(!d)return out;
+  let pay=Math.min(d,S.money+b.save);let fromCash=Math.min(pay,S.money);S.money-=fromCash;b.save-=pay-fromCash;
+  let left=pay;for(const k of['avance','credito']){const x=Math.min(left,b.debt[k]);b.debt[k]-=x;left-=x}
+  out.push(['🏦',`El banco cobró ${fmt(pay)} de tu deuda.${bankDebt()?` Quedó una deuda impaga de ${fmt(bankDebt())}.`:''}`,bankDebt()?'bad':'']);return out}
 
 /* ---------- HUERTO ---------- */
 function seedCount(){return Object.values(S.seeds||{}).reduce((a,b)=>a+b,0)}
@@ -1610,12 +1719,21 @@ const ACTIONS={
   donate(id){S.wants=S.wants.filter(x=>x!==id);const w=WANTS.find(x=>x.id===id);apply({mood:5,time:10});log('donación',`Donaste ${w.name}`);beep('good');toast('🤝',`Donaste ${w.name}. Alguien más le dará uso.`,'good');drawSheet(true)},
   sellUsed(id){S.wants=S.wants.filter(x=>x!==id);const w=WANTS.find(x=>x.id===id),v=Math.round(w.price*.35/100)*100;apply({money:v,mood:1,time:10});log('venta',`Vendiste ${w.name} usado`,{price:v});beep('coin');toast('💰',`Vendiste ${w.name} por ${fmt(v)}. Perdiste ${fmt(w.price-v)} respecto de lo que pagaste.`);drawSheet(true)},
   work(id){const j=JOBS.find(x=>x.id===id);if(jobBlock(j))return;closeSheet();
-    fade(()=>{apply({money:j.pay,energy:-j.energy,mood:j.mood,health:j.health,time:j.hours*60});if(j.gift==='verduras'){S.pantry.push({pid:'verd',name:'Verduras del huerto comunitario',emoji:'🥕',por:3,exp:S.day+3,nutri:2,organic:true,co2pp:0})}if(j.gift==='semillas'){giveSeeds(2)}log('trabajo',j.name,{price:j.pay});beep('coin');toast(j.emoji,`Trabajaste ${j.hours} horas: ${j.name}. Ganaste <b>${fmt(j.pay)}</b>.${j.gift==='verduras'?' Te regalaron verduras.':j.gift==='semillas'?' Te regalaron 2 sobres de semillas.':''}`,'good')},`${j.emoji} ${j.name}`,`${j.hours} horas después…`)},
+    const pay=j.pay+(j.id==='bici'&&S.owned.bici?2000:0);
+    fade(()=>{apply({money:pay,energy:-j.energy,mood:j.mood,health:j.health,time:j.hours*60});if(j.gift==='verduras'){S.pantry.push({pid:'verd',name:'Verduras del huerto comunitario',emoji:'🥕',por:3,exp:S.day+3,nutri:2,organic:true,co2pp:0})}if(j.gift==='semillas'){giveSeeds(2)}log('trabajo',j.name,{price:pay});beep('coin');toast(j.emoji,`Trabajaste ${j.hours} horas: ${j.name}. Ganaste <b>${fmt(pay)}</b>.${j.gift==='verduras'?' Te regalaron verduras.':j.gift==='semillas'?' Te regalaron 2 sobres de semillas.':''}`,'good')},`${j.emoji} ${j.name}`,`${j.hours} horas después…`)},
   cook(idx){const p=S.pantry[+idx];if(!p||p.por<=0||S.food>=96)return;p.por--;S.meals++;
     const f=p.nutri===2?32:p.nutri===1?26:18,h=p.nutri===2?3:p.nutri===1?1:-3;
     apply({food:f,health:h,mood:2,time:30,waste:p.organic?{organico:1}:{}});if(p.por<=0)S.pantry.splice(+idx,1);beep('good');toast('🍳',`Cocinaste ${p.name.toLowerCase()}.${p.nutri===0?' Llena poco y no aporta mucho.':''}`,'good');drawSheet(true)},
   separate(){const b=S.bin;if(!wasteCount(b))return;for(const k of['plastico','papel','vidrio'])S.carry[k]+=b[k];if(S.owned.compost){S.garden.compost+=b.organico;S.composted+=b.organico}else S.carry.organico+=b.organico;const n=wasteCount(b);S.bin={plastico:0,papel:0,vidrio:0,organico:0};apply({time:10,mood:1});log('separación',`Separaste ${n} residuos`);beep('good');toast('♻️',`Separaste ${n} residuos.${S.owned.compost&&S.garden.compost?' Los orgánicos fueron a tu compostera.':' Llévalos al Punto Limpio.'}`,'good');drawSheet(true)},
   sleep(){closeSheet();sleep()},
+  deposit(v){v=Math.min(+v,S.money);if(v<=0)return;S.money-=v;S.bank.save+=v;apply({time:10});log('banco',`Depositaste ${fmt(v)} en tu cuenta de ahorro`);beep('coin');drawSheet(true)},
+  withdraw(v){v=Math.min(+v,S.bank.save);if(v<=0)return;S.bank.save-=v;S.money+=v;apply({time:10});beep('coin');drawSheet(true)},
+  term(v){v=+v;if(S.money<v||S.bank.term)return;S.money-=v;S.bank.term={amt:v,until:S.day+3};apply({time:10});log('banco',`Depósito a plazo de ${fmt(v)}`);beep('coin');toast('📅',`Depositaste ${fmt(v)} a 3 noches. No podrás sacarlo antes.`,'good');drawSheet(true)},
+  borrow(arg){const[k,v]=arg.split('|');const max=k==='credito'?20000:10000;if(k==='credito'&&!hasWorked())return;if(S.bank.debt[k]+(+v)>max)return;S.bank.debt[k]+=+v;S.money+=+v;apply({time:15,mood:-1});log('préstamo',`Pediste ${fmt(+v)} (${k==='credito'?'crédito':'avance rápido'})`,{price:+v});beep('coin');toast('💳',`Recibiste ${fmt(+v)}. Esta noche tu deuda crecerá ${Math.round(RATES[k]*100)}%.`,'bad');drawSheet(true)},
+  repay(arg){const[k,v]=arg.split('|');const d=S.bank.debt[k];const x=Math.min(v==='all'?d:+v,d,S.money);if(x<=0)return;S.bank.debt[k]-=x;S.money-=x;if(S.bank.debt[k]<1)S.bank.debt[k]=0;apply({time:5,mood:S.bank.debt[k]?1:4});log('banco',`Pagaste ${fmt(x)} de deuda`);beep('coin');if(!S.bank.debt[k])toast('✅','Pagaste toda esa deuda.','good');drawSheet(true)},
+  invest(arg){const[k,v]=arg.split('|');if(S.money<+v)return;S.money-=+v;S.bank.inv[k]+=+v;apply({time:10});const iv=INVEST.find(i=>i.id===k);log('inversión',`Invertiste ${fmt(+v)} en ${iv.name}`);beep('coin');drawSheet(true)},
+  divest(k){const v=S.bank.inv[k];if(!v)return;S.bank.inv[k]=0;S.money+=v;apply({time:10});const iv=INVEST.find(i=>i.id===k);log('inversión',`Vendiste tu inversión en ${iv.name} por ${fmt(v)}`);beep('coin');toast(iv.emoji,`Recibiste ${fmt(v)}.`);drawSheet(true)},
+  buyBike(){if(S.owned.bici||S.money<8000)return;S.owned.bici=1;apply({money:-8000,co2:1,time:15,mood:4});log('compra','Bicicleta usada',{co2:1,price:8000});beep('coin');toast('🚲','Ahora te mueves más rápido por el pueblo.','good');drawSheet(true)},
   buyAxe(){if(S.owned.hacha||S.money<6990)return;S.owned.hacha=1;apply({money:-6990,co2:5,waste:{papel:1},time:10});log('compra','Hacha',{co2:5,price:6990});beep('coin');toast('🪓','Compraste un hacha. Recuerda: en la reserva no se tala.');drawSheet(true)},
   buySapling(){if(S.money<1200)return;S.saplings.push([0,1,3,4][(Math.random()*4)|0]);apply({money:-1200,co2:.2,time:5});beep('coin');toast('🌱','Compraste un brote nativo. Plántalo en cualquier lugar con pasto.','good');drawSheet(true)},
   sellWood(){if(!S.wood)return;const v=S.wood*600;log('venta',`Vendiste ${S.wood} maderas`,{price:v});S.wood=0;apply({money:v,time:10});beep('coin');drawSheet(true)},
@@ -1634,7 +1752,7 @@ const ACTIONS={
     const P=PLOTS[+i];for(let k=0;k<6;k++)puff({x:P.x+P.w/2+(Math.random()-.5)*40,y:P.y,vy:-40-Math.random()*30,vx:(Math.random()-.5)*30,life:1.2,max:1.2,size:3,color:'rgba(255,214,107,A)'});
     toast(C.emoji,`Cosechaste <b>${y} porciones</b> de ${C.name.toLowerCase()}. Sin envases ni transporte.`,'good');drawSheet(true)},
   clearPlot(i){if(!S.plots[+i])return;S.plots[+i]=null;if(S.owned.compost){S.garden.compost++;S.composted++}else S.bin.organico+=1;apply({time:5});toast('🍂','Limpiaste la parcela. Los restos sirven como compost.');drawSheet(true)},
-  cleanRiver(){if(S.flags.river===S.day||S.energy<15||S.min+120>LATE)return;S.flags.river=S.day;closeSheet();fade(()=>{S.riverCleaned=(S.riverCleaned||0)+12;apply({energy:-15,mood:8,time:120});log('voluntariado','Limpiaste el río con la junta de vecinos');toast('🧤','Sacaron bolsas y botellas de la orilla. El río se ve más limpio.','good')},'🧤 Limpieza del río','2 horas después…')},
+  cleanRiver(){if(S.flags.river===S.day||S.energy<15||S.min+120>LATE)return;S.flags.river=S.day;closeSheet();fade(()=>{if(NET.on)NET.adapter.add('cl',20);S.riverCleaned=(S.riverCleaned||0)+12;apply({energy:-15,mood:8,time:120});log('voluntariado','Limpiaste el río con la junta de vecinos');toast('🧤','Sacaron bolsas y botellas de la orilla. El río se ve más limpio.','good')},'🧤 Limpieza del río','2 horas después…')},
   learnRepair(){if(S.skills.repair||S.money<1500)return;S.skills.repair=true;closeSheet();fade(()=>{apply({money:-1500,mood:5,time:90});log('taller','Aprendiste a reparar objetos');toast('🪛','Aprendiste a reparar. Desde ahora tus reparaciones cuestan la mitad.','good')},'🪛 Taller de reparación','90 minutos después…')},
   seedLibrary(){if(S.flags.seedlib===S.day)return;S.flags.seedlib=S.day;const c=CROPS[(S.day*3)%CROPS.length];S.seeds[c.id]=(S.seeds[c.id]||0)+1;apply({time:10,mood:2});beep('good');toast(c.emoji,`Retiraste un sobre de ${c.name.toLowerCase()}. Cuando coseches, puedes devolver semillas.`,'good');drawSheet(true)},
   barter(id){S.wants=S.wants.filter(x=>x!==id);const w=WANTS.find(x=>x.id===id);const got=giveSeeds(3);apply({mood:4,time:15});log('trueque',`Cambiaste ${w.name} por semillas`);beep('good');toast('🔁',`Cambiaste ${w.name} por semillas ${got.join(' ')}.`,'good');drawSheet(true)},
@@ -1696,12 +1814,13 @@ function treeSpot(){
 function addPlantedObj(p){const circ={x:p.x,y:p.y-4,r:14,off:p.prog<GROW_T};CIRCLES.push(circ);const o={kind:'tree',planted:p,x:p.x,y:p.y,v:p.v,spr:SPR.trees[p.v%SPR.trees.length],tid:'p'+p.id,circ,sway:Math.random()*6,s:.95};OBJECTS.push(o);return o}
 function removeTreeObj(o){const i=OBJECTS.indexOf(o);if(i>=0)OBJECTS.splice(i,1);const j=CIRCLES.indexOf(o.circ);if(j>=0)CIRCLES.splice(j,1)}
 function syncTrees(){
+  if(typeof NET!=='undefined'&&NET.on){for(let i=OBJECTS.length-1;i>=0;i--)if(OBJECTS[i].planted)removeTreeObj(OBJECTS[i]);for(const o of OBJECTS)if(o.kind==='tree'&&o.tid){const c=NET.world.cut[o.tid];o.stump=!!c&&!c.r;o.hide=!!(c&&c.r);o.fall=null;if(o.circ)o.circ.off=!!c}for(const id in NET.world.pl)addPlantedObj(netPlantedState(id,NET.world.pl[id]));return}
   for(let i=OBJECTS.length-1;i>=0;i--)if(OBJECTS[i].planted)removeTreeObj(OBJECTS[i]);
   for(const o of OBJECTS)if(o.kind==='tree'&&o.tid){const c=S.cut[o.tid];o.stump=!!c&&c!=='r';o.hide=c==='r';o.fall=null;if(o.circ)o.circ.off=!!c}
   for(const p of S.planted)addPlantedObj(p);
 }
 function growTrees(min){
-  if(!S||!S.planted)return;const rain=isRaining();
+  if(!S||!S.planted||(typeof NET!=='undefined'&&NET.on))return;const rain=isRaining();
   for(const p of S.planted){if(p.prog>=GROW_T)continue;if(rain)p.wet=Math.max(p.wet||0,600);
     const w=Math.min(min,Math.max(0,p.wet||0));p.wet=Math.max(0,(p.wet||0)-min);p.prog+=w+(min-w)*.35;
     if(p.prog>=GROW_T){p.prog=GROW_T;const o=OBJECTS.find(x=>x.planted===p);if(o)o.circ.off=false;if(!quietGrow&&S.started)toast('🌳',`El ${treeName(p.v).toLowerCase()} que plantaste ya es un árbol.`,'good')}}
@@ -1710,10 +1829,11 @@ function chopTree(o){
   if(inReserve(o.x,o.y)){toast('🛑','En la reserva natural no se puede talar. Aquí los árboles protegen el suelo, el agua y a los animales.','bad');return}
   if(!hasAxe()){toast('🪓','Necesitas un hacha. Pídela prestada gratis en el Centro de Reutilización (Comunidad) o cómprala en el Almacén.');return}
   if(S.energy<8){toast('😮‍💨','Estás sin energía para talar.');return}
+  if(NET.on&&!o._netOK){if(o._pending)return;o._pending=1;const pr=o.planted&&o.planted.online?NET.adapter.removePlanted(o.planted.netId):NET.adapter.tryCut(o.tid);pr.then(ok=>{o._pending=0;if(!ok){toast('🪓','Otro jugador taló ese árbol primero.');return}o._netOK=1;chopTree(o);o._netOK=0}).catch(()=>{o._pending=0;toast('📡','No se pudo talar: sin conexión.','bad')});return}
   o.fall=T;o.fallDir=player.x<o.x?1:-1;o.shake=T;if(o.circ)o.circ.off=true;
   const wood=2+((Math.random()*3)|0);const r=Math.random(),n=r<.25?0:r<.8?1:2;
   for(let i=0;i<n;i++)S.saplings.push(o.v);S.wood+=wood;S.treesCut++;
-  if(o.planted){S.planted=S.planted.filter(p=>p!==o.planted)}else S.cut[o.tid]=S.day;
+  if(NET.on){}else if(o.planted){S.planted=S.planted.filter(p=>p!==o.planted)}else S.cut[o.tid]=S.day;
   apply({energy:-8,time:30});log('tala',`Talaste un ${treeName(o.v).toLowerCase()}: ${wood} maderas${n?` y ${n} brote${n>1?'s':''}`:''}`);beep('click');
   for(let k=0;k<10;k++)puff({x:o.x+(Math.random()-.5)*20,y:o.y-20-Math.random()*30,vx:(Math.random()-.5)*120,vy:-60-Math.random()*60,g:260,life:.8,max:.8,size:3,color:'rgba(201,163,110,A)'});
   floatText(player.x,player.y,`+${wood} madera${n?` · +${n} brote${n>1?'s':''}`:''}`,'#ffe2a0');
@@ -1722,6 +1842,7 @@ function chopTree(o){
 }
 function plantSapling(x,y,stumpObj){
   if(!S.saplings.length)return;const v=S.saplings.shift();
+  if(NET.on){const id=NET.uid.slice(0,8)+'_'+Date.now().toString(36);NET.adapter.addPlanted(id,{x:Math.round(x),y:Math.round(y),v,at:netNow(),wa:isRaining()?netNow():0,by:NET.uid});if(stumpObj){stumpObj.hide=true;NET.adapter.replant(stumpObj.tid)}S.treesPlanted++;apply({time:10,energy:-2,mood:3});log('plantación',`Plantaste un ${treeName(v).toLowerCase()} en el pueblo del curso`);beep('good');toast('🌱',`Plantaste un ${treeName(v).toLowerCase()}. Todo el curso lo verá crecer; riégalo una vez.`,'good');return}
   const p={id:S.nextTree++,x:Math.round(x),y:Math.round(y),v,prog:0,wet:isRaining()?600:0};S.planted.push(p);addPlantedObj(p);
   if(stumpObj){stumpObj.hide=true;S.cut[stumpObj.tid]='r'}
   S.treesPlanted++;apply({time:10,energy:-2,mood:3});log('plantación',`Plantaste un ${treeName(v).toLowerCase()}`);beep('good');
@@ -1732,7 +1853,7 @@ function plantSapling(x,y,stumpObj){
 function interact(){
   if(busy||modal||!S.started)return;const s=nearestSpot();if(!s)return;beep('click');
   switch(s.id){
-    case'market':openMarket();break;case'work':openWork();break;case'recycle':openRecycle();break;case'shop':openShop();break;
+    case'market':openMarket();break;case'work':openWork();break;case'recycle':openRecycle();break;case'shop':openShop();break;case'bank':openBank();break;
     case'home':fade(()=>{player.scene='home';player.x=600;player.y=HOME_H-120;player.vx=player.vy=0});break;
     case'exit':fade(()=>{player.scene='world';player.x=1700;player.y=1600;player.vx=player.vy=0});break;
     case'kitchen':openKitchen();break;case'pantry':openBag();break;case'bins':openBins();break;case'desk':openDesk();break;case'bed':openBed();break;
@@ -1741,12 +1862,12 @@ function interact(){
     case'board':openBoard();break;
     case'pond':if(S.flags.pond!==S.day){S.flags.pond=S.day;fade(()=>{apply({mood:6,time:30});toast('🦆','Viste taguas y un martín pescador en la laguna. Media hora de calma.','good')})}else fade(()=>{apply({mood:1,time:30});toast('🦆','Las aves ya se fueron a otro lado.')});break;
     case'cat':if(S.flags.cat!==S.day){S.flags.cat=S.day;apply({mood:5});toast('🐈','Al gato le encanta. Ronronea fuerte.','good')}else toast('🐈','El gato se estira y sigue durmiendo.');for(let i=0;i<5;i++)puff({x:cat.x+(Math.random()-.5)*30,y:cat.y-40,vy:-30-Math.random()*20,vx:(Math.random()-.5)*20,life:1.2,max:1.2,type:'heart'});break;
-    case'peng':{const dirty=S.landfill>=20;if(S.flags.peng!==S.day){S.flags.peng=S.day;apply({mood:dirty?-3:3})}toast('🐧',dirty?`El pingüino esquiva un envase flotando. El río ya arrastra basura del vertedero (${Math.round(S.landfill)} residuos).`:'El pingüino de Humboldt te mira con curiosidad y se lanza al agua limpia.',dirty?'bad':'good');break}
+    case'peng':{const dirty=riverLoad()>=20;if(S.flags.peng!==S.day){S.flags.peng=S.day;apply({mood:dirty?-3:3})}toast('🐧',dirty?`El pingüino esquiva un envase flotando. El río ya arrastra basura del vertedero (${Math.round(riverLoad())} residuos por persona).`:'El pingüino de Humboldt te mira con curiosidad y se lanza al agua limpia.',dirty?'bad':'good');break}
     case'fountain':{const max=S.owned.botella?2:1;S.flags.fountN=S.flags.fount===S.day?(S.flags.fountN||0):0;if(S.flags.fountN<max){S.flags.fount=S.day;S.flags.fountN++;apply({energy:S.owned.botella?6:3});toast('💧',S.owned.botella?'Llenaste tu botella: agua potable, gratis y sin plástico.':'Agua potable y gratis. No necesitas comprar agua embotellada.','good')}else toast('💧','Ya tomaste agua. Te sientes fresco.');break}
     case'bench':fade(()=>{apply({energy:6,mood:2,time:30});toast('🪑','Descansaste media hora mirando la plaza.')});break;
     case'garden':openGarden();break;
     case'chop':chopTree(s.o);break;
-    case'sapling':if(s.o.planted.wet>60){toast('🌱','El brote ya está húmedo. Vuelve más tarde.')}else{s.o.planted.wet=600;apply({time:5});beep('click');for(let k=0;k<8;k++)puff({x:s.o.x+(Math.random()-.5)*24,y:s.o.y-10,vy:30,life:.5,max:.5,size:2.5,color:'rgba(140,200,255,A)'});toast('💦','Regaste el brote.')}break;
+    case'sapling':if(s.o.planted.online){if(s.o.planted.wet){toast('🌱','Ese brote ya fue regado.')}else{NET.adapter.water(s.o.planted.netId);apply({time:5});beep('click');toast('💦','Regaste el brote del curso.')}break}if(s.o.planted.wet>60){toast('🌱','El brote ya está húmedo. Vuelve más tarde.')}else{s.o.planted.wet=600;apply({time:5});beep('click');for(let k=0;k<8;k++)puff({x:s.o.x+(Math.random()-.5)*24,y:s.o.y-10,vy:30,life:.5,max:.5,size:2.5,color:'rgba(140,200,255,A)'});toast('💦','Regaste el brote.')}break;
     case'plantStump':plantSapling(s.o.x,s.o.y,s.o);break;
     case'plantTree':plantSapling(s.x,s.y,null);break;
   }
@@ -1760,7 +1881,7 @@ function sleep(){
     S.pantry=S.pantry.filter(p=>{if(p.por>0&&p.exp<nd){wasted+=p.por;wco2+=(p.co2pp||0)*p.por;S.bin.organico+=1;return false}return p.por>0});
     if(wasted){S.foodWasted+=wasted;S.wasteCo2+=wco2;rep.push(['🥀',`Se echaron a perder <b>${wasted}</b> porciones (${kg(wco2)} kg CO₂e desperdiciados).`,'bad'])}
     // basura sin separar
-    const bw=wasteCount(S.bin);if(bw){S.landfill+=bw;rep.push(['🚛',`El camión llevó <b>${bw}</b> residuos sin separar al vertedero.`,'bad'])}else rep.push(['✨','No enviaste residuos al vertedero hoy.','good']);
+    const bw=wasteCount(S.bin);if(bw){S.landfill+=bw;if(NET.on)NET.adapter.add('lf',bw);rep.push(['🚛',`El camión llevó <b>${bw}</b> residuos sin separar al vertedero.`,'bad'])}else rep.push(['✨','No enviaste residuos al vertedero hoy.','good']);
     S.bin={plastico:0,papel:0,vidrio:0,organico:0};
     // necesidades vencidas
     for(const n of NEEDS)if(!S.needs[n.id]&&n.due<=S.day&&!S.flags['late_'+n.id]){S.flags['late_'+n.id]=1;S.mood=clamp(S.mood-8,0,100);rep.push([n.emoji,`No resolviste: ${n.title.toLowerCase()}. Tu bienestar bajó.`,'bad'])}
@@ -1775,9 +1896,10 @@ function sleep(){
     if(ate<2)rep.push(['🍽️',`Comiste ${ate} de 2 veces. Tu salud lo resiente.`,'bad']);
     // adaptación hedónica
     for(const w of S.wants)if(S.flags['want_'+w]===S.day){S.mood=clamp(S.mood-5,0,100);const W=WANTS.find(x=>x.id===w);rep.push([W.emoji,`La emoción por ${W.name.toLowerCase()} se pasó. Tu bienestar volvió a bajar.`,''])}
-    S.daily.push({day:S.day,co2:S.co2Day[S.day]||0,money:S.money,health:S.health,mood:S.mood});
+    for(const r of bankNight())rep.push(r);
+    S.daily.push({day:S.day,co2:S.co2Day[S.day]||0,money:S.money,health:S.health,mood:S.mood,net:netWorth()});
     const summary={day:S.day,co2:S.co2Day[S.day]||0,rep};
-    if(S.day>=LAST_DAY){S.over=true;player.scene='home';player.x=190;player.y=400;save();showReport();return}
+    if(S.day>=LAST_DAY){bankSettle();S.over=true;player.scene='home';player.x=190;player.y=400;save();showReport();return}
     S.day++;S.min=DAY_START;S.meals=0;if(S.owned.barril)for(const pl of S.plots)if(pl&&!pl.ready&&!pl.dead)pl.wet=WET;player.scene='home';player.x=190;player.y=400;player.vx=player.vy=0;
     save();showDaySummary(summary);
   },'🌙 Buenas noches',`Día ${S.day} terminado`);
@@ -1802,7 +1924,7 @@ function computeScore(){
   const waste=clamp(20*rate-S.foodWasted*1.5,0,20);
   let needs=0;for(const n of NEEDS){const r=S.needs[n.id];needs+=r?(r.kind==='nuevo'?1.5:3.75):0}
   const d=S.daily.length?S.daily:[{health:S.health,mood:S.mood}];const avgH=d.reduce((a,x)=>a+x.health,0)/d.length,avgM=d.reduce((a,x)=>a+x.mood,0)/d.length;
-  const well=20*(avgH+avgM)/200;const money=15*clamp(S.money/START_MONEY,0,1);
+  const well=20*(avgH+avgM)/200;const debt=bankDebt();const money=Math.max(0,15*clamp(netWorth()/START_MONEY,0,1)-(debt>0?5:0));
   return{total:Math.round(eco+waste+needs+well+money),eco,waste,needs,well,money,rate,avgH,avgM};
 }
 function showReport(){
@@ -1818,6 +1940,8 @@ function showReport(){
     ['🧘','Autocuidado','Salud y bienestar promedio sobre 70',sc.avgH>=70&&sc.avgM>=70],
     ['🛍️','Sin caprichos','No compraste cosas que no necesitabas',!S.log.some(l=>l.type==='capricho')],
     ['🌱','Del huerto a la mesa','Cosechaste tu propio huerto',S.log.some(l=>l.type==='cosecha')],
+    ['🏦','Sin deudas','Terminaste la semana sin deudas con el banco',bankDebt()===0],
+    ['🐷','Ahorro','Terminaste con $5.000 o más ahorrados en el banco',S.bank.save+(S.bank.term?S.bank.term.amt:0)>=5000],
     ['🌳','Reforestación','Plantaste 3 o más árboles y no talaste más de los que plantaste',(S.treesPlanted||0)>=3&&(S.treesPlanted||0)>=(S.treesCut||0)],
   ];
   const maxC=Math.max(5,...S.daily.map(d=>d.co2));const W=560,H=200,pl=40,pb=28,bw=(W-pl-10)/7;
@@ -1828,7 +1952,7 @@ function showReport(){
   openSheet({kind:'report',locked:true,title:'Informe de la semana',emoji:'📊',color:'#2f6b4f',sub:'Tu forma de consumir en Villa Verde',render:()=>({body:`
     <div class="score"><svg class="ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#dbe6de" stroke-width="12"/><circle cx="60" cy="60" r="50" fill="none" stroke="#2f8f5b" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C*t/100} ${C}" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="30" font-weight="700" fill="#16231c" font-family="Fredoka,Nunito,sans-serif">${t}</text></svg>
       <div style="flex:1;min-width:200px"><p class="sec-t" style="margin:0 0 4px;font-size:22px">${title}</p><div class="c-sub" style="font-size:14px">Huella ${Math.round(sc.eco)}/30 · Residuos ${Math.round(sc.waste)}/20 · Imprevistos ${Math.round(sc.needs)}/15 · Bienestar ${Math.round(sc.well)}/20 · Ahorro ${Math.round(sc.money)}/15</div></div></div>
-    <div class="kv" style="margin-top:14px"><div><small>Huella total</small><b>${kg(S.co2)} kg</b></div><div><small>Reciclado y compostado</small><b>${Math.round(sc.rate*100)}%</b></div><div><small>Comida botada</small><b>${S.foodWasted} porc.</b></div><div><small>Reparado o usado</small><b>${nRe} de ${NEEDS.length}</b></div><div><small>Árboles talados / plantados</small><b>${S.treesCut||0} / ${S.treesPlanted||0}</b></div><div><small>Comprado nuevo</small><b>${nNew}</b></div><div><small>Dinero final</small><b>${fmt(S.money)}</b></div></div>
+    <div class="kv" style="margin-top:14px"><div><small>Huella total</small><b>${kg(S.co2)} kg</b></div><div><small>Reciclado y compostado</small><b>${Math.round(sc.rate*100)}%</b></div><div><small>Comida botada</small><b>${S.foodWasted} porc.</b></div><div><small>Reparado o usado</small><b>${nRe} de ${NEEDS.length}</b></div><div><small>Árboles talados / plantados</small><b>${S.treesCut||0} / ${S.treesPlanted||0}</b></div><div><small>Comprado nuevo</small><b>${nNew}</b></div><div><small>Dinero en mano</small><b>${fmt(S.money)}</b></div><div><small>Patrimonio neto</small><b>${fmt(netWorth())}</b></div><div><small>Deuda final</small><b>${fmt(bankDebt())}</b></div></div>
     <p class="sec-t">Huella de carbono por día (kg CO₂e)</p><div style="overflow-x:auto"><svg class="chart" viewBox="0 0 ${W} ${H}" style="min-width:420px">${grid}${bars}</svg></div>
     <p class="sec-t">Logros</p><div class="badges">${badges.map(b=>`<div class="badge ${b[3]?'':'off'}" title="${b[2]}"><span style="font-size:20px">${b[0]}</span><span>${b[1]}<br><small style="font-weight:600;color:var(--muted)">${b[2]}</small></span></div>`).join('')}</div>
     <p class="sec-t">Para conversar en clase</p><ol class="q"><li>¿Qué compra de la semana repetirías y cuál cambiarías? ¿Por qué?</li><li>¿Hubo algún momento en que compraste algo que querías pero no necesitabas? ¿Cómo te sentiste al día siguiente?</li><li>Compara reparar, comprar usado y comprar nuevo: ¿qué ganaste y qué perdiste en cada caso?</li><li>¿Cómo se relacionan tu bienestar, tu dinero y tu huella? ¿Se puede mejorar uno sin empeorar los otros?</li></ol>
@@ -1849,6 +1973,7 @@ window.addEventListener('keydown',e=>{
   if(e.code==='KeyE'||e.code==='Space'||e.code==='Enter'){e.preventDefault();interact()}
   else if(e.code==='KeyI'||e.code==='Tab'){e.preventDefault();if(S.started)openBag()}
   else if(e.code==='KeyN'){toggleMusic()}
+  else if(NET.on&&/^Digit[1-6]$/.test(e.code)){sendEmote(+e.code.slice(5)-1)}
   else if(e.code==='KeyM'){$('#mapwrap').classList.toggle('big')}
   else if(e.code==='Escape'){e.preventDefault();if(S.started)openMenu()}
 },{passive:false});
@@ -1899,7 +2024,7 @@ function updatePlayer(dt){
     if(clickTarget){const tx=clickTarget.x-player.x,ty=clickTarget.y-player.y,d=Math.hypot(tx,ty);if(d<8)clickTarget=null;else{dx=tx/d;dy=ty/d}}
   }else readPad();
   let m=Math.hypot(dx,dy);if(m>1){dx/=m;dy/=m;m=1}
-  const tired=S.energy<15?.7:1,sp=(run?330:200)*tired;
+  const tired=S.energy<15?.7:1,sp=(run?330:200)*tired*(S.owned&&S.owned.bici&&player.scene==='world'?1.3:1);
   const tvx=dx*sp,tvy=dy*sp,k=1-Math.exp(-dt*14);
   player.vx+=(tvx-player.vx)*k;player.vy+=(tvy-player.vy)*k;
   const hit=player.scene==='home'?homeHit:circleHit;
@@ -1945,7 +2070,7 @@ function frame(now){
     advance(dt*2); // 1 s real = 2 min de juego
     if(S.min>=PASSOUT&&!S.over){toast('😵','Te quedaste dormido fuera de casa. Amaneces cansado.','bad');S.mood=clamp(S.mood-8,0,100);S.health=clamp(S.health-4,0,100);sleep()}
   }
-  updateMusic(dt);updatePlayer(dt);updateAnimals(dt);updateParts(dt);ambient(dt);updateCamera(dt);
+  updateMusic(dt);if(NET.on)netTick(dt);updatePlayer(dt);updateAnimals(dt);updateParts(dt);ambient(dt);updateCamera(dt);
   render();updatePrompt();
   hudT-=dt;if(hudT<0&&S){hudT=.25;refreshHUD()}
   mmT-=dt;if(mmT<0){mmT=.1;drawMinimap()}
@@ -1969,7 +2094,7 @@ function startNew(){
       <div class="row"><span class="c-em">🌙</span><div class="grow"><div class="t">Duerme en casa antes de las 22:00</div><div class="s">El día termina cuando te acuestas. El domingo en la noche verás tu informe.</div></div></div>
     </div>`,foot:`<button class="btn wide" data-act="close">Empezar</button>`})});
 }
-function migrate(st){if(!st.plots)st.plots=[null,null,null,null,null,null];if(!st.seeds)st.seeds={lechuga:2,hierbas:1,zanahoria:1};if(st.riverCleaned==null)st.riverCleaned=0;if(!st.skills)st.skills={};if(st.harvested==null)st.harvested=0;if(!st.garden)st.garden={compost:0};if(st.wood==null)st.wood=0;if(!st.saplings)st.saplings=[];if(!st.cut)st.cut={};if(!st.planted)st.planted=[];if(!st.nextTree)st.nextTree=1;if(st.treesCut==null)st.treesCut=0;if(st.treesPlanted==null)st.treesPlanted=0;return st}
+function migrate(st){if(!st.plots)st.plots=[null,null,null,null,null,null];if(!st.seeds)st.seeds={lechuga:2,hierbas:1,zanahoria:1};if(st.riverCleaned==null)st.riverCleaned=0;if(!st.skills)st.skills={};if(st.harvested==null)st.harvested=0;if(!st.garden)st.garden={compost:0};if(!st.bank)st.bank={save:0,term:null,debt:{credito:0,avance:0},inv:{bono:0,solar:0,feria:0,cadena:0},hist:[]};if(st.wood==null)st.wood=0;if(!st.saplings)st.saplings=[];if(!st.cut)st.cut={};if(!st.planted)st.planted=[];if(!st.nextTree)st.nextTree=1;if(st.treesCut==null)st.treesCut=0;if(st.treesPlanted==null)st.treesPlanted=0;return st}
 function continueGame(d){musicPlay();S=migrate(d.S);syncTrees();player.scene=d.p.scene||'world';player.x=d.p.x;player.y=d.p.y;hudSig='';$('#title').hidden=true;S.started=true;refreshHUD();snapCamera();toast('💾',`Continuando: ${DAYS[S.day-1]}, ${hhmm(S.min)}.`)}
 
 async function boot(){
@@ -1982,9 +2107,197 @@ async function boot(){
   player.scene='world';player.x=1200;player.y=1000;snapCamera();refreshHUD();
   const d=load();if(d){$('#btnCont').hidden=false;$('#btnCont').onclick=()=>continueGame(d)}
   $('#btnNew').onclick=()=>{beep('click');startNew()};
+  setupOnlineUI();
   requestAnimationFrame(frame);
 }
 boot();
-</script>
+/* =========================================================
+   Multijugador en línea: Firebase Realtime Database (o modo local de prueba)
+   - Presencia: posición, nombre, color y emotes de cada jugador
+   - Mundo compartido: árboles talados, árboles plantados, basura del río
+   Cada jugador mantiene su propia semana, dinero y despensa.
+   ========================================================= */
+const NET={on:false,mode:null,room:'',name:'',uid:'',color:0,peers:{},world:{cut:{},pl:{},lf:0,cl:0,who:{}},
+  lastSent:0,lastKey:'',lastBeat:0,offset:0,adapter:null,emote:null,emoteT:0};
+const PEER_HUES=[0,40,90,150,200,250,300,330];
+const EMOTES=['👋','😀','👍','♻️','🌳','❓'];
+function isOnline(){return NET.on}
+function netNow(){return Date.now()+NET.offset}
+function cleanName(s){return String(s||'').replace(/[^\p{L}\p{N} ._-]/gu,'').trim().slice(0,16)}
+function cleanRoom(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,20)}
+function hasFirebaseConfig(){const c=window.FIREBASE_CONFIG;return!!(c&&c.apiKey&&c.databaseURL&&!/PEGA|TU_/i.test(c.apiKey))}
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('No se pudo cargar '+src));document.head.appendChild(s)})}
 
-</body></html>
+/* ---------- caballeros de colores para los demás ---------- */
+const PEER_SPR=[];
+function buildPeerSprites(){
+  if(!IMG.knight)return;const h=96,w=Math.round(IMG.knight.width*h/IMG.knight.height);
+  for(const hue of PEER_HUES){const c=mk(w*2,h*2),g=c.getContext('2d');
+    if('filter' in g){g.filter=`hue-rotate(${hue}deg) saturate(1.35)`}
+    g.drawImage(IMG.knight,0,0,w*2,h*2);PEER_SPR.push({c,w,h,hue})}
+}
+
+/* ---------- adaptador Firebase ---------- */
+const FB_VER='10.12.2';
+function firebaseAdapter(){
+  let base=null,me=null;const TS=()=>firebase.database.ServerValue.TIMESTAMP;
+  return{
+    async connect(room,info,h){
+      if(!window.firebase){await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-app-compat.js`);await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-auth-compat.js`);await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-database-compat.js`)}
+      if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG);
+      const cred=await firebase.auth().signInAnonymously();const uid=cred.user.uid;
+      const db=firebase.database();
+      db.ref('.info/serverTimeOffset').on('value',s=>{NET.offset=s.val()||0});
+      base=db.ref('rooms/'+room);me=base.child('p/'+uid);
+      await me.onDisconnect().remove();
+      await me.set({...info,t:TS()});
+      await base.child('w/who/'+uid).set(true);
+      const P=base.child('p');
+      P.on('child_added',s=>h.peer(s.key,s.val()));P.on('child_changed',s=>h.peer(s.key,s.val()));P.on('child_removed',s=>h.peerGone(s.key));
+      const C=base.child('w/cut');C.on('child_added',s=>h.cut(s.key,s.val()));C.on('child_changed',s=>h.cut(s.key,s.val()));
+      const L=base.child('w/pl');L.on('child_added',s=>h.pl(s.key,s.val()));L.on('child_changed',s=>h.pl(s.key,s.val()));L.on('child_removed',s=>h.pl(s.key,null));
+      base.child('w/lf').on('value',s=>h.num('lf',s.val()||0));base.child('w/cl').on('value',s=>h.num('cl',s.val()||0));
+      base.child('w/who').on('value',s=>h.who(s.val()||{}));
+      return uid;
+    },
+    presence(d){if(me)me.set({...d,t:TS()})},
+    async tryCut(tid){const r=await base.child('w/cut/'+tid).transaction(cur=>cur?undefined:{by:NET.uid,t:Date.now()});return r.committed},
+    replant(tid){return base.child('w/cut/'+tid).set({by:NET.uid,t:Date.now(),r:true})},
+    addPlanted(id,p){return base.child('w/pl/'+id).set(p)},
+    water(id){return base.child('w/pl/'+id+'/wa').transaction(cur=>cur?undefined:Date.now()+NET.offset)},
+    async removePlanted(id){const r=await base.child('w/pl/'+id).transaction(cur=>cur?null:undefined);return r.committed},
+    add(key,n){return base.child('w/'+key).transaction(v=>(v||0)+n)},
+    leave(){if(me)me.remove()}
+  };
+}
+
+/* ---------- adaptador local (varias pestañas del mismo navegador, para probar sin Firebase) ---------- */
+function localAdapter(){
+  let ch=null,h=null;const W=NET.world;
+  const send=m=>ch&&ch.postMessage(m);
+  return{
+    async connect(room,info,handlers){
+      h=handlers;const uid='L'+Math.random().toString(36).slice(2,9);
+      ch=new BroadcastChannel('vv_'+room);
+      ch.onmessage=e=>{const m=e.data;
+        if(m.type==='p')h.peer(m.uid,m.d);
+        else if(m.type==='bye')h.peerGone(m.uid);
+        else if(m.type==='cut')h.cut(m.tid,m.v);
+        else if(m.type==='pl')h.pl(m.id,m.v);
+        else if(m.type==='num')h.num(m.key,m.v);
+        else if(m.type==='who')h.who({...W.who,[m.uid]:true});
+        else if(m.type==='hello'){send({type:'p',uid:NET.uid,d:NET.lastInfo});send({type:'state',w:W})}
+        else if(m.type==='state'){for(const k in m.w.cut)if(!W.cut[k])h.cut(k,m.w.cut[k]);for(const k in m.w.pl)if(!W.pl[k])h.pl(k,m.w.pl[k]);if(m.w.lf>W.lf)h.num('lf',m.w.lf);if(m.w.cl>W.cl)h.num('cl',m.w.cl);h.who({...W.who,...m.w.who})}
+      };
+      for(const ev of['beforeunload','pagehide'])window.addEventListener(ev,()=>send({type:'bye',uid}));
+      NET.uid=uid;h.who({...W.who,[uid]:true});send({type:'who',uid});send({type:'hello'});
+      return uid;
+    },
+    presence(d){NET.lastInfo=d;send({type:'p',uid:NET.uid,d})},
+    async tryCut(tid){if(W.cut[tid])return false;const v={by:NET.uid,t:Date.now()};h.cut(tid,v);send({type:'cut',tid,v});return true},
+    async replant(tid){const v={by:NET.uid,t:Date.now(),r:true};h.cut(tid,v);send({type:'cut',tid,v})},
+    async addPlanted(id,p){h.pl(id,p);send({type:'pl',id,v:p})},
+    async water(id){const p=W.pl[id];if(!p||p.wa)return;const v={...p,wa:Date.now()};h.pl(id,v);send({type:'pl',id,v})},
+    async removePlanted(id){if(!W.pl[id])return false;h.pl(id,null);send({type:'pl',id,v:null});return true},
+    async add(key,n){const v=(W[key]||0)+n;h.num(key,v);send({type:'num',key,v})},
+    leave(){send({type:'bye',uid:NET.uid});ch&&ch.close()}
+  };
+}
+
+/* ---------- eventos que llegan de la red ---------- */
+const NET_HANDLERS={
+  peer(uid,d){if(!d||uid===NET.uid)return;const p=NET.peers[uid];
+    if(!p){NET.peers[uid]={seen:performance.now(),uid,n:cleanName(d.n)||'Vecino',c:(d.c|0)%PEER_HUES.length,x:d.x,y:d.y,rx:d.x,ry:d.y,f:d.f||1,m:!!d.m,s:d.s||'w',ph:0,e:d.e,et:d.et};if(S&&S.started)toast('🟢',`${cleanName(d.n)||'Alguien'} entró al pueblo.`);renderNetPill()}
+    else Object.assign(p,{seen:performance.now(),n:cleanName(d.n)||p.n,c:(d.c|0)%PEER_HUES.length,x:d.x,y:d.y,f:d.f||1,m:!!d.m,s:d.s||'w',e:d.e,et:d.et});
+  },
+  peerGone(uid){const p=NET.peers[uid];if(!p)return;delete NET.peers[uid];renderNetPill();if(S&&S.started)toast('⚪',`${p.n} salió del pueblo.`)},
+  cut(tid,v){NET.world.cut[tid]=v;const o=OBJECTS.find(o=>o.tid===tid&&!o.planted);if(!o)return;
+    if(v&&v.r){o.hide=true;o.stump=false;if(o.circ)o.circ.off=true;return}
+    if(o.stump||o.fall)return;if(o.circ)o.circ.off=true;
+    if(Math.abs(o.x-player.x)<900&&Math.abs(o.y-player.y)<700&&v.by!==NET.uid){o.fall=T;o.fallDir=1}else o.stump=true},
+  pl(id,v){const W=NET.world.pl;const o=OBJECTS.find(o=>o.planted&&o.planted.netId===id);
+    if(!v){delete W[id];if(o){if(o.fall)return;if(Math.abs(o.x-player.x)<900&&Math.abs(o.y-player.y)<700){o.fall=T;o.fallDir=1;o.circ.off=true}else removeTreeObj(o)}return}
+    W[id]=v;if(o){Object.assign(o.planted,netPlantedState(id,v));return}
+    if(S)addPlantedObj(netPlantedState(id,v));},
+  num(key,v){NET.world[key]=Math.max(NET.world[key]||0,v)},
+  who(w){NET.world.who=w;renderNetPill()},
+};
+function netPlantedState(id,v){return{id,netId:id,x:v.x,y:v.y,v:v.v|0,at:v.at,wa:v.wa||0,by:v.by,prog:netProg(v),wet:v.wa?1:0,online:true}}
+function netProg(v){const now=netNow(),wa=v.wa||0;const a=Math.max(0,((wa||now)-v.at))*.35,b=wa?Math.max(0,now-wa):0;return Math.min(GROW_T,(a+b)/1000*2)}
+
+/* ---------- conexión ---------- */
+async function netConnect(room,name,mode){
+  NET.mode=mode;NET.room=room;NET.name=name;NET.color=Math.abs([...name].reduce((a,ch)=>a*31+ch.charCodeAt(0),7))%PEER_HUES.length;
+  NET.adapter=mode==='local'?localAdapter():firebaseAdapter();
+  const info={n:name,c:NET.color,x:Math.round(player.x),y:Math.round(player.y),f:1,m:0,s:'h'};
+  NET.uid=await NET.adapter.connect(room,info,NET_HANDLERS);NET.on=true;
+  try{localStorage.setItem('vv_net',JSON.stringify({name,room}))}catch(e){}
+  if(!PEER_SPR.length)buildPeerSprites();renderNetPill();$('#emotes').hidden=false;
+}
+function netTick(dt){
+  if(!NET.on)return;
+  const now=performance.now(),inWorld=player.scene==='world';
+  const key=inWorld?Math.round(player.x/3)+','+Math.round(player.y/3)+','+player.face:'h';
+  const eKey=NET.emote&&now-NET.emoteT<3500?NET.emote:'';
+  if((key+eKey!==NET.lastKey&&now-NET.lastSent>160)||now-NET.lastBeat>8000){
+    NET.lastKey=key+eKey;NET.lastSent=now;NET.lastBeat=now;
+    NET.adapter.presence({n:NET.name,c:NET.color,x:Math.round(player.x),y:Math.round(player.y),f:player.face,m:player.moving?1:0,s:inWorld?'w':'h',...(eKey?{e:eKey,et:Date.now()}:{})});
+  }
+  const k=1-Math.exp(-dt*10);
+  for(const id in NET.peers){const p=NET.peers[id];if(now-p.seen>25000){NET_HANDLERS.peerGone(id);continue}const dx=p.x-p.rx,dy=p.y-p.ry;p.rx+=dx*k;p.ry+=dy*k;const sp=Math.hypot(dx,dy);p.walking=sp>2||p.m;if(p.walking)p.ph+=dt*9;if(Math.abs(dx)>1)p.f=dx<0?-1:1}
+  NET.pillT=(NET.pillT||0)-dt;if(NET.pillT<0){NET.pillT=2;if($('#netList')&&!$('#netList').hidden)renderNetPill()}
+  // crecimiento de árboles compartidos (por reloj del servidor)
+  NET.growT=(NET.growT||0)-dt;if(NET.growT<0){NET.growT=.5;
+    for(const o of OBJECTS)if(o.planted&&o.planted.online){const v=NET.world.pl[o.planted.netId];if(!v)continue;const was=o.planted.prog;o.planted.prog=netProg(v);o.planted.wet=v.wa?1:0;
+      if(o.planted.prog>=GROW_T){o.circ.off=false;if(was<GROW_T&&v.by===NET.uid&&S.started)toast('🌳',`El ${treeName(o.v).toLowerCase()} que plantaste ya es un árbol. Todos en el curso lo ven.`,'good')}}}
+}
+function riverLoad(){if(NET.on){const n=Math.max(1,Object.keys(NET.world.who||{}).length);return Math.max(0,(NET.world.lf||0)-(NET.world.cl||0))/n}return Math.max(0,S.landfill-(S.riverCleaned||0))}
+function peerList(){return Object.values(NET.peers)}
+
+/* ---------- dibujo de los demás jugadores ---------- */
+function drawPeer(g,p){
+  const spr=PEER_SPR[p.c]||PEER_SPR[0];const bob=p.walking?Math.abs(Math.sin(p.ph))*4:0,tilt=p.walking?Math.sin(p.ph)*.06:0;
+  const col=`hsl(${(210+PEER_HUES[p.c])%360} 70% 55%)`;
+  g.save();g.translate(p.rx,p.ry);
+  g.fillStyle='rgba(10,25,15,.3)';g.beginPath();g.ellipse(0,0,22,8,0,0,7);g.fill();
+  g.strokeStyle=col;g.lineWidth=3;g.beginPath();g.ellipse(0,0,24,9,0,0,7);g.stroke();
+  if(spr){g.save();g.rotate(tilt);g.scale(p.f||1,1);g.drawImage(spr.c,-spr.w*.52,-spr.h-bob+6,spr.w,spr.h);g.restore()}
+  g.font=`700 13px ${FONT_B}`;const tw=g.measureText(p.n).width+16;
+  g.fillStyle='rgba(17,28,23,.78)';rr(g,-tw/2,-122,tw,20,10);g.fill();g.fillStyle=col;g.beginPath();g.arc(-tw/2+9,-112,3.5,0,7);g.fill();
+  g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(p.n,4,-111.5);
+  if(p.e&&Date.now()-(p.et||0)<3500+Math.abs(NET.offset)){g.fillStyle='rgba(255,255,255,.95)';g.beginPath();g.arc(0,-146,17,0,7);g.fill();g.beginPath();g.moveTo(-5,-131);g.lineTo(0,-123);g.lineTo(5,-131);g.fill();g.font='20px system-ui,"Segoe UI Emoji","Apple Color Emoji"';g.fillText(p.e,0,-145)}
+  g.restore();
+}
+function drawSelfEmote(g){if(!NET.on||!NET.emote||performance.now()-NET.emoteT>3500||player.scene!=='world')return;g.save();g.translate(player.x,player.y);g.fillStyle='rgba(255,255,255,.95)';g.beginPath();g.arc(0,-136,17,0,7);g.fill();g.beginPath();g.moveTo(-5,-121);g.lineTo(0,-113);g.lineTo(5,-121);g.fill();g.font='20px system-ui,"Segoe UI Emoji","Apple Color Emoji"';g.textAlign='center';g.textBaseline='middle';g.fillText(NET.emote,0,-135);g.restore()}
+function sendEmote(i){if(!NET.on)return;NET.emote=EMOTES[i];NET.emoteT=performance.now();NET.lastKey=''}
+
+/* ---------- interfaz en línea ---------- */
+function renderNetPill(){const el=$('#netPill');if(!NET.on){el.hidden=true;return}el.hidden=false;
+  const ps=peerList();const n=ps.length+1;
+  const open=$('#netList')&&!$('#netList').hidden;el.innerHTML=`<button id="netBtn" class="np-btn" title="Curso ${NET.room}"><i class="dot"></i><b>${n}</b></button><div class="np-list" id="netList" ${open?'':'hidden'}><div class="np-room">Curso ${NET.room} · ${n} en línea</div><div class="np-me">${escapeHtml(NET.name)} (tú)</div>${ps.map(p=>`<div><i style="background:hsl(${(210+PEER_HUES[p.c])%360} 70% 55%)"></i>${escapeHtml(p.n)}${p.s==='h'?' <small>en casa</small>':''}</div>`).join('')}<p class="np-note">Río del curso: ${Math.round(riverLoad())} residuos por jugador · ${Object.values(NET.world.cut).filter(v=>!v.r).length} árboles talados · ${Object.keys(NET.world.pl).length} plantados</p></div>`;
+  $('#netBtn').onclick=()=>{const l=$('#netList');l.hidden=!l.hidden};
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function setupOnlineUI(){
+  let saved={};try{saved=JSON.parse(localStorage.getItem('vv_net')||'{}')}catch(e){}
+  const inName=$('#inName'),inRoom=$('#inRoom'),msg=$('#tNetMsg');
+  inName.value=saved.name||'';inRoom.value=saved.room||'';
+  const localOK=/[?&#]local\b/.test(location.href);
+  const cfgOK=hasFirebaseConfig();
+  if(!cfgOK&&!localOK){$('#btnOnline').disabled=true;msg.textContent='El modo en línea se activa cuando el docente configura Firebase (ver LEEME-MULTIJUGADOR).'}
+  $('#btnOnline').onclick=async()=>{
+    const name=cleanName(inName.value),room=cleanRoom(inRoom.value);
+    if(name.length<2){msg.textContent='Escribe tu nombre (al menos 2 letras).';inName.focus();return}
+    if(room.length<2){msg.textContent='Escribe el código del curso que te dio tu profesor.';inRoom.focus();return}
+    $('#btnOnline').disabled=true;msg.textContent='Conectando…';
+    try{
+      await netConnect(room,name,cfgOK&&!localOK?'firebase':'local');
+      SAVE_SLOT='@'+room;musicPlay();
+      const d=load();if(d)continueGame(d);else startNew();
+      syncTrees();toast('🌐',`Estás en el pueblo del curso <b>${room}</b>. El río y los árboles son de todos.`,'good');
+    }catch(e){console.error(e);msg.textContent='No se pudo conectar: '+(e&&e.message?e.message:'revisa la conexión a internet.');$('#btnOnline').disabled=false}
+  };
+  $('#emotes').addEventListener('click',e=>{const b=e.target.closest('[data-em]');if(b)sendEmote(+b.dataset.em)});
+  $('#emotes').innerHTML=EMOTES.map((e,i)=>`<button data-em="${i}" title="Tecla ${i+1}">${e}</button>`).join('');
+}
+</script></body></html>

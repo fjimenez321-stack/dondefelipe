@@ -43,3 +43,35 @@ Música
 - Exterior: assets/music.mp3 ("Glass Kingdom Rites").
 - Interiores: assets/music_indoor.mp3 ("Safe Harbor at Midday"). Suena dentro del hogar y al entrar al
   Mercado, Centro de Oficios, Centro de Reutilización y Almacén. Las pistas se cruzan con un fundido suave.
+
+Corrección de huella de carbono
+- Valores de alimentos ajustados a Poore y Nemecek (2018), vía Our World in Data (kg CO2e por kg):
+  vacuno 500 g = 30 kg, pollo 500 g = 4,9, queso 250 g = 6, leche 1 L = 3,1 a 3,2, arroz 1 kg = 4,5,
+  lentejas 1 kg = 1,8 a 2, avena 1 kg = 2,5, huevos (6) = 1,7, papas 1,5 kg = 0,7, empanada de pino = 3,5.
+- Se quitó la "neblina" asociada a la huella: el CO2 es invisible y actúa a escala global.
+- Las cosechas del huerto se muestran como "casi 0 kg CO2e" (no exactamente cero).
+
+Terreno doble y árboles (talar y replantar)
+- El mundo pasó de 2400×1760 a 3500×2500 (algo más del doble de superficie). El pueblo queda igual;
+  se agregan el Bosque comunitario (noreste), un segundo puente (Puente del Bosque), bosques y praderas al sur.
+  Las calles se prolongan hacia el este y nuevos senderos conectan el hogar, la reserva y el puente nuevo.
+- Talar: con un hacha (se presta gratis en el Centro de Reutilización > Comunidad, o se compra en el Almacén)
+  te acercas a un árbol y presionas E. Da 2 a 4 maderas y a veces 1 o 2 brotes. En la reserva natural no se tala.
+- Plantar: con brotes en la mochila, párate en el pasto y presiona E (o sobre un tocón). Riega el brote:
+  regado se hace árbol en ~12 minutos reales. Los árboles plantados y talados se guardan en la partida.
+- La madera se vende en el Almacén o se usa para construir una compostera (taller del Centro de Reutilización).
+- El informe final cuenta árboles talados y plantados; talar más de lo que plantas resta puntos de huella.
+
+Banco Villa Verde (junto al Almacén, frente a la calle sur)
+- Resumen: dinero en mano, ahorro, depósito a plazo, inversiones, deudas y patrimonio neto.
+- Ahorrar: cuenta de ahorro (2% por noche, interés compuesto) y depósito a plazo (15% en 3 noches, bloqueado).
+- Préstamos: crédito del banco (3% por noche, requiere haber trabajado) y avance rápido (10% por noche, sin requisitos).
+  El domingo en la noche el banco cobra lo que se deba; lo impago queda en el informe.
+- Invertir: bono municipal (riesgo bajo), cooperativa solar (medio, depende del clima), fondo de productores locales
+  (medio, variable) y acciones de MegaBurger (alto, muy variable). También la bicicleta usada como inversión personal.
+- Tasas exageradas a propósito para que el efecto se vea en una semana; el juego lo advierte.
+- El puntaje de ahorro ahora usa el patrimonio neto y descuenta si quedan deudas. Logros nuevos: "Sin deudas" y "Ahorro".
+
+Multijugador en línea (ver LEEME-MULTIJUGADOR.txt)
+- Pantalla de inicio: nombre + código del curso + "Jugar en línea". Requiere configurar Firebase en firebase-config.js.
+- Jugadores visibles con nombre y emotes; árboles, plantaciones y río compartidos por todo el curso.
