@@ -74,6 +74,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--coin);outl
 #emotes{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:4px;padding:5px;z-index:5}
 #emotes button{width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.08);font-size:20px}
 #emotes button:hover{background:rgba(255,255,255,.2)}
+.is-touch #tradeInvite{bottom:auto;top:calc(150px + env(safe-area-inset-top,0px))}
 .is-touch #emotes{bottom:auto;top:calc(150px + env(safe-area-inset-top,0px))}
 .t-online{margin-top:20px;padding:14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
 .t-online h4{margin:0 0 10px;font:600 14px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:#9fe0b0}
@@ -99,6 +100,39 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--coin);outl
 .is-touch #chatWrap{bottom:auto;top:calc(200px + env(safe-area-inset-top,0px));width:min(320px,calc(100vw - 24px))}
 .np-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .np-mute{border:0;border-radius:8px;background:rgba(255,255,255,.1);color:var(--on-glass-dim);font:700 11px/1 var(--f-body);padding:5px 7px}
+#tradeInvite{position:absolute;left:50%;bottom:calc(72px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:22;width:min(420px,calc(100vw - 24px));padding:12px 14px 14px;display:grid;gap:10px;font:700 14px/1.35 var(--f-body);color:var(--on-glass);animation:tin .3s;overflow:hidden}
+.ti-head{display:flex;gap:10px;align-items:flex-start}
+.ti-head small{display:block;font:600 12px/1.3 var(--f-body);color:var(--on-glass-dim);margin-top:2px}
+.ti-ic{font-size:24px;line-height:1}
+.ti-btns{display:flex;gap:8px}
+.ti-btns .btn{flex:1}
+.ti-bar{position:absolute;left:0;bottom:0;height:3px;background:var(--coin);transition:width .5s linear}
+.trade-top{position:sticky;top:-16px;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;align-items:center;background:var(--sheet);padding:4px 0 10px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.tt-side{background:var(--sheet-2);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.tt-side small{display:block;font:800 10.5px/1 var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.tt-side b{font:700 18px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.tt-x{font-size:20px;color:var(--muted)}
+.tt-st{grid-column:1/-1;display:flex;gap:14px;flex-wrap:wrap;font:700 13px/1.2 var(--f-body);color:var(--muted)}
+.tt-st .ok{color:var(--leaf)}
+.trade-msgs{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.tb{align-self:flex-start;padding:6px 10px;border-radius:12px 12px 12px 4px;background:#fff;border:1px solid var(--line);font:600 13px/1.3 var(--f-body)}
+.tb.me{align-self:flex-end;border-radius:12px 12px 4px 12px;background:#e3f1e7}
+.tb b{color:var(--leaf-d)}
+.trade-phr{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.trade-phr button{border:1px solid var(--line);background:var(--sheet-2);border-radius:999px;padding:6px 10px;font:700 12px/1 var(--f-body);color:var(--ink)}
+.trade-phr button:hover{border-color:var(--leaf)}
+.trade-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.trade-cols .row.on{border-color:var(--coin);box-shadow:0 0 0 2px rgba(242,177,52,.25)}
+.trade-cols .row.flash{animation:flash 1.2s ease-in-out 3}
+@keyframes flash{50%{background:#fff3cf;border-color:var(--coin)}}
+.tg-h{margin:8px 0 2px;font:800 10.5px/1 var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tg-h:first-child{margin-top:0}
+.qty button.wide{width:auto;padding:0 9px;font-size:12px}
+.qty.money button{width:auto;padding:0 7px;font-size:12px}
+.qty .tg{width:auto;padding:0 12px;height:34px;border-radius:10px;border:0;background:#e2ebe4;font:800 12px/1 var(--f-body);color:var(--ink)}
+.qty .tg.on{background:var(--coin);color:#3a2600}
+.qty button:disabled{opacity:.4;cursor:not-allowed}
+@media (max-width:700px){.trade-cols{grid-template-columns:1fr}.tc-theirs{order:-1}.trade-top{grid-template-columns:1fr auto 1fr}}
 #goals{position:absolute;left:12px;top:calc(96px + env(safe-area-inset-top,0px));width:250px;padding:12px 14px;z-index:4;pointer-events:none}
 #goals h3{margin:0 0 8px;font:600 13px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--on-glass-dim)}
 #goals ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
@@ -285,6 +319,7 @@ kbd.k{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:
   <div id="prompt" class="glass" hidden><kbd id="pKey">E</kbd><span id="pText"></span></div>
   <div id="toasts"></div>
   <div id="emotes" class="glass" hidden></div>
+  <div id="tradeInvite" class="glass" hidden></div>
   <div id="chatWrap" hidden>
     <div id="chatLog" aria-live="polite"></div>
     <div id="chatBox" class="glass">
@@ -1809,6 +1844,7 @@ function worldSpots(){
   s.push({id:'garden',x:HUERTO.x-18,y:HUERTO.y+HUERTO.h/2,r:60,label:rd?`Cosechar el huerto (${rd} lista${rd===1?'':'s'})`:'Cuidar el huerto'});
   s.push({id:'board',x:BOARD.x,y:BOARD.y+22,r:60,label:'Leer el tablón del pueblo'});
   s.push({id:'pond',x:520,y:1692,r:70,label:'Observar aves en la laguna (30 min)'});
+  if(typeof NET!=='undefined'&&NET.on)for(const id in NET.peers){const p=NET.peers[id];if(p.s==='w')s.push({id:'trade',uid:id,x:p.rx,y:p.ry,r:80,label:`Intercambiar con ${p.n}`})}
   return s;
 }
 function nearestSpot(){
@@ -1892,6 +1928,7 @@ function interact(){
     case'fountain':{const max=S.owned.botella?2:1;S.flags.fountN=S.flags.fount===S.day?(S.flags.fountN||0):0;if(S.flags.fountN<max){S.flags.fount=S.day;S.flags.fountN++;apply({energy:S.owned.botella?6:3});toast('💧',S.owned.botella?'Llenaste tu botella: agua potable, gratis y sin plástico.':'Agua potable y gratis. No necesitas comprar agua embotellada.','good')}else toast('💧','Ya tomaste agua. Te sientes fresco.');break}
     case'bench':fade(()=>{apply({energy:6,mood:2,time:30});toast('🪑','Descansaste media hora mirando la plaza.')});break;
     case'garden':openGarden();break;
+    case'trade':tradeInvite(s.uid);break;
     case'chop':chopTree(s.o);break;
     case'sapling':if(s.o.planted.online){if(s.o.planted.wet){toast('🌱','Ese brote ya fue regado.')}else{NET.adapter.water(s.o.planted.netId);apply({time:5});beep('click');toast('💦','Regaste el brote del curso.')}break}if(s.o.planted.wet>60){toast('🌱','El brote ya está húmedo. Vuelve más tarde.')}else{s.o.planted.wet=600;apply({time:5});beep('click');for(let k=0;k<8;k++)puff({x:s.o.x+(Math.random()-.5)*24,y:s.o.y-10,vy:30,life:.5,max:.5,size:2.5,color:'rgba(140,200,255,A)'});toast('💦','Regaste el brote.')}break;
     case'plantStump':plantSapling(s.o.x,s.o.y,s.o);break;
@@ -2146,7 +2183,7 @@ boot();
    Cada jugador mantiene su propia semana, dinero y despensa.
    ========================================================= */
 const NET={on:false,mode:null,room:'',name:'',uid:'',color:0,peers:{},world:{cut:{},pl:{},lf:0,cl:0,who:{}},
-  lastSent:0,lastKey:'',lastBeat:0,offset:0,adapter:null,emote:null,emoteT:0,chat:[],chatIds:{},muted:{},unread:0,say:'',sayT:0};
+  lastSent:0,lastKey:'',lastBeat:0,offset:0,adapter:null,emote:null,emoteT:0,chat:[],chatIds:{},trades:{},tradeDone:{},muted:{},unread:0,say:'',sayT:0};
 const PEER_HUES=[0,40,90,150,200,250,300,330];
 const EMOTES=['👋','😀','👍','♻️','🌳','❓'];
 function isOnline(){return NET.on}
@@ -2193,6 +2230,7 @@ function firebaseAdapter(){
       base.child('w/lf').on('value',s=>h.num('lf',s.val()||0));base.child('w/cl').on('value',s=>h.num('cl',s.val()||0));
       base.child('w/who').on('value',s=>h.who(s.val()||{}));
       base.child('chat').limitToLast(30).on('child_added',s=>h.chat(s.key,s.val()));
+      const TR=base.child('tr').orderByChild('t').startAt(Date.now()-10*60000);TR.on('child_added',s=>h.trade(s.key,s.val()));TR.on('child_changed',s=>h.trade(s.key,s.val()));
       return uid;
     },
     presence(d){if(me)me.set({...d,t:TS()})},
@@ -2203,10 +2241,13 @@ function firebaseAdapter(){
     async removePlanted(id){const r=await base.child('w/pl/'+id).transaction(cur=>cur?null:undefined);return r.committed},
     add(key,n){return base.child('w/'+key).transaction(v=>(v||0)+n)},
     sendChat(m){return base.child('chat').push({by:NET.uid,n:NET.name,m,t:TS()})},
+    tradeNew(id,v){return base.child('tr/'+id).set(v)},
+    tradeUpd(id,patch){return base.child('tr/'+id).update(patch)},
     leave(){if(me)me.remove()}
   };
 }
 
+function mergeTr(id,patch){const v={...(NET.trades[id]||{})};for(const k in patch){if(patch[k]===null)delete v[k];else v[k]=patch[k]}NET.trades[id]=v;return v}
 /* ---------- adaptador local (varias pestañas del mismo navegador, para probar sin Firebase) ---------- */
 function localAdapter(){
   let ch=null,h=null;const W=NET.world;
@@ -2223,6 +2264,8 @@ function localAdapter(){
         else if(m.type==='num')h.num(m.key,m.v);
         else if(m.type==='who')h.who({...W.who,[m.uid]:true});
         else if(m.type==='chat')h.chat(m.id,m.v);
+        else if(m.type==='tr')h.trade(m.id,m.v);
+        else if(m.type==='trp')h.trade(m.id,mergeTr(m.id,m.patch));
         else if(m.type==='hello'){send({type:'p',uid:NET.uid,d:NET.lastInfo});send({type:'state',w:W})}
         else if(m.type==='state'){for(const k in m.w.cut)if(!W.cut[k])h.cut(k,m.w.cut[k]);for(const k in m.w.pl)if(!W.pl[k])h.pl(k,m.w.pl[k]);if(m.w.lf>W.lf)h.num('lf',m.w.lf);if(m.w.cl>W.cl)h.num('cl',m.w.cl);h.who({...W.who,...m.w.who})}
       };
@@ -2237,6 +2280,8 @@ function localAdapter(){
     async water(id){const p=W.pl[id];if(!p||p.wa)return;const v={...p,wa:Date.now()};h.pl(id,v);send({type:'pl',id,v})},
     async removePlanted(id){if(!W.pl[id])return false;h.pl(id,null);send({type:'pl',id,v:null});return true},
     async add(key,n){const v=(W[key]||0)+n;h.num(key,v);send({type:'num',key,v})},
+    async tradeNew(id,v){NET.trades[id]=v;h.trade(id,v);send({type:'tr',id,v})},
+    async tradeUpd(id,patch){const v=mergeTr(id,patch);send({type:'trp',id,patch});h.trade(id,v)},
     async sendChat(m){const id='c'+Date.now()+Math.random().toString(36).slice(2,5),v={by:NET.uid,n:NET.name,m,t:Date.now()};h.chat(id,v);send({type:'chat',id,v})},
     leave(){send({type:'bye',uid:NET.uid});ch&&ch.close()}
   };
@@ -2248,7 +2293,7 @@ const NET_HANDLERS={
     if(!p){NET.peers[uid]={seen:performance.now(),uid,n:cleanName(d.n)||'Vecino',c:(d.c|0)%PEER_HUES.length,x:d.x,y:d.y,rx:d.x,ry:d.y,f:d.f||1,m:!!d.m,s:d.s||'w',ph:0,e:d.e,et:d.et};if(S&&S.started)toast('🟢',`${cleanName(d.n)||'Alguien'} entró al pueblo.`);renderNetPill()}
     else Object.assign(p,{seen:performance.now(),n:cleanName(d.n)||p.n,c:(d.c|0)%PEER_HUES.length,x:d.x,y:d.y,f:d.f||1,m:!!d.m,s:d.s||'w',e:d.e,et:d.et});
   },
-  peerGone(uid){const p=NET.peers[uid];if(!p)return;delete NET.peers[uid];renderNetPill();if(S&&S.started)toast('⚪',`${p.n} salió del pueblo.`)},
+  peerGone(uid){const p=NET.peers[uid];if(!p)return;tradePeerGone(uid,p.n);delete NET.peers[uid];renderNetPill();if(S&&S.started)toast('⚪',`${p.n} salió del pueblo.`)},
   cut(tid,v){NET.world.cut[tid]=v;const o=OBJECTS.find(o=>o.tid===tid&&!o.planted);if(!o)return;
     if(v&&v.r){o.hide=true;o.stump=false;if(o.circ)o.circ.off=true;return}
     if(o.stump||o.fall)return;if(o.circ)o.circ.off=true;
@@ -2259,6 +2304,7 @@ const NET_HANDLERS={
     if(S)addPlantedObj(netPlantedState(id,v));},
   num(key,v){NET.world[key]=Math.max(NET.world[key]||0,v)},
   who(w){NET.world.who=w;renderNetPill()},
+  trade(id,v){onTrade(id,v)},
   chat(id,v){if(!v||NET.chatIds[id])return;NET.chatIds[id]=1;const m=filterChat(String(v.m||'')).slice(0,120),n=cleanName(v.n)||'Alguien';
     const muted=NET.muted[v.by];const entry={id,by:v.by,n,m,t:v.t||Date.now(),me:v.by===NET.uid};NET.chat.push(entry);if(NET.chat.length>60)NET.chat.shift();
     if(!muted){const p=NET.peers[v.by];if(p){p.say=m;p.sayT=performance.now()}if(entry.me){NET.say=m;NET.sayT=performance.now()}}
@@ -2368,4 +2414,215 @@ function setupOnlineUI(){
   $('#chatIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();submitChat()}else if(e.key==='Escape'){e.preventDefault();closeChat()}});
   $('#chatIn').addEventListener('keyup',e=>e.stopPropagation());
 }
+
+/* =========================================================
+   INTERCAMBIO ENTRE JUGADORES · v2
+   Protocolo (cada jugador escribe solo sus propios campos):
+   inv → open → ambos "Listo" con la huella H de las DOS ofertas (ra=rb=H)
+   → cada uno valida que aún tiene lo que ofrece (ka/kb = H, o "X")
+   → A escribe st=done,h=H → ambos aplican una sola vez (registro en S.tradesApplied).
+   Si cualquier oferta cambia, H cambia y los "Listo" anteriores dejan de valer solos.
+   ========================================================= */
+const TRADE={id:null,role:null,other:null,otherName:'',v:null,draft:null,lastTheirH:'',inviteFor:null,inviteT:0,timer:null,notice:'',noticeT:0,flash:{}};
+const TRADE_OWN=[['bag','👜','Bolsa de tela',1500],['jar','🫙','Frascos para granel',1800],['taza','☕','Taza reutilizable',2500],['botella','🧴','Botella reutilizable',3000],['hacha','🪓','Hacha',6990],['bici','🚲','Bicicleta usada',8000]];
+const TRADE_PHRASES=['¿Agregas algo más?','¡Trato hecho!','Eso no me sirve','Espera, estoy pensando','Es un regalo 🎁'];
+const INVITE_MS=30000;
+function emptyOffer(){return{m:0,f:{},w:0,s:0,sd:{},wa:[],ow:[]}}
+function parseOffer(s){try{const o=Object.assign(emptyOffer(),typeof s==='string'?JSON.parse(s||'{}'):(s||{}));return o}catch(e){return emptyOffer()}}
+function hashStr(t){let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return(h>>>0).toString(36)}
+function tradeHash(v){return hashStr((v.oa||'{}')+'¦'+(v.ob||'{}'))}
+function myKey(f){return f+TRADE.role}
+function theirKey(f){return f+(TRADE.role==='a'?'b':'a')}
+function trUpd(patch){if(TRADE.id)return NET.adapter.tradeUpd(TRADE.id,patch)}
+function tradeActive(){return!!(TRADE.id&&TRADE.v&&(TRADE.v.st==='inv'||TRADE.v.st==='open'))}
+
+/* ---------- valores aproximados (para hablar de precio justo) ---------- */
+function unitFoodValue(pid){const P=PRODUCTS.find(x=>x.id===pid);if(P&&P.por)return Math.round(P.price/P.por);const c=String(pid||'').startsWith('h_')&&cropOf(pid.slice(2));if(c)return Math.round(c.seed*2/c.yield+300);return 500}
+function offerValue(o){let v=o.m|0;for(const k in o.f){const f=o.f[k];v+=unitFoodValue(f.pid)*(f.p|0)}v+=(o.w|0)*600+(o.s|0)*1200;for(const k in o.sd){const c=cropOf(k);v+=(c?c.seed:400)*(o.sd[k]|0)}
+  for(const k of o.wa){const W=WANTS.find(x=>x.id===k);if(W)v+=Math.round(W.price*.35/100)*100}for(const k of o.ow){const r=TRADE_OWN.find(x=>x[0]===k);if(r)v+=Math.round(r[3]*.5/100)*100}return v}
+function offerIsEmpty(o){return!offerLines(o).length}
+
+/* ---------- inventario intercambiable ---------- */
+function tradeStock(){
+  const L=[];
+  L.push({g:'Dinero',t:'m',key:'m',emoji:'💵',name:'Dinero',max:S.money,steps:[100,1000],fmt:v=>fmt(v)});
+  S.pantry.forEach(p=>{if(p.por>0){const left=p.exp-S.day;L.push({g:'Comida',t:'f',key:p.pid+'|'+p.exp+'|'+p.name,emoji:p.emoji,name:p.name,sub:left<=0?'vence hoy':left===1?'vence mañana':`dura ${left+1} días`,max:p.por,steps:[1],fmt:v=>v+' porc.',src:p})}});
+  if(S.wood)L.push({g:'Recursos',t:'w',key:'w',emoji:'🪵',name:'Madera',max:S.wood,steps:[1],fmt:v=>v});
+  if(S.saplings.length)L.push({g:'Recursos',t:'s',key:'s',emoji:'🌱',name:'Brotes de árbol',max:S.saplings.length,steps:[1],fmt:v=>v});
+  for(const c of CROPS)if(S.seeds[c.id]>0)L.push({g:'Recursos',t:'sd',key:c.id,emoji:c.emoji,name:'Semillas de '+c.name.toLowerCase(),max:S.seeds[c.id],steps:[1],fmt:v=>v});
+  const wc={};for(const w of S.wants)wc[w]=(wc[w]||0)+1;for(const id in wc){const W=WANTS.find(x=>x.id===id);L.push({g:'Objetos',t:'wa',key:id,emoji:W.emoji,name:W.name,max:wc[id],steps:[1],fmt:v=>v})}
+  for(const[id,em,nm]of TRADE_OWN)if(S.owned[id])L.push({g:'Objetos',t:'ow',key:id,emoji:em,name:nm,max:1,steps:[1],fmt:v=>v?'sí':'no'});
+  return L;
+}
+function offerQty(o,it){if(it.t==='m')return o.m;if(it.t==='f')return(o.f[it.key]||{}).p||0;if(it.t==='w')return o.w;if(it.t==='s')return o.s;if(it.t==='sd')return o.sd[it.key]||0;if(it.t==='wa')return o.wa.filter(x=>x===it.key).length;if(it.t==='ow')return o.ow.includes(it.key)?1:0;return 0}
+function setOfferQty(o,it,q){q=clamp(q,0,it.max);
+  if(it.t==='m')o.m=q;else if(it.t==='f'){if(q){const p=it.src;o.f[it.key]={n:p.name,e:p.emoji,p:q,l:Math.max(0,p.exp-S.day),nu:p.nutri|0,o:!!p.organic,pid:p.pid,c:p.co2pp||0}}else delete o.f[it.key]}
+  else if(it.t==='w')o.w=q;else if(it.t==='s')o.s=q;else if(it.t==='sd'){if(q)o.sd[it.key]=q;else delete o.sd[it.key]}
+  else if(it.t==='wa'){o.wa=o.wa.filter(x=>x!==it.key);for(let i=0;i<q;i++)o.wa.push(it.key)}
+  else if(it.t==='ow'){o.ow=o.ow.filter(x=>x!==it.key);if(q)o.ow.push(it.key)}}
+function offerLines(o){const L=[];if(o.m)L.push(['💵',fmt(o.m)]);for(const k in o.f){const f=o.f[k];L.push([f.e,`${f.n} · ${f.p} porc.${(f.l|0)<=1?' · vence pronto':''}`])}if(o.w)L.push(['🪵',`${o.w} madera${o.w>1?'s':''}`]);if(o.s)L.push(['🌱',`${o.s} brote${o.s>1?'s':''} de árbol`]);for(const k in o.sd){const c=cropOf(k);if(c)L.push([c.emoji,`${o.sd[k]} sobre${o.sd[k]>1?'s':''} de ${c.name.toLowerCase()}`])}const wc={};for(const w of o.wa)wc[w]=(wc[w]||0)+1;for(const k in wc){const W=WANTS.find(x=>x.id===k);if(W)L.push([W.emoji,W.name+(wc[k]>1?' ×'+wc[k]:'')])}for(const k of o.ow){const r=TRADE_OWN.find(x=>x[0]===k);if(r)L.push([r[1],r[2]])}return L}
+function tradeCanGive(o){if((o.m|0)>S.money||o.m<0)return false;for(const k in o.f){const f=o.f[k];const st=S.pantry.find(p=>p.pid+'|'+p.exp+'|'+p.name===k);if(!st||st.por<f.p)return false}
+  if((o.w|0)>S.wood||(o.s|0)>S.saplings.length)return false;for(const k in o.sd)if((S.seeds[k]||0)<o.sd[k])return false;
+  const wc={};for(const w of o.wa)wc[w]=(wc[w]||0)+1;for(const k in wc)if(S.wants.filter(x=>x===k).length<wc[k])return false;for(const k of o.ow)if(!S.owned[k])return false;return true}
+
+/* ---------- invitar ---------- */
+function tradeInvite(uid){
+  const p=NET.peers[uid];if(!p||!NET.on)return;
+  if(tradeActive()){toast('🔁','Ya tienes un intercambio en curso.');return}
+  if(TRADE.inviteFor){toast('🔁','Primero responde la invitación que tienes pendiente.');return}
+  if(Date.now()-(NET.lastInvite||0)<6000){toast('⏳','Espera unos segundos antes de invitar de nuevo.');return}
+  NET.lastInvite=Date.now();
+  const id=NET.uid.slice(0,6)+Date.now().toString(36);
+  Object.assign(TRADE,{id,role:'a',other:uid,otherName:p.n,draft:emptyOffer(),lastTheirH:'',notice:'',flash:{},v:null});
+  NET.adapter.tradeNew(id,{a:NET.uid,b:uid,an:NET.name,bn:p.n,st:'inv',t:netNow(),oa:'{}',ob:'{}'});
+  beep('click');showInvitePanel();
+}
+function showInvitePanel(){
+  const el=$('#tradeInvite');el.hidden=false;clearInterval(TRADE.timer);
+  const draw=()=>{
+    if(TRADE.inviteFor){const v=NET.trades[TRADE.inviteFor];if(!v){el.hidden=true;return}const left=Math.max(0,Math.ceil((INVITE_MS-(netNow()-v.t))/1000));
+      el.innerHTML=`<div class="ti-head"><span class="ti-ic">🤝</span><div><b>${escapeHtml(v.an)}</b> quiere intercambiar contigo.<small>Responde en ${left} s · también con las teclas Y / N</small></div></div><div class="ti-btns"><button class="btn" id="tiYes">Aceptar</button><button class="btn ghost" id="tiNo">Rechazar</button></div><i class="ti-bar" style="width:${left/30*100}%"></i>`;
+      $('#tiYes').onclick=acceptInvite;$('#tiNo').onclick=()=>declineInvite('no');if(left<=0)declineInvite('exp');return}
+    if(TRADE.id&&TRADE.role==='a'&&TRADE.v&&TRADE.v.st==='inv'){const left=Math.max(0,Math.ceil((INVITE_MS-(netNow()-TRADE.v.t))/1000));
+      el.innerHTML=`<div class="ti-head"><span class="ti-ic">⏳</span><div>Esperando a <b>${escapeHtml(TRADE.otherName)}</b>…<small>La invitación vence en ${left} s</small></div></div><div class="ti-btns"><button class="btn ghost" id="tiCancel">Cancelar invitación</button></div><i class="ti-bar" style="width:${left/30*100}%"></i>`;
+      $('#tiCancel').onclick=()=>{trUpd({st:'x',by:NET.uid})};if(left<=0)trUpd({st:'exp'});return}
+    if(TRADE.id&&TRADE.role==='a'&&!TRADE.v){el.innerHTML=`<div class="ti-head"><span class="ti-ic">⏳</span><div>Enviando invitación a <b>${escapeHtml(TRADE.otherName)}</b>…</div></div>`;return}
+    el.hidden=true;clearInterval(TRADE.timer);
+  };
+  draw();TRADE.timer=setInterval(draw,500);
+}
+function acceptInvite(){const id=TRADE.inviteFor;if(!id)return;const v=NET.trades[id];TRADE.inviteFor=null;$('#tradeInvite').hidden=true;clearInterval(TRADE.timer);
+  if(!v||v.st!=='inv'){toast('🔁','Esa invitación ya no está disponible.');return}
+  Object.assign(TRADE,{id,role:'b',other:v.a,otherName:v.an,draft:emptyOffer(),lastTheirH:'',notice:'',flash:{},v});
+  NET.adapter.tradeUpd(id,{st:'open'});beep('good')}
+function declineInvite(why){const id=TRADE.inviteFor;if(!id)return;TRADE.inviteFor=null;$('#tradeInvite').hidden=true;clearInterval(TRADE.timer);NET.adapter.tradeUpd(id,{st:why==='exp'?'exp':'no',by:NET.uid})}
+
+/* ---------- llegada de cambios ---------- */
+function onTrade(id,v){
+  if(!v)return;NET.trades[id]=v;
+  const mine=v.a===NET.uid?'a':v.b===NET.uid?'b':null;if(!mine)return;
+  const age=netNow()-(v.t||0);
+  // Recuperación: un intercambio terminado que este navegador aún no aplicó (p. ej. tras recargar)
+  if(v.st==='done'){if(!(S.tradesApplied||{})[id]&&age<20*60000&&v.h===tradeHash(v)){applyTrade(id,v,mine)}if(TRADE.id===id)finishTrade();return}
+  // Invitación recibida
+  if(v.st==='inv'&&mine==='b'){
+    if(age>INVITE_MS)return;
+    if(NET.muted[v.a]){NET.adapter.tradeUpd(id,{st:'no',by:NET.uid});return}
+    if(tradeActive()||(TRADE.inviteFor&&TRADE.inviteFor!==id)||!S.started||S.over){NET.adapter.tradeUpd(id,{st:'busy',by:NET.uid});return}
+    if(TRADE.inviteFor!==id){TRADE.inviteFor=id;beep('good');showInvitePanel()}return}
+  if(TRADE.inviteFor===id&&v.st!=='inv'){TRADE.inviteFor=null;$('#tradeInvite').hidden=true}
+  // Un intercambio "abierto" que este navegador ya no conoce (recarga): se cancela para no dejar esperando al otro
+  if(v.st==='open'&&TRADE.id!==id){if(age<20*60000)NET.adapter.tradeUpd(id,{st:'x',by:NET.uid});return}
+  if(TRADE.id!==id)return;
+  const prev=TRADE.v;TRADE.v=v;
+  if(v.st==='inv'){showInvitePanel();return}
+  if(['no','busy','exp','x','fail'].includes(v.st)){
+    const other=escapeHtml(TRADE.otherName);
+    const msg={no:`${other} no aceptó el intercambio.`,busy:`${other} está ocupado en este momento. Inténtalo más tarde.`,exp:`${other} no respondió a tiempo.`,
+      x:v.by===NET.uid?'Cancelaste el intercambio.':v.by==='gone'?`${other} se desconectó. El intercambio se canceló sin cambios.`:`${other} canceló el intercambio. No cambió nada.`,
+      fail:v.by===NET.uid?'No se pudo completar: ya no tenías todo lo que ofreciste. No cambió nada.':`No se pudo completar: ${other} ya no tenía lo que ofreció. No cambió nada.`}[v.st];
+    if(!(v.st==='no'&&mine==='b')&&!(v.st==='exp'&&mine==='b'))toast('🔁',msg,v.st==='fail'?'bad':'');
+    endTrade();return}
+  if(v.st==='open'){
+    if(!prev||prev.st!=='open'){$('#tradeInvite').hidden=true;clearInterval(TRADE.timer);if(modal&&modal.kind!=='trade'){modal.onClose=null;closeSheet()}openTrade();toast('🤝',`Intercambio abierto con <b>${escapeHtml(TRADE.otherName)}</b>.`,'good')}
+    const H=tradeHash(v),ot=TRADE.role==='a'?'b':'a';
+    // ¿cambió la oferta del otro?
+    const theirH=hashStr(v['o'+ot]||'{}');
+    if(TRADE.lastTheirH&&theirH!==TRADE.lastTheirH){const before=offerLines(parseOffer(prev&&prev['o'+ot])).map(l=>l[1]);TRADE.flash={};for(const l of offerLines(parseOffer(v['o'+ot])))if(!before.includes(l[1]))TRADE.flash[l[1]]=1;
+      const wasReady=prev&&prev[myKey('r')]&&prev[myKey('r')]===tradeHash(prev);TRADE.notice=wasReady?`${TRADE.otherName} cambió su oferta. Revísala y vuelve a confirmar.`:`${TRADE.otherName} cambió su oferta.`;TRADE.noticeT=Date.now();beep('click')}
+    TRADE.lastTheirH=theirH;
+    // ¿llegó un mensaje nuevo?
+    const pm=prev&&prev['m'+ot],nm=v['m'+ot];if(nm&&nm!==pm)beep('click');
+    // fase de confirmación
+    if(v.ra===H&&v.rb===H){
+      if(v[myKey('k')]!==H&&v[myKey('k')]!=='X'+H){const ok=tradeCanGive(parseOffer(v[myKey('o')]));trUpd({[myKey('k')]:ok?H:'X'+H})}
+      if(TRADE.role==='a'){if(v.ka===H&&v.kb===H)trUpd({st:'done',h:H});else if(v.ka==='X'+H)trUpd({st:'fail',by:NET.uid});else if(v.kb==='X'+H)trUpd({st:'fail',by:v.b})}
+    }
+    if(modal&&modal.kind==='trade')drawSheet(true);
+  }
+}
+function tradePeerGone(uid,name){
+  if(TRADE.inviteFor){const v=NET.trades[TRADE.inviteFor];if(v&&v.a===uid){TRADE.inviteFor=null;$('#tradeInvite').hidden=true}}
+  if(TRADE.id&&TRADE.other===uid&&tradeActive())trUpd({st:'x',by:'gone'});
+}
+function endTrade(){clearInterval(TRADE.timer);$('#tradeInvite').hidden=true;const wasOpen=modal&&modal.kind==='trade';Object.assign(TRADE,{id:null,role:null,other:null,v:null,draft:null,lastTheirH:'',notice:'',flash:{}});if(wasOpen){modal.onClose=null;closeSheet()}}
+function finishTrade(){const r=TRADE.result;TRADE.result=null;endTrade();if(r)showTradeResult(r)}
+
+/* ---------- aplicar (una sola vez por intercambio, aunque se recargue la página) ---------- */
+function applyTrade(id,v,mine){
+  S.tradesApplied=S.tradesApplied||{};if(S.tradesApplied[id])return;S.tradesApplied[id]=Date.now();
+  const give=parseOffer(mine==='a'?v.oa:v.ob),get=parseOffer(mine==='a'?v.ob:v.oa),otherName=mine==='a'?v.bn:v.an;
+  S.money-=give.m|0;for(const k in give.f){const st=S.pantry.find(p=>p.pid+'|'+p.exp+'|'+p.name===k);if(st){st.por-=give.f[k].p;if(st.por<=0)S.pantry.splice(S.pantry.indexOf(st),1)}}
+  S.wood-=give.w|0;S.saplings.splice(0,give.s|0);for(const k in give.sd)S.seeds[k]=Math.max(0,(S.seeds[k]||0)-give.sd[k]);
+  for(const k of give.wa){const i=S.wants.indexOf(k);if(i>=0)S.wants.splice(i,1)}for(const k of give.ow)delete S.owned[k];
+  S.money+=Math.max(0,get.m|0);for(const k in get.f){const f=get.f[k];S.pantry.push({pid:String(f.pid||'x').slice(0,20),name:String(f.n||'Alimento').replace(/[<>]/g,'').slice(0,40),emoji:String(f.e||'🍽️').slice(0,4),por:Math.max(0,f.p|0),exp:S.day+Math.max(0,f.l|0),nutri:clamp(f.nu|0,0,2),organic:!!f.o,co2pp:Math.max(0,+f.c||0)})}
+  S.wood+=Math.max(0,get.w|0);for(let i=0;i<Math.max(0,get.s|0);i++)S.saplings.push([0,1,3,4][(Math.random()*4)|0]);for(const k in get.sd)if(cropOf(k))S.seeds[k]=(S.seeds[k]||0)+Math.max(0,get.sd[k]|0);
+  for(const k of get.wa)if(WANTS.find(x=>x.id===k))S.wants.push(k);for(const k of get.ow)if(TRADE_OWN.find(x=>x[0]===k))S.owned[k]=1;
+  S.trades=(S.trades||0)+1;
+  const gl=offerLines(give).map(l=>l[1]),rl=offerLines(get).map(l=>l[1]);
+  log('intercambio',`Intercambio con ${otherName}: diste ${gl.join(', ')||'nada'}; recibiste ${rl.join(', ')||'nada'}`);
+  apply({mood:3},{quiet:true});beep('coin');save();refreshHUD();
+  const res={otherName,give:offerLines(give),get:offerLines(get),gv:offerValue(give),rv:offerValue(get)};
+  if(TRADE.id===id)TRADE.result=res;else showTradeResult(res);
+}
+function showTradeResult(r){
+  if(modal&&modal.kind!=='trade'&&modal.kind!=='tradeDone')return toast('🤝',`Intercambio con <b>${escapeHtml(r.otherName)}</b> listo.`,'good');
+  openSheet({kind:'tradeDone',title:'¡Intercambio realizado!',emoji:'🤝',color:'#2f7a46',sub:`Con ${escapeHtml(r.otherName)}`,render:()=>({body:`<div class="trade-cols">
+    <div><p class="sec-t">Entregaste · ≈ ${fmt(r.gv)}</p>${r.give.length?`<div class="list">${r.give.map(l=>`<div class="row"><span class="c-em">${l[0]}</span><div class="grow t">${escapeHtml(l[1])}</div></div>`).join('')}</div>`:'<div class="empty">Nada (recibiste un regalo)</div>'}</div>
+    <div><p class="sec-t">Recibiste · ≈ ${fmt(r.rv)}</p>${r.get.length?`<div class="list">${r.get.map(l=>`<div class="row"><span class="c-em">${l[0]}</span><div class="grow t">${escapeHtml(l[1])}</div></div>`).join('')}</div>`:'<div class="empty">Nada (hiciste un regalo)</div>'}</div></div>
+    ${info('♻️','Lo que intercambiaste sigue en uso en vez de terminar en la basura. Quedó anotado en tu bitácora.')}`,foot:`<button class="btn wide" data-act="close">Seguir jugando</button>`})});
+}
+
+/* ---------- ventana de intercambio ---------- */
+function openTrade(){
+  if(!TRADE.draft)TRADE.draft=emptyOffer();
+  openSheet({kind:'trade',title:'Intercambio',emoji:'🤝',color:'#7a5a34',sub:()=>`Con ${escapeHtml(TRADE.otherName)} · el tiempo del juego está detenido`,render:renderTrade,
+    onClose:()=>{if(TRADE.id&&TRADE.v&&TRADE.v.st==='open')trUpd({st:'x',by:NET.uid});const id=TRADE.id;setTimeout(()=>{if(TRADE.id===id)endTrade()},0)}});
+}
+function stockRow(it,o,locked){
+  const q=offerQty(o,it);const big=it.steps[1],small=it.steps[0];
+  const val=it.t==='m'?fmt(q):it.t==='ow'?(q?'✓':'—'):q;
+  const btn=(d,lab,dis)=>`<button data-act="trAdj" data-arg="${it.t}~${it.key}~${d}" ${dis||locked?'disabled':''} aria-label="${lab}">${lab}</button>`;
+  const ctr=it.t==='m'?`${btn(-big,'−1.000',q<big)}${btn(-small,'−100',q<small)}<b>${val}</b>${btn(small,'+100',q+small>it.max)}${btn(big,'+1.000',q+big>it.max)}`
+    :it.t==='ow'?`<button class="tg ${q?'on':''}" data-act="trAdj" data-arg="${it.t}~${it.key}~${q?-1:1}" ${locked?'disabled':''}>${q?'Incluido':'Incluir'}</button>`
+    :`${btn(-1,'−',q<=0)}<b>${val}</b>${btn(1,'+',q>=it.max)}${it.max>2?`<button class="wide" data-act="trAdj" data-arg="${it.t}~${it.key}~${it.max-q}" ${q>=it.max||locked?'disabled':''}>Todo</button>`:''}`;
+  return`<div class="row ${q?'on':''}"><span class="c-em">${it.emoji}</span><div class="grow"><div class="t">${escapeHtml(it.name)}</div><div class="s">Tienes ${it.fmt(it.max)}${it.sub?' · '+it.sub:''}</div></div><div class="qty ${it.t==='m'?'money':''}">${ctr}</div></div>`;
+}
+function bubble(v,k,name,mine){let m=null;try{m=v[k]?JSON.parse(v[k]):null}catch(e){}if(!m||!m.m)return'';return`<div class="tb ${mine?'me':''}"><b>${escapeHtml(name)}:</b> ${escapeHtml(m.m)}</div>`}
+function renderTrade(){
+  const v=TRADE.v;if(!v||v.st!=='open')return{body:'<div class="empty">Conectando…</div>'};
+  const me=TRADE.role,ot=me==='a'?'b':'a',other=TRADE.otherName,H=tradeHash(v);
+  const myReady=v['r'+me]===H,otReady=v['r'+ot]===H,locked=myReady&&otReady;
+  const o=TRADE.draft,their=parseOffer(v['o'+ot]);
+  const gv=offerValue(o),rv=offerValue(their);
+  const stock=tradeStock();let groups='';let lastG='';for(const it of stock){if(it.g!==lastG){groups+=`<p class="tg-h">${it.g}</p>`;lastG=it.g}groups+=stockRow(it,o,myReady)}
+  const tl=offerLines(their);
+  let balance='';if(!offerIsEmpty(o)&&offerIsEmpty(their))balance=info('🎁',`Por ahora estás regalando. Si esperas algo a cambio, pídeselo a ${escapeHtml(other)}.`,'warn');
+  else if(gv>rv*2+1000)balance=info('⚖️',`Estás dando bastante más de lo que recibes (≈ ${fmt(gv)} contra ≈ ${fmt(rv)}). Está bien si es un regalo; si no, pide algo más.`,'warn');
+  else if(rv>gv*2+1000)balance=info('⚖️',`Recibes bastante más de lo que das. ¿Es justo para ${escapeHtml(other)}?`);
+  const notice=TRADE.notice&&Date.now()-TRADE.noticeT<12000?info('🔔',escapeHtml(TRADE.notice),'warn'):'';
+  const msgs=bubble(v,'m'+ot,other,false)+bubble(v,'m'+me,'Tú',true);
+  return{body:`<div class="trade-top">
+      <div class="tt-side"><small>Entregas</small><b>≈ ${fmt(gv)}</b></div><div class="tt-x">⇄</div><div class="tt-side"><small>Recibes</small><b>≈ ${fmt(rv)}</b></div>
+      <div class="tt-st"><span class="${myReady?'ok':''}">${myReady?'✓ Tú: listo':'Tú: armando'}</span><span class="${otReady?'ok':''}">${otReady?'✓ '+escapeHtml(other)+': listo':escapeHtml(other)+': armando'}</span></div>
+    </div>${notice}${balance}
+    <div class="trade-msgs">${msgs||`<span class="c-sub">Usa los mensajes rápidos para negociar.</span>`}</div>
+    <div class="trade-phr">${TRADE_PHRASES.map((p,i)=>`<button data-act="trSay" data-arg="${i}">${escapeHtml(p)}</button>`).join('')}</div>
+    <div class="trade-cols">
+      <div class="tc-mine"><p class="sec-t">Tu oferta</p><div class="list">${groups}</div></div>
+      <div class="tc-theirs"><p class="sec-t">Oferta de ${escapeHtml(other)}</p>${tl.length?`<div class="list">${tl.map(l=>`<div class="row ${TRADE.flash[l[1]]&&Date.now()-TRADE.noticeT<6000?'flash':''}"><span class="c-em">${l[0]}</span><div class="grow t">${escapeHtml(l[1])}</div></div>`).join('')}</div>`:`<div class="empty">Todavía no ofrece nada.</div>`}</div>
+    </div>`,
+    foot:`<button class="btn ghost" data-act="trCancel">Cancelar</button><span class="c-sub" style="flex:1">${locked?'Revisando y completando…':myReady?`Esperando que ${escapeHtml(other)} confirme…`:offerIsEmpty(o)&&offerIsEmpty(their)?'Agrega algo a tu oferta o espera la de '+escapeHtml(other)+'.':'Cuando estés de acuerdo con ambas ofertas, confirma.'}</span>${myReady&&!locked?`<button class="btn ghost" data-act="trUnready">Quitar Listo</button>`:''}<button class="btn" data-act="trReady" ${myReady||(offerIsEmpty(o)&&offerIsEmpty(their))?'disabled':''}>${myReady?'Listo ✓':'Listo'}</button>`};
+}
+Object.assign(ACTIONS,{
+  trAdj(arg){const v=TRADE.v;if(!v||v.st!=='open')return;if(v[myKey('r')]===tradeHash(v))return;const[t,key,d]=arg.split('~');const it=tradeStock().find(x=>x.t===t&&x.key===key);if(!it)return;
+    setOfferQty(TRADE.draft,it,offerQty(TRADE.draft,it)+(+d));trUpd({[myKey('o')]:JSON.stringify(TRADE.draft)});beep('click')},
+  trReady(){const v=TRADE.v;if(!v||v.st!=='open')return;if(!tradeCanGive(TRADE.draft)){toast('⚠️','Ya no tienes todo lo que ofreciste. Ajusta tu oferta.','bad');return}
+    if(JSON.stringify(TRADE.draft)!==(v[myKey('o')]||'{}'))trUpd({[myKey('o')]:JSON.stringify(TRADE.draft)});
+    const nv=NET.trades[TRADE.id]||v;trUpd({[myKey('r')]:tradeHash(nv)});beep('click')},
+  trUnready(){trUpd({[myKey('r')]:''})},
+  trSay(i){const m=TRADE_PHRASES[+i];if(!m)return;if(Date.now()-(TRADE.lastSay||0)<1500)return;TRADE.lastSay=Date.now();trUpd({[myKey('m')]:JSON.stringify({m,t:Date.now()})})},
+  trCancel(){if(TRADE.id){trUpd({st:'x',by:NET.uid})}},
+});
+window.addEventListener('keydown',e=>{if(!TRADE.inviteFor||e.target&&e.target.tagName==='INPUT')return;if(e.code==='KeyY'){e.preventDefault();acceptInvite()}else if(e.code==='KeyN'&&!e.repeat){e.preventDefault();e.stopImmediatePropagation();declineInvite('no')}},true);
 </script></body></html>
