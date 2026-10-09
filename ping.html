@@ -6,19 +6,24 @@
 <title>Copa San Agustín 2026 · Octavos de Final</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,800;1,700;1,800;1,900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* ═══ COPA SAN AGUSTÍN · estética "tenis de mesa eléctrico" ═══
+     Mesa azul eléctrica, pelota naranja, paleta roja, líneas de velocidad. */
   :root{
-    --void:#08080c; --ink:#0e0f16; --slab:#14161f; --slab-2:#1b1e2b; --slab-3:#232739;
-    --acid:#ccff00; --acid-dim:#9dc700; --acid-deep:#5e7a00;
-    --tyrian:#ff2e7e; --tyrian-deep:#7a0f3d;
-    --cyan:#22e3ff;
-    --brass:#e9b949; --brass-deep:#8a6a12;
-    --bone:#f2f0e9; --mute:#9498ab; --line:rgba(204,255,0,.16); --line-2:rgba(255,255,255,.08);
-    --ff-display:'Big Shoulders Display','Impact',sans-serif;
+    --void:#040817; --ink:#071030; --slab:#0B1640; --slab-2:#102057; --slab-3:#16297A;
+    --table:#1F5BFF; --table-hi:#4D82FF; --chalk:#FFFFFF;
+    --ball:#FF7A1A; --ball-hi:#FFB067;
+    --paddle:#FF2E57; --paddle-deep:#8F0F2C;
+    --volt:#D4FF1E;
+    --cyan:#2EE6FF;
+    --bone:#F4F6FF; --mute:#A3AED6; --line:rgba(77,130,255,.35); --line-2:rgba(255,255,255,.12);
+    --ff-display:'Barlow Condensed','Impact',sans-serif;
     --ff-body:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;
-    --r-sm:6px; --r-md:10px;
+    --r-sm:8px; --r-md:14px;
     --ease:cubic-bezier(.16,1,.3,1);
+    /* nombres anteriores, por compatibilidad con estilos en línea */
+    --acid:var(--volt); --brass:var(--ball);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{-webkit-text-size-adjust:100%}
@@ -26,121 +31,206 @@
     min-height:100vh; font-family:var(--ff-body); color:var(--bone); background:var(--void);
     overflow-x:hidden; -webkit-font-smoothing:antialiased;
   }
+
+  /* ── Fondo: resplandor de mesa + líneas de velocidad ── */
   .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;
-    background:radial-gradient(ellipse 70% 45% at 10% 0%,rgba(122,15,61,.45),transparent 60%),
-               radial-gradient(ellipse 60% 40% at 90% 6%,rgba(94,122,0,.28),transparent 58%),
-               radial-gradient(ellipse 80% 45% at 50% 105%,rgba(34,227,255,.10),transparent 62%);
+    background:
+      radial-gradient(ellipse 60% 40% at 85% 0%,rgba(31,91,255,.45),transparent 65%),
+      radial-gradient(ellipse 50% 35% at 0% 30%,rgba(255,46,87,.22),transparent 60%),
+      radial-gradient(ellipse 70% 40% at 50% 110%,rgba(255,122,26,.18),transparent 65%);
   }
-  .gridlines{position:fixed;inset:0;z-index:0;pointer-events:none;
-    background-image:linear-gradient(rgba(204,255,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(204,255,0,.04) 1px,transparent 1px);
-    background-size:56px 56px;
-    mask-image:radial-gradient(ellipse 90% 70% at 50% 20%,#000 20%,transparent 85%);
+  .gridlines{position:fixed;inset:-20% -20%;z-index:0;pointer-events:none;overflow:hidden;
+    transform:rotate(-14deg);
   }
-  .frieze{position:relative;z-index:5;height:4px;
-    background:linear-gradient(90deg,var(--void),var(--tyrian-deep) 12%,var(--tyrian) 26%,var(--acid) 50%,var(--cyan) 74%,var(--tyrian) 88%,var(--void));
-    box-shadow:0 0 22px rgba(204,255,0,.35);
+  .gridlines i{position:absolute;left:-30%;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,transparent,var(--c,var(--table-hi)) 70%,transparent);
+    opacity:.35;width:var(--w,30%);top:var(--t);
+    animation:zum var(--d,3.2s) linear var(--delay,0s) infinite;
   }
+  @keyframes zum{from{transform:translateX(0)}to{transform:translateX(190vw)}}
+  .frieze{position:relative;z-index:5;height:5px;
+    background:repeating-linear-gradient(90deg,var(--table) 0 40px,var(--chalk) 40px 44px);
+    box-shadow:0 0 24px rgba(31,91,255,.7);
+  }
+  .frieze::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,var(--ball) 50%,transparent);
+    width:30%;animation:barrido 2.8s var(--ease) infinite;mix-blend-mode:screen}
+  @keyframes barrido{from{transform:translateX(-100%)}to{transform:translateX(340%)}}
 
   .wrap{position:relative;z-index:5;max-width:1180px;margin:0 auto;padding:2.6rem 1.5rem 4rem}
 
-  header{padding-bottom:1.8rem;margin-bottom:1.8rem;border-bottom:1px solid var(--line-2)}
-  .eyebrow{font-size:.72rem;color:var(--tyrian);letter-spacing:2.2px;text-transform:uppercase;font-weight:700}
-  h1{font-family:var(--ff-display);font-size:clamp(2.1rem,6vw,3.6rem);line-height:.95;letter-spacing:-.5px;
-    text-transform:uppercase;font-weight:900;color:var(--bone);margin-top:.4rem}
-  .subt{font-size:.95rem;color:var(--mute);margin-top:.6rem;max-width:640px;line-height:1.5}
+  /* ── Cabecera ── */
+  header{position:relative;padding-bottom:1.8rem;margin-bottom:1.8rem;border-bottom:2px solid var(--line)}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;
+    font-size:.74rem;color:var(--void);background:var(--ball);letter-spacing:2.4px;text-transform:uppercase;font-weight:700;
+    padding:.35rem .8rem .35rem .7rem;border-radius:4px;transform:skewX(-12deg)}
+  .eyebrow::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--chalk);
+    box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+  h1{font-family:var(--ff-display);font-style:italic;font-size:clamp(3rem,8vw,5.2rem);line-height:.86;letter-spacing:-1px;
+    text-transform:uppercase;font-weight:900;color:var(--bone);margin-top:.7rem;
+    text-shadow:-6px 0 0 rgba(31,91,255,.55),-12px 0 0 rgba(31,91,255,.22)}
+  .subt{font-size:1rem;color:var(--mute);margin-top:.8rem;max-width:560px;line-height:1.5}
 
-  .estado{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:1.4rem;
-    background:var(--slab);border:1px solid var(--line-2);border-left:3px solid var(--brass);
-    border-radius:var(--r-sm);padding:.9rem 1.2rem}
-  .estado .dot{width:9px;height:9px;border-radius:50%;background:var(--brass);flex-shrink:0;
-    box-shadow:0 0 10px rgba(233,185,73,.6)}
-  .estado .txt{font-size:.84rem;color:var(--bone)}
-  .estado .txt b{color:var(--brass);font-weight:700}
+  /* mesa + pelota decorativa */
+  .mesa{position:absolute;right:0;top:0;width:min(32%,340px);aspect-ratio:1.8/1;pointer-events:none;
+    perspective:700px}
+  .mesa-plano{position:absolute;inset:18% 4% 0 4%;background:var(--table);border:3px solid var(--chalk);border-radius:6px;
+    transform:rotateX(52deg);transform-origin:50% 100%;
+    box-shadow:0 0 60px rgba(31,91,255,.55),inset 0 0 0 1px rgba(255,255,255,.2)}
+  .mesa-plano::before{content:'';position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:var(--chalk);opacity:.8}
+  .mesa-plano::after{content:'';position:absolute;left:50%;top:-6%;bottom:-6%;width:8px;margin-left:-4px;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 2px,transparent 2px 5px);
+    border-left:3px solid var(--chalk);box-shadow:0 0 12px rgba(255,255,255,.4)}
+  .pelota{position:absolute;width:18px;height:18px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff 0 12%,var(--ball-hi) 30%,var(--ball) 70%);
+    box-shadow:0 0 18px rgba(255,122,26,.9),-14px 0 0 -4px rgba(255,122,26,.35),-26px 0 0 -6px rgba(255,122,26,.18);
+    left:8%;top:40%;animation:rally 1.6s cubic-bezier(.45,0,.55,1) infinite alternate}
+  @keyframes rally{
+    0%  {left:6%;  top:52%}
+    25% {left:28%; top:8%}
+    50% {left:50%; top:46%}
+    75% {left:72%; top:6%}
+    100%{left:90%; top:54%;}
+  }
 
-  /* ── cuadro ── */
-  .bracket-scroll{overflow-x:auto;padding:1.6rem .2rem 2.4rem;margin-top:1rem}
+  .estado{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:1.6rem;max-width:720px;
+    background:linear-gradient(90deg,rgba(31,91,255,.22),rgba(11,22,64,.9) 40%);border:1px solid var(--line);
+    border-radius:var(--r-sm);padding:.95rem 1.2rem}
+  .estado .dot{width:10px;height:10px;border-radius:50%;background:var(--volt);flex-shrink:0;
+    box-shadow:0 0 0 4px rgba(212,255,30,.18),0 0 14px rgba(212,255,30,.8);animation:pulso 1.4s ease-in-out infinite}
+  @keyframes pulso{50%{box-shadow:0 0 0 8px rgba(212,255,30,0),0 0 14px rgba(212,255,30,.8)}}
+  .estado .txt{font-size:.88rem;color:var(--bone);line-height:1.5}
+  .estado .txt b{color:var(--volt);font-weight:700}
+
+  /* ── Cuadro ── */
+  .bracket-scroll{overflow-x:auto;padding:1.6rem .2rem 2.4rem;margin-top:1rem;scrollbar-color:var(--table) transparent}
   .bracket{display:flex;align-items:stretch;min-width:960px}
   .round{display:flex;flex-direction:column;flex:1;min-width:190px}
-  .round-title{font-family:var(--ff-display);font-size:.92rem;letter-spacing:1.6px;font-weight:800;
-    color:var(--mute);text-transform:uppercase;text-align:center;margin-bottom:1.2rem}
+  .round-title{font-family:var(--ff-display);font-style:italic;font-size:1.05rem;letter-spacing:1.6px;font-weight:800;
+    color:var(--bone);text-transform:uppercase;text-align:center;margin:0 auto 1.3rem;
+    padding:.3rem .9rem;border-radius:4px;background:var(--slab-2);border:1px solid var(--line);transform:skewX(-10deg);width:fit-content}
+  .round.octavos .round-title{background:var(--table);border-color:var(--table-hi);box-shadow:0 0 18px rgba(31,91,255,.5)}
+  .round.final .round-title{background:var(--ball);color:var(--void);border-color:var(--ball-hi)}
   .pair{flex:1;display:flex;flex-direction:column;justify-content:space-around;position:relative;padding-right:26px}
   .round.final .pair, .round.final{padding-right:0}
   .pair:not(.no-connector)::before{content:'';position:absolute;top:25%;bottom:25%;right:0;
-    border-right:2px solid var(--line-2)}
+    border-right:2px solid var(--line)}
   .pair:not(.no-connector)::after{content:'';position:absolute;top:50%;right:0;width:26px;height:2px;
-    background:var(--line-2);transform:translateY(-1px)}
-  .match{position:relative;background:var(--slab);border:1.5px dashed var(--line-2);border-radius:var(--r-sm);
-    padding:.55rem .7rem;margin:.35rem 0;min-height:52px}
+    background:var(--line);transform:translateY(-1px)}
+
+  .match{position:relative;background:var(--slab);border:1.5px dashed rgba(163,174,214,.3);border-radius:var(--r-sm);
+    padding:.65rem .8rem;margin:.4rem 0;min-height:56px;overflow:visible;
+    transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .25s}
+  .match:hover{transform:translateX(3px) skewX(-2deg);border-color:var(--table-hi);box-shadow:-6px 0 0 -2px var(--table)}
+  /* línea central de la mesa dentro de cada partido */
+  .match::before{content:'';position:absolute;left:10px;right:10px;top:50%;height:1px;background:rgba(255,255,255,.08)}
   .round:not(.final) .match::after{content:'';position:absolute;top:50%;right:-26px;width:26px;height:2px;
-    background:var(--line-2);transform:translateY(-1px)}
-  .slot{display:flex;align-items:center;gap:8px;font-size:.78rem;padding:2px 0;color:var(--mute)}
-  .slot .curso{font-family:var(--ff-display);font-weight:700;font-size:.68rem;letter-spacing:.4px;
-    color:var(--mute);min-width:34px}
+    background:var(--line);transform:translateY(-1px)}
+  .slot{position:relative;display:flex;align-items:center;gap:8px;font-size:.82rem;padding:3px 0;color:var(--mute)}
+  .slot .curso{font-family:var(--ff-display);font-style:italic;font-weight:800;font-size:.76rem;letter-spacing:.4px;
+    color:var(--mute);min-width:36px;text-align:center;padding:1px 4px;border-radius:3px;background:rgba(255,255,255,.05)}
   .slot .nombre{font-style:italic}
   .round.octavos .slot .nombre{font-style:normal;color:var(--bone);font-weight:600}
-  .round.octavos .slot .curso{color:var(--acid-dim)}
-  .match .vs{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);background:var(--void);
-    color:var(--mute);font-size:.58rem;letter-spacing:1px;padding:0 6px;font-weight:700}
-  .slot.ganador .nombre{color:var(--acid);font-weight:800}
-  .slot.ganador .curso{color:var(--acid)}
-  .slot.ganador::before{content:'🏓';margin-right:2px;font-size:.7rem}
-  .slot.perdedor{opacity:.4}
-  .slot.perdedor .nombre{text-decoration:line-through}
-  .match.jugado{border-style:solid;border-color:var(--acid-deep)}
+  .round.octavos .slot .curso{color:var(--bone);background:rgba(31,91,255,.35)}
+  .match .vs{position:absolute;left:50%;top:0;transform:translate(-50%,-50%) skewX(-12deg);background:var(--paddle);
+    color:var(--chalk);font-family:var(--ff-display);font-style:italic;font-size:.7rem;letter-spacing:1px;padding:0 7px;font-weight:900;
+    border-radius:3px;box-shadow:0 0 10px rgba(255,46,87,.5);z-index:1}
+
+  .round.semifinal .slot .nombre{font-style:normal;color:var(--bone);font-weight:600}
+  .round.semifinal .slot .curso{color:var(--bone);background:rgba(31,91,255,.35)}
+  .slot.ganador .nombre{color:var(--ball);font-weight:800}
+  .slot.ganador .curso{color:var(--void);background:var(--ball)}
+  .slot.ganador::after{content:'';margin-left:auto;width:10px;height:10px;border-radius:50%;flex-shrink:0;
+    background:radial-gradient(circle at 35% 30%,#fff 0 12%,var(--ball-hi) 30%,var(--ball) 70%);
+    box-shadow:0 0 10px rgba(255,122,26,.9),-8px 0 0 -2px rgba(255,122,26,.3)}
+  .slot.perdedor{opacity:.38}
+  .slot.perdedor .nombre{text-decoration:line-through;text-decoration-color:var(--paddle)}
+  .match.jugado{border-style:solid;border-color:var(--table);
+    background:linear-gradient(100deg,rgba(31,91,255,.22),var(--slab) 55%)}
 
   .final-slot{flex:1;display:flex;align-items:center;justify-content:center}
-  .final-match{background:var(--slab);border:1.5px dashed var(--brass-deep);border-radius:var(--r-md);
-    padding:1.2rem 1.4rem;text-align:center;min-width:170px}
-  .final-match .trofeo{font-size:1.4rem;margin-bottom:.3rem;opacity:.7}
-  .final-match .txt{font-family:var(--ff-display);font-size:.92rem;letter-spacing:1.4px;font-weight:800;
-    color:var(--mute);text-transform:uppercase}
+  .final-match{position:relative;background:radial-gradient(circle at 50% 0%,rgba(255,122,26,.3),var(--slab) 70%);
+    border:2px solid var(--ball);border-radius:var(--r-md);
+    padding:1.4rem 1.6rem;text-align:center;min-width:180px;
+    box-shadow:0 0 0 6px rgba(255,122,26,.08),0 0 40px rgba(255,122,26,.3);animation:latido 2.4s ease-in-out infinite}
+  @keyframes latido{50%{box-shadow:0 0 0 10px rgba(255,122,26,.04),0 0 60px rgba(255,122,26,.45)}}
+  .final-match .trofeo{font-size:2rem;margin-bottom:.4rem;filter:drop-shadow(0 0 10px rgba(255,176,103,.7))}
+  .final-match .txt{font-family:var(--ff-display);font-style:italic;font-size:1.2rem;letter-spacing:1.4px;font-weight:900;
+    color:var(--bone);text-transform:uppercase;line-height:1.05}
 
-  /* ── bases ── */
+  /* ── Bases ── */
   .bases-toggle{display:flex;justify-content:center;margin-top:1.4rem}
   details.bases{width:100%}
-  summary.bases-link{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
-    font-family:var(--ff-body);font-size:.78rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
-    color:var(--acid);border:1.5px solid rgba(204,255,0,.35);border-radius:var(--r-sm);padding:.7rem 1.4rem;
-    transition:all .25s var(--ease);width:fit-content;margin:0 auto}
+  summary.bases-link{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;min-height:48px;
+    font-family:var(--ff-display);font-style:italic;font-size:1.05rem;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;
+    color:var(--chalk);background:var(--paddle);border:none;border-radius:var(--r-sm);padding:.7rem 1.8rem;
+    transform:skewX(-10deg);box-shadow:0 6px 0 var(--paddle-deep),0 0 24px rgba(255,46,87,.45);
+    transition:all .2s var(--ease);width:fit-content;margin:0 auto}
   summary.bases-link::-webkit-details-marker{display:none}
-  summary.bases-link:hover{background:rgba(204,255,0,.08);border-color:var(--acid)}
-  summary.bases-link .car{transition:transform .25s var(--ease);font-size:.7rem}
+  summary.bases-link:hover{transform:skewX(-10deg) translateY(-2px);box-shadow:0 8px 0 var(--paddle-deep),0 0 34px rgba(255,46,87,.6)}
+  summary.bases-link:active{transform:skewX(-10deg) translateY(4px);box-shadow:0 2px 0 var(--paddle-deep)}
+  summary.bases-link:focus-visible{outline:3px solid var(--volt);outline-offset:4px}
+  summary.bases-link .car{transition:transform .25s var(--ease);font-size:.8rem}
   details[open] summary.bases-link .car{transform:rotate(180deg)}
   .bases-toggle{flex-direction:column;align-items:center}
 
-  .bases-panel{margin-top:1.6rem;background:var(--slab);border:1px solid var(--line-2);border-radius:var(--r-md);
-    padding:1.8rem 1.8rem 2.2rem;animation:fadeIn .35s var(--ease)}
+  .bases-panel{position:relative;margin-top:1.8rem;background:var(--slab);border:1px solid var(--line);border-radius:var(--r-md);
+    padding:1.8rem 1.8rem 2.2rem;animation:fadeIn .35s var(--ease);overflow:hidden}
+  .bases-panel::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;
+    background:repeating-linear-gradient(90deg,var(--table) 0 40px,var(--chalk) 40px 44px)}
   @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-  .bases-panel h2{font-family:var(--ff-display);font-size:1.5rem;letter-spacing:-.3px;text-transform:uppercase;
-    color:var(--bone);font-weight:900;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--line-2)}
-  .bases-sec{margin-bottom:1.4rem}
-  .bases-sec h3{font-family:var(--ff-display);font-size:.98rem;letter-spacing:.6px;text-transform:uppercase;
-    color:var(--acid);font-weight:800;margin-bottom:.5rem;display:flex;align-items:baseline;gap:8px}
-  .bases-sec h3 span{color:var(--mute);font-family:var(--ff-body);font-weight:600;font-size:.78rem}
-  .bases-sec p, .bases-sec li{font-size:.86rem;color:var(--mute);line-height:1.6}
+  .bases-panel h2{font-family:var(--ff-display);font-style:italic;font-size:2rem;letter-spacing:-.3px;text-transform:uppercase;
+    color:var(--bone);font-weight:900;margin-bottom:1.3rem;padding-bottom:.8rem;border-bottom:1px solid var(--line-2)}
+  .bases-panel > div.bases-sec{counter-increment:none}
+  .bases-sec{margin-bottom:1.5rem}
+  .bases-sec h3{font-family:var(--ff-display);font-style:italic;font-size:1.25rem;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--ball);font-weight:900;margin-bottom:.5rem;display:flex;align-items:center;gap:10px}
+  .bases-sec h3 span{color:var(--bone);font-family:var(--ff-body);font-style:normal;font-weight:600;font-size:.9rem;letter-spacing:.2px;text-transform:none}
+  .bases-sec p, .bases-sec li{font-size:.9rem;color:var(--mute);line-height:1.65}
   .bases-sec ul{padding-left:1.2rem;margin-top:.3rem}
-  .bases-sec li::marker{color:var(--acid)}
+  .bases-sec li::marker{color:var(--ball)}
   .bases-sec strong{color:var(--bone);font-weight:600}
-  table.rondas{width:100%;border-collapse:collapse;margin:.6rem 0 .2rem;font-size:.82rem}
-  table.rondas th{text-align:left;color:var(--bone);font-family:var(--ff-display);font-weight:700;
-    letter-spacing:.5px;text-transform:uppercase;font-size:.7rem;padding:.5rem .6rem;border-bottom:1px solid var(--line-2)}
-  table.rondas td{padding:.5rem .6rem;color:var(--mute);border-bottom:1px solid var(--line-2)}
+  table.rondas{width:100%;border-collapse:separate;border-spacing:0;margin:.7rem 0 .3rem;font-size:.86rem;
+    border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+  table.rondas th{text-align:left;color:var(--chalk);background:var(--table);font-family:var(--ff-display);font-style:italic;font-weight:800;
+    letter-spacing:.6px;text-transform:uppercase;font-size:.85rem;padding:.55rem .7rem}
+  table.rondas td{padding:.55rem .7rem;color:var(--bone);border-top:1px solid var(--line-2)}
+  table.rondas tr:nth-child(odd) td{background:rgba(31,91,255,.08)}
 
-  footer{margin-top:2.4rem;text-align:center;font-size:.72rem;color:var(--mute);letter-spacing:.4px}
+  footer{margin-top:2.6rem;text-align:center;font-family:var(--ff-display);font-style:italic;font-weight:700;
+    font-size:.95rem;color:var(--mute);letter-spacing:1.4px;text-transform:uppercase}
 
+  @media (max-width:760px){
+    .mesa{position:relative;width:100%;max-width:340px;margin:0 auto 1rem;display:block}
+    header{display:flex;flex-direction:column;align-items:flex-start}
+    header .mesa{order:-1}
+  }
   @media (max-width:640px){
     .wrap{padding:2rem 1rem 3rem}
     .bracket{min-width:820px}
+    .bases-panel{padding:1.4rem 1.1rem 1.8rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important}
   }
 </style>
 </head>
 <body>
   <div class="aurora"></div>
-  <div class="gridlines"></div>
+  <div class="gridlines" aria-hidden="true">
+    <i style="--t:12%;--w:28%;--d:3.4s;--delay:-.4s"></i>
+    <i style="--t:22%;--w:18%;--d:2.6s;--delay:-1.9s;--c:var(--ball)"></i>
+    <i style="--t:35%;--w:34%;--d:4.2s;--delay:-2.8s"></i>
+    <i style="--t:48%;--w:14%;--d:2.2s;--delay:-.9s;--c:var(--paddle)"></i>
+    <i style="--t:61%;--w:26%;--d:3.8s;--delay:-3.1s"></i>
+    <i style="--t:73%;--w:20%;--d:2.9s;--delay:-1.3s;--c:var(--cyan)"></i>
+    <i style="--t:86%;--w:30%;--d:4.6s;--delay:-.2s"></i>
+  </div>
   <div class="frieze"></div>
 
   <div class="wrap">
     <header>
+      <div class="mesa" aria-hidden="true"><div class="mesa-plano"></div><div class="pelota"></div></div>
       <div class="eyebrow">Copa San Agustín 2026</div>
       <h1>Octavos de final</h1>
       <p class="subt">Mini campeonato de ping pong · eliminación simple · 16 cupos, 2 por curso, desde 5° Básico hasta 4° Medio.</p>
@@ -200,22 +290,22 @@
         <div class="round cuartos">
           <div class="round-title">Cuartos · 4 partidos</div>
           <div class="pair">
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
-              <div class="slot"><span class="curso">2°M</span><span class="nombre">Bastián M</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot ganador"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
+              <div class="slot perdedor"><span class="curso">2°M</span><span class="nombre">Bastián M</span></div>
             </div>
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">1°M</span><span class="nombre">Gaspi</span></div>
-              <div class="slot"><span class="curso">8°B</span><span class="nombre">Excequiel</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot ganador"><span class="curso">1°M</span><span class="nombre">Gaspi</span></div>
+              <div class="slot perdedor"><span class="curso">8°B</span><span class="nombre">Excequiel</span></div>
             </div>
           </div>
           <div class="pair">
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
-              <div class="slot"><span class="curso">2°M</span><span class="nombre">Juan</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot ganador"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
+              <div class="slot perdedor"><span class="curso">2°M</span><span class="nombre">Juan</span></div>
             </div>
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">1°M</span><span class="nombre">Joaquín</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot ganador"><span class="curso">1°M</span><span class="nombre">Joaquín</span></div>
               <div class="slot"><span class="nombre">Por definir</span></div>
             </div>
           </div>
@@ -225,12 +315,12 @@
           <div class="round-title">Semifinal · 2 partidos</div>
           <div class="pair">
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="nombre">Por definir</span></div>
-              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
+              <div class="slot"><span class="curso">1°M</span><span class="nombre">Gaspi</span></div>
             </div>
             <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="nombre">Por definir</span></div>
-              <div class="slot"><span class="nombre">Por definir</span></div>
+              <div class="slot"><span class="curso">1°M</span><span class="nombre">Joaquín</span></div>
+              <div class="slot"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
             </div>
           </div>
         </div>
