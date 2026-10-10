@@ -897,12 +897,21 @@ function resize(){
 window.addEventListener('resize',resize);
 
 /* ---------- jugador ---------- */
-const player={x:1700,y:1640,vx:0,vy:0,face:1,phase:0,moving:false,r:15,scene:'world'};
+const player={x:1700,y:1640,vx:0,vy:0,face:1,dir:0,phase:0,moving:false,r:15,scene:'world'};
+/* hoja de sprites de la caballera: 4 filas (abajo, izquierda, derecha, arriba) × 4 cuadros */
+const KS={cw:221,ch:200,dh:106};
+function dirFrom(vx,vy,prev){const ax=Math.abs(vx),ay=Math.abs(vy);if(ax<1&&ay<1)return prev;if(ax>ay*1.15)return vx<0?1:2;if(ay>ax*1.15)return vy<0?3:0;return prev}
+function walkFrame(moving,ph){return moving?Math.floor(ph*.62)%4:0}
+function drawKnight(g,img,scale,dir,frame,bob,breathe){
+  const cw=KS.cw*scale,ch=KS.ch*scale,h=KS.dh,w=KS.cw/KS.ch*h;
+  g.save();if(breathe)g.scale(1,1+breathe);
+  g.drawImage(img,frame*cw,dir*ch,cw,ch,-w/2,-h-bob+5,w,h);g.restore()}
 function drawPlayer(g){
   const p=player,bob=p.moving?Math.abs(Math.sin(p.phase))*4:Math.sin(T*2.2)*.8,tilt=p.moving?Math.sin(p.phase)*.06:0;
   g.save();g.translate(p.x,p.y);
   g.fillStyle='rgba(10,25,15,.32)';g.beginPath();g.ellipse(0,0,22-bob*.8,8,0,0,7);g.fill();
-  if(IMG.knight){const h=96,w=IMG.knight.width*h/IMG.knight.height;g.rotate(tilt);g.scale(p.face,1+(p.moving?0:Math.sin(T*2.2)*.008));g.drawImage(IMG.knight,-w*.52,-h-bob+6,w,h)}
+  if(IMG.ksheet)drawKnight(g,IMG.ksheet,1,p.dir,walkFrame(p.moving,p.phase),p.moving?Math.abs(Math.sin(p.phase*1.24))*1.6:0,p.moving?0:Math.sin(T*2.2)*.01);
+  else if(IMG.knight){const h=96,w=IMG.knight.width*h/IMG.knight.height;g.rotate(tilt);g.scale(p.face,1);g.drawImage(IMG.knight,-w*.52,-h-bob+6,w,h)}
   else{g.fillStyle='#4b82a8';rr(g,-12,-44,24,40,8);g.fill();g.fillStyle='#e8c09a';g.beginPath();g.arc(0,-54,12,0,7);g.fill()}
   g.restore();
 }
@@ -2102,7 +2111,7 @@ function updatePlayer(dt){
   if(!hit(player.x,ny,player.r))player.y=ny;else{player.vy=0;blocked=true}
   if(blocked&&clickTarget&&Math.hypot(player.vx,player.vy)<5)clickTarget=null;
   const speed=Math.hypot(player.vx,player.vy);player.moving=speed>20;
-  if(player.moving){player.phase+=dt*speed*.045;if(Math.abs(player.vx)>8)player.face=player.vx<0?-1:1;
+  if(player.moving){player.phase+=dt*speed*.045;if(Math.abs(player.vx)>8)player.face=player.vx<0?-1:1;player.dir=dirFrom(tvx||player.vx,tvy||player.vy,player.dir);
     if(run&&Math.random()<dt*14)puff({x:player.x+(Math.random()-.5)*16,y:player.y,vx:-player.vx*.1,vy:-12,life:.5,max:.5,size:5,color:'rgba(200,190,160,A)'})}
 }
 function homeHit(x,y,r){for(const s of HSOLIDS){const cx=clamp(x,s.x,s.x+s.w),cy=clamp(y,s.y,s.y+s.h);if((x-cx)**2+(y-cy)**2<r*r)return true}return false}
@@ -2169,7 +2178,7 @@ let BOOTED=false,bootDone;const BOOT_READY=new Promise(r=>bootDone=()=>{BOOTED=t
 async function boot(){
   resize();
   setupOnlineUI();
-  await Promise.all([loadImg('grass','assets/grass.jpg'),loadImg('knight','assets/player_knight.png'),loadImg('cat','assets/cat.png'),loadImg('peng','assets/penguin.png')]);
+  await Promise.all([loadImg('grass','assets/grass.jpg'),loadImg('knight','assets/player_knight.png'),loadImg('ksheet','assets/knight_sheet.png'),loadImg('cat','assets/cat.png'),loadImg('peng','assets/penguin.png')]);
   try{await Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,1500))])}catch(e){}
   paintMusicBtn();
   S=newState();
@@ -2206,10 +2215,11 @@ function loadScript(src){return new Promise((res,rej)=>{const s=document.createE
 /* ---------- caballeros de colores para los demás ---------- */
 const PEER_SPR=[];
 function buildPeerSprites(){
-  if(!IMG.knight)return;const h=96,w=Math.round(IMG.knight.width*h/IMG.knight.height);
-  for(const hue of PEER_HUES){const c=mk(w*2,h*2),g=c.getContext('2d');
+  // hojas teñidas a media resolución (cada compañero con su color de capa)
+  const src=IMG.ksheet;if(!src)return;const W=Math.round(src.width/2),H=Math.round(src.height/2);
+  for(const hue of PEER_HUES){const c=mk(W,H),g=c.getContext('2d');
     if('filter' in g){g.filter=`hue-rotate(${hue}deg) saturate(1.35)`}
-    g.drawImage(IMG.knight,0,0,w*2,h*2);PEER_SPR.push({c,w,h,hue})}
+    g.drawImage(src,0,0,W,H);PEER_SPR.push({c,hue})}
 }
 
 /* ---------- adaptador Firebase ---------- */
@@ -2313,8 +2323,8 @@ function localAdapter(){
 /* ---------- eventos que llegan de la red ---------- */
 const NET_HANDLERS={
   peer(uid,d){if(!d||uid===NET.uid)return;const p=NET.peers[uid];
-    if(!p){NET.peers[uid]={seen:performance.now(),uid,n:cleanName(d.n)||'Vecino',c:(d.c|0)%PEER_HUES.length,x:d.x,y:d.y,rx:d.x,ry:d.y,f:d.f||1,m:!!d.m,s:d.s||'w',ph:0,e:d.e,et:d.et};if(S&&S.started)toast('🟢',`${cleanName(d.n)||'Alguien'} entró al pueblo.`);renderNetPill()}
-    else Object.assign(p,{seen:performance.now(),n:cleanName(d.n)||p.n,c:(d.c|0)%PEER_HUES.length,x:d.x,y:d.y,f:d.f||1,m:!!d.m,s:d.s||'w',e:d.e,et:d.et});
+    if(!p){NET.peers[uid]={seen:performance.now(),uid,n:cleanName(d.n)||'Vecino',c:(d.c|0)%PEER_HUES.length,x:d.x,y:d.y,rx:d.x,ry:d.y,f:d.f||1,d:(d.d|0)&3,m:!!d.m,s:d.s||'w',ph:0,e:d.e,et:d.et};if(S&&S.started)toast('🟢',`${cleanName(d.n)||'Alguien'} entró al pueblo.`);renderNetPill()}
+    else Object.assign(p,{seen:performance.now(),n:cleanName(d.n)||p.n,c:(d.c|0)%PEER_HUES.length,x:d.x,y:d.y,f:d.f||1,d:(d.d|0)&3,m:!!d.m,s:d.s||'w',e:d.e,et:d.et});
   },
   peerGone(uid){const p=NET.peers[uid];if(!p)return;tradePeerGone(uid,p.n);delete NET.peers[uid];renderNetPill();if(S&&S.started)toast('⚪',`${p.n} salió del pueblo.`)},
   cut(tid,v){NET.world.cut[tid]=v;const o=OBJECTS.find(o=>o.tid===tid&&!o.planted);if(!o)return;
@@ -2340,7 +2350,7 @@ function netProg(v){const now=netNow(),wa=v.wa||0;const a=Math.max(0,((wa||now)-
 async function netConnect(room,name,mode,stage){
   NET.mode=mode;NET.room=room;NET.name=name;NET.color=Math.abs([...name].reduce((a,ch)=>a*31+ch.charCodeAt(0),7))%PEER_HUES.length;
   NET.adapter=mode==='local'?localAdapter():firebaseAdapter();
-  const info={n:name,c:NET.color,x:Math.round(player.x),y:Math.round(player.y),f:1,m:0,s:'h'};
+  const info={n:name,c:NET.color,x:Math.round(player.x),y:Math.round(player.y),f:1,d:0,m:0,s:'h'};
   NET.uid=await NET.adapter.connect(room,info,NET_HANDLERS,stage);NET.on=true;
   try{localStorage.setItem('vv_net',JSON.stringify({name,room}))}catch(e){}
   if(!PEER_SPR.length)buildPeerSprites();renderNetPill();$('#emotes').hidden=false;$('#chatWrap').hidden=false;
@@ -2348,14 +2358,14 @@ async function netConnect(room,name,mode,stage){
 function netTick(dt){
   if(!NET.on)return;
   const now=performance.now(),inWorld=player.scene==='world';
-  const key=inWorld?Math.round(player.x/3)+','+Math.round(player.y/3)+','+player.face:'h';
+  const key=inWorld?Math.round(player.x/3)+','+Math.round(player.y/3)+','+player.face+','+player.dir:'h';
   const eKey=NET.emote&&now-NET.emoteT<3500?NET.emote:'';
   if((key+eKey!==NET.lastKey&&now-NET.lastSent>160)||now-NET.lastBeat>8000){
     NET.lastKey=key+eKey;NET.lastSent=now;NET.lastBeat=now;
-    NET.adapter.presence({n:NET.name,c:NET.color,x:Math.round(player.x),y:Math.round(player.y),f:player.face,m:player.moving?1:0,s:inWorld?'w':'h',...(eKey?{e:eKey,et:Date.now()}:{})});
+    NET.adapter.presence({n:NET.name,c:NET.color,x:Math.round(player.x),y:Math.round(player.y),f:player.face,d:player.dir,m:player.moving?1:0,s:inWorld?'w':'h',...(eKey?{e:eKey,et:Date.now()}:{})});
   }
   const k=1-Math.exp(-dt*10);
-  for(const id in NET.peers){const p=NET.peers[id];if(now-p.seen>25000){NET_HANDLERS.peerGone(id);continue}const dx=p.x-p.rx,dy=p.y-p.ry;p.rx+=dx*k;p.ry+=dy*k;const sp=Math.hypot(dx,dy);p.walking=sp>2||p.m;if(p.walking)p.ph+=dt*9;if(Math.abs(dx)>1)p.f=dx<0?-1:1}
+  for(const id in NET.peers){const p=NET.peers[id];if(now-p.seen>25000){NET_HANDLERS.peerGone(id);continue}const dx=p.x-p.rx,dy=p.y-p.ry;p.rx+=dx*k;p.ry+=dy*k;const sp=Math.hypot(dx,dy);p.walking=sp>2||p.m;if(p.walking)p.ph+=dt*9;if(Math.abs(dx)>1)p.f=dx<0?-1:1;if(sp>3)p.d=dirFrom(dx,dy,p.d)}
   NET.pillT=(NET.pillT||0)-dt;if(NET.pillT<0){NET.pillT=2;if($('#netList')&&!$('#netList').hidden)renderNetPill()}
   // crecimiento de árboles compartidos (por reloj del servidor)
   NET.growT=(NET.growT||0)-dt;if(NET.growT<0){NET.growT=.5;
@@ -2367,12 +2377,12 @@ function peerList(){return Object.values(NET.peers)}
 
 /* ---------- dibujo de los demás jugadores ---------- */
 function drawPeer(g,p){
-  const spr=PEER_SPR[p.c]||PEER_SPR[0];const bob=p.walking?Math.abs(Math.sin(p.ph))*4:0,tilt=p.walking?Math.sin(p.ph)*.06:0;
+  const spr=PEER_SPR[p.c]||PEER_SPR[0];const bob=p.walking?Math.abs(Math.sin(p.ph*1.24))*1.6:0;
   const col=`hsl(${(210+PEER_HUES[p.c])%360} 70% 55%)`;
   g.save();g.translate(p.rx,p.ry);
   g.fillStyle='rgba(10,25,15,.3)';g.beginPath();g.ellipse(0,0,22,8,0,0,7);g.fill();
   g.strokeStyle=col;g.lineWidth=3;g.beginPath();g.ellipse(0,0,24,9,0,0,7);g.stroke();
-  if(spr){g.save();g.rotate(tilt);g.scale(p.f||1,1);g.drawImage(spr.c,-spr.w*.52,-spr.h-bob+6,spr.w,spr.h);g.restore()}
+  if(spr)drawKnight(g,spr.c,.5,p.d||0,walkFrame(p.walking,p.ph),bob,0);
   g.font=`700 13px ${FONT_B}`;const tw=g.measureText(p.n).width+16;
   g.fillStyle='rgba(17,28,23,.78)';rr(g,-tw/2,-122,tw,20,10);g.fill();g.fillStyle=col;g.beginPath();g.arc(-tw/2+9,-112,3.5,0,7);g.fill();
   g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(p.n,4,-111.5);
