@@ -1054,7 +1054,7 @@ function drawRain(cw,ch){if(!isRaining())return;ctx.save();ctx.fillStyle='rgba(5
 
 /* ---------- interior del hogar ---------- */
 const HOME_W=1200,HOME_H=800;
-const HSOLIDS=[],HSPOTS=[];
+const HSOLIDS=[],HSPOTS=[];const HOME_SPAWN={x:600,y:660};
 let HOME_IMG=null;const HOBJ=[];const HOME_FX={cookUntil:0,mode:'',lamps:[],windows:[]};
 const WALL_Y=262;
 /* pieza del atlas de la cocina: x = izquierda, y = base (pies), s = escala */
@@ -1113,6 +1113,7 @@ function buildHome(){
   g.fillStyle='#c48a3a';for(let i=0;i<4;i++){g.save();g.translate(bed.x+38+i*49,qy+qh/2);g.rotate(Math.PI/4);g.fillRect(-4,-4,8,8);g.restore()}
   g.fillStyle='#5b3a24';g.fillRect(bed.x,bed.y+bed.h-10,bed.w,10);
   HSOLIDS.push({x:bed.x,y:bed.y,w:bed.w,h:bed.h-6});HSPOTS.push({id:'bed',x:bed.x+bed.w/2,y:bed.y+bed.h+34,label:'Dormir',r:90});
+  HOME_SPAWN.x=bed.x+bed.w/2+18;HOME_SPAWN.y=bed.y+bed.h+46; // se despierta junto a la cama, nunca dentro
   hpiece(g,'herbPot',bed.x+bed.w+6,WALL_Y+40,1);HSOLIDS.push({x:bed.x+bed.w+6,y:WALL_Y+5,w:44,h:34});
   // ---- escritorio
   const de={x:70,y:540,w:230,h:76};
@@ -1306,6 +1307,14 @@ function drawMinimap(){
   {const gx=(HUERTO.x+HUERTO.w/2)*s,gy=(HUERTO.y+HUERTO.h/2)*s,rd=S.plots&&S.plots.some(p=>p&&p.ready&&!p.dead);if(rd){mmx.fillStyle=`rgba(242,177,52,${.5+.4*Math.sin(T*5)})`;mmx.beginPath();mmx.arc(gx,gy,16,0,7);mmx.fill()}mmx.fillStyle='rgba(255,255,255,.92)';mmx.beginPath();mmx.arc(gx,gy,11,0,7);mmx.fill();mmx.font='13px system-ui';mmx.fillText('🌱',gx,gy+1)}
     const px=(player.scene==='home'?1700:player.x)*s,py=(player.scene==='home'?1580:player.y)*s;
   mmx.fillStyle='#fff';mmx.beginPath();mmx.arc(px,py,7,0,7);mmx.fill();mmx.fillStyle='#d24b3e';mmx.beginPath();mmx.arc(px,py,4.5,0,7);mmx.fill();
+}
+
+/* Si por un cambio de mobiliario el punto quedara ocupado, mueve al jugador al libre más cercano. */
+function homeUnstick(){
+  if(player.scene!=='home'||!homeHit(player.x,player.y,player.r))return;
+  for(let r=16;r<=420;r+=16)for(let a=0;a<16;a++){const t=a/16*Math.PI*2,x=player.x+Math.cos(t)*r,y=player.y+Math.sin(t)*r;
+    if(x>60&&x<HOME_W-60&&y>WALL_Y+30&&y<HOME_H-60&&!homeHit(x,y,player.r)){player.x=x;player.y=y;player.vx=player.vy=0;return}}
+  player.x=HOME_W/2;player.y=HOME_H-120;
 }
 /* =========================================================
    Lógica del juego: estado, economía, lugares, interfaz
@@ -2015,7 +2024,7 @@ function interact(){
   if(busy||modal||!S.started)return;const s=nearestSpot();if(!s)return;beep('click');
   switch(s.id){
     case'market':openMarket();break;case'work':openWork();break;case'recycle':openRecycle();break;case'shop':openShop();break;case'bank':openBank();break;
-    case'home':fade(()=>{player.scene='home';player.x=600;player.y=HOME_H-120;player.vx=player.vy=0});break;
+    case'home':fade(()=>{player.scene='home';player.x=600;player.y=HOME_H-120;player.vx=player.vy=0;homeUnstick()});break;
     case'exit':fade(()=>{player.scene='world';player.x=1700;player.y=1600;player.vx=player.vy=0});break;
     case'kitchen':openKitchen();break;case'pantry':openBag();break;case'bins':openBins();break;case'desk':openDesk();break;case'bed':openBed();break;
     case'sofa':openLiving();break;
@@ -2061,8 +2070,8 @@ function sleep(){
     for(const r of bankNight())rep.push(r);
     S.daily.push({day:S.day,co2:S.co2Day[S.day]||0,money:S.money,health:S.health,mood:S.mood,net:netWorth()});
     const summary={day:S.day,co2:S.co2Day[S.day]||0,rep};
-    if(S.day>=LAST_DAY){bankSettle();S.over=true;player.scene='home';player.x=190;player.y=400;save();showReport();return}
-    S.day++;S.min=DAY_START;S.meals=0;if(S.owned.barril)for(const pl of S.plots)if(pl&&!pl.ready&&!pl.dead)pl.wet=WET;player.scene='home';player.x=190;player.y=400;player.vx=player.vy=0;
+    if(S.day>=LAST_DAY){bankSettle();S.over=true;player.scene='home';player.x=HOME_SPAWN.x;player.y=HOME_SPAWN.y;save();showReport();return}
+    S.day++;S.min=DAY_START;S.meals=0;if(S.owned.barril)for(const pl of S.plots)if(pl&&!pl.ready&&!pl.dead)pl.wet=WET;player.scene='home';player.x=HOME_SPAWN.x;player.y=HOME_SPAWN.y;player.vx=player.vy=0;
     save();showDaySummary(summary);
   },'🌙 Buenas noches',`Día ${S.day} terminado`);
 }
@@ -2234,7 +2243,7 @@ function frame(now){
     advance(dt*2); // 1 s real = 2 min de juego
     if(S.min>=PASSOUT&&!S.over){toast('😵','Te quedaste dormido fuera de casa. Amaneces cansado.','bad');S.mood=clamp(S.mood-8,0,100);S.health=clamp(S.health-4,0,100);sleep()}
   }
-  updateMusic(dt);if(NET.on)netTick(dt);updatePlayer(dt);updateAnimals(dt);updateParts(dt);ambient(dt);updateCamera(dt);
+  updateMusic(dt);if(NET.on)netTick(dt);homeUnstick();updatePlayer(dt);updateAnimals(dt);updateParts(dt);ambient(dt);updateCamera(dt);
   render();updatePrompt();
   hudT-=dt;if(hudT<0&&S){hudT=.25;refreshHUD()}
   mmT-=dt;if(mmT<0){mmT=.1;drawMinimap()}
@@ -2244,7 +2253,7 @@ function frame(now){
 /* ---------- inicio ---------- */
 function startNew(){
   musicPlay();
-  S=newState();syncTrees();S.started=true;player.scene='home';player.x=190;player.y=400;player.vx=player.vy=0;hudSig='';
+  S=newState();syncTrees();S.started=true;player.scene='home';player.x=HOME_SPAWN.x;player.y=HOME_SPAWN.y;player.vx=player.vy=0;hudSig='';
   $('#title').hidden=true;refreshHUD();snapCamera();save();
   openSheet({kind:'intro',title:'Bienvenida a Villa Verde',emoji:'🌿',color:'#2f8f5b',sub:'Lunes · Día 1 de 7',render:()=>({body:`
     ${info('🏡','Despiertas en tu casa. Tienes <b>'+fmt(START_MONEY)+'</b>, un poco de comida y una semana por delante.')}
