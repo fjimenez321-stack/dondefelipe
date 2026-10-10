@@ -132,6 +132,9 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #mb.show{opacity:1}
 #cloudBtn{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));top:calc(96px + env(safe-area-inset-top,0px));display:none;width:42px;height:36px;
   font:700 18px system-ui,sans-serif;color:#8a8f8c;background:var(--panel);border:1px solid #8a8f8c;border-radius:4px;cursor:pointer;padding:0}
+#musBtn{position:fixed;right:calc(64px + env(safe-area-inset-right,0px));top:calc(96px + env(safe-area-inset-top,0px));display:none;width:42px;height:36px;
+  font:700 18px system-ui,sans-serif;color:var(--ink);background:var(--panel);border:1px solid rgba(207,213,216,.4);border-radius:4px;cursor:pointer;padding:0}
+#musBtn.off{color:#8a8f8c;border-color:#8a8f8c}
 #cloud{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,11,10,.84);padding:20px;z-index:12}
 #cloud .box{width:min(520px,100%);max-height:88vh;overflow:auto;background:#161a18;border:1px solid rgba(207,213,216,.35);border-radius:4px;padding:18px 20px;touch-action:pan-y}
 #cloud h2{margin:0 0 6px;font:700 26px 'Alegreya',Georgia,serif}
@@ -190,6 +193,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 <button id="misBtn">Misiones</button>
 <div id="ruka"><div class="rbox"><h2 id="rTitle">Dentro de la ruka</h2><canvas id="ri" width="640" height="300"></canvas><div id="rInfo"></div><div id="rText"></div><div class="racts"><button id="rRest">Descansar junto al fuego</button><button id="rCook">Cocinar 3 piñones</button><button id="rEat">Compartir comida (5)</button><button id="rCollect">Recoger lo producido</button><button id="rTale">Escuchar un nütram</button><button id="rExit">Salir</button></div></div></div>
 <button id="cloudBtn" title="Guardado en la nube">☁</button>
+<button id="musBtn" title="Música">♪</button>
 <div id="cloud"><div class="box"><h2>Guardado en la nube</h2><p id="cMsg"></p><p id="cUser"></p>
 <div class="cb"><button id="cLogin" class="mini">Iniciar sesión con Google</button><button id="cSave" class="mini">Guardar ahora</button><button id="cLoad" class="mini">Cargar de la nube</button><button id="cLogout" class="mini">Cerrar sesión</button><button id="cClose" class="mini">Cerrar</button></div>
 <div id="cCfgBox"><p>Pega aquí la configuración de tu proyecto de Firebase (la que aparece al registrar la app web). Se guarda solo en este navegador.</p><textarea id="cCfg" spellcheck="false" placeholder="const firebaseConfig = { apiKey: &quot;...&quot;, authDomain: &quot;...&quot;, projectId: &quot;...&quot;, appId: &quot;...&quot; };"></textarea>
@@ -865,6 +869,7 @@ function updAct(){
 const giftRun=()=>gifts.kuruf;
 
 /* ---------- entrada ---------- */
+addEventListener('pointerdown',()=>{if(started&&mus.on&&!mus.started)musStart()},{passive:true});
 addEventListener('keydown',e=>{
   if(e.target&&e.target.tagName==='TEXTAREA')return;
   if(e.repeat&&(e.key==='e'||e.key==='E'||e.key===' '||e.key==='Enter'))return;
@@ -981,7 +986,7 @@ function update(dt){
   const target=(.28+.18*n)*(1-.4*sk);satCur+=(target-satCur)*Math.min(1,dt*(sk>0?1.6:.8));
   if(Math.abs(satCur-lastSatSet)>.004){lastSatSet=satCur;cv.style.filter=`saturate(${satCur.toFixed(3)}) brightness(${(.9+.1*Math.min(1,satCur)).toFixed(3)})`}
 
-  updEvents(dt);updNewen(dt);updRes(dt);updZone(dt);updBuild();updSites(dt);updRukas(dt);updEcon(dt);updWaterHints(dt);updProg(dt);
+  updMusic(dt);updEvents(dt);updNewen(dt);updRes(dt);updZone(dt);updBuild();updSites(dt);updRukas(dt);updEcon(dt);updWaterHints(dt);updProg(dt);
   updDlg(dt);updAct();
   const showRun=started&&!dlg&&giftRun()&&coarse;runEl.style.display=showRun?'block':'none';
 }
@@ -2114,6 +2119,40 @@ $('cCfgSave').addEventListener('click',()=>{
 });
 $('cCfgClear').addEventListener('click',()=>{try{localStorage.removeItem('mapu-fbcfg')}catch(e){}location.reload()});
 
+/* ---------- música: "Where the Sea Meets Stone" (archivo mapu-musica.mp3 junto a este HTML) ---------- */
+const MUS_VOL=.55;
+const mus={a:null,on:true,ok:false,started:false,vol:0,tgt:0};
+try{mus.on=localStorage.getItem('mapu-mus')!=='0'}catch(e){}
+const musBtn=$('musBtn');
+function musRender(){musBtn.textContent=mus.on?'♪':'♪̸';musBtn.classList.toggle('off',!mus.on);musBtn.title=mus.on?'Música: activada':'Música: silenciada'}
+function musStart(){
+  if(mus.started)return;mus.started=true;
+  try{
+    const a=new Audio('mapu-musica.mp3');a.loop=true;a.preload='auto';a.volume=0;mus.a=a;
+    a.addEventListener('error',()=>{mus.ok=false;mus.a=null;musBtn.style.display='none'});
+    a.addEventListener('canplay',()=>{mus.ok=true});
+    if(mus.on){const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{mus.started=false})}   // si el navegador bloquea, se reintenta con el próximo toque
+  }catch(e){}
+}
+function musToggle(){
+  mus.on=!mus.on;try{localStorage.setItem('mapu-mus',mus.on?'1':'0')}catch(e){}
+  musRender();
+  if(!mus.started)musStart();
+  else if(mus.a&&mus.on){const pr=mus.a.play();if(pr&&pr.catch)pr.catch(()=>{})}
+}
+musBtn.addEventListener('click',e=>{e.stopPropagation();musToggle()});
+musRender();
+/* volumen suave: sube y baja sin saltos; baja un poco durante diálogos y al estar en la ruka */
+function updMusic(dt){
+  const a=mus.a;if(!a)return;
+  mus.tgt=(mus.on&&started&&!document.hidden)?MUS_VOL*(dlg?.55:1):0;
+  mus.vol+=(mus.tgt-mus.vol)*Math.min(1,dt*(mus.tgt>mus.vol?.9:3));
+  if(Math.abs(mus.vol-a.volume)>.004)a.volume=cl(mus.vol,0,1);
+  if(mus.vol<.004&&!a.paused&&(!mus.on||document.hidden))a.pause();
+  else if(mus.on&&!document.hidden&&a.paused&&mus.started&&mus.tgt>0){const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{})}
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&mus.a)mus.a.pause()});
+
 /* ---------- arranque ---------- */
 let last=0;
 function frame(now){
@@ -2142,7 +2181,7 @@ function init(){
 }
 $('go').addEventListener('click',()=>{
   if(!ready)return;started=true;$('start').style.display='none';
-  $('hud').style.display='flex';$('kimunBtn').style.display='block';$('misBtn').style.display='block';cBtn.style.display='block';
+  $('hud').style.display='flex';$('kimunBtn').style.display='block';musBtn.style.display='block';musStart();$('misBtn').style.display='block';cBtn.style.display='block';
   if(!saved.intro)setTimeout(()=>{if(!dlg)talkKuku()},700);
   else if(offline&&offline.el>60)setTimeout(()=>toast('Mientras no estabas ('+Math.round(offline.el/60)+' min), tu lof produjo '+Math.floor(offline.food)+' de alimento y '+Math.floor(offline.pe)+' de Newen de la lof.'),900);
 });
