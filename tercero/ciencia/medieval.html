@@ -4,6 +4,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<link rel="dns-prefetch" href="https://firebaseio.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800;900&display=swap">
 <style>
 /* Layout: full-bleed canvas world; glass HUD floats over it; sheets slide up for every building. */
@@ -2162,8 +2165,10 @@ function startNew(){
 function migrate(st){if(!st.plots)st.plots=[null,null,null,null,null,null];if(!st.seeds)st.seeds={lechuga:2,hierbas:1,zanahoria:1};if(st.riverCleaned==null)st.riverCleaned=0;if(!st.skills)st.skills={};if(st.harvested==null)st.harvested=0;if(!st.garden)st.garden={compost:0};if(!st.bank)st.bank={save:0,term:null,debt:{credito:0,avance:0},inv:{bono:0,solar:0,feria:0,cadena:0},hist:[]};if(st.wood==null)st.wood=0;if(!st.saplings)st.saplings=[];if(!st.cut)st.cut={};if(!st.planted)st.planted=[];if(!st.nextTree)st.nextTree=1;if(st.treesCut==null)st.treesCut=0;if(st.treesPlanted==null)st.treesPlanted=0;return st}
 function continueGame(d){musicPlay();S=migrate(d.S);syncTrees();player.scene=d.p.scene||'world';player.x=d.p.x;player.y=d.p.y;hudSig='';$('#title').hidden=true;S.started=true;refreshHUD();snapCamera();toast('💾',`Continuando: ${DAYS[S.day-1]}, ${hhmm(S.min)}.`)}
 
+let BOOTED=false,bootDone;const BOOT_READY=new Promise(r=>bootDone=()=>{BOOTED=true;r()});
 async function boot(){
   resize();
+  setupOnlineUI();
   await Promise.all([loadImg('grass','assets/grass.jpg'),loadImg('knight','assets/player_knight.png'),loadImg('cat','assets/cat.png'),loadImg('peng','assets/penguin.png')]);
   try{await Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,1500))])}catch(e){}
   paintMusicBtn();
@@ -2172,10 +2177,9 @@ async function boot(){
   player.scene='world';player.x=1200;player.y=1000;snapCamera();refreshHUD();
   const d=load();if(d){$('#btnCont').hidden=false;$('#btnCont').onclick=()=>continueGame(d)}
   $('#btnNew').onclick=()=>{beep('click');startNew()};
-  setupOnlineUI();
+  bootDone();
   requestAnimationFrame(frame);
 }
-boot();
 /* =========================================================
    Multijugador en línea: Firebase Realtime Database (o modo local de prueba)
    - Presencia: posición, nombre, color y emotes de cada jugador
@@ -2210,19 +2214,38 @@ function buildPeerSprites(){
 
 /* ---------- adaptador Firebase ---------- */
 const FB_VER='10.12.2';
+let FB_WARM=null;
+/* Precarga: baja el SDK, inicia sesión anónima y abre la conexión mientras el alumno escribe su nombre. */
+function fbWarm(stage){
+  if(!FB_WARM){
+    const U=f=>`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-${f}-compat.js`;
+    FB_WARM=(async()=>{
+      if(!window.firebase||!firebase.auth||!firebase.database){
+        stage&&stage('Cargando conexión…');
+        if(!window.firebase)await loadScript(U('app'));
+        await Promise.all([firebase.auth?0:loadScript(U('auth')),firebase.database?0:loadScript(U('database'))]);
+      }
+      if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG);
+      firebase.database().ref('.info/connected').on('value',()=>{}); // abre el socket ya
+      const a=firebase.auth();
+      const u=a.currentUser||(await a.signInAnonymously()).user;
+      return u.uid;
+    })();
+    FB_WARM.catch(()=>{FB_WARM=null});
+  }else if(stage)stage('Conectando…');
+  return FB_WARM;
+}
 function firebaseAdapter(){
   let base=null,me=null;const TS=()=>firebase.database.ServerValue.TIMESTAMP;
   return{
-    async connect(room,info,h){
-      if(!window.firebase){await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-app-compat.js`);await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-auth-compat.js`);await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-database-compat.js`)}
-      if(!firebase.apps.length)firebase.initializeApp(window.FIREBASE_CONFIG);
-      const cred=await firebase.auth().signInAnonymously();const uid=cred.user.uid;
+    async connect(room,info,h,stage){
+      const uid=await fbWarm(stage);
+      stage&&stage('Entrando al pueblo…');
       const db=firebase.database();
       db.ref('.info/serverTimeOffset').on('value',s=>{NET.offset=s.val()||0});
       base=db.ref('rooms/'+room);me=base.child('p/'+uid);
-      await me.onDisconnect().remove();
-      await me.set({...info,t:TS()});
-      await base.child('w/who/'+uid).set(true);
+      // se envían en orden por la misma conexión; no hace falta esperar cada una
+      me.onDisconnect().remove();me.set({...info,t:TS()});base.child('w/who/'+uid).set(true);
       const P=base.child('p');
       P.on('child_added',s=>h.peer(s.key,s.val()));P.on('child_changed',s=>h.peer(s.key,s.val()));P.on('child_removed',s=>h.peerGone(s.key));
       const C=base.child('w/cut');C.on('child_added',s=>h.cut(s.key,s.val()));C.on('child_changed',s=>h.cut(s.key,s.val()));
@@ -2314,11 +2337,11 @@ function netPlantedState(id,v){return{id,netId:id,x:v.x,y:v.y,v:v.v|0,at:v.at,wa
 function netProg(v){const now=netNow(),wa=v.wa||0;const a=Math.max(0,((wa||now)-v.at))*.35,b=wa?Math.max(0,now-wa):0;return Math.min(GROW_T,(a+b)/1000*2)}
 
 /* ---------- conexión ---------- */
-async function netConnect(room,name,mode){
+async function netConnect(room,name,mode,stage){
   NET.mode=mode;NET.room=room;NET.name=name;NET.color=Math.abs([...name].reduce((a,ch)=>a*31+ch.charCodeAt(0),7))%PEER_HUES.length;
   NET.adapter=mode==='local'?localAdapter():firebaseAdapter();
   const info={n:name,c:NET.color,x:Math.round(player.x),y:Math.round(player.y),f:1,m:0,s:'h'};
-  NET.uid=await NET.adapter.connect(room,info,NET_HANDLERS);NET.on=true;
+  NET.uid=await NET.adapter.connect(room,info,NET_HANDLERS,stage);NET.on=true;
   try{localStorage.setItem('vv_net',JSON.stringify({name,room}))}catch(e){}
   if(!PEER_SPR.length)buildPeerSprites();renderNetPill();$('#emotes').hidden=false;$('#chatWrap').hidden=false;
 }
@@ -2381,7 +2404,8 @@ function drawSay(g,x,y,text){g.save();g.font=`700 13px ${FONT_B}`;const words=te
 function sendEmote(i){if(!NET.on)return;NET.emote=EMOTES[i];NET.emoteT=performance.now();NET.lastKey=''}
 
 /* ---------- interfaz en línea ---------- */
-function renderNetPill(){const el=$('#netPill');if(!NET.on){el.hidden=true;return}el.hidden=false;
+let PILL_RAF=0;function renderNetPill(){if(PILL_RAF)return;PILL_RAF=requestAnimationFrame(()=>{PILL_RAF=0;renderNetPillNow()})}
+function renderNetPillNow(){const el=$('#netPill');if(!NET.on){el.hidden=true;return}el.hidden=false;
   const ps=peerList();const n=ps.length+1;
   const open=$('#netList')&&!$('#netList').hidden;el.innerHTML=`<button id="netBtn" class="np-btn" title="Curso ${NET.room}"><i class="dot"></i><b>${n}</b></button><div class="np-list" id="netList" ${open?'':'hidden'}><div class="np-room">Curso ${NET.room} · ${n} en línea</div><div class="np-me">${escapeHtml(NET.name)} (tú)</div>${ps.map(p=>`<div class="np-row"><span><i style="background:hsl(${(210+PEER_HUES[p.c])%360} 70% 55%)"></i>${escapeHtml(p.n)}${p.s==='h'?' <small>en casa</small>':''}</span><button class="np-mute" data-mute="${p.uid}">${NET.muted[p.uid]?'Activar chat':'Silenciar'}</button></div>`).join('')}<p class="np-note">Río del curso: ${Math.round(riverLoad())} residuos por jugador · ${Object.values(NET.world.cut).filter(v=>!v.r).length} árboles talados · ${Object.keys(NET.world.pl).length} plantados</p></div>`;
   $('#netBtn').onclick=()=>{const l=$('#netList');l.hidden=!l.hidden};
@@ -2395,17 +2419,27 @@ function setupOnlineUI(){
   const localOK=/[?&#]local\b/.test(location.href);
   const cfgOK=hasFirebaseConfig();
   if(!cfgOK&&!localOK){$('#btnOnline').disabled=true;msg.textContent='Modo en línea no disponible: '+firebaseConfigProblem()}
+  if(cfgOK&&!localOK){
+    // precarga en segundo plano: al abrir la portada, o antes si el alumno toca los campos
+    const warm=()=>fbWarm().catch(e=>console.warn('precarga',e));
+    inName.addEventListener('focus',warm,{once:true});inRoom.addEventListener('focus',warm,{once:true});
+    (window.requestIdleCallback||setTimeout)(warm,{timeout:1500});
+  }
   $('#btnOnline').onclick=async()=>{
     const name=cleanName(inName.value),room=cleanRoom(inRoom.value);
     if(name.length<2){msg.textContent='Escribe tu nombre (al menos 2 letras).';inName.focus();return}
     if(room.length<2){msg.textContent='Escribe el código del curso que te dio tu profesor.';inRoom.focus();return}
     $('#btnOnline').disabled=true;msg.textContent='Conectando…';
+    const stage=t=>{msg.textContent=t};
     try{
-      await netConnect(room,name,cfgOK&&!localOK?'firebase':'local');
+      let tm;const slow=new Promise((_,rej)=>{tm=setTimeout(()=>rej(new Error('la conexión está tardando demasiado. Revisa el internet y vuelve a intentarlo.')),20000)});
+      const slowMsg=setTimeout(()=>stage('Sigue conectando… (la red del colegio puede estar lenta)'),5000);
+      try{await Promise.race([netConnect(room,name,cfgOK&&!localOK?'firebase':'local',stage),slow])}finally{clearTimeout(tm);clearTimeout(slowMsg)}
+      if(!BOOTED)stage('Preparando el pueblo…');await BOOT_READY;
       SAVE_SLOT='@'+room;musicPlay();
       const d=load();if(d)continueGame(d);else startNew();
       syncTrees();toast('🌐',`Estás en el pueblo del curso <b>${room}</b>. El río y los árboles son de todos.`,'good');
-    }catch(e){console.error(e);msg.textContent='No se pudo conectar: '+(e&&e.message?e.message:'revisa la conexión a internet.');$('#btnOnline').disabled=false}
+    }catch(e){console.error(e);if(NET.on){try{NET.adapter.leave()}catch(_){}NET.on=false;renderNetPill();$('#emotes').hidden=true;$('#chatWrap').hidden=true}msg.textContent='No se pudo conectar: '+(e&&e.message?e.message:'revisa la conexión a internet.');$('#btnOnline').disabled=false}
   };
   $('#emotes').addEventListener('click',e=>{const b=e.target.closest('[data-em]');if(b)sendEmote(+b.dataset.em)});
   $('#emotes').innerHTML=EMOTES.map((e,i)=>`<button data-em="${i}" title="Tecla ${i+1}">${e}</button>`).join('');
@@ -2625,4 +2659,6 @@ Object.assign(ACTIONS,{
   trCancel(){if(TRADE.id){trUpd({st:'x',by:NET.uid})}},
 });
 window.addEventListener('keydown',e=>{if(!TRADE.inviteFor||e.target&&e.target.tagName==='INPUT')return;if(e.code==='KeyY'){e.preventDefault();acceptInvite()}else if(e.code==='KeyN'&&!e.repeat){e.preventDefault();e.stopImmediatePropagation();declineInvite('no')}},true);
+
+boot();
 </script></body></html>
