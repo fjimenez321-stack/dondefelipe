@@ -15,15 +15,19 @@ OC.Engine = (function () {
 
   const state = {
     scene: 'menu', saga: SAGAS[0], sagaIndex: 0, level: 0, score: 0, lives: C.lives.start, nombre: '', curso: '',
-    ship: { x: 0, y: 0, w: C.ship.w, h: C.ship.h, speed: 5, cd: 0 },
+    ship: { x: 0, y: 0, w: C.ship.w, h: C.ship.h, speed: 5, cd: 0, tilt: 0 },
     bullets: [], enemies: [], powerups: [], particles: [], stars: [], bossShots: [],
-    boss: null, bossPending: false, bossT: 0, destroyed: 0, spawnT: 0, pending: false,
+    boss: null, bossPending: false, bossT: 0, destroyed: 0, spawnT: 0, spawnQueue: [], pending: false,
+    qDeck: [], lastQ: null, checkpoint: null, paused: false, briefFinal: false,
     speedBuff: 0, powerBuff: 0, storm: 0, eventT: 0, nextEvent: 9000, msgKilledBy: '', groundY: 0,
     temp: 0, tempActive: false, tempRate: 0, coolT: 0, tempWarned: false, currentQ: null, final: false,
     coins: 0, upgrades: { armadura: 0, armamento: 0, cadencia: 0, rayo_especial: 0, refrigeracion: 0 }, shield: 0, shieldMax: 0, invuln: 0
   };
   const keys = { left: false, right: false, fire: false };
   const $ = id => document.getElementById(id);
+  const worldNow = () => PLANETAS[Math.min(state.level, PLANETAS.length - 1)];
+  const groundFor = p => SUPERFICIE.includes(p.scene) ? H * 0.84 : H + 40;
+  const envNow = () => ({ groundY: state.groundY, H: H, fondo: worldNow().fondo || worldNow().scene });
 
   /* -------- PODIO -------- */
   function loadLB() { try { return JSON.parse(localStorage.getItem('odisea_lb') || '[]'); } catch (e) { return (window.__lb || []); } }
@@ -76,7 +80,9 @@ OC.Engine = (function () {
   function show(id) {
     screens.forEach(s => { const el = $(s); if (el) el.classList.toggle('on', s === id); });
     $('hud').style.display = (state.scene === 'playing') ? 'flex' : 'none';
-    $('hint').style.display = (state.scene === 'playing') ? 'block' : 'none';
+    $('hint').style.display = (state.scene === 'playing' && !isTouch) ? 'block' : 'none';
+    $('btn-mute').style.display = $('btn-pause').style.display = (state.scene === 'playing') ? 'flex' : 'none';
+    if (state.scene !== 'playing' && state.paused) { state.paused = false; $('pausa').classList.remove('on'); $('btn-pause').textContent = '⏸'; }
     $('buffs').style.display = (state.scene === 'playing') ? 'block' : 'none';
     $('touch').classList.toggle('on', state.scene === 'playing' && isTouch);
     if (state.scene !== 'playing') clearPad();
@@ -85,7 +91,7 @@ OC.Engine = (function () {
   /* -------- HUD -------- */
   function drawHUD() {
     const p = PLANETAS[state.level];
-    $('hud-mision').textContent = 'MISIÓN ' + p.num + ' · ' + p.nombre.toUpperCase();
+    $('hud-mision').textContent = state.final ? 'EXAMEN FINAL' : ('MISIÓN ' + p.num + ' · ' + p.nombre.toUpperCase());
     $('hud-puntos').textContent = 'PTS ' + state.score;
     $('hud-vidas').textContent = (state.lives > 0 ? ('♥ '.repeat(state.lives)).trim() : '—');
     let bh = '<span class="b-coin">🪙 ' + state.coins + '</span>';
@@ -116,6 +122,7 @@ OC.Engine = (function () {
     state.level = 0; state.score = 0; state.lives = C.lives.start;
     state.coins = 0; state.upgrades = { armadura: 0, armamento: 0, cadencia: 0, rayo_especial: 0, refrigeracion: 0 };
     state.shield = 0; state.shieldMax = 0; state.final = false; state.msgKilledBy = ''; state.invuln = 0;
+    state.qDeck = []; state.lastQ = null; state.checkpoint = null; state.briefFinal = false; state.paused = false; state.spawnQueue = [];
   }
   function selectSaga(i) {
     state.sagaIndex = i; state.saga = SAGAS[i];
@@ -134,38 +141,59 @@ OC.Engine = (function () {
     state.scene = 'intro'; show('intro');
   }
 
+  /* -------- CHECKPOINT: reintentar sin perder toda la saga -------- */
+  function snapshot(final) {
+    state.checkpoint = { level: state.level, score: state.score, coins: state.coins, upgrades: Object.assign({}, state.upgrades), final: !!final };
+  }
+  function retry() {
+    const cp = state.checkpoint;
+    if (C.retry === 'saga' || !cp) { resetRun(); startBriefing(); return; }
+    state.level = cp.level; state.score = cp.score; state.coins = cp.coins; state.upgrades = Object.assign({}, cp.upgrades);
+    state.lives = C.lives.start; state.shield = 0; state.shieldMax = 0; state.msgKilledBy = ''; state.invuln = 0; state.final = false;
+    if (cp.final) startFinalBriefing(); else startBriefing();
+  }
+
+  /* -------- BRIEFINGS (papiro antes de cada misión y del examen final) -------- */
+  function controles() { return isTouch ? '◀ ▶ mover · FUEGO disparar · recoge ⚡ velocidad y ✦ poder' : '◂ ▸ mover · ESPACIO disparar · P pausa · recoge ⚡ velocidad y ✦ poder'; }
+  function fillBriefing(sello, titulo, sub, texto, jefe, ctrl) {
+    $('brief-sello').textContent = sello; $('brief-titulo').textContent = titulo; $('brief-sub').textContent = sub;
+    $('brief-texto').textContent = texto; $('brief-boss').textContent = jefe; $('brief-ctrl').textContent = ctrl;
+  }
+  function startBriefing() {
+    const p = PLANETAS[state.level]; state.briefFinal = false; state.final = false;
+    fillBriefing(p.autor.sello, 'Misión ' + p.num + ' · ' + p.nombre, p.sub, p.contexto, '⚠ Guardián de la misión: ' + p.boss.nombre,
+      p.cooling ? '🌡 En esta misión sube la temperatura: recoge ❄ para enfriar · ' + controles() : controles());
+    state.scene = 'briefing'; show('briefing'); A.stopAmbient();
+  }
+  function startFinalBriefing() {
+    const fb = state.saga.finalBoss; state.briefFinal = true; state.level = PLANETAS.length - 1; state.final = false;
+    fillBriefing(fb.autor.sello, 'Examen final', fb.sub, fb.contexto, '⚠ Guardián final: ' + fb.nombre, controles());
+    state.scene = 'briefing'; show('briefing'); A.stopAmbient();
+  }
+
   /* -------- JEFE FINAL DE SAGA (El gran Profesor Felipe) -------- */
   function startFinalBoss() {
-    const s = state.saga, last = PLANETAS[PLANETAS.length - 1]; resizeNow();
-    state.scene = 'playing'; state.final = true;
-    state.bullets = []; state.enemies = []; state.powerups = []; state.particles = []; state.bossShots = [];
+    const s = state.saga, last = PLANETAS[PLANETAS.length - 1]; resizeNow(); snapshot(true);
+    state.scene = 'playing'; state.final = true; state.briefFinal = false;
+    state.bullets = []; state.enemies = []; state.powerups = []; state.particles = []; state.bossShots = []; state.spawnQueue = [];
     state.bossPending = false; state.destroyed = 0; state.spawnT = 0; state.pending = false;
     state.speedBuff = 0; state.powerBuff = 0; state.storm = 0; state.tempActive = false; state.msgKilledBy = ''; state.invuln = 0;
     state.ship.speed = baseSpeed();
     state.shieldMax = state.upgrades.armadura; state.shield = state.shieldMax;
-    state.groundY = SUPERFICIE.includes(last.scene) ? H * 0.84 : H + 40;
-    state.ship.x = W / 2 - state.ship.w / 2;
+    state.groundY = groundFor(last);
+    state.ship.x = W / 2 - state.ship.w / 2; state.ship.tilt = 0;
     state.ship.y = Math.min(H - state.ship.h - 14, state.groundY - state.ship.h - 6);
     initStars();
     const fb = s.finalBoss, hp = fb.hp || C.finalBoss.hpDefault;
     state.boss = { name: fb.nombre, color: fb.color, x: W / 2 - C.finalBoss.w / 2, y: H * C.boss.yFactor, w: C.finalBoss.w, h: C.finalBoss.h, hp: hp, maxhp: hp, vx: C.finalBoss.moveVx, cd: 400, t: 0, look: fb.look, shot: fb.shot, final: true, burst: 0 };
-    drawHUD(); show('playing'); A.boss(); announce('★ JEFE FINAL: ' + fb.nombre, '#ffd76b');
+    drawHUD(); show('playing'); A.ambient(last); A.boss(); announce('★ EXAMEN FINAL: ' + fb.nombre, '#ffd76b');
   }
 
   /* -------- INICIO DE MISIÓN -------- */
-  function startBriefing() {
-    const p = PLANETAS[state.level];
-    $('brief-sello').textContent = p.autor.sello;
-    $('brief-titulo').textContent = 'Misión ' + p.num + ' · ' + p.nombre;
-    $('brief-sub').textContent = p.sub;
-    $('brief-texto').textContent = p.contexto;
-    $('brief-boss').textContent = '⚠ Guardián de la misión: ' + p.boss.nombre;
-    state.scene = 'briefing'; show('briefing'); A.stopAmbient();
-  }
   function startLevel() {
-    const p = PLANETAS[state.level]; resizeNow();
-    state.scene = 'playing';
-    state.bullets = []; state.enemies = []; state.powerups = []; state.particles = []; state.bossShots = [];
+    const p = PLANETAS[state.level]; resizeNow(); snapshot(false);
+    state.scene = 'playing'; state.briefFinal = false;
+    state.bullets = []; state.enemies = []; state.powerups = []; state.particles = []; state.bossShots = []; state.spawnQueue = [];
     state.boss = null; state.bossPending = false; state.destroyed = 0; state.spawnT = 0; state.pending = false;
     state.speedBuff = 0; state.powerBuff = 0; state.storm = 0; state.eventT = 0;
     state.nextEvent = C.events.firstMin + Math.random() * C.events.firstRand;
@@ -174,8 +202,8 @@ OC.Engine = (function () {
     state.coolT = C.temperature.coolFirst;
     state.shieldMax = state.upgrades.armadura; state.shield = state.shieldMax;
     state.ship.speed = baseSpeed();
-    state.groundY = SUPERFICIE.includes(p.scene) ? H * 0.84 : H + 40;
-    state.ship.x = W / 2 - state.ship.w / 2;
+    state.groundY = groundFor(p);
+    state.ship.x = W / 2 - state.ship.w / 2; state.ship.tilt = 0;
     state.ship.y = Math.min(H - state.ship.h - 14, state.groundY - state.ship.h - 6);
     initStars(); drawHUD(); show('playing'); A.ambient(p);
   }
@@ -202,8 +230,9 @@ OC.Engine = (function () {
 
   /* -------- EVENTOS -------- */
   function triggerEvent() {
-    if (Math.random() < 0.5) { state.storm = C.events.stormMs; announce('☄ TORMENTA DE METEORITOS', '#f2a93b'); }
-    else { announce('🛸 OLEADA ENEMIGA', '#ff6bd0'); spawnWave(); }
+    const ev = state.saga.eventos || {};
+    if (Math.random() < 0.5) { state.storm = C.events.stormMs; announce(ev.tormenta || '☄ TORMENTA DE METEORITOS', '#f2a93b'); }
+    else { announce(ev.oleada || '🛸 OLEADA ENEMIGA', '#ff6bd0'); spawnWave(); }
     A.event();
   }
   function announce(t, c) { const b = $('banner'); b.textContent = t; b.style.color = c; b.classList.add('show'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('show'), 2400); }
@@ -231,9 +260,12 @@ OC.Engine = (function () {
     }
     A.shoot();
   }
-  function boom(x, y, color) { for (let i = 0; i < 12; i++) { const a = Math.random() * 6.28, s = 1 + Math.random() * 3.5; state.particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, color }); } }
+  function boom(x, y, color, big) {
+    for (let i = 0; i < (big ? 26 : 12); i++) { const a = Math.random() * 6.28, s = 1 + Math.random() * (big ? 5.5 : 3.5); state.particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, color }); }
+    state.particles.push({ x, y, vx: 0, vy: 0, life: 1, color, ring: true, rs: big ? 2.3 : 1 });
+  }
   function hit(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
-  function shake() { stageEl.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 180 }); }
+  function shake() { if (!stageEl.animate) return; stageEl.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 180 }); }
   // Daño a la nave: el escudo (armadura) absorbe impactos antes de perder vida.
   // Daño a la nave: ventana de invulnerabilidad (i-frames) para no encajar
   // varios impactos en un mismo contacto (p. ej. rozar al jefe). El escudo
@@ -248,8 +280,8 @@ OC.Engine = (function () {
   /* -------- JEFE -------- */
   function spawnBoss() {
     const p = PLANETAS[state.level];
-    state.enemies = [];
-    state.boss = { name: p.boss.nombre, color: p.boss.color, x: W / 2 - C.boss.w / 2, y: H * C.boss.yFactor, w: C.boss.w, h: C.boss.h, hp: p.boss.hp, maxhp: p.boss.hp, vx: C.boss.vxBase + state.level * C.boss.vxPerLevel, cd: 0, t: 0, look: p.boss.look || 'birrete', shot: p.boss.shot || 'bolt' };
+    state.enemies = []; state.spawnQueue = [];
+    state.boss = { name: p.boss.nombre, color: p.boss.color, x: W / 2 - C.boss.w / 2, y: H * C.boss.yFactor, w: C.boss.w, h: C.boss.h, hp: p.boss.hp, maxhp: p.boss.hp, vx: C.boss.vxBase + state.level * C.boss.vxPerLevel, cd: 0, t: 0, look: p.boss.look || 'guardian', deco: p.boss.deco, shot: p.boss.shot || 'bolt' };
     announce('☠ JEFE: ' + p.boss.nombre, '#ff4d57'); A.boss();
   }
   function updateBoss(dt) {
@@ -289,14 +321,14 @@ OC.Engine = (function () {
       if (hit(state.bullets[i], b)) {
         b.hp -= (state.bullets[i].bd || 1); boom(state.bullets[i].x, state.bullets[i].y, b.color); state.bullets.splice(i, 1); A.explosion();
         state.score += C.score.bossHit; drawHUD();
-        if (b.hp <= 0) { boom(b.x + b.w / 2, b.y + b.h / 2, b.color); const fue = b.final; state.coins += fue ? C.coins.perFinalDefeat : C.coins.perBossDefeat; state.boss = null; state.bossShots = []; if (fue) victoria(); else completeLevel(); return; }
+        if (b.hp <= 0) { boom(b.x + b.w / 2, b.y + b.h / 2, b.color, true); const fue = b.final; state.coins += fue ? C.coins.perFinalDefeat : C.coins.perBossDefeat; state.boss = null; state.bossShots = []; if (fue) victoria(); else completeLevel(); return; }
       }
     }
-    if (hit(state.ship, b)) hitShip('el jefe ' + b.name);
+    if (hit(state.ship, b)) hitShip('el choque con ' + b.name);
   }
 
   /* -------- BUCLE -------- */
-  function loop(now) { const dt = Math.min(40, now - last); last = now; if (state.scene === 'playing') update(dt); render(); requestAnimationFrame(loop); }
+  function loop(now) { const dt = Math.min(40, now - last); last = now; if (state.scene === 'playing' && !state.paused) update(dt); render(); requestAnimationFrame(loop); }
 
   function update(dt) {
     const p = PLANETAS[state.level], sh = state.ship;
@@ -304,6 +336,7 @@ OC.Engine = (function () {
     const spd = sh.speed * (state.speedBuff > 0 ? C.buffs.speedMult : 1) * k;
     if (keys.left) sh.x -= spd; if (keys.right) sh.x += spd;
     sh.x = Math.max(6, Math.min(W - sh.w - 6, sh.x));
+    sh.tilt += (((keys.left ? -1 : 0) + (keys.right ? 1 : 0)) - sh.tilt) * Math.min(1, 0.22 * k);   // alabeo visual
     if (keys.fire) fire(); if (sh.cd > 0) sh.cd -= k;
     if (state.speedBuff > 0) state.speedBuff -= dt;
     if (state.powerBuff > 0) state.powerBuff -= dt;
@@ -320,14 +353,15 @@ OC.Engine = (function () {
       if (state.coolT <= 0) { state.coolT = T.coolIntervalMin + Math.random() * T.coolIntervalRand; spawnPowerup('frio'); }
       if (!state.tempWarned && state.temp >= T.warnAt) { state.tempWarned = true; announce('🔥 ¡SOBRECALENTAMIENTO!', '#ff4d57'); A.overheat(); }
       if (state.temp < T.warnResetBelow) state.tempWarned = false;
-      if (state.temp >= T.maxTemp) { state.temp = T.maxTemp; state.msgKilledBy = 'el sobrecalentamiento del casco'; gameOver(); return; }
+      if (state.temp >= T.maxTemp) { state.temp = T.maxTemp; state.msgKilledBy = 'el sobrecalentamiento'; gameOver(); return; }
       drawHUD();
     }
 
     if (!state.boss) {
       state.spawnT += dt;
       const rate = Math.max(C.spawn.baseMin, p.baseSpawn - state.level * C.spawn.perLevelReduce);
-      if (state.spawnT > rate) { state.spawnT = 0; spawnEnemy(); if (Math.random() < C.spawn.doubleChance + state.level * C.spawn.doubleChancePerLevel) setTimeout(spawnEnemy, C.spawn.doubleDelay); }
+      if (state.spawnT > rate) { state.spawnT = 0; spawnEnemy(); if (Math.random() < C.spawn.doubleChance + state.level * C.spawn.doubleChancePerLevel) state.spawnQueue.push(C.spawn.doubleDelay); }
+      for (let qi = state.spawnQueue.length - 1; qi >= 0; qi--) { state.spawnQueue[qi] -= dt; if (state.spawnQueue[qi] <= 0) { state.spawnQueue.splice(qi, 1); spawnEnemy(); } }
       if (state.storm > 0) { state.storm -= dt; if (Math.random() < C.events.stormSpawnChance * k) spawnEnemy(false); }
       state.eventT += dt;
       if (state.eventT > state.nextEvent) { state.eventT = 0; state.nextEvent = C.events.nextMin + Math.random() * C.events.nextRand; triggerEvent(); }
@@ -363,25 +397,25 @@ OC.Engine = (function () {
     }
     for (let j = state.powerups.length - 1; j >= 0; j--) {
       if (hit(sh, state.powerups[j])) {
-        const k = state.powerups[j].kind; state.powerups.splice(j, 1);
-        if (k === 'vida') { openQuestion(); return; }
-        if (k === 'vel') { state.speedBuff = C.buffs.speedMs; A.power(); announce('⚡ VELOCIDAD', '#5bd6ff'); }
-        if (k === 'pow') { state.powerBuff = C.buffs.powerMs; A.power(); announce('✦ PODER TRIPLE', '#ff9a3b'); }
-        if (k === 'frio') { const amt = C.temperature.coolAmount + state.upgrades.refrigeracion * 8; state.temp = Math.max(0, state.temp - amt); A.coolant(); announce('❄ REFRIGERANTE −' + amt + '°', '#5bd6ff'); }
-        if (k === 'moneda') { state.coins += C.coins.pickup; A.power(); announce('🪙 +' + C.coins.pickup, '#ffd76b'); }
+        const kind = state.powerups[j].kind; state.powerups.splice(j, 1);
+        if (kind === 'vida') { openQuestion(); return; }
+        if (kind === 'vel') { state.speedBuff = C.buffs.speedMs; A.power(); announce('⚡ VELOCIDAD', '#5bd6ff'); }
+        if (kind === 'pow') { state.powerBuff = C.buffs.powerMs; A.power(); announce('✦ PODER TRIPLE', '#ff9a3b'); }
+        if (kind === 'frio') { const amt = C.temperature.coolAmount + state.upgrades.refrigeracion * 8; state.temp = Math.max(0, state.temp - amt); A.coolant(); announce('❄ REFRIGERANTE −' + amt + '°', '#5bd6ff'); }
+        if (kind === 'moneda') { state.coins += C.coins.pickup; A.power(); announce('🪙 +' + C.coins.pickup, '#ffd76b'); }
         drawHUD();
       }
     }
     for (let j = state.enemies.length - 1; j >= 0; j--) {
-      if (hit(sh, state.enemies[j])) { const e = state.enemies[j]; state.enemies.splice(j, 1); boom(sh.x + sh.w / 2, sh.y, '#7cff6b'); hitShip(e.type === 'meteor' ? 'un meteorito' : 'un alienígena'); return; }
+      if (hit(sh, state.enemies[j])) { const e = state.enemies[j]; state.enemies.splice(j, 1); boom(sh.x + sh.w / 2, sh.y, '#7cff6b'); const en = state.saga.enemigos || {}; hitShip(e.type === 'meteor' ? (en.meteoro || 'un meteorito') : (en.alien || 'un enemigo')); return; }
     }
     for (let j = state.bossShots.length - 1; j >= 0; j--) {
-      if (hit(sh, state.bossShots[j])) { state.bossShots.splice(j, 1); boom(sh.x + sh.w / 2, sh.y, '#7cff6b'); hitShip('el ataque del jefe'); return; }
+      if (hit(sh, state.bossShots[j])) { state.bossShots.splice(j, 1); boom(sh.x + sh.w / 2, sh.y, '#7cff6b'); hitShip('el ataque de ' + (state.boss ? state.boss.name : 'el guardián')); return; }
     }
     const gy = state.groundY < H ? state.groundY : H;
     state.enemies = state.enemies.filter(e => e.y < gy + 10);
     state.powerups = state.powerups.filter(pu => pu.y < H + 30);
-    state.particles.forEach(pt => { pt.x += pt.vx * k; pt.y += pt.vy * k; pt.vy += 0.05 * k; pt.life -= 0.03 * k; });
+    state.particles.forEach(pt => { pt.x += pt.vx * k; pt.y += pt.vy * k; if (!pt.ring) pt.vy += 0.05 * k; pt.life -= (pt.ring ? 0.045 : 0.03) * k; });
     state.particles = state.particles.filter(pt => pt.life > 0);
 
     if (state.boss) updateBoss(dt);
@@ -393,9 +427,17 @@ OC.Engine = (function () {
   }
 
   /* -------- PREGUNTA -------- */
+  function nextQuestion() {   // mazo barajado: no se repite ninguna hasta agotarlas todas
+    if (!state.qDeck.length) {
+      state.qDeck = PREGUNTAS.slice();
+      for (let i = state.qDeck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = state.qDeck[i]; state.qDeck[i] = state.qDeck[j]; state.qDeck[j] = t; }
+      if (state.qDeck.length > 1 && state.qDeck[state.qDeck.length - 1] === state.lastQ) state.qDeck.unshift(state.qDeck.pop());
+    }
+    state.lastQ = state.qDeck.pop(); return state.lastQ;
+  }
   function openQuestion() {
     state.scene = 'question'; state.pending = true;
-    const q = PREGUNTAS[Math.floor(Math.random() * PREGUNTAS.length)]; state.currentQ = q;
+    const q = nextQuestion(); state.currentQ = q;
     $('q-text').textContent = q.q;
     const cont = $('q-opciones'); cont.innerHTML = ''; const L = ['A', 'B', 'C', 'D'];
     q.o.forEach((opt, idx) => { const b = document.createElement('button'); b.className = 'opcion'; b.innerHTML = '<span class="k">' + L[idx] + '</span>' + opt; b.onclick = () => answer(idx, b); cont.appendChild(b); });
@@ -407,14 +449,17 @@ OC.Engine = (function () {
     const fb = $('q-feedback');
     if (idx === q.c) { btn.classList.add('correcta'); if (state.lives < C.lives.max) { state.lives++; A.life(); } else A.correct(); fb.innerHTML = '✔ ¡Correcto! +1 vida. ' + q.e; }
     else { btn.classList.add('incorrecta'); ops[q.c].classList.add('correcta'); A.wrong(); fb.innerHTML = '✘ No es correcta. ' + q.e; }
-    setTimeout(() => { state.scene = 'playing'; drawHUD(); show('playing'); }, 2200);
+    setTimeout(() => { if (state.scene !== 'question') return; state.scene = 'playing'; drawHUD(); show('playing'); }, 2200);
   }
 
   /* -------- FIN DE MISIÓN / JUEGO -------- */
   function completeLevel() {
     state.scene = 'levelup'; const p = PLANETAS[state.level]; A.stopAmbient();
+    const g = state.saga.guia || { nombre: '' }, ultimo = state.level + 1 >= PLANETAS.length;
     $('lu-planeta').textContent = p.nombre + ' explorado · ' + state.score + ' pts';
     $('lu-dato').textContent = '“' + p.dato + '”';
+    $('lu-cierre').textContent = '“' + p.cierre + '” — ' + g.nombre;
+    $('btn-siguiente').textContent = ultimo ? 'Hacia el examen final ▸' : 'Siguiente destino ▸';
     renderPodio('lu-podio', true); A.levelup(); show('levelup');
   }
 
@@ -438,12 +483,15 @@ OC.Engine = (function () {
       cont.appendChild(card);
     });
   }
-  function shopContinuar() { if (state.level + 1 >= PLANETAS.length) startFinalBoss(); else { state.level++; startBriefing(); } }
+  function shopContinuar() { if (state.level + 1 >= PLANETAS.length) startFinalBriefing(); else { state.level++; startBriefing(); } }
 
   async function gameOver() {
     state.scene = 'gameover'; A.stopAmbient();
-    $('go-msg').textContent = 'La nave fue destruida por ' + state.msgKilledBy + ' cerca de ' + PLANETAS[state.level].nombre + '.';
+    const s = state.saga, donde = state.final ? 'durante el examen final' : 'en ' + PLANETAS[state.level].nombre;
+    $('go-msg').textContent = (s.vehiculoFrase || 'Tu vehículo fue destruido') + ' por ' + state.msgKilledBy + ' ' + donde + '.';
     $('go-score').textContent = 'Puntaje final: ' + state.score + ' pts';
+    const cp = state.checkpoint;
+    $('btn-reintentar').textContent = (C.retry === 'saga' || !cp) ? 'Reintentar saga ▸' : (cp.final ? 'Reintentar examen ▸' : 'Reintentar misión ▸');
     show('gameover');
     await registrarPuntaje();
     setTimeout(() => renderPodio('go-podio', false), C.podium.postDelayMs);
@@ -451,10 +499,10 @@ OC.Engine = (function () {
   async function victoria() {
     state.scene = 'victoria'; state.final = false; A.stopAmbient(); await registrarPuntaje();
     const s = state.saga;
-    if ($('vic-titulo')) $('vic-titulo').textContent = '¡Saga completada!';
+    if ($('vic-titulo')) $('vic-titulo').textContent = '¡Examen superado!';
     if ($('vic-sub')) $('vic-sub').textContent = s.titulo;
-    if ($('vic-texto')) $('vic-texto').textContent = 'Cruzaste cada nivel de ' + s.titulo + ' y derrotaste al guardián final, El gran Profesor Felipe. Pocos lo logran. El conocimiento es, por fin, tuyo.';
-    $('vic-score').textContent = 'Puntaje final: ' + state.score + ' pts · ' + PLANETAS.length + ' niveles + jefe final';
+    if ($('vic-texto')) $('vic-texto').textContent = s.epilogo || ('Cruzaste cada nivel de ' + s.titulo + ' y superaste al guardián final. El conocimiento es, por fin, tuyo.');
+    $('vic-score').textContent = 'Puntaje final: ' + state.score + ' pts · ' + PLANETAS.length + ' misiones + examen final';
     show('victoria');
   }
   function filaPlanilla() {
@@ -472,31 +520,47 @@ OC.Engine = (function () {
   /* -------- RENDER (orquesta graphics.js) -------- */
   function render() {
     G.clear();
-    const p = PLANETAS[Math.min(state.level, PLANETAS.length - 1)];
+    const p = worldNow(), E = envNow();
     if (state.scene === 'playing' || state.scene === 'question') {
       G.scene(p, state.stars, state.groundY);
       G.powerups(state.powerups);
       G.bullets(state.bullets);
       G.bossShots(state.bossShots);
-      G.enemies(state.enemies, { saga: state.saga.id, scene: p.scene });
-      if (state.boss) G.boss(state.boss);
+      G.enemies(state.enemies, { saga: state.saga.id, scene: p.scene, fondo: E.fondo, groundY: state.groundY, H: H });
+      if (state.boss) G.boss(state.boss, E);
       G.particles(state.particles);
       if (!(state.invuln > 0 && Math.floor(state.invuln / 80) % 2 === 0))
-        G.ship(state.ship, { speed: state.speedBuff > 0, power: state.powerBuff > 0, shield: state.shield > 0 }, state.saga.vehiculo);
+        G.ship(state.ship, { speed: state.speedBuff > 0, power: state.powerBuff > 0, shield: state.shield > 0 }, state.saga.vehiculo, E);
       if (state.tempActive) { G.thermometer(state.temp); G.heatTint(state.temp); }
+    } else if (state.scene === 'briefing') {
+      G.scene(p, state.stars, groundFor(p)); G.dim(0.5);   // el mundo de la misión se asoma tras el papiro
     } else {
       G.clear(); G.starfield(state.stars);
     }
   }
 
+  /* -------- PAUSA Y SONIDO -------- */
+  function setPaused(v) {
+    if (v && (state.scene !== 'playing' || state.paused)) return;
+    if (!v && !state.paused) return;
+    state.paused = !!v; $('pausa').classList.toggle('on', state.paused); $('btn-pause').textContent = state.paused ? '▶' : '⏸';
+    if (state.paused) { clearPad(); A.stopAmbient(); } else if (state.scene === 'playing') A.ambient(worldNow());
+  }
+  function toggleMute() {
+    const m = A.mute(); $('btn-mute').textContent = m ? '🔇' : '🔊';
+    announce(m ? '🔇 Silencio' : '🔊 Sonido', '#5bd6ff');
+    if (!m && state.scene === 'playing' && !state.paused) A.ambient(worldNow());
+  }
+
   /* -------- INPUT: teclado -------- */
   function bindKeyboard() {
     window.addEventListener('keydown', e => {
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', ' ', 'Spacebar'].includes(e.key)) e.preventDefault();
+      if (state.scene === 'playing' && ['ArrowLeft', 'ArrowRight', 'ArrowUp', ' ', 'Spacebar'].includes(e.key)) e.preventDefault();
+      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { setPaused(!state.paused); return; }
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
       if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
       if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowUp') keys.fire = true;
-      if (e.key === 'm' || e.key === 'M') { const m = A.mute(); announce(m ? '🔇 Silencio' : '🔊 Sonido', '#5bd6ff'); }
+      if (e.key === 'm' || e.key === 'M') toggleMute();
     });
     window.addEventListener('keyup', e => {
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
@@ -531,7 +595,10 @@ OC.Engine = (function () {
     window.addEventListener('blur', clearPad);
   }
 
-  function goMenu() { state.level = 0; state.score = 0; state.lives = C.lives.start; state.final = false; state.scene = 'menu'; show('menu'); }
+  function goMenu() {
+    state.level = 0; state.score = 0; state.lives = C.lives.start; state.final = false; state.boss = null; state.bossShots = []; state.enemies = []; state.checkpoint = null;
+    state.scene = 'menu'; show('menu');
+  }
 
   /* -------- BOTONES -------- */
   function bindButtons() {
@@ -543,10 +610,13 @@ OC.Engine = (function () {
     };
     $('in-nombre').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-nombre').click(); });
     $('btn-intro').onclick = () => { A.unlock(); startBriefing(); };
-    $('btn-lanzar').onclick = () => { A.unlock(); startLevel(); };
+    $('btn-lanzar').onclick = () => { A.unlock(); if (state.briefFinal) startFinalBoss(); else startLevel(); };
     $('btn-siguiente').onclick = openShop;
     $('btn-tienda').onclick = shopContinuar;
-    $('btn-reintentar').onclick = () => { resetRun(); startBriefing(); };
+    $('btn-reintentar').onclick = retry;
+    $('btn-mute').onclick = () => { A.unlock(); toggleMute(); };
+    $('btn-pause').onclick = () => setPaused(!state.paused);
+    $('btn-reanudar').onclick = () => setPaused(false);
     $('btn-otravez').onclick = goMenu;
     $('btn-menu-go').onclick = goMenu;
     $('btn-copiar-go').onclick = function () { copiar(this); };
@@ -554,12 +624,20 @@ OC.Engine = (function () {
   }
 
   /* -------- RESIZE / ARRANQUE -------- */
-  function resizeNow() { const r = G.resize(); W = r.W; H = r.H; }
+  function resizeNow() {
+    const r = G.resize(); W = r.W; H = r.H;
+    if (state.scene === 'playing' || state.scene === 'question') {   // reubica nave y suelo si cambia el tamaño
+      state.groundY = groundFor(worldNow());
+      state.ship.y = Math.min(H - state.ship.h - 14, state.groundY - state.ship.h - 6);
+      state.ship.x = Math.max(6, Math.min(W - state.ship.w - 6, state.ship.x));
+    }
+  }
   function start() {
     document.body.classList.toggle('sin-podio', !C.podium.enabled);
     cv = $('game'); stageEl = $('stage');
     G.init(cv); resizeNow();
     window.addEventListener('resize', resizeNow);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) setPaused(true); });
     initStars(); bindKeyboard(); bindTouch(); bindButtons(); buildMenu();
     state.scene = 'menu'; show('menu');
     requestAnimationFrame(loop);

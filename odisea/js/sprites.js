@@ -337,6 +337,11 @@ OC.Sprites = (function () {
   function particles(list) {
     list.forEach(pt => {
       const a = Math.max(0, pt.life);
+      if (pt.ring) {   // onda expansiva
+        const rr0 = (1 - a) * 46 * (pt.rs || 1) + 4;
+        cx.save(); cx.globalCompositeOperation = 'lighter'; cx.strokeStyle = pt.color; cx.globalAlpha = a * 0.8; cx.lineWidth = 1 + a * 3;
+        cx.beginPath(); cx.ellipse(pt.x, pt.y, rr0, rr0 * 0.55, 0, 0, TAU); cx.stroke(); cx.restore(); return;
+      }
       cx.save(); cx.globalCompositeOperation = 'lighter';
       put(glowSprite(pt.color), pt.x, pt.y, 0, a * 0.9, (2 + a * 4.5) / 32);
       cx.restore();
@@ -536,7 +541,15 @@ OC.Sprites = (function () {
       cx.save(); cx.translate(sx, sy); cx.rotate(a * 2); cx.fillStyle = tone(c, 50); cx.beginPath(); cx.moveTo(0, -5); cx.lineTo(3.4, 3.5); cx.lineTo(-3.4, 3.5); cx.closePath(); cx.fill();
       cx.strokeStyle = 'rgba(255,255,255,.5)'; cx.lineWidth = 0.8; cx.stroke(); cx.restore();
     }
-    sphere(cx, 0, 0, R, tone(c, 100), c, tone(c, -120));
+    if (b.deco === 'anillo' || b.deco === 'doble') {   // anillo con oclusión
+      const ring = (front) => { cx.save(); cx.beginPath(); cx.rect(-R * 3, front ? 0 : -R * 3, R * 6, R * 3); cx.clip();
+        cx.strokeStyle = rgba(tone(c, 40), 0.75); cx.lineWidth = R * 0.14; cx.beginPath(); cx.ellipse(0, 0, R * 1.9, R * 0.55, -0.25, 0, TAU); cx.stroke(); cx.restore(); };
+      ring(false); sphere(cx, 0, 0, R, tone(c, 100), c, tone(c, -120)); ring(true);
+    } else sphere(cx, 0, 0, R, tone(c, 100), c, tone(c, -120));
+    if (b.deco === 'bandas') { cx.save(); cx.beginPath(); cx.arc(0, 0, R, 0, TAU); cx.clip(); cx.fillStyle = rgba(tone(c, -70), 0.35); for (let i = -2; i <= 2; i++) cx.fillRect(-R, i * R * 0.38 - R * 0.06, R * 2, R * 0.16); cx.restore(); }
+    if (b.deco === 'vortice' || b.deco === 'cometa') { cx.save(); cx.globalCompositeOperation = 'lighter'; cx.strokeStyle = rgba(tone(c, 80), 0.45); cx.lineWidth = 2;
+      for (let i = 0; i < 3; i++) { cx.beginPath(); cx.arc(0, 0, R * (1.15 + i * 0.16), t * 0.002 + i * 2, t * 0.002 + i * 2 + 1.6); cx.stroke(); } cx.restore(); }
+    if (b.deco === 'cristal' || b.deco === 'espinas') { cx.fillStyle = tone(c, 60); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + 0.2; cx.save(); cx.rotate(a); cx.beginPath(); cx.moveTo(R * 0.9, -R * 0.09); cx.lineTo(R * 1.38, 0); cx.lineTo(R * 0.9, R * 0.09); cx.closePath(); cx.fill(); cx.restore(); } }
     cx.fillStyle = '#f4f8ff'; cx.beginPath(); cx.ellipse(0, 0, R * 0.62, R * 0.4, 0, 0, TAU); cx.fill();
     const ix = Math.sin(t * 0.0021) * R * 0.14;
     sphere(cx, ix, 0, R * 0.3, tone(c, 130), c, tone(c, -60));
@@ -566,8 +579,15 @@ OC.Sprites = (function () {
     cx.restore();
   }
 
-  function boss(b, W, H) {
+  function shadow(cxp, gy, y, w, maxH) {   // sombra elíptica proyectada en el suelo: da altura
+    if (gy === undefined || gy >= 9999) return;
+    const d = Math.max(0, Math.min(1, 1 - (gy - y) / (maxH || 700)));
+    cx.save(); cx.fillStyle = 'rgba(0,0,0,' + (0.1 + d * 0.28) + ')';
+    cx.beginPath(); cx.ellipse(cxp, gy + 6, w * (0.35 + d * 0.3), w * 0.07, 0, 0, TAU); cx.fill(); cx.restore();
+  }
+  function boss(b, W, H, env) {
     const t = now();
+    if (env && env.groundY) shadow(b.x + b.w / 2, env.groundY, b.y + b.h, b.w, env.H);
     hpBar(b, W, H);
     if (b.look === 'atomo_hierro') { bossAtom(b, t); return; }
     if (b.look === 'guardian') { bossGuardian(b, t); return; }
@@ -587,8 +607,9 @@ OC.Sprites = (function () {
   /* ============================================================
      VEHÍCULOS DEL JUGADOR  (dibujados en una caja de 34×24)
      ============================================================ */
-  function ship(s, buffs, vehiculo) {
-    const t = now(), cxp = s.x + s.w / 2, cyp = s.y + s.h / 2;
+  function ship(s, buffs, vehiculo, env) {
+    const t = now(), cxp = s.x + s.w / 2, cyp = s.y + s.h / 2, tl = s.tilt || 0;
+    if (env && env.groundY && vehiculo !== 'jeep' && vehiculo !== 'taladro') shadow(cxp, env.groundY, s.y + s.h, s.w, env.H);
     if (buffs.shield) {
       cx.save(); cx.translate(cxp, cyp);
       const rx = s.w * 0.86, ry = s.h * 1.05, gr = cx.createRadialGradient(0, 0, ry * 0.4, 0, 0, rx);
@@ -598,7 +619,7 @@ OC.Sprites = (function () {
       cx.strokeStyle = 'rgba(255,255,255,.7)'; cx.lineWidth = 1.6; cx.beginPath(); cx.ellipse(0, 0, rx * 0.92, ry * 0.92, 0, t * 0.003, t * 0.003 + 0.9); cx.stroke();
       cx.restore();
     }
-    cx.save(); cx.translate(s.x, s.y); cx.scale(s.w / 34, s.h / 24);
+    cx.save(); cx.translate(cxp, cyp); cx.rotate(tl * 0.16); cx.scale(1 - Math.abs(tl) * 0.1, 1); cx.translate(-s.w / 2, -s.h / 2); cx.scale(s.w / 34, s.h / 24);
     switch (vehiculo) {
       case 'taladro': vTaladro(buffs, t); break;
       case 'nanobot': vNanobot(buffs, t); break;

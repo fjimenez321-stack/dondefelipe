@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Odisea Cósmica · De Mercurio a la Nube de Oort</title>
+<title>Odisea del Conocimiento</title>
 <style>
   :root{
     --papiro:#e7d6ac; --papiro-sombra:#d8c495; --tinta:#3a2a16; --tinta-suave:#6a5334;
@@ -118,6 +118,14 @@
   .hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;color:#567;font-size:11px;z-index:5;font-family:"Courier New",monospace;pointer-events:none}
   /* Podio desactivado (OC.Config.podium.enabled = false) */
   .sin-podio .podio-box, .sin-podio #btn-copiar-go, .sin-podio #btn-copiar-vic{display:none!important}
+  /* Botones de sonido y pausa (también para móvil) */
+  .hud-btn{position:absolute;top:32px;right:10px;z-index:12;width:34px;height:34px;border-radius:50%;display:none;align-items:center;justify-content:center;
+    background:rgba(20,30,55,.55);border:1px solid rgba(120,200,220,.55);color:#dff;font-size:15px;cursor:pointer;padding:0;line-height:1}
+  #btn-pause{right:52px}
+  #pausa{background:rgba(3,4,10,.78);z-index:15}
+  #pausa h1{font-family:'Courier New',monospace;color:var(--fosforo);letter-spacing:4px;text-shadow:0 0 14px rgba(77,224,232,.6);font-size:clamp(24px,7vw,40px);margin-bottom:6px}
+  #pausa p{color:#9fb;font-family:'Courier New',monospace;font-size:12px;margin-bottom:10px}
+  .lu-cierre{max-width:44ch;margin:4px auto 12px;color:var(--oro-cristal);font-family:Georgia,serif;font-style:italic;font-size:clamp(12px,3.2vw,15px);line-height:1.45}
   ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--oro);border-radius:4px}
 
   /* Menú de sagas */
@@ -170,6 +178,8 @@
     </div>
     <div id="buffs"></div>
     <div id="banner"></div>
+    <button class="hud-btn" id="btn-pause" title="Pausa (P)" aria-label="Pausa">⏸</button>
+    <button class="hud-btn" id="btn-mute" title="Sonido (M)" aria-label="Sonido">🔊</button>
 
     <div id="touch">
       <div class="pad-move">
@@ -221,7 +231,7 @@
         <p id="brief-texto"></p>
         <div class="divisor"></div>
         <p style="text-align:center;font-family:'Courier New',monospace;font-size:12px;color:var(--tinta-suave)" id="brief-boss"></p>
-        <p style="text-align:center;font-family:'Courier New',monospace;font-size:12px;color:var(--tinta-suave)">◂ ▸ mover · ESPACIO disparar · recoge ⚡ velocidad y ✦ poder</p>
+        <p id="brief-ctrl" style="text-align:center;font-family:'Courier New',monospace;font-size:12px;color:var(--tinta-suave)"></p>
         <button class="btn" id="btn-lanzar">Iniciar misión ▸</button>
       </div>
     </div>
@@ -247,6 +257,7 @@
         <div id="lu-podio"></div>
       </div>
       <p class="tag" id="lu-dato" style="max-width:44ch;color:#9fb;font-family:'Courier New',monospace;font-size:12px"></p>
+      <p class="lu-cierre" id="lu-cierre"></p>
       <button class="btn" id="btn-siguiente">Siguiente destino ▸</button>
     </div>
 
@@ -290,13 +301,21 @@
       </div>
     </div>
 
-    <div class="hint" id="hint" style="display:none">◂ ▸ mover · ESPACIO disparar · (móvil) desliza el dedo, dispara solo</div>
+    <!-- PAUSA -->
+    <div class="screen" id="pausa">
+      <h1>PAUSA</h1>
+      <p>Pulsa P para continuar</p>
+      <button class="btn" id="btn-reanudar">Reanudar ▸</button>
+    </div>
+
+    <div class="hint" id="hint" style="display:none">◂ ▸ mover · ESPACIO disparar · P pausa · M sonido</div>
   </div>
 </div>
   <script src="js/config.js"></script>
   <script src="js/sagas.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/sprites.js"></script>
+  <script src="js/scenes.js"></script>
   <script src="js/graphics.js"></script>
   <script src="js/engine.js"></script>
 </body>

@@ -11,6 +11,13 @@ window.OC = window.OC || {};
 OC.Audio = (function () {
   let ctx = null, master = null, muted = false;
   let ambientNodes = null;
+  // Nota base del zumbido ambiental por escenario (Hz): graves hondos bajo tierra, más agudos en el cuerpo.
+  const AMB = { mercurio: 70, venus: 55, tierra: 50, marte: 60, jupiter: 38, saturno: 42, urano: 48, neptuno: 46, kuiper: 36, oort: 33,
+    litosfera: 46, astenosfera: 41, manto: 36, nucleo_ext: 31, nucleo_int: 27,
+    alfa_centauri: 52, orion: 44, pleyades: 58, agujero_negro: 28, andromeda: 40,
+    respiratorio: 66, circulatorio: 49, digestivo: 54, inmunologico: 62, nervioso: 74,
+    bosque: 64, humedal: 58, oceano: 45, altiplano: 68, atacama: 52 };
+  const LATIDO = { circulatorio: 1.2, nervioso: 3.4 };   // pulso suave del ambiente (Hz)
 
   function ensure() {
     if (!ctx) {
@@ -58,7 +65,7 @@ OC.Audio = (function () {
   const seq = (notes, gap, opt) => notes.forEach((f, i) => setTimeout(() => osc(f, opt && opt.dur || 0.14, opt), i * gap));
 
   return {
-    unlock() { ensure(); if (ctx.state === 'suspended') ctx.resume(); },
+    unlock() { try { ensure(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) {} },
     mute(v) { muted = (v === undefined) ? !muted : !!v; if (muted) this.stopAmbient(); return muted; },
     isMuted() { return muted; },
 
@@ -86,13 +93,19 @@ OC.Audio = (function () {
       if (muted) return;
       try {
         const c = ensure();
-        const base = world && world.scene === 'venus' ? 55 : world && world.scene === 'mercurio' ? 70 : 44;
+        const f = world && (world.fondo || world.scene);
+        const base = AMB[f] || 44;
         const g = c.createGain(); g.gain.value = 0.0; g.connect(master);
         g.gain.setTargetAtTime(0.035, c.currentTime, 1.2);
         const o1 = c.createOscillator(); o1.type = 'sine'; o1.frequency.value = base;
         const o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.value = base * 1.5;
         o1.connect(g); o2.connect(g); o1.start(); o2.start();
-        ambientNodes = { g, o1, o2 };
+        let lfo = null;
+        if (f && LATIDO[f]) {
+          lfo = c.createOscillator(); lfo.frequency.value = LATIDO[f];
+          const depth = c.createGain(); depth.gain.value = 0.02; lfo.connect(depth); depth.connect(g.gain); lfo.start();
+        }
+        ambientNodes = { g, o1, o2, lfo };
       } catch (e) {}
     },
     stopAmbient() {
@@ -100,7 +113,7 @@ OC.Audio = (function () {
       try {
         const c = ensure();
         ambientNodes.g.gain.setTargetAtTime(0.0001, c.currentTime, 0.3);
-        const n = ambientNodes; setTimeout(() => { try { n.o1.stop(); n.o2.stop(); } catch (e) {} }, 600);
+        const n = ambientNodes; setTimeout(() => { try { n.o1.stop(); n.o2.stop(); if (n.lfo) n.lfo.stop(); } catch (e) {} }, 600);
       } catch (e) {}
       ambientNodes = null;
     }

@@ -14,6 +14,10 @@ OC.Config = {
   /* --- Vidas --- */
   lives: { start: 3, max: 5 },
 
+  /* --- Al perder: 'mision' = reintenta la misión (o el examen final) con lo que
+         tenías al empezarla; 'saga' = vuelve a la misión 1 y pierde todo. --- */
+  retry: 'mision',
+
   /* --- Nave --- */
   ship: {
     w: 34, h: 24,
