@@ -9,11 +9,33 @@
  *
  * La portada usa un bundler que reemplaza el <html> completo al cargar,
  * por eso la barra se vuelve a insertar cada vez que desaparece.
+ *
+ * También sirve para los juegos instalables por separado. Se configura
+ * con atributos en la etiqueta <script>:
+ *   data-name  nombre que muestra el botón       (por defecto: El Mundo de Felipe)
+ *   data-icon  ícono, relativo a la página        (por defecto: icons/icon-192.png del sitio)
+ *   data-mode  "bar" (barra arriba) o "float" (botón flotante, para juegos)
+ * Además registra el service worker del sitio (sw.js, junto a este archivo),
+ * así el juego se puede instalar aunque se abra directo sin pasar por la portada.
  */
 (function () {
+  const script = document.currentScript;
+  const BASE = new URL('./', script.src);
+  const APP_NAME = script.dataset.name || 'El Mundo de Felipe';
+  const ICON = script.dataset.icon || new URL('icons/icon-192.png', BASE).href;
+  const FLOAT = script.dataset.mode === 'float';
+
   const DISMISS_DAYS = 7;
-  const KEY = 'pwaInstallDismissed';
+  // Cada app (sitio o juego) recuerda por separado si se cerró el aviso.
+  const KEY = script.dataset.name ? 'pwaInstallDismissed:' + script.dataset.name : 'pwaInstallDismissed';
   const ID = 'pwa-install';
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register(new URL('sw.js', BASE), { scope: BASE.pathname })
+        .catch(err => console.warn('No se pudo registrar el service worker:', err));
+    });
+  }
 
   const ua = navigator.userAgent;
   const isStandalone = () =>
@@ -98,7 +120,19 @@
     #${ID}-modal .pwa-ok{width:100%;margin-top:6px;border:0;border-radius:12px;padding:12px;font:inherit;font-weight:800;
       background:#ccff00;color:#08080c;cursor:pointer}
     @media (min-width:700px){#${ID}-modal{align-items:center}}
-  `;
+  ` + (FLOAT ? `
+    #${ID}{position:fixed;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:2147482000;
+      width:max-content;max-width:calc(100vw - 20px);border:1px solid #ccff00;border-radius:999px;
+      background:rgba(14,15,22,.94);backdrop-filter:blur(8px);box-shadow:0 8px 28px rgba(0,0,0,.55),0 0 24px -6px rgba(204,255,0,.6)}
+    #${ID} .pwa-row{gap:10px;padding:6px 6px 6px 8px}
+    #${ID} .pwa-logo{width:32px;height:32px;border-radius:50%}
+    #${ID} .pwa-txt{flex:0 1 auto}
+    #${ID} .pwa-txt b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #${ID} .pwa-txt span{display:none}
+    #${ID} .pwa-btn{padding:8px 14px;font-size:13px}
+    #${ID} .pwa-x{width:30px;height:30px;font-size:14px}
+    @media (max-width:420px){#${ID} .pwa-txt{display:none}}
+  ` : '');
 
   const build = () => {
     const el = document.createElement('div');
@@ -107,8 +141,8 @@
     el.setAttribute('aria-label', 'Instalar app');
     el.innerHTML = `<style>${CSS}</style>
       <div class="pwa-row">
-        <img class="pwa-logo" src="icons/icon-192.png" alt="">
-        <div class="pwa-txt"><b>Instala El Mundo de Felipe</b><span>Ábrelo desde tu pantalla de inicio, como una app.</span></div>
+        <img class="pwa-logo" src="${ICON}" alt="">
+        <div class="pwa-txt"><b>${FLOAT ? APP_NAME : 'Instala ' + APP_NAME}</b><span>Ábrelo desde tu pantalla de inicio, como una app.</span></div>
         <button type="button" class="pwa-btn">📲 Instalar app</button>
         <button type="button" class="pwa-x" aria-label="Cerrar">✕</button>
       </div>`;
@@ -123,7 +157,7 @@
     const m = document.createElement('div');
     m.id = ID + '-modal';
     m.innerHTML = `<div class="pwa-card" role="dialog" aria-modal="true" aria-label="Cómo instalar">
-        <h3>📲 Instala la app en 3 pasos</h3>
+        <h3>📲 Instala ${APP_NAME} en 3 pasos</h3>
         <ol>${steps.map(s => `<li><span>${s}</span></li>`).join('')}</ol>
         <button type="button" class="pwa-ok">Entendido</button>
       </div>`;

@@ -1,0 +1,27 @@
+{
+  "name": "Medieval · Mercado de Villa Verde",
+  "short_name": "Medieval",
+  "description": "Juego de educación ambiental, mercado y ciudadanía ambientado en la época medieval.",
+  "lang": "es",
+  "id": "/dondefelipe/tercero/ciencia/medieval.html",
+  "start_url": "/dondefelipe/tercero/ciencia/medieval.html",
+  "scope": "/dondefelipe/tercero/ciencia/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a1205",
+  "theme_color": "#0a1205",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

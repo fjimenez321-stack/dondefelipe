@@ -1,0 +1,27 @@
+{
+  "name": "Odisea del Conocimiento",
+  "short_name": "Odisea",
+  "description": "Juego de naves espaciales: navega el sistema solar entre planetas y órbitas.",
+  "lang": "es",
+  "id": "/dondefelipe/odisea/index.html",
+  "start_url": "/dondefelipe/odisea/index.html",
+  "scope": "/dondefelipe/odisea/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#03070d",
+  "theme_color": "#03070d",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
