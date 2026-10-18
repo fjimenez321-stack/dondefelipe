@@ -194,7 +194,7 @@ const fmt = n => new Intl.NumberFormat('es-CL').format(Math.round(n || 0));
 // Nombres visibles de lo que se guarda
 const NOMBRES = {
   'odisea': 'Odisea', 'operacion-barrera': 'Operación Barrera', 'sismos': 'Sismos, ondas y tsunamis', 'equilibrio': 'Equilibrio térmico',
-  'quimica-es': 'Química básica (español)', 'quimica-en': 'Introductory Chemistry (English)'
+  'ingeniero-energia': 'Ingeniero/a en Energía', 'quimica-es': 'Química básica (español)', 'quimica-en': 'Introductory Chemistry (English)'
 };
 const nombre = k => NOMBRES[k] || k;
 function aviso(html, tipo) { $('avisos').innerHTML = html ? `<div class="aviso ${tipo || ''}">${html}</div>` : ''; }
@@ -258,7 +258,7 @@ function cargarProgreso() {
   DF.misDatos().then(d => {
     $('lProg').innerHTML = d.progreso.length ? d.progreso.map(p => {
       const x = p.datos || {}, n = Object.keys(x.marcas || {}).length;
-      const det = x.total ? `${n} de ${x.total} metas` : '';
+      const det = x.total ? `${n} de ${x.total} metas` : (x.mejor != null ? `${x.misiones || 0} llamados · ${x.estrellas || 0}/${x.maxEstrellas || 0} ★${x.jefe ? ' · jefe ✔' : ''}` : '');
       return `<div class="it"><b>${esc(nombre(p._id))}</b><span class="v">${esc(det)}</span><small>${fecha(p.actualizado)}</small></div>`;
     }).join('') : '<div class="vacio">Aún nada. Prueba los <a href="planes/index.html">planes de estudio</a>.</div>';
     const mejor = {};

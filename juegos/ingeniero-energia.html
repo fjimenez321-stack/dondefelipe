@@ -263,12 +263,14 @@ input[type=text]{width:100%;padding:11px 14px;border-radius:12px;border:1.5px so
     <div class="endgrid" id="eGrid"></div>
     <div><b style="font-size:13px">Insignias</b><div class="bdg" id="eBadges"></div></div>
     <div id="eRevBox"><b style="font-size:13px">Para repasar</b><ul class="rev" id="eRev"></ul></div>
+    <div id="eDF"></div>
     <div class="row"><button id="eReport" class="btn">📄 Guardar informe (PDF)</button><button id="eAgain" class="btn ghost">↺ Jugar de nuevo</button><a class="btn ghost" href="../index.html">🏠 Volver al sitio</a></div>
   </div>
 </div>
 
 <div id="print-sheet"></div>
 
+<script src="../firebase/df.js"></script>
 <script>
 'use strict';
 /* ================= UTILIDADES ================= */
@@ -942,7 +944,29 @@ function endGame(){
   const rv=[...new Set(G.review.map(r=>r.c))];$('#eRevBox').classList.toggle('hidden',!rv.length);$('#eRev').innerHTML=rv.map(c=>`<li>${esc(c)}</li>`).join('');
   try{const best=+localStorage.getItem('ing_energia_best')||0;if(G.fel>best)localStorage.setItem('ing_energia_best',G.fel)}catch(e){}
   $('#screenEnd').classList.remove('hidden');
+  offerScore(rank,ratio);
 }
+/* Ranking y progreso del colegio (firebase/df.js). Si el sitio no lo carga, no hace nada. */
+function offerScore(rank,ratio){
+  $('#eDF').innerHTML='';
+  try{
+    if(!window.DF||G.fel<=0||!G.done.length)return;
+    const jefe=G.done.some(d=>d.boss);
+    DF.ofrecer({tipo:'puntaje',juego:'ingeniero-energia',titulo:'Ingeniero/a en Energía',puntaje:G.fel,contenedor:$('#eDF'),
+      extra:{modo:G.mode,misiones:G.done.filter(d=>!d.boss).length,jefe:jefe,estrellas:G.stars,maxEstrellas:G.maxStars,choques:G.crashes,relampago:G.quickOK+'/'+G.quickN,insignias:G.badges.size,rango:rank},
+      alGuardar:function(){
+        try{DF.leerProgreso('ingeniero-energia').catch(()=>null).then(prev=>{
+          const mejor=Math.max(G.fel,(prev&&prev.mejor)||0);
+          const rev=[...new Set(G.review.map(r=>r.c))].slice(0,8).join(' | ').slice(0,400);
+          DF.guardarProgreso('ingeniero-energia',{mejor:mejor,ultimo:G.fel,modo:G.mode,misiones:G.done.filter(d=>!d.boss).length,jefe:jefe,estrellas:G.stars,maxEstrellas:G.maxStars,relampago:G.quickOK+'/'+G.quickN,insignias:[...G.badges].join(','),repasar:rev,fecha:DF.hoy()}).catch(()=>{});
+        })}catch(e){}
+      }});
+  }catch(e){}
+}
+function showSavedBest(){
+  try{if(!window.DF)return;DF.leerProgreso('ingeniero-energia').then(d=>{if(d&&d.mejor){const el=$('#bestTxt');el.textContent='Tu mejor puntaje guardado: '+d.mejor+' 🪙'+(d.jefe?' · ¡salvaste la ciudad!':'')}}).catch(()=>{})}catch(e){}
+}
+setTimeout(showSavedBest,1500);
 function buildReport(){
   const rv=[...new Set(G.review.map(r=>r.c))];const d=new Date().toLocaleDateString('es-CL');
   $('#print-sheet').innerHTML=`<h1>⚡ Informe del ingeniero/a en energía</h1><div style="font-size:13px">Unidad 3 · Energía · 6° básico — <b>${esc(G.name)}</b> · ${d}</div>

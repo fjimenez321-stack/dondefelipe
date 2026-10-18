@@ -51,7 +51,8 @@ select{background:var(--slab2);color:var(--ink);border:1px solid var(--line);bor
 // id del juego en Firebase → nombre y enlace
 const JUEGOS = {
   'odisea':            { nombre: 'Odisea',            url: 'odisea/index.html' },
-  'operacion-barrera': { nombre: 'Operación Barrera', url: 'simuladores/operacionbarrera.html' }
+  'operacion-barrera': { nombre: 'Operación Barrera', url: 'simuladores/operacionbarrera.html' },
+  'ingeniero-energia': { nombre: 'Ingeniero/a en Energía', url: 'juegos/ingeniero-energia.html' }
 };
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
