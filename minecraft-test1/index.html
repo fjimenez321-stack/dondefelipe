@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test 1 · server de Minecraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080c;
+    --panel: #0e1016;
+    --panel2: #12141c;
+    --line: #242835;
+    --line-soft: #1a1d26;
+    --lime: #ccff00;
+    --lime-dim: #9dc700;
+    --pink: #ff2e7e;
+    --cyan: #22e3ff;
+    --gold: #e9b949;
+    --text: #f2f0e9;
+    --muted: #8f9585;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background:
+      radial-gradient(1px 1px at 8% 12%, rgba(204,255,0,.55), transparent 60%),
+      radial-gradient(1px 1px at 22% 68%, rgba(34,227,255,.5), transparent 60%),
+      radial-gradient(1px 1px at 46% 22%, rgba(255,46,126,.45), transparent 60%),
+      radial-gradient(1px 1px at 72% 54%, rgba(204,255,0,.4), transparent 60%),
+      radial-gradient(1px 1px at 88% 30%, rgba(34,227,255,.45), transparent 60%),
+      radial-gradient(1100px 520px at 62% -12%, #14180f 0%, transparent 62%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font: 400 16px/1.6 "Space Grotesk", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--lime); }
+  :focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+  .wrap { width: min(1080px, 100% - 40px); margin: 0 auto; padding: 28px 0 64px; }
+
+  .top {
+    display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center;
+    justify-content: space-between;
+    padding-bottom: 18px; border-bottom: 1px solid var(--line);
+  }
+  .world { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .world b {
+    font-family: "Big Shoulders Display", sans-serif; font-weight: 800; font-size: 26px;
+    letter-spacing: .06em; text-transform: uppercase; line-height: 1;
+  }
+  .world span { color: var(--muted); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
+  .join { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .addr {
+    font-size: 14px; font-weight: 500; letter-spacing: .02em;
+    background: linear-gradient(180deg, rgba(34,227,255,.07), rgba(0,0,0,.25));
+    border: 1px solid rgba(34,227,255,.3); border-radius: 12px;
+    padding: 10px 14px; color: var(--cyan);
+    user-select: all; word-break: break-all;
+  }
+  .copy {
+    font: 700 11px/1 "Space Grotesk", sans-serif; letter-spacing: .12em; text-transform: uppercase;
+    color: #08080c; background: var(--lime); border: 0; border-radius: 999px;
+    padding: 12px 16px; cursor: pointer; box-shadow: 0 0 18px rgba(204,255,0,.3);
+  }
+  .copy:hover { background: #d9ff33; }
+  .copy:active { transform: translateY(1px); }
+
+  .hero { padding: 46px 0 34px; display: grid; gap: 26px 48px; grid-template-columns: minmax(0,1fr) auto; align-items: end; }
+  .state { display: flex; align-items: center; gap: 24px; }
+  .torch {
+    width: 6px; height: 78px; position: relative; flex: 0 0 auto; margin: 0 26px 0 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.04));
+    border-radius: 999px;
+  }
+  .torch::before {
+    content: ""; position: absolute; left: 50%; top: -12px; width: 26px; height: 26px;
+    transform: translateX(-50%); border-radius: 50%;
+    background: radial-gradient(circle, rgba(204,255,0,.95) 0 18%, rgba(204,255,0,.25) 45%, transparent 72%);
+    opacity: 0; transition: opacity .35s ease;
+  }
+  .torch::after {
+    content: ""; position: absolute; left: 50%; top: -7px; width: 12px; height: 12px;
+    transform: translateX(-50%); border-radius: 50%;
+    background: #2a2f3b; border: 1px solid #3a4152;
+    transition: background .35s ease, box-shadow .35s ease;
+  }
+  .torch[data-on="1"]::before { opacity: 1; }
+  .torch[data-on="1"]::after { background: var(--lime); box-shadow: 0 0 18px 4px rgba(204,255,0,.55); }
+  .word {
+    font-family: "Big Shoulders Display", sans-serif; font-weight: 800;
+    font-size: clamp(52px, 10vw, 104px); line-height: .86; margin: 0;
+    text-transform: uppercase; letter-spacing: .02em;
+  }
+  .word.on { color: var(--lime); text-shadow: 0 0 34px rgba(204,255,0,.35); }
+  .word.off { color: var(--pink); text-shadow: 0 0 34px rgba(255,46,126,.3); }
+  .sub { margin: 12px 0 0; color: var(--muted); max-width: 44ch; font-size: 15px; }
+  .sub b { color: var(--text); font-weight: 700; }
+
+  .counters { display: flex; gap: 38px; flex-wrap: wrap; text-align: left; }
+  .counter { min-width: 76px; }
+  .counter .n {
+    font-family: "Big Shoulders Display", sans-serif; font-weight: 800;
+    font-size: 44px; display: block; line-height: .9; color: var(--lime);
+  }
+  .counter .k {
+    font-size: 9.5px; color: var(--muted); letter-spacing: .16em; text-transform: uppercase;
+    display: block; margin-top: 6px;
+  }
+
+  .hotbar-zone { padding: 6px 0 36px; }
+  .hotbar-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .hotbar-head h2, .panel h2 {
+    font: 700 10.5px/1.3 "Space Grotesk", sans-serif; letter-spacing: .18em;
+    text-transform: uppercase; margin: 0; color: var(--lime-dim);
+  }
+  .hotbar-head p { margin: 0; color: var(--muted); font-size: 13px; }
+  .hotbar { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 7px; max-width: 520px; }
+  .slot {
+    aspect-ratio: 1; border-radius: 12px; overflow: hidden;
+    background: linear-gradient(180deg, #15181f, #0b0d12);
+    border: 1px solid var(--line);
+    display: grid; place-items: center; position: relative;
+  }
+  .slot img { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+  .slot .ini { font-size: 16px; font-weight: 700; color: #4a5162; }
+  .slot.filled { border-color: rgba(204,255,0,.5); box-shadow: 0 0 16px rgba(204,255,0,.16); }
+
+  .panels { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px 48px; align-items: start; }
+  .panel {
+    border: 1px solid var(--line); border-radius: 18px; padding: 20px 20px 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(0,0,0,.18));
+  }
+  .panel h2 { margin-bottom: 16px; }
+
+  .players { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .players th {
+    text-align: left; font-weight: 500; font-size: 9.5px; color: var(--muted);
+    letter-spacing: .16em; text-transform: uppercase;
+    padding: 0 0 9px; border-bottom: 1px solid var(--line);
+  }
+  .players td { padding: 11px 0; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+  .players tr:last-child td { border-bottom: 0; }
+  .players th.num, .players td.num { text-align: right; }
+  .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .who img { width: 26px; height: 26px; image-rendering: pixelated; border-radius: 6px; border: 1px solid var(--line); }
+  .who .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+  .xp { display: block; width: 100%; height: 6px; background: #1a1d26; border-radius: 999px; overflow: hidden; min-width: 64px; }
+  .xp i { display: block; height: 100%; background: linear-gradient(90deg, var(--lime-dim), var(--lime)); border-radius: 999px; }
+  .empty-note { color: var(--muted); font-size: 14px; margin: 0; line-height: 1.6; }
+  .sub-head { font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--lime-dim); margin: 26px 0 8px; }
+  .events { list-style: none; margin: 0; padding: 0; }
+  .events li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px;
+  }
+  .events li:last-child { border-bottom: 0; }
+  .events .nm { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .events .when { color: var(--muted); min-width: 84px; font-variant-numeric: tabular-nums; }
+  .events .what { margin-left: auto; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; }
+  .events .what.join { color: var(--lime); }
+  .events .what.leave { color: var(--pink); }
+  .events img { border-radius: 5px; }
+
+  .signal { display: grid; grid-template-columns: repeat(72, 1fr); gap: 2px; margin: 4px 0 8px; }
+  .signal i { display: block; height: 9px; border-radius: 2px; background: #1a1d26; }
+  .signal i.on { background: var(--lime); box-shadow: 0 0 8px rgba(204,255,0,.35); }
+  .signal i.off { background: var(--pink); }
+  .signal-cap { margin: 0 0 14px; color: var(--muted); font-size: 11.5px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 11px; margin: 0; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 9px; height: 9px; display: inline-block; border-radius: 2px; }
+  .facts { list-style: none; margin: 22px 0 0; padding: 0; }
+  .facts li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+  .facts li:last-child { border-bottom: 0; }
+  .facts li span:last-child { color: var(--text); }
+  .facts li span:first-child { color: var(--muted); }
+
+  .enter { margin-top: 44px; display: grid; gap: 12px 40px; grid-template-columns: 1fr 1fr; }
+  .enter h2 { font: 700 10.5px/1.3 "Space Grotesk", sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--lime-dim); margin: 0 0 10px; }
+  .enter ol { margin: 0; padding-left: 20px; color: var(--muted); }
+  .enter li { margin-bottom: 6px; }
+  .enter code { background: var(--panel2); color: var(--text); padding: 2px 7px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px; }
+  .enter b { color: var(--text); }
+
+  footer {
+    margin-top: 44px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); padding-top: 16px;
+  }
+  .stale { color: var(--gold); }
+
+  .control { margin-top: 44px; border: 1px solid var(--line); border-radius: 18px; padding: 22px 22px 20px; background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(0,0,0,.18)); }
+  .control h2 { font: 700 10.5px/1.3 "Space Grotesk", sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--lime-dim); margin: 0 0 8px; }
+  .control p { margin: 0 0 16px; color: var(--muted); font-size: 14px; max-width: 62ch; }
+  .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 40px; align-items: start; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .field label { font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .field input, .say-row input {
+    font: inherit; font-size: 14px; color: var(--text); background: var(--panel2);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0;
+  }
+  .field input:focus, .say-row input:focus { border-color: rgba(204,255,0,.45); }
+  .btn {
+    font: 700 10.5px/1 "Space Grotesk", sans-serif; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text); background: rgba(255,255,255,.06); border: 1px solid var(--line);
+    border-radius: 999px; padding: 11px 16px; cursor: pointer;
+  }
+  .btn:hover { background: rgba(255,255,255,.11); }
+  .btn[disabled] { opacity: .4; cursor: default; }
+  .btn.primary { background: var(--lime); border-color: var(--lime); color: #08080c; box-shadow: 0 0 18px rgba(204,255,0,.28); }
+  .btn.primary:hover { background: #d9ff33; }
+  .btn.danger { background: rgba(255,46,126,.14); border-color: rgba(255,46,126,.5); color: var(--pink); }
+  .btn.danger:hover { background: rgba(255,46,126,.22); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .say-row { display: flex; gap: 8px; }
+  .say-row input { flex: 1; }
+  #ctrl-status { min-height: 1.5em; color: var(--muted); font-size: 13px; margin-top: 12px; }
+  #ctrl-status.ok { color: var(--lime); }
+  #ctrl-status.err { color: var(--pink); }
+
+  @media (max-width: 780px) {
+    .hero { grid-template-columns: 1fr; align-items: start; }
+    .panels { grid-template-columns: 1fr; }
+    .enter { grid-template-columns: 1fr; }
+    .ctrl-grid { grid-template-columns: 1fr; }
+    .counters { gap: 24px; }
+    .signal { grid-template-columns: repeat(48, 1fr); }
+    .panel, .control { padding: 18px 16px; }
+  }
+  @media (max-width: 560px) {
+    .players th:nth-child(2), .players td:nth-child(2) { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="world">
+      <b>TEST 1</b>
+      <span>Fabric 1.21.11 · prueba temporal</span>
+    </div>
+    <div class="join">
+      <span class="addr" id="addr">cargando…</span>
+      <button class="copy" id="copy" type="button">Copiar dirección</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="state">
+        <div class="torch" id="torch" data-on="0" aria-hidden="true"></div>
+        <div>
+          <h1 class="word off" id="state-word">Cerrado</h1>
+          <p class="sub" id="state-sub">Comprobando el server…</p>
+        </div>
+      </div>
+    </div>
+    <div class="counters">
+      <div class="counter"><span class="n" id="c-players">0</span><span class="k">jugando ahora</span></div>
+      <div class="counter"><span class="n" id="c-hours">0</span><span class="k">horas jugadas</span></div>
+      <div class="counter"><span class="n" id="c-sessions">0</span><span class="k">sesiones</span></div>
+    </div>
+  </section>
+
+  <section class="hotbar-zone">
+    <div class="hotbar-head">
+      <h2>Quién está dentro</h2>
+      <p id="hotbar-note">Sin jugadores conectados</p>
+    </div>
+    <div class="hotbar" id="hotbar" aria-label="Jugadores conectados"></div>
+  </section>
+
+  <div class="panels">
+    <section class="panel">
+      <h2>Jugadores y horas</h2>
+      <table class="players">
+        <thead>
+          <tr>
+            <th scope="col">Jugador</th>
+            <th scope="col">Tiempo</th>
+            <th scope="col" class="num">Horas</th>
+            <th scope="col" class="num">Sesiones</th>
+          </tr>
+        </thead>
+        <tbody id="players"></tbody>
+      </table>
+      <p class="empty-note" id="players-empty">Todavía no ha entrado nadie. Cuando alguien se conecte aparecerá aquí con su tiempo acumulado.</p>
+      <h3 class="sub-head">Movimiento reciente</h3>
+      <ul class="events" id="events"></ul>
+      <p class="empty-note" id="events-empty">Sin entradas ni salidas registradas.</p>
+    </section>
+
+    <aside class="panel">
+      <h2>Últimas 24 horas</h2>
+      <div class="signal" id="signal" role="img" aria-label="Estado del server en las últimas 24 horas"></div>
+      <p class="signal-cap">Cada casilla es un tramo de 20 minutos.</p>
+      <p class="legend">
+        <span><i style="background:var(--lime)"></i>abierto</span>
+        <span><i style="background:#4a2a22"></i>cerrado</span>
+        <span><i style="background:#241e16"></i>sin datos</span>
+      </p>
+      <ul class="facts">
+        <li><span>Dirección</span><span id="f-addr">—</span></li>
+        <li><span>Versión</span><span id="f-version">1.21.11</span></li>
+        <li><span>Latencia</span><span id="f-ping">—</span></li>
+        <li><span>Encendido desde</span><span id="f-uptime">—</span></li>
+        <li><span>Disponibilidad 24 h</span><span id="f-avail">—</span></li>
+        <li><span>Jugadores distintos</span><span id="f-unique">0</span></li>
+      </ul>
+    </aside>
+  </div>
+
+  <section class="enter">
+    <div>
+      <h2>Cómo entrar</h2>
+      <ol>
+        <li>Abre Minecraft Java Edition <b>1.21.11</b> con Fabric.</li>
+        <li>Multijugador, añadir server, pega la dirección de arriba.</li>
+        <li>Si el server está cerrado, espera: se enciende por tandas de prueba.</li>
+      </ol>
+    </div>
+    <div>
+      <h2>Qué es esto</h2>
+      <p class="empty-note">Un server de prueba temporal, montado en un PC para experimentar antes de dejarlo abierto al curso. El mundo se puede borrar y volver a empezar. Los datos de esta página se actualizan solos cada minuto.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Test 1 · Fabric 1.21.11 · 2 GB de RAM</span>
+    <span id="stamp">—</span>
+  </footer>
+</div>
+
+<section class="control wrap">
+  <h2>Control del server</h2>
+  <p id="ctrl-note">La página lee el estado por su cuenta. Para encender, apagar o escribir en el chat hace falta el puente local.</p>
+  <div class="ctrl-grid">
+    <form id="ctrl-form" autocomplete="off">
+      <div class="field">
+        <label for="ctrl-url">Dirección del puente</label>
+        <input id="ctrl-url" name="url" type="url" placeholder="https://tu-tunel.playit.gg" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="ctrl-key">Clave</label>
+        <input id="ctrl-key" name="key" type="password" placeholder="clave del puente" spellcheck="false">
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit">Guardar</button>
+        <button class="btn" type="button" id="ctrl-forget">Olvidar</button>
+      </div>
+    </form>
+    <div>
+      <div class="actions">
+        <button class="btn primary" type="button" data-action="start">Encender</button>
+        <button class="btn danger" type="button" data-action="stop">Apagar</button>
+        <button class="btn" type="button" data-action="restart">Reiniciar</button>
+      </div>
+      <div class="say-row">
+        <input id="ctrl-say" type="text" maxlength="200" placeholder="Mensaje al chat del juego">
+        <button class="btn" type="button" id="ctrl-say-send">Enviar</button>
+      </div>
+      <p id="ctrl-status"></p>
+    </div>
+  </div>
+</section>
+
+<script src="mc-client.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const head = (n) => "https://mc-heads.net/avatar/" + encodeURIComponent(n) + "/64";
+const pad = (n) => String(n).padStart(2, "0");
+let ultimo = null;
+
+function hms(sec) {
+  if (!sec || sec < 0) return "—";
+  const d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+  if (d) return d + " d " + h + " h";
+  if (h) return h + " h " + m + " min";
+  return m + " min";
+}
+function relative(ts) {
+  if (!ts) return "nunca";
+  const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+  if (s < 60) return "hace " + s + " s";
+  if (s < 3600) return "hace " + Math.floor(s / 60) + " min";
+  if (s < 86400) return "hace " + Math.floor(s / 3600) + " h";
+  return "hace " + Math.floor(s / 86400) + " d";
+}
+
+function render(d) {
+  const sv = d.server || {};
+  const on = !!sv.online;
+  const word = $("state-word"), torch = $("torch");
+
+  word.textContent = on ? "Abierto" : "Cerrado";
+  word.className = "word " + (on ? "on" : "off");
+  torch.dataset.on = on ? "1" : "0";
+  $("state-sub").innerHTML = on
+    ? "<b>" + sv.players + " de " + sv.max_players + "</b> plazas ocupadas. Entra cuando quieras."
+    : "El server está apagado. Esta página avisa en cuanto vuelva.";
+
+  $("addr").textContent = d.public_address || "—";
+  $("f-addr").textContent = d.public_address || "—";
+  $("f-version").textContent = sv.version || "—";
+  $("f-ping").textContent = on ? (sv.latency_ms + " ms") : "—";
+  $("f-uptime").textContent = on ? hms(sv.uptime_seconds) : "apagado";
+  $("f-avail").textContent = (d.totals?.uptime_24h ?? 0) + " %";
+  $("f-unique").textContent = d.totals?.unique_players ?? 0;
+  document.title = "Test 1 · " + (on ? "abierto" : "cerrado");
+
+  $("c-players").textContent = sv.players ?? 0;
+  $("c-hours").textContent = (d.totals?.hours ?? 0).toFixed(1).replace(".", ",");
+  $("c-sessions").textContent = d.totals?.sessions ?? 0;
+
+  const live = d.online_now || [];
+  const hb = $("hotbar");
+  hb.innerHTML = "";
+  for (let i = 0; i < 9; i++) {
+    const slot = document.createElement("div");
+    const name = live[i];
+    slot.className = "slot" + (name ? " filled" : "");
+    if (name) {
+      slot.title = name;
+      const img = new Image();
+      img.src = head(name); img.alt = name; img.loading = "lazy";
+      img.onerror = () => { slot.textContent = ""; const t = document.createElement("span"); t.className = "ini"; t.textContent = name[0].toUpperCase(); slot.appendChild(t); };
+      slot.appendChild(img);
+    }
+    hb.appendChild(slot);
+  }
+  $("hotbar-note").textContent = live.length
+    ? live.length + (live.length === 1 ? " jugador dentro" : " jugadores dentro")
+    : "Sin jugadores conectados";
+
+  const rows = d.players || [];
+  const body = $("players");
+  body.innerHTML = "";
+  const maxH = Math.max(0.01, ...rows.map(r => r.hours));
+  rows.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td><span class="who">' +
+        (p.online ? '<span class="dot" title="conectado"></span>' : "") +
+        '<img src="' + head(p.name) + '" alt="" loading="lazy" onerror="this.remove()">' +
+        '<span class="nm">' + esc(p.name) + '</span>' +
+      '</span></td>' +
+      '<td><span class="xp" title="' + p.hours + ' h"><i style="width:' + Math.max(4, Math.round(100 * p.hours / maxH)) + '%"></i></span></td>' +
+      '<td class="num">' + p.hours.toFixed(1).replace(".", ",") + '</td>' +
+      '<td class="num">' + p.sessions + '</td>';
+    body.appendChild(tr);
+  });
+  $("players-empty").hidden = rows.length > 0;
+  $("players").hidden = rows.length === 0;
+
+  const evs = d.events || [];
+  $("events").innerHTML = evs.map(e => {
+    const when = new Date(e.t * 1000);
+    const hh = pad(when.getHours()) + ":" + pad(when.getMinutes());
+    const what = e.kind === "join" ? "entró" : "salió";
+    return '<li><span class="when">' + hh + '</span>' +
+           '<img src="' + head(e.name) + '" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' +
+           '<span class="nm">' + esc(e.name) + '</span>' +
+           '<span class="what ' + e.kind + '">' + what + '</span></li>';
+  }).join("");
+  $("events").hidden = evs.length === 0;
+  $("events-empty").hidden = evs.length > 0;
+
+  const sig = $("signal");
+  const hist = d.history || [];
+  const now = Math.floor(Date.now() / 1000);
+  const bucket = 1200, n = 72;
+  const cells = new Array(n).fill(null);
+  hist.forEach(h => {
+    const idx = n - 1 - Math.floor((now - h.t) / bucket);
+    if (idx >= 0 && idx < n) cells[idx] = cells[idx] === 1 ? 1 : (cells[idx] === 0 && !h.on ? 0 : (h.on ? 1 : 0));
+  });
+  sig.innerHTML = cells.map(c => c === null ? "<i></i>" : (c ? '<i class="on"></i>' : '<i class="off"></i>')).join("");
+
+  const ts = d.updated_ts ? new Date(d.updated_ts * 1000) : null;
+  ultimo = d;
+  MC.send("state", {
+    payload: {
+      online: on,
+      players: live,
+      count: live.length,
+      max: sv.max_players,
+      hours: d.totals?.hours ?? 0,
+      sessions: d.totals?.sessions ?? 0,
+      address: d.public_address,
+      version: sv.version,
+      updated: d.updated_ts
+    }
+  });
+  $("stamp").innerHTML = ts
+    ? (Date.now() / 1000 - d.updated_ts > 600
+        ? '<span class="stale">datos de ' + relative(d.updated_ts) + '</span>'
+        : "actualizado " + relative(d.updated_ts))
+    : "sin datos";
+}
+
+async function load() {
+  try {
+    render(await MC.stats());
+  } catch (e) {
+    $("state-sub").textContent = "No se pudo leer el estado del server. Reintentando…";
+    $("stamp").innerHTML = '<span class="stale">sin conexión con el comprobador</span>';
+  }
+}
+
+$("copy").addEventListener("click", async () => {
+  const txt = $("addr").textContent.trim();
+  try { await navigator.clipboard.writeText(txt); } catch {}
+  $("copy").textContent = "Copiada";
+  setTimeout(() => $("copy").textContent = "Copiar dirección", 1600);
+});
+
+load();
+setInterval(load, 30000);
+setInterval(() => { if (ultimo) render(ultimo); }, 15000);
+
+const ctrlStatus = $("ctrl-status");
+const ctrlSay = $("ctrl-say");
+
+function note(msg, cls = "") {
+  ctrlStatus.textContent = msg;
+  ctrlStatus.className = cls;
+}
+
+function syncControl() {
+  $("ctrl-url").value = MC.bridge();
+  $("ctrl-key").value = MC.key();
+  const has = MC.hasControl();
+  document.querySelectorAll("[data-action]").forEach(b => b.disabled = !has);
+  ctrlSay.disabled = $("ctrl-say-send").disabled = !has;
+  $("ctrl-note").textContent = has
+    ? "Puente conectado. Los cambios se aplican al instante."
+    : "Pega la dirección del puente y la clave para encender, apagar o escribir en el chat desde aquí.";
+}
+
+async function act(action, value) {
+  note("Enviando…");
+  try {
+    await MC.action(action, value);
+    note("Hecho.", "ok");
+    setTimeout(load, 2500);
+  } catch (e) {
+    note("No se pudo: " + e.message, "err");
+  }
+}
+
+document.querySelectorAll("[data-action]").forEach(b => {
+  b.addEventListener("click", () => act(b.dataset.action));
+});
+
+$("ctrl-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  MC.config($("ctrl-url").value.trim(), $("ctrl-key").value.trim());
+  syncControl();
+  note(MC.hasControl() ? "Guardado." : "Faltan datos.", MC.hasControl() ? "ok" : "err");
+});
+
+$("ctrl-forget").addEventListener("click", () => {
+  localStorage.removeItem("mc.bridge");
+  localStorage.removeItem("mc.key");
+  syncControl();
+  note("Puente olvidado.");
+});
+
+$("ctrl-say-send").addEventListener("click", () => {
+  const v = ctrlSay.value.trim();
+  if (!v) return;
+  act("say", v).then(() => ctrlSay.value = "");
+});
+
+MC.onCommand((d) => act(d.action, d.value));
+MC.send("ready");
+syncControl();
+</script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test 1 · estado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08080c; --panel:#0e1016; --panel2:#12141c; --line:#242835;
+    --lime:#ccff00; --lime-dim:#9dc700; --pink:#ff2e7e; --cyan:#22e3ff;
+    --gold:#e9b949; --text:#f2f0e9; --muted:#8f9585;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:transparent}
+  body{
+    font:400 14px/1.5 "Space Grotesk",system-ui,sans-serif;color:var(--text);
+    display:flex;justify-content:center;padding:0
+  }
+  .card{
+    width:100%;max-width:520px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(1px 1px at 12% 18%, rgba(204,255,0,.7), transparent 60%),
+      radial-gradient(1px 1px at 78% 12%, rgba(34,227,255,.6), transparent 60%),
+      radial-gradient(1px 1px at 44% 82%, rgba(255,46,126,.5), transparent 60%),
+      radial-gradient(120% 90% at 50% -20%, #161a12 0%, var(--panel) 55%, #0a0b0f 100%);
+    border:1px solid rgba(204,255,0,.28);
+    border-radius:16px;
+    box-shadow:0 0 0 1px rgba(0,0,0,.4) inset, 0 18px 44px rgba(0,0,0,.55), 0 0 40px rgba(204,255,0,.06);
+    padding:16px 18px 14px;display:grid;gap:13px;
+  }
+  .card::after{
+    content:"";position:absolute;inset:0;pointer-events:none;border-radius:16px;
+    background:linear-gradient(180deg, rgba(204,255,0,.07), transparent 32%);
+  }
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .name{
+    font-family:"Big Shoulders Display",sans-serif;font-weight:800;font-size:22px;
+    letter-spacing:.06em;text-transform:uppercase;line-height:1
+  }
+  .name small{
+    display:block;font-family:"Space Grotesk",sans-serif;font-weight:500;font-size:10px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:3px
+  }
+  .pill{
+    display:inline-flex;align-items:center;gap:7px;
+    font:700 11px/1 "Space Grotesk",sans-serif;letter-spacing:.14em;text-transform:uppercase;
+    padding:8px 12px;border-radius:999px;border:1px solid currentColor;
+  }
+  .pill.on{color:var(--lime);box-shadow:0 0 18px rgba(204,255,0,.22), inset 0 0 12px rgba(204,255,0,.08)}
+  .pill.off{color:var(--pink);box-shadow:0 0 18px rgba(255,46,126,.2), inset 0 0 12px rgba(255,46,126,.08)}
+  .pill i{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+
+  .addr{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:linear-gradient(180deg, rgba(34,227,255,.06), rgba(0,0,0,.25));
+    border:1px solid rgba(34,227,255,.28);border-radius:12px;padding:9px 10px 9px 13px;
+    font-weight:500;font-size:14px;letter-spacing:.02em;user-select:all;word-break:break-all;
+  }
+  .addr b{color:var(--cyan);font-weight:500}
+  .addr button{
+    flex:0 0 auto;font:700 11px/1 "Space Grotesk",sans-serif;letter-spacing:.12em;text-transform:uppercase;
+    color:#08080c;background:var(--lime);border:0;border-radius:999px;padding:8px 12px;cursor:pointer;
+    box-shadow:0 0 16px rgba(204,255,0,.35);user-select:none;
+  }
+  .addr button:hover{background:#d9ff33}
+  .addr button:active{transform:translateY(1px)}
+
+  .mini{display:flex;gap:26px;flex-wrap:wrap}
+  .mini div{min-width:62px}
+  .mini b{
+    display:block;font-family:"Big Shoulders Display",sans-serif;font-weight:800;
+    font-size:30px;line-height:.95;color:var(--lime);letter-spacing:.02em;
+  }
+  .mini span{
+    display:block;margin-top:4px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)
+  }
+  .slots{display:flex;gap:5px}
+  .slot{
+    width:31px;height:31px;border-radius:8px;overflow:hidden;
+    background:linear-gradient(180deg,#15181f,#0c0e13);
+    border:1px solid #2a2f3b;display:grid;place-items:center;
+  }
+  .slot.filled{border-color:rgba(204,255,0,.55);box-shadow:0 0 12px rgba(204,255,0,.18)}
+  .slot img{width:100%;height:100%;image-rendering:pixelated}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;color:var(--muted)}
+  .foot a{color:var(--lime);text-decoration:none;border-bottom:1px solid rgba(204,255,0,.35)}
+  .foot a:hover{border-bottom-color:var(--lime)}
+  :focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+  body.plain .card{border:0;border-radius:0;box-shadow:none;padding:14px 14px 12px}
+  body.plain .card::after{display:none}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="name">Test 1<small>Fabric 1.21.11 · server de prueba</small></div>
+    <span class="pill off" id="state"><i></i><span id="state-text">comprobando</span></span>
+  </div>
+
+  <div class="addr"><b id="addr">—</b><button id="copy" type="button">Copiar</button></div>
+
+  <div class="mini">
+    <div><b id="n-players">0</b><span>jugando</span></div>
+    <div><b id="n-hours">0,0</b><span>horas</span></div>
+    <div><b id="n-sessions">0</b><span>sesiones</span></div>
+  </div>
+
+  <div class="slots" id="slots" aria-label="Jugadores dentro"></div>
+
+  <div class="foot">
+    <span id="ver">Fabric 1.21.11</span>
+    <a href="./index.html" target="_blank" rel="noopener">ver todo</a>
+  </div>
+</div>
+<script src="mc-client.js"></script>
+<script>
+if (new URLSearchParams(location.search).has("plain")) document.body.classList.add("plain");
+const $ = (id) => document.getElementById(id);
+const head = (n) => "https://mc-heads.net/avatar/" + encodeURIComponent(n) + "/32";
+
+async function load() {
+  try {
+    const d = await MC.stats();
+    const on = !!d.server?.online;
+    const pill = $("state");
+    pill.className = "pill " + (on ? "on" : "off");
+    $("state-text").textContent = on ? "abierto" : "cerrado";
+    $("addr").textContent = d.public_address || "—";
+    $("n-players").textContent = d.server?.players ?? 0;
+    $("n-hours").textContent = (d.totals?.hours ?? 0).toFixed(1).replace(".", ",");
+    $("n-sessions").textContent = d.totals?.sessions ?? 0;
+    $("ver").textContent = "Fabric " + (d.server?.version || "1.21.11");
+
+    const live = (d.online_now || []).slice(0, 8);
+    const slots = $("slots");
+    slots.innerHTML = "";
+    for (let i = 0; i < Math.max(8, live.length); i++) {
+      const el = document.createElement("div");
+      el.className = "slot" + (live[i] ? " filled" : "");
+      if (live[i]) {
+        el.title = live[i];
+        const im = new Image();
+        im.src = head(live[i]);
+        im.alt = live[i];
+        el.appendChild(im);
+      }
+      slots.appendChild(el);
+    }
+
+    MC.send("state", { payload: {
+      online: on, players: live, count: live.length, max: d.server?.max_players ?? 0,
+      hours: d.totals?.hours ?? 0, sessions: d.totals?.sessions ?? 0,
+      address: d.public_address, version: d.server?.version, updated: d.updated_ts
+    }});
+    MC.send("height", { height: Math.ceil(document.querySelector(".card").getBoundingClientRect().height) + 2 });
+  } catch (e) {
+    $("state").className = "pill off";
+    $("state-text").textContent = "sin datos";
+  }
+}
+
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("addr").textContent); } catch {}
+  $("copy").textContent = "Copiada";
+  setTimeout(() => $("copy").textContent = "Copiar", 1500);
+});
+
+MC.onCommand(async (d) => {
+  try {
+    await MC.action(d.action, d.value);
+    MC.send("ack", { action: d.action, ok: true });
+    setTimeout(load, 2000);
+  } catch (e) {
+    MC.send("ack", { action: d.action, ok: false, error: e.message });
+  }
+});
+
+load();
+setInterval(load, 30000);
+MC.send("ready");
+</script>
+</body>
+</html>
