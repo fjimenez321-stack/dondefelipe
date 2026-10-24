@@ -1,7 +1,6 @@
 /* Botón flotante + ventana con el server.
-   Una sola etiqueta en cualquier página:
    <script src=".../integracion/boton.js" data-widget=".../embed.html"></script>
-   Opcional: data-bridge="https://.../", data-key="..." para habilitar el control. */
+   Opcional: data-bridge="https://.../" data-key="..." para habilitar el control. */
 (function () {
   const me = document.currentScript;
   const widget = me.getAttribute("data-widget") || "./embed.html";
@@ -10,23 +9,25 @@
 
   const css = `
   #mc-fab{position:fixed;right:20px;bottom:20px;z-index:2147483000;display:flex;align-items:center;gap:9px;
-    font:700 14px/1 "Silkscreen",ui-monospace,monospace;letter-spacing:.04em;color:#f3e9d2;background:#1f1a13;
-    border:2px solid #6b5a41;border-bottom-color:#0d0a06;border-right-color:#0d0a06;padding:11px 14px;cursor:pointer;
-    box-shadow:inset 2px 2px 0 #3a3226,0 6px 18px rgba(0,0,0,.45)}
-  #mc-fab:hover{background:#262017}
-  #mc-fab .dot{width:9px;height:9px;background:#8a7a5f;box-shadow:0 0 0 2px rgba(255,255,255,.06)}
-  #mc-fab.on .dot{background:#8bc34a;box-shadow:0 0 10px 2px rgba(139,195,74,.5)}
-  #mc-fab.off .dot{background:#e0573f}
+    font:700 12px/1 "Space Grotesk",system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;
+    color:#08080c;background:#ccff00;border:0;border-radius:999px;padding:12px 18px;cursor:pointer;
+    box-shadow:0 0 0 1px rgba(204,255,0,.5),0 10px 28px rgba(0,0,0,.5),0 0 26px rgba(204,255,0,.35)}
+  #mc-fab:hover{background:#d9ff33;box-shadow:0 0 0 1px rgba(204,255,0,.7),0 10px 30px rgba(0,0,0,.55),0 0 34px rgba(204,255,0,.5)}
+  #mc-fab .dot{width:7px;height:7px;border-radius:50%;background:#08080c}
+  #mc-fab.off{background:#ff2e7e;color:#fff;box-shadow:0 0 0 1px rgba(255,46,126,.5),0 10px 28px rgba(0,0,0,.5),0 0 26px rgba(255,46,126,.35)}
+  #mc-fab.off .dot{background:#fff}
   #mc-modal{position:fixed;inset:0;z-index:2147483001;display:none;align-items:center;justify-content:center;
-    background:rgba(8,8,12,.72);backdrop-filter:blur(3px);padding:20px}
+    background:rgba(8,8,12,.74);backdrop-filter:blur(4px);padding:20px}
   #mc-modal.open{display:flex}
-  #mc-shell{width:min(560px,100%);background:#14110c;border:2px solid #6b5a41;border-bottom-color:#0d0a06;
-    border-right-color:#0d0a06;box-shadow:0 24px 60px rgba(0,0,0,.6);position:relative}
-  #mc-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:2px solid #2a241b}
-  #mc-bar b{font:700 13px/1 "Silkscreen",ui-monospace,monospace;letter-spacing:.05em;color:#f3e9d2}
-  #mc-close{font:inherit;font-size:12px;color:#f3e9d2;background:#332b20;border:2px solid #4a3f2f;
-    border-bottom-color:#17130d;border-right-color:#17130d;padding:4px 9px;cursor:pointer}
-  #mc-frame{display:block;width:100%;height:300px;border:0;background:transparent}
+  #mc-shell{width:min(560px,100%);background:#0b0d12;border:1px solid rgba(204,255,0,.3);border-radius:18px;
+    box-shadow:0 0 0 1px rgba(0,0,0,.5) inset,0 28px 70px rgba(0,0,0,.65),0 0 60px rgba(204,255,0,.08);overflow:hidden}
+  #mc-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;
+    background:linear-gradient(180deg,rgba(204,255,0,.07),transparent);border-bottom:1px solid rgba(255,255,255,.06)}
+  #mc-bar b{font:700 10.5px/1 "Space Grotesk",sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#9dc700}
+  #mc-close{font:700 10.5px/1 "Space Grotesk",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#f2f0e9;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 12px;cursor:pointer}
+  #mc-close:hover{background:rgba(255,255,255,.12)}
+  #mc-frame{display:block;width:100%;height:260px;border:0;background:transparent}
   @media (prefers-reduced-motion:reduce){#mc-modal{backdrop-filter:none}}
   `;
   const style = document.createElement("style");
@@ -55,7 +56,7 @@
     if (frame) return;
     frame = document.createElement("iframe");
     frame.id = "mc-frame";
-    frame.src = widget;
+    frame.src = widget + (widget.includes("?") ? "&" : "?") + "plain=1";
     frame.title = "Estado del server de Minecraft Test 1";
     modal.querySelector("#mc-shell").appendChild(frame);
     if (bridge && key) {
@@ -97,7 +98,6 @@
     }
   });
 
-  // La página del profe se redibuja sola: si borra el botón, se vuelve a poner.
   setInterval(() => {
     if (!document.getElementById("mc-style")) (document.head || document.documentElement).appendChild(style);
     if (!document.getElementById("mc-fab")) document.body.appendChild(fab);
