@@ -1,15 +1,15 @@
 {
-  "updated": "2026-10-24T02:40:26+00:00",
-  "updated_ts": 1792809626,
+  "updated": "2026-10-24T02:41:31+00:00",
+  "updated_ts": 1792809691,
   "public_address": "test1.playit.gg",
   "server": {
     "online": true,
-    "latency_ms": 3,
+    "latency_ms": 2,
     "version": "1.21.11",
     "motd": "Test 1 - Fabric 1.21.11",
     "players": 0,
     "max_players": 8,
-    "uptime_seconds": 2132
+    "uptime_seconds": 2197
   },
   "totals": {
     "hours": 0.0,
@@ -351,6 +351,12 @@
       "on": 1,
       "n": 0,
       "ms": 3
+    },
+    {
+      "t": 1792809691,
+      "on": 1,
+      "n": 0,
+      "ms": 2
     }
   ]
 }
