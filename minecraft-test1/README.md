@@ -49,6 +49,15 @@ Para controlarla desde fuera (encender, apagar, reiniciar, escribir en el chat) 
 </script>
 ```
 
+## Botón flotante (sin tocar el diseño de la página)
+
+```html
+<script src="integracion/boton.js"
+        data-widget=".../minecraft-test1/embed.html"></script>
+```
+
+Añade un botón abajo a la derecha con el estado del server y una ventana con el widget. Admite `data-bridge` y `data-key` para control. Se repone solo si la página se redibuja.
+
 ## Protocolo entre páginas (postMessage)
 
 Del widget hacia la página que lo incrusta:

@@ -30,6 +30,7 @@
   @media (prefers-reduced-motion:reduce){#mc-modal{backdrop-filter:none}}
   `;
   const style = document.createElement("style");
+  style.id = "mc-style";
   style.textContent = css;
   document.head.appendChild(style);
 
@@ -92,7 +93,14 @@
         : "Server MC cerrado";
     }
     if (d.type === "height" && frame) {
-      frame.style.height = Math.max(240, Math.min(560, d.height)) + "px";
+      frame.style.height = Math.min(560, d.height) + "px";
     }
   });
+
+  // La página del profe se redibuja sola: si borra el botón, se vuelve a poner.
+  setInterval(() => {
+    if (!document.getElementById("mc-style")) (document.head || document.documentElement).appendChild(style);
+    if (!document.getElementById("mc-fab")) document.body.appendChild(fab);
+    if (!document.getElementById("mc-modal")) document.body.appendChild(modal);
+  }, 1200);
 })();

@@ -107,7 +107,7 @@ async function load() {
         updated: d.updated_ts
       }
     });
-    MC.send("height", { height: document.documentElement.scrollHeight });
+    MC.send("height", { height: Math.ceil(document.querySelector(".card").getBoundingClientRect().height) + 2 });
   } catch (e) { $("state").textContent = "sin datos"; }
 }
 $("copy").addEventListener("click", async () => {
