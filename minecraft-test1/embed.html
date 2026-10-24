@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test 1 · estado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Silkscreen:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14110c; --surface:#1f1a13; --slot:#2a241b; --edge:#3b3125; --edge-hi:#6b5a41;
+    --paper:#f3e9d2; --muted:#b7a888; --grass:#8bc34a; --redstone:#e0573f; --gold:#e8b64c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:transparent}
+  body{font:400 15px/1.5 "Atkinson Hyperlegible",system-ui,sans-serif;color:var(--paper)}
+  .card{
+    background:var(--surface); border:2px solid var(--edge);
+    border-top-color:#4a3f2f; border-left-color:#4a3f2f;
+    box-shadow:inset 2px 2px 0 #262015, inset -2px -2px 0 #0d0a06;
+    padding:16px 18px 14px; display:grid; gap:12px; max-width:520px;
+  }
+  .row{display:flex;align-items:center;gap:12px}
+  .name{font-family:"Silkscreen",monospace;font-size:15px;letter-spacing:.03em}
+  .state{
+    font-family:"Silkscreen",monospace;font-size:13px;letter-spacing:.05em;
+    padding:3px 9px;border:2px solid currentColor;
+  }
+  .state.on{color:var(--grass)}
+  .state.off{color:var(--redstone)}
+  .addr{
+    font-family:"Silkscreen",monospace;font-size:14px;letter-spacing:.03em;
+    background:var(--slot);border:2px solid var(--edge);padding:8px 10px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:all;
+  }
+  .addr button{
+    font:inherit;font-family:"Atkinson Hyperlegible",sans-serif;font-size:13px;color:var(--ink);
+    background:var(--gold);border:2px solid #f2d089;border-bottom-color:#a57722;border-right-color:#a57722;
+    padding:4px 9px;cursor:pointer;user-select:none;
+  }
+  .mini{display:flex;gap:18px;flex-wrap:wrap}
+  .mini div{min-width:64px}
+  .mini b{font-family:"Silkscreen",monospace;font-size:19px;display:block;line-height:1.1}
+  .mini span{color:var(--muted);font-size:13px}
+  .slots{display:flex;gap:4px}
+  .slot{width:32px;height:32px;background:var(--slot);border:2px solid var(--edge);
+    box-shadow:inset 2px 2px 0 #332b20, inset -2px -2px 0 #17130d;display:grid;place-items:center;overflow:hidden}
+  .slot img{width:100%;height:100%;image-rendering:pixelated}
+  .slot.filled{border-color:#8a7a5f}
+  .foot{display:flex;justify-content:space-between;gap:10px;color:#8a7a5f;font-size:12px}
+  a{color:#6f9cf0}
+  :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <span class="name">TEST 1</span>
+    <span class="state off" id="state">comprobando</span>
+  </div>
+  <div class="addr"><span id="addr">—</span><button id="copy" type="button">Copiar</button></div>
+  <div class="mini">
+    <div><b id="n-players">0</b><span>jugando</span></div>
+    <div><b id="n-hours">0</b><span>horas</span></div>
+    <div><b id="n-sessions">0</b><span>sesiones</span></div>
+  </div>
+  <div class="slots" id="slots" aria-label="Jugadores dentro"></div>
+  <div class="foot">
+    <span id="ver">Fabric 1.21.11</span>
+    <a href="./index.html" target="_blank" rel="noopener">ver todo</a>
+  </div>
+</div>
+<script src="mc-client.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const head = (n) => "https://mc-heads.net/avatar/" + encodeURIComponent(n) + "/32";
+async function load() {
+  try {
+    const d = await MC.stats();
+    const on = !!d.server?.online;
+    $("state").textContent = on ? "abierto" : "cerrado";
+    $("state").className = "state " + (on ? "on" : "off");
+    $("addr").textContent = d.public_address || "—";
+    $("n-players").textContent = d.server?.players ?? 0;
+    $("n-hours").textContent = (d.totals?.hours ?? 0).toFixed(1).replace(".", ",");
+    $("n-sessions").textContent = d.totals?.sessions ?? 0;
+    $("ver").textContent = "Fabric " + (d.server?.version || "1.21.11");
+    const live = (d.online_now || []).slice(0, 8);
+    const s = $("slots"); s.innerHTML = "";
+    for (let i = 0; i < Math.max(8, live.length); i++) {
+      const el = document.createElement("div");
+      el.className = "slot" + (live[i] ? " filled" : "");
+      if (live[i]) { el.title = live[i]; const im = new Image(); im.src = head(live[i]); im.alt = live[i]; el.appendChild(im); }
+      s.appendChild(el);
+    }
+    MC.send("state", {
+      payload: {
+        online: on,
+        players: live,
+        count: live.length,
+        max: d.server?.max_players ?? 0,
+        hours: d.totals?.hours ?? 0,
+        sessions: d.totals?.sessions ?? 0,
+        address: d.public_address,
+        version: d.server?.version,
+        updated: d.updated_ts
+      }
+    });
+    MC.send("height", { height: document.documentElement.scrollHeight });
+  } catch (e) { $("state").textContent = "sin datos"; }
+}
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("addr").textContent); } catch {}
+  $("copy").textContent = "Copiada"; setTimeout(() => $("copy").textContent = "Copiar", 1500);
+});
+load(); setInterval(load, 30000);
+
+MC.onCommand(async (d) => {
+  try {
+    await MC.action(d.action, d.value);
+    MC.send("ack", { action: d.action, ok: true });
+    setTimeout(load, 2000);
+  } catch (e) {
+    MC.send("ack", { action: d.action, ok: false, error: e.message });
+  }
+});
+MC.send("ready");
+</script>
+</body>
+</html>
