@@ -637,7 +637,7 @@ async function cargar() {
           misVentas = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => ms(b.creada) - ms(a.creada)); pintar(); }, () => {}));
         unsubs.push(F.onSnapshot(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId)), s => {
           const todos = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
-          misBenef = todos.filter(m => m.canje === 'pendiente' && m.item && m.tipo !== 'poder-gatito' && m.tipo !== 'poder-mensual' && m.tipo !== 'premio-gatito');
+          misBenef = todos.filter(m => m.canje === 'pendiente' && m.item && m.item !== 'Ruleta: disertación' && m.tipo !== 'poder-gatito' && m.tipo !== 'poder-mensual' && m.tipo !== 'premio-gatito');
           // fecha de adquisición: compra en el mercado o premio de la ruleta (la más reciente, por si lo vendió y lo volvió a comprar)
           todos.forEach(m => { if (m.gatito && (m.tipo === 'gatito-compra' || m.tipo === 'ruleta')) adquiridos[m.gatito] = Math.max(adquiridos[m.gatito] || 0, ms(m.fecha)); });
           pintar(); }, () => {}));

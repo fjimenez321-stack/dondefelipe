@@ -500,9 +500,10 @@ function correoDe(cuentaId) { return vinculos[cuentaId] || ''; }
 function pintarPendientes() {
   $('nPend').textContent = pendientes.length;
   $('listaPend').innerHTML = pendientes.length ? pendientes.map(m => `
-    <div class="m"><div class="t"><b>${esc(m.item || m.motivo)}</b> · ${esc(m.nombre)} <span class="pill">${esc(m.curso || '—')}</span>
-      <small>Comprada el ${fecha(m.fecha)} · −$${fmt(Math.abs(m.monto))}</small></div>
-      <button class="btn sm p" data-usar="${esc(m.id)}">Marcar usada</button></div>`).join('')
+    <div class="m"><div class="t"><b>${m.item === 'Ruleta: disertación' ? '🎤 ' : ''}${esc(m.item || m.motivo)}</b> · ${esc(m.nombre)} <span class="pill">${esc(m.curso || '—')}</span>
+      ${m.item === 'Ruleta: disertación' ? `<small>Tema: <b>${esc(m.tema || '(sin tema)')}</b> · castigo de la ruleta, tiro #${esc(m.tiro)} del ${fecha(m.fecha)}</small>` : `<small>${m.tipo === 'ruleta' ? 'Ganada en la ruleta' : 'Comprada'} el ${fecha(m.fecha)}${m.monto ? ' · −$' + fmt(Math.abs(m.monto)) : ''}</small>`}</div>
+      <div style="display:flex;gap:6px">${m.item === 'Ruleta: disertación' ? `<button class="btn sm" data-tema="${esc(m.id)}">Cambiar tema</button>` : ''}
+      <button class="btn sm p" data-usar="${esc(m.id)}">${m.item === 'Ruleta: disertación' ? 'Marcar hecha' : 'Marcar usada'}</button></div></div>`).join('')
     : '<div class="muted">No hay compras pendientes.</div>';
 }
 async function marcarUsada(id, item, nombre) {
@@ -515,6 +516,12 @@ async function marcarUsada(id, item, nombre) {
   } catch (e) { toast('Error: ' + e.message); return false; }
 }
 $('listaPend').onclick = ev => {
+  const idT = ev.target.dataset && ev.target.dataset.tema;
+  if (idT) {
+    const m = pendientes.find(x => x.id === idT), t = prompt('Tema de la disertación de ' + (m ? m.nombre : '') + ':', m ? m.tema || '' : '');
+    if (t && t.trim().length >= 3) FB.F.updateDoc(FB.F.doc(FB.db, 'banco_movs', idT), { tema: t.trim().slice(0, 120) }).then(() => toast('✓ Tema cambiado')).catch(e => toast('Error: ' + e.message));
+    return;
+  }
   const id = ev.target.dataset && ev.target.dataset.usar; if (!id) return;
   const m = pendientes.find(x => x.id === id); if (m) marcarUsada(id, m.item || m.motivo, m.nombre);
 };
@@ -726,6 +733,7 @@ function estadoCanje(m) {
   if (m.tipo !== 'compra') return '';
   if (m.canje === 'usada') return `<span class="can usada">Usada</span> <small class="muted">${esc(m.canjeNota || '')}${m.canjeFecha ? ' · ' + fecha(m.canjeFecha) : ''}</small>`;
   if (m.canje === 'anulada') return '<span class="can anul">Anulada</span>';
+  if (m.canje === 'perdida') return '<span class="can anul">Perdida en la ruleta</span>';
   if (m.canje === 'retenida') return '<span class="can pend">Retenida (esperando autorización)</span>';
   if (m.canje === 'en-venta') return '<span class="can pend">En venta (congelada)</span>';
   if (m.canje === 'entregada') return `<span class="can usada">Entregada</span> <small class="muted">${esc(m.canjeNota || '')}</small>`;

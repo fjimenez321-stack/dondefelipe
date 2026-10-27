@@ -558,6 +558,15 @@ document.addEventListener('submit', async ev => {
     setTimeout(() => { const m = $('trMsg'); if (m) m.innerHTML = '<div class="aviso ok" style="margin-top:4px">✓ Listo: el dinero salió de tu cuenta y queda retenido hasta que el profe autorice. Si la rechaza o la cancelas, te vuelve.</div>'; }, 400);
   } catch (e) { msg('No se pudo pedir la transferencia: ' + esc(/permission/i.test(e.message) ? 'el banco la rechazó (¿el profe publicó las reglas nuevas?)' : e.message), 'err'); $('trBtn').disabled = false; }
 });
+// Disertación de la ruleta: el estudiante puede cambiar el tema mientras no la haga.
+document.addEventListener('click', async ev => {
+  const b = ev.target.closest('[data-tema]'); if (!b) return;
+  const t = prompt('Tema de tu disertación (3 a 120 letras):', b.dataset.actual || '');
+  if (t === null) return;
+  if (t.trim().length < 3) { alert('El tema debe tener al menos 3 letras.'); return; }
+  try { const { F, db } = await DF.listo(); await F.updateDoc(F.doc(db, 'banco_movs', b.dataset.tema), { tema: t.trim().slice(0, 120) }); cargarBanco(); }
+  catch (e) { alert('No se pudo cambiar el tema: ' + e.message); }
+});
 document.addEventListener('click', async ev => {
   const b = ev.target.closest('[data-cancelar]'); if (!b) return;
   if (!confirm('¿Cancelar esta transferencia? El dinero retenido vuelve a tu cuenta.')) return;
@@ -580,7 +589,7 @@ document.addEventListener('click', async ev => {
 // Lo que la persona tiene: beneficios por usar (agrupados), los que esperan al profe y los que puso a la venta.
 function pintarProductos(compras) {
   const CAT = window.CATALOGO_BENEFICIOS || [], grupos = {};
-  const ico = m => m.tipo === 'poder-gatito' ? '⚡' : m.tipo === 'poder-mensual' ? '📜' : m.tipo === 'premio-gatito' ? '💎' : m.tipo === 'ruleta' ? '🎡' : ((CAT.find(c => c.nombre === m.item) || {}).ico || '🎟️');
+  const ico = m => m.item === 'Ruleta: disertación' ? '🎤' : m.tipo === 'poder-gatito' ? '⚡' : m.tipo === 'poder-mensual' ? '📜' : m.tipo === 'premio-gatito' ? '💎' : m.tipo === 'ruleta' ? '🎡' : ((CAT.find(c => c.nombre === m.item) || {}).ico || '🎟️');
   compras.filter(m => ['pendiente', 'retenida', 'en-venta'].includes(m.canje)).forEach(m => {
     const k = m.canje + '|' + (m.item || m.motivo);
     (grupos[k] = grupos[k] || { m, n: 0 }).n++;
@@ -604,12 +613,12 @@ function cargarBanco() {
     // Todo lo que deja algo para usar: compras, regalos del profe, premios de la ruleta y décimas de los gatitos.
     const c = b.cuenta, compras = b.movs.filter(m => m.item || m.canje);
     const porUsar = compras.filter(m => m.canje === 'pendiente'), resto = compras.filter(m => m.canje !== 'pendiente');
-    const origen = m => m.tipo === 'poder-gatito' ? '⚡ ' : m.tipo === 'poder-mensual' ? '📜 ' : m.tipo === 'premio-gatito' ? '💎 ' : m.tipo === 'ruleta' ? '🎡 ' : m.monto === 0 && m.tipo === 'compra' ? '🎁 ' : '';
+    const origen = m => m.item === 'Ruleta: disertación' ? '🎤 ' : m.tipo === 'poder-gatito' ? '⚡ ' : m.tipo === 'poder-mensual' ? '📜 ' : m.tipo === 'premio-gatito' ? '💎 ' : m.tipo === 'ruleta' ? '🎡 ' : m.monto === 0 && m.tipo === 'compra' ? '🎁 ' : '';
     $('rSaldo').textContent = fmt(c.saldo); $('rSaldo').classList.toggle('neg', (c.saldo || 0) < 0);
     $('rUsar').textContent = porUsar.length;
     pintarProductos(compras);
     const estado = m => m.canje === 'usada' ? `<span class="can usada">Usada</span>${m.canjeNota ? ' <small class="muted">' + esc(m.canjeNota) + '</small>' : ''}`
-      : m.canje === 'anulada' ? '<span class="can anul">Anulada</span>' : m.canje === 'retenida' ? '<span class="can pend">Retenida · esperando al profe</span>' : m.canje === 'en-venta' ? '<span class="can pend">En venta (congelada)</span>' : m.canje === 'entregada' ? '<span class="can usada">Entregada</span>' : m.canje === 'traspasada' ? `<span class="can anul">Vendida</span> <small class="muted">${esc(m.canjeNota || '')}</small>` : '<span class="can pend">Por usar</span>';
+      : m.canje === 'anulada' ? '<span class="can anul">Anulada</span>' : m.canje === 'perdida' ? '<span class="can anul">Perdida en la ruleta</span>' : m.item === 'Ruleta: disertación' && m.canje === 'pendiente' ? `<span class="can pend">Por hacer · tema: ${esc(m.tema || '—')}</span> <button class="btn" style="padding:4px 10px;font-size:12px" type="button" data-tema="${esc(m._id)}" data-actual="${esc(m.tema || '')}">Cambiar tema</button>` : m.canje === 'retenida' ? '<span class="can pend">Retenida · esperando al profe</span>' : m.canje === 'en-venta' ? '<span class="can pend">En venta (congelada)</span>' : m.canje === 'entregada' ? '<span class="can usada">Entregada</span>' : m.canje === 'traspasada' ? `<span class="can anul">Vendida</span> <small class="muted">${esc(m.canjeNota || '')}</small>` : '<span class="can pend">Por usar</span>';
     $('bCont').innerHTML = `
       <div class="saldo"><b class="${(c.saldo || 0) < 0 ? 'neg' : ''}">${fmt(c.saldo)} ₣</b><span class="muted">Cuenta N° ${esc(c.numero)}${c.curso ? ' · ' + esc(c.curso) : ''}</span></div>
       <p class="sub">Por usar (${porUsar.length})</p>

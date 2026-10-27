@@ -109,6 +109,8 @@ h1 span{color:var(--acid)}
 @keyframes float{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-8px) rotate(4deg)}}
 @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px) rotate(-1deg)}40%,60%{transform:translateX(8px) rotate(1deg)}}
 @media (prefers-reduced-motion:reduce){*,*::before{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+  .dis{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--slab2);border-left:3px solid #8e2bd1;margin-top:8px}
+  .dis small{display:block;color:var(--mute);font-size:12px}.dis-acc{display:flex;gap:6px;flex-wrap:wrap}.dis-acc .btn{padding:6px 12px;font-size:13px}
   .comprobante{margin:6px 0 12px;font-size:12.5px;text-align:left;opacity:.9}.comprobante summary{cursor:pointer;font-weight:600}.comprobante code{font-size:12px;word-break:break-all}
 </style>
 </head>
@@ -117,7 +119,7 @@ h1 span{color:var(--acid)}
   <a class="crumb" href="index.html">← El Mundo de Felipe</a>
   <p class="kick">Juego · Banco de Hipopesos</p>
   <h1>Ruleta de <span>Hipopesos</span></h1>
-  <p class="intro">Cada tiro cuesta <b id="costoTxt">30.000 ₣</b>. Hay 32 casillas: premios de hasta 500.000 ₣, castigos de hasta 300.000 ₣, cuatro beneficios para canjear con el profe o un gatito gratis para tu colección.</p>
+  <p class="intro">Cada tiro cuesta <b id="costoTxt">30.000 ₣</b>. Hay 32 casillas y los premios y castigos caen en <b>tus cosas</b>: tu saldo, tus décimas y beneficios, tus acciones de la Bolsa y tus gatitos. Y ojo: hay castigos de disertación.</p>
 
   <div id="avisos"></div>
 
@@ -148,9 +150,10 @@ h1 span{color:var(--acid)}
       <section class="card">
         <h2>Probabilidades</h2>
         <table class="prob" id="prob"></table>
-        <p class="nota">La ruleta tiene 32 casillas iguales y cada una sale con la misma probabilidad (1 de 32). Si un castigo es mayor que tu saldo, quedas en 0. Si ganas un gatito que ya tenías, recibes su precio en Hipopesos.</p>
+        <p class="nota">La ruleta tiene 32 casillas iguales y cada una sale con la misma probabilidad (1 de 32). Si un castigo es mayor que tu saldo, quedas en 0. Si ganas un gatito que ya tenías, recibes su precio en Hipopesos. Si un castigo cae sobre algo que no tienes, se paga en Hipopesos. Solo se pueden escapar gatitos comunes y poco comunes.</p>
         <p class="nota">🔒 <b>Juego limpio:</b> al girar se retienen hasta 330.000 ₣ y el servidor anota su hora exacta; el resultado sale de esa hora, así que nadie puede saberlo antes. Lo retenido vuelve con tu premio en el mismo giro. Máximo 20 tiros por día.</p>
       </section>
+      <section class="card" id="disert" hidden></section>
       <section class="card">
         <h2>Tus últimos tiros</h2>
         <ul class="hist" id="hist"><li class="vacio">Entra con tu cuenta para ver tus tiros.</li></ul>
@@ -180,34 +183,65 @@ const RULETA = {
   retenerMax: 330000,
   porDia: 20,
   sal: 'dondefelipe-ruleta-v2',
-  // Gatito gratis: uno de los comunes, según el 3er carácter del hash.
+  // Gatito común: según el 3er carácter del hash.
   gatito: c3 => '0123'.includes(c3) ? 'naranjo' : '4567'.includes(c3) ? 'gris' : '89ab'.includes(c3) ? 'dormilon' : 'patitas',
+  // Gatito sorpresa: 1 de 16 según el 3er carácter (nunca ediciones limitadas, héroes ni los de más de 1.000.000).
+  sorpresa: ['aseo', 'blanconegro', 'tricolor', 'comelon', 'siames', 'negro', 'estirado', 'jugueton',
+             'caja', 'tronco', 'barril', 'muro', 'fantasma', 'nietzsche', 'cosmico', 'dorado'],
+  // Los únicos que se pueden escapar: comunes y poco comunes.
+  escapables: ['naranjo', 'gris', 'dormilon', 'patitas', 'aseo', 'blanconegro', 'tricolor', 'comelon'],
 };
+const DISERTACION = 'Ruleta: disertación';
+// Temas para la disertación (se sortea uno; el estudiante puede cambiarlo por otro de la lista o escribir el suyo).
+const TEMAS = [
+  'La fotosíntesis', 'El sistema inmune', 'Las capas de la Tierra', 'Los volcanes de Chile',
+  'La evolución por selección natural', 'El ADN y los genes', 'Las leyes de Newton', 'Las energías renovables en Chile',
+  'El ciclo del agua', 'Los agujeros negros', 'Cómo funcionan las vacunas', 'El cambio climático',
+  'Las ondas y el sonido', 'Los microorganismos', 'La electricidad en la casa', 'Los ecosistemas de Chile'
+];
 // LAS 32 CASILLAS, en el orden en que aparecen en la rueda (igual que tablaRuleta() en las reglas).
-// d: dinero · b: beneficio canjeable · g: gatito gratis. Todas tienen la misma probabilidad (1 de 32).
+// Todas tienen la misma probabilidad (1 de 32). Los premios y castigos caen en las COSAS del jugador:
+//  d dinero · b beneficio o décimas por canjear · D disertación · g gatito común · G gatito sorpresa
+//  A acciones de regalo por ₣v · V pierde acciones por hasta ₣v · E se escapa un gatito · P pierde un beneficio.
+//  (A, V, E y P: si no tiene esa cosa, recibe o paga v en Hipopesos.)
 const TABLA = [
-  ['d', 500000], ['d', -60000], ['d', 60000], ['b', 'Ruleta: pase de tarea'], ['d', -120000], ['d', 90000], ['d', -30000], ['g'],
-  ['d', 200000], ['d', -90000], ['d', 30000], ['d', -200000], ['d', 60000], ['b', 'Ruleta: 5 minutos extra en una prueba'], ['d', -60000], ['d', 120000],
-  ['d', -300000], ['d', 60000], ['d', -30000], ['b', 'Ruleta: cambio de puesto por una clase'], ['d', 90000], ['d', -120000], ['d', 30000], ['g'],
-  ['d', -90000], ['d', 200000], ['d', -60000], ['b', 'Ruleta: elegir la música de una clase'], ['d', 120000], ['d', -200000], ['d', 300000], ['d', 0]
+  ['d', 500000], ['D', DISERTACION], ['b', 'Ruleta: 1 décima formativa'], ['d', -120000],
+  ['A', 100000], ['d', -60000], ['g'], ['V', 150000],
+  ['d', 200000], ['d', -30000], ['b', 'Ruleta: pase de tarea'], ['E', 60000],
+  ['d', 90000], ['d', -200000], ['b', 'Ruleta: 1 décima sumativa'], ['d', 0],
+  ['d', 300000], ['D', DISERTACION], ['b', 'Ruleta: 2 décimas formativas'], ['d', -90000],
+  ['G'], ['P', 100000], ['d', 60000], ['d', -300000],
+  ['b', 'Ruleta: 5 minutos extra en una prueba'], ['d', -60000], ['d', 120000], ['g'],
+  ['d', 30000], ['b', 'Ruleta: elegir la música de una clase'], ['d', 60000], ['b', 'Ruleta: cambio de puesto por una clase']
 ];
 // Casilla que sale: (1er carácter impar ? 16 : 0) + valor del 2° carácter → 0..31, uniforme.
 const casillaDeHash = h => (parseInt(h[0], 16) % 2 ? 16 : 0) + parseInt(h[1], 16);
-const BENEF_CORTO = { 'Ruleta: pase de tarea': 'Pase tarea', 'Ruleta: 5 minutos extra en una prueba': '+5 min', 'Ruleta: cambio de puesto por una clase': 'Puesto', 'Ruleta: elegir la música de una clase': 'Tu música' };
-const BENEF_EMO = { 'Ruleta: pase de tarea': '🎟️', 'Ruleta: 5 minutos extra en una prueba': '⏱️', 'Ruleta: cambio de puesto por una clase': '🪑', 'Ruleta: elegir la música de una clase': '🎵' };
+const BENEF = {
+  'Ruleta: pase de tarea': ['🎟️', 'Pase tarea'], 'Ruleta: 5 minutos extra en una prueba': ['⏱️', '+5 min'],
+  'Ruleta: cambio de puesto por una clase': ['🪑', 'Puesto'], 'Ruleta: elegir la música de una clase': ['🎵', 'Tu música'],
+  'Ruleta: 1 décima formativa': ['📝', '+1 form.'], 'Ruleta: 2 décimas formativas': ['📝', '+2 form.'], 'Ruleta: 1 décima sumativa': ['⭐', '+1 sum.']
+};
 // Cómo se ve cada casilla.
 const ESTILO = {
   500000: ['#f5c400', '👑'], 300000: ['#d9a520', '💎'], 200000: ['#1aa37a', '🤑'], 120000: ['#139a8f', '💵'], 90000: ['#25a35c', '💰'], 60000: ['#2fae6a', '🪙'], 30000: ['#5aa83a', '🔄'],
   0: ['#5b6170', '😐'],
-  '-30000': ['#e0763f', '💸'], '-60000': ['#e5483f', '📉'], '-90000': ['#c93a5c', '🧾'], '-120000': ['#a8327a', '🔥'], '-200000': ['#7d2350', '⚠️'], '-300000': ['#6b1a28', '💀']
+  '-30000': ['#e0763f', '💸'], '-60000': ['#e5483f', '🧨'], '-90000': ['#c93a5c', '🧾'], '-120000': ['#a8327a', '🔥'], '-200000': ['#7d2350', '⚠️'], '-300000': ['#6b1a28', '💀']
 };
 const corto = d => d === 0 ? 'Nada' : d === 30000 ? 'Gratis' : (d > 0 ? '+' : '−') + (Math.abs(d) / 1000) + 'K';
 const CASILLA = i => {
   const t = TABLA[i];
-  if (t[0] === 'b') return { tipo: 'beneficio', emoji: BENEF_EMO[t[1]], txt: BENEF_CORTO[t[1]], color: '#1f9fd0', beneficio: t[1] };
-  if (t[0] === 'g') return { tipo: 'gatito', emoji: '🐱', txt: 'Gatito', color: '#ff2e7e' };
+  switch (t[0]) {
+    case 'b': return { tipo: 'beneficio', emoji: BENEF[t[1]][0], txt: BENEF[t[1]][1], color: /décima/.test(t[1]) ? '#3b7be0' : '#1f9fd0', beneficio: t[1] };
+    case 'D': return { tipo: 'disertacion', emoji: '🎤', txt: 'Disertar', color: '#8e2bd1', castigo: true };
+    case 'g': return { tipo: 'gatito', emoji: '🐱', txt: 'Gatito', color: '#ff2e7e' };
+    case 'G': return { tipo: 'sorpresa', emoji: '🎁', txt: 'Sorpresa', color: '#e0457b' };
+    case 'A': return { tipo: 'acciones', emoji: '📈', txt: 'Acciones', color: '#0f8f9e', v: t[1] };
+    case 'V': return { tipo: 'pierdeAcciones', emoji: '📉', txt: '−Acciones', color: '#b23a48', v: t[1], castigo: true };
+    case 'E': return { tipo: 'escapa', emoji: '🏃', txt: 'Se escapa', color: '#c2410c', v: t[1], castigo: true };
+    case 'P': return { tipo: 'pierdeBenef', emoji: '🗑️', txt: '−Benef.', color: '#9f2a5a', v: t[1], castigo: true };
+  }
   const d = t[1], e = ESTILO[d];
-  return { tipo: d > 0 ? 'premio' : d < 0 ? 'castigo' : 'nada', emoji: e[1], txt: corto(d), color: e[0], dinero: d };
+  return { tipo: d > 0 ? 'premio' : d < 0 ? 'castigo' : 'nada', emoji: e[1], txt: corto(d), color: e[0], dinero: d, castigo: d < 0 };
 };
 const ORDEN = TABLA.map((_, i) => i);
 
@@ -222,34 +256,78 @@ let usuario = null, cuentaId = null, cuenta = null, tiros = 0, perfilOk = false,
 const diaHoy = () => Math.floor(((DF.ahora ? DF.ahora() : Date.now()) - 14400000) / 86400000);   // igual que en las reglas
 const hoyJugados = () => estado && estado.dia === diaHoy() ? (estado.hoy || 0) : 0;
 let girando = false, angulo = 0, sonido = true, audio = null;
+let hist = null;          // { ap: {tiro: monto}, res: [movs] } — se carga una vez y se actualiza en cada tiro
+let disert = [];          // disertaciones pendientes [{id, tema, tiro, fecha}]
 
 async function sha256hex(s) {
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
 }
-function resultadoDe(h, retenido, tengo) {
-  const c = casillaDeHash(h), cas = CASILLA(c);
-  const g = RULETA.gatito(h[2]);
-  const yaTenia = cas.tipo === 'gatito' && tengo.includes(g);
-  const premio = cas.tipo === 'gatito' ? (yaTenia ? precioGatito(g) : 0) : (cas.dinero || 0);
-  const pagoBruto = retenido + premio - RULETA.costo, pago = Math.max(0, pagoBruto);
-  // monto: lo que se devuelve al resolver; neto: el efecto real del tiro sobre el saldo
-  return { c, h, tipo: cas.tipo, premio, monto: pago, neto: pago - retenido, alCero: pagoBruto < 0,
-           gatito: cas.tipo === 'gatito' ? g : null, yaTenia,
-           beneficio: cas.tipo === 'beneficio' ? cas.beneficio : null };
+// Las cosas del jugador que pueden recibir un premio o un castigo (se leen mientras la rueda gira).
+async function cargarCosas() {
+  const { F, db } = await DF.listo();
+  const [pos, emp, ben] = await Promise.all([
+    F.getDocs(F.query(F.collection(db, 'bolsa_pos'), F.where('cuenta', '==', cuentaId))).catch(() => null),
+    F.getDocs(F.collection(db, 'bolsa_empresas')).catch(() => null),
+    F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('canje', '==', 'pendiente'))).catch(() => null)
+  ]);
+  const empresas = {}; (emp ? emp.docs : []).forEach(d => { empresas[d.id] = d.data(); });
+  return {
+    empresas,
+    activas: Object.keys(empresas).filter(t => empresas[t].activa && empresas[t].precio > 0).sort(),
+    posiciones: (pos ? pos.docs.map(d => d.data()) : []).filter(p => p.acciones > 0 && empresas[p.ticker] && empresas[p.ticker].precio > 0),
+    beneficios: (ben ? ben.docs.map(d => Object.assign({ id: d.id }, d.data())) : []).filter(m => m.item && m.item !== DISERTACION)
+      .sort((a, b) => ms(a.fecha) - ms(b.fecha))
+  };
+}
+const ms = t => t && t.toMillis ? t.toMillis() : 0;
+// Lo que sale y sobre qué cosa cae. «cosas» puede venir incompleta: lo que falte se resuelve con dinero.
+function resultadoDe(h, retenido, ids, cosas) {
+  const c = casillaDeHash(h), cas = CASILLA(c), r = { c, h, tipo: cas.tipo, cas, premio: 0 };
+  const sub = parseInt(h.slice(3, 7), 16);   // sub-sorteo (qué empresa, qué gatito, qué tema): solo estético-justo, no cambia el valor
+  if (cas.tipo === 'gatito' || cas.tipo === 'sorpresa') {
+    r.gatito = cas.tipo === 'gatito' ? RULETA.gatito(h[2]) : RULETA.sorpresa[parseInt(h[2], 16)];
+    r.yaTenia = ids.includes(r.gatito);
+    if (r.yaTenia) r.premio = precioGatito(r.gatito);
+  } else if (cas.tipo === 'beneficio') r.beneficio = cas.beneficio;
+  else if (cas.tipo === 'disertacion') r.tema = TEMAS[parseInt(h[3], 16)];
+  else if (cas.tipo === 'acciones') {
+    const l = cosas.activas;
+    if (l.length) { const t = l[sub % l.length], p = cosas.empresas[t].precio; r.accion = { ticker: t, precio: p, acciones: p >= cas.v ? 1 : Math.floor(cas.v / p) }; }
+    else r.premio = cas.v;
+  } else if (cas.tipo === 'pierdeAcciones') {
+    // la empresa donde tiene más valor
+    const l = cosas.posiciones.slice().sort((a, b) => b.acciones * cosas.empresas[b.ticker].precio - a.acciones * cosas.empresas[a.ticker].precio || a.ticker.localeCompare(b.ticker));
+    if (l.length) { const p = l[0], pr = cosas.empresas[p.ticker].precio; r.accion = { ticker: p.ticker, precio: pr, acciones: -Math.min(p.acciones, Math.ceil(cas.v / pr)) }; }
+    else r.premio = -cas.v;
+  } else if (cas.tipo === 'escapa') {
+    const l = RULETA.escapables.filter(g => ids.includes(g));
+    if (l.length) r.escapa = l[sub % l.length]; else r.premio = -cas.v;
+  } else if (cas.tipo === 'pierdeBenef') {
+    if (cosas.beneficios.length) r.pierde = cosas.beneficios[0]; else r.premio = -cas.v;   // el más antiguo
+  } else r.premio = cas.dinero || 0;
+  const pagoBruto = retenido + r.premio - RULETA.costo;
+  r.monto = Math.max(0, pagoBruto); r.neto = r.monto - retenido; r.alCero = pagoBruto < 0;
+  return r;
 }
 function motivoDe(r, n) {
-  const base = 'Ruleta (tiro ' + n + '): ';
-  if (r.tipo === 'beneficio') return base + r.beneficio.replace(/^Ruleta: /, '');
-  if (r.tipo === 'gatito') return base + (r.yaTenia ? 'gatito repetido, recibe ' + fmt(r.premio) : 'gatito gratis (' + nombreGatito(r.gatito) + ')');
-  if (r.tipo === 'nada') return base + 'casilla vacía · neto −' + fmt(RULETA.costo);
-  return base + (r.premio > 0 ? 'gana ' : 'pierde ') + fmt(Math.abs(r.premio)) + (r.alCero ? ', saldo queda en 0' : '')
-    + ' · neto ' + (r.neto >= 0 ? '+' : '−') + fmt(Math.abs(r.neto));
+  const base = 'Ruleta (tiro ' + n + '): ', neto = ' · neto ' + (r.neto >= 0 ? '+' : '−') + fmt(Math.abs(r.neto));
+  switch (r.tipo) {
+    case 'beneficio': return base + r.beneficio.replace(/^Ruleta: /, '');
+    case 'disertacion': return base + 'castigo: disertación';
+    case 'gatito': case 'sorpresa': return base + (r.yaTenia ? 'gatito repetido (' + nombreGatito(r.gatito) + '), recibe ' + fmt(r.premio) : 'gatito gratis (' + nombreGatito(r.gatito) + ')');
+    case 'acciones': return base + (r.accion ? 'regalo de ' + r.accion.acciones + ' × ' + r.accion.ticker : 'regalo de acciones (sin empresas activas: ' + fmt(r.premio) + ')') + neto;
+    case 'pierdeAcciones': return base + (r.accion ? 'pierde ' + (-r.accion.acciones) + ' × ' + r.accion.ticker : 'pierde acciones (no tenía: −' + fmt(-r.premio) + ')') + neto;
+    case 'escapa': return base + (r.escapa ? 'se escapa ' + nombreGatito(r.escapa) : 'se escapa un gatito (no tenía: −' + fmt(-r.premio) + ')') + neto;
+    case 'pierdeBenef': return base + (r.pierde ? 'pierde «' + String(r.pierde.item).replace(/^Ruleta: /, '') + '»' : 'pierde un beneficio (no tenía: −' + fmt(-r.premio) + ')') + neto;
+    case 'nada': return base + 'casilla vacía' + neto;
+  }
+  return base + (r.premio > 0 ? 'gana ' : 'pierde ') + fmt(Math.abs(r.premio)) + (r.alCero ? ', saldo queda en 0' : '') + neto;
 }
 
 /* ── Datos ── */
 async function cargar() {
-  usuario = DF.usuario(); cuentaId = null; cuenta = null; tiros = 0; perfilOk = false;
+  usuario = DF.usuario(); cuentaId = null; cuenta = null; tiros = 0; perfilOk = false; hist = null;
   aviso('');
   try {
     const { F, db } = await DF.listo();
@@ -274,29 +352,82 @@ async function cargar() {
   } catch (e) { aviso('No se pudo cargar tu cuenta: ' + esc(e.message), 'err'); }
   pintar();
   cargarHistorial();
+  cargarDisertaciones();
   if (estado && estado.pendiente && cuenta) {
     aviso('Tenías un tiro sin terminar (lo retenido sigue guardado). Toca <b>Terminar</b> para ver su resultado.');
   }
 }
 async function cargarHistorial() {
-  const ul = $('hist');
-  if (!cuentaId) { ul.innerHTML = '<li class="vacio">' + (usuario ? 'Sin cuenta del banco vinculada.' : 'Entra con tu cuenta para ver tus tiros.') + '</li>'; return; }
+  if (!cuentaId) { pintarHistorial(); return; }
   try {
     const { F, db } = await DF.listo();
     const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('tipo', 'in', ['ruleta', 'ruleta-apuesta'])));
-    const ap = {}, res = [];
-    s.docs.forEach(d => { const m = d.data(); if (m.tipo === 'ruleta-apuesta') ap[m.tiro] = m.monto; else res.push(m); });
-    const movs = res.sort((a, b) => (b.tiro || 0) - (a.tiro || 0)).slice(0, 8);
-    let neto = 0; res.forEach(m => { neto += m.monto + (ap[m.tiro] != null ? ap[m.tiro] : -RULETA.costo); });
-    ul.innerHTML = (movs.length ? `<li class="vacio" style="--c:transparent">Balance de tus ${res.length} tiros: <b style="color:${neto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${neto >= 0 ? '+' : '−'}${fmt(Math.abs(neto))}</b></li>` : '') +
-      (movs.length ? movs.map(m => {
-        // tiros v2: efecto real = devuelto − retenido; tiros antiguos (v1): el monto ya era el neto
-        const efecto = ap[m.tiro] != null ? m.monto + ap[m.tiro] : m.monto;
-        const col = m.canje ? '#1f9fd0' : m.gatito ? '#ff2e7e' : efecto >= 0 ? 'var(--pos)' : 'var(--neg)';
-        const txt = esc(String(m.motivo || '').replace(/^Ruleta \(tiro \d+\): /, '').replace(/ · neto .*$/, ''));
-        return `<li style="--c:${col}"><span>#${m.tiro} · ${txt}</span><b style="color:${efecto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${efecto >= 0 ? '+' : '−'}${fmt(Math.abs(efecto))}</b></li>`;
-      }).join('') : '<li class="vacio">Todavía no has girado.</li>');
-  } catch (e) { ul.innerHTML = '<li class="vacio">No se pudo cargar el historial.</li>'; }
+    hist = { ap: {}, res: [] };
+    s.docs.forEach(d => { const m = d.data(); if (m.tipo === 'ruleta-apuesta') hist.ap[m.tiro] = m.monto; else hist.res.push(m); });
+  } catch (e) { hist = { error: true }; }
+  pintarHistorial();
+}
+// Sin volver a leer todo: el tiro recién jugado se agrega a lo que ya estaba cargado.
+function sumarAlHistorial(r) {
+  if (!hist || hist.error) return cargarHistorial();
+  hist.ap[r.n] = -r.retenido;
+  hist.res.push({ tiro: r.n, monto: r.monto, motivo: r.motivo, canje: r.beneficio || r.tipo === 'disertacion' ? 'pendiente' : undefined, gatito: r.gatito && !r.yaTenia ? r.gatito : undefined });
+  pintarHistorial();
+}
+function pintarHistorial() {
+  const ul = $('hist');
+  if (!cuentaId || !hist) { ul.innerHTML = '<li class="vacio">' + (!usuario ? 'Entra con tu cuenta para ver tus tiros.' : cuentaId ? 'Cargando…' : 'Sin cuenta del banco vinculada.') + '</li>'; return; }
+  if (hist.error) { ul.innerHTML = '<li class="vacio">No se pudo cargar el historial.</li>'; return; }
+  const { ap, res } = hist;
+  const movs = res.slice().sort((a, b) => (b.tiro || 0) - (a.tiro || 0)).slice(0, 8);
+  let neto = 0; res.forEach(m => { neto += m.monto + (ap[m.tiro] != null ? ap[m.tiro] : -RULETA.costo); });
+  ul.innerHTML = (movs.length ? `<li class="vacio" style="--c:transparent">Balance en Hipopesos de tus ${res.length} tiros: <b style="color:${neto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${neto >= 0 ? '+' : '−'}${fmt(Math.abs(neto))}</b></li>` : '') +
+    (movs.length ? movs.map(m => {
+      // tiros v2/v3: efecto real = devuelto − retenido; tiros antiguos (v1): el monto ya era el neto
+      const efecto = ap[m.tiro] != null ? m.monto + ap[m.tiro] : m.monto;
+      const txt = String(m.motivo || '').replace(/^Ruleta \(tiro \d+\): /, '').replace(/ · neto .*$/, '');
+      const col = /disertación|escapa|pierde/.test(txt) ? 'var(--neg)' : m.canje ? '#1f9fd0' : m.gatito || /regalo/.test(txt) ? '#ff2e7e' : efecto >= 0 ? 'var(--pos)' : 'var(--neg)';
+      return `<li style="--c:${col}"><span>#${m.tiro} · ${esc(txt)}</span><b style="color:${efecto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${efecto >= 0 ? '+' : '−'}${fmt(Math.abs(efecto))}</b></li>`;
+    }).join('') : '<li class="vacio">Todavía no has girado.</li>');
+}
+// Disertaciones que debe (castigo): se puede cambiar el tema hasta que el profe la marque como hecha.
+async function cargarDisertaciones() {
+  disert = [];
+  if (cuentaId) try {
+    const { F, db } = await DF.listo();
+    const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('canje', '==', 'pendiente')));
+    disert = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => m.item === DISERTACION).sort((a, b) => (a.tiro || 0) - (b.tiro || 0));
+  } catch (e) { }
+  pintarDisertaciones();
+}
+function pintarDisertaciones() {
+  const box = $('disert');
+  box.hidden = !disert.length;
+  if (!disert.length) return;
+  box.innerHTML = `<h2>🎤 Disertaciones pendientes</h2>
+    <p class="nota" style="margin:0 0 10px">Castigo de la ruleta: una disertación breve frente al curso, cuando el profe lo indique. Puedes cambiar el tema hasta que la hagas.</p>
+    ${disert.map(m => `<div class="dis" data-id="${esc(m.id)}"><div><small>Tiro #${esc(m.tiro)}</small><b>${esc(m.tema || '(sin tema)')}</b></div>
+      <div class="dis-acc"><button class="btn" type="button" data-a="temaAzar" data-id="${esc(m.id)}">🎲 Otro tema</button>
+      <button class="btn" type="button" data-a="temaPropio" data-id="${esc(m.id)}">✏️ Elegir mi tema</button></div></div>`).join('')}`;
+}
+async function cambiarTema(id, tema) {
+  tema = String(tema || '').trim().slice(0, 120);
+  if (tema.length < 3) { aviso('El tema debe tener al menos 3 letras.', 'err'); return false; }
+  try {
+    const { F, db } = await DF.listo();
+    await F.updateDoc(F.doc(db, 'banco_movs', id), { tema });
+    const m = disert.find(x => x.id === id); if (m) m.tema = tema;
+    pintarDisertaciones(); return true;
+  } catch (e) { aviso('No se pudo cambiar el tema: ' + esc(e.message), 'err'); return false; }
+}
+function temaAlAzar(actual) {
+  const l = TEMAS.filter(t => t !== actual);
+  return l[Math.floor(Math.random() * l.length)];
+}
+function elegirTemaPropio(id) {
+  const m = disert.find(x => x.id === id);
+  const t = prompt('Escribe el tema de tu disertación (3 a 120 letras).\nTemas de la lista: ' + TEMAS.join(' · '), m ? m.tema : '');
+  if (t !== null) cambiarTema(id, t);
 }
 
 // PASO 1 · apostar: retiene min(saldo, 330.000), sube el n° de tiro y deja que el SERVIDOR
@@ -321,8 +452,9 @@ async function apostar() {
     tx.set(rr, { n, pendiente: true, tFecha: F.serverTimestamp(), retenido: ret, dia, hoy, actualizado: F.serverTimestamp() });
   });
 }
-// PASO 2 · resolver: con la hora que anotó el servidor se calcula el resultado y se paga.
-async function resolver() {
+// PASO 2 · resolver: con la hora que anotó el servidor se calcula el resultado, se paga
+// y se aplica sobre la cosa del jugador que corresponda (todo en la misma transacción).
+async function resolver(cosas) {
   const { F, db } = await DF.listo();
   const rc = F.doc(db, 'banco_cuentas', cuentaId), rr = F.doc(db, 'ruleta', cuentaId), rg = F.doc(db, 'gatitos', usuario.uid);
   return F.runTransaction(db, async tx => {
@@ -332,32 +464,61 @@ async function resolver() {
     const c = sc.data(), prev = sg.exists() ? sg.data() : { ids: [], favorito: null }, ids = prev.ids || [];
     // Firestore guarda microsegundos: toMillis() del navegador puede traer decimales
     // (…567.891). Las reglas usan milisegundos enteros, así que se trunca igual que allá.
-    const ms = Math.floor(r.tFecha.toMillis()), n = r.n;
-    const res = resultadoDe(await sha256hex(RULETA.sal + '|' + cuentaId + '|' + n + '|' + ms), r.retenido || 0, ids);
-    const saldo = (c.saldo || 0) + res.monto, ops = (c.ops || 0) + 1;
+    const ms = Math.floor(r.tFecha.toMillis()), n = r.n, ret = r.retenido || 0, h = await sha256hex(RULETA.sal + '|' + cuentaId + '|' + n + '|' + ms);
+    let res = resultadoDe(h, ret, ids, cosas);
+    // Se confirma, dentro de la transacción, que la cosa elegida sigue ahí; si no, se paga con dinero.
+    let rp = null, p = null, rm = null;
+    if (res.accion) {
+      rp = F.doc(db, 'bolsa_pos', cuentaId + '__' + res.accion.ticker);
+      const [se, spos] = await Promise.all([tx.get(F.doc(db, 'bolsa_empresas', res.accion.ticker)), tx.get(rp)]);
+      const e = se.exists() ? se.data() : null; p = spos.exists() ? spos.data() : { acciones: 0, invertido: 0, retirado: 0 };
+      const ok = e && e.precio > 0 && (res.tipo === 'acciones' ? e.activa : (p.acciones || 0) > 0);
+      if (!ok) res = resultadoDe(h, ret, ids, Object.assign({}, cosas, { activas: [], posiciones: [] }));
+      else if (e.precio !== res.accion.precio || (res.tipo === 'pierdeAcciones' && -res.accion.acciones > p.acciones)) {
+        const pr = e.precio, v = res.cas.v;
+        res.accion.precio = pr;
+        res.accion.acciones = res.tipo === 'acciones' ? (pr >= v ? 1 : Math.floor(v / pr)) : -Math.min(p.acciones, Math.ceil(v / pr));
+      }
+    }
+    if (res.pierde) {
+      rm = F.doc(db, 'banco_movs', res.pierde.id);
+      const sm = await tx.get(rm);
+      if (!sm.exists() || sm.data().canje !== 'pendiente' || sm.data().item === DISERTACION) { rm = null; res = resultadoDe(h, ret, ids, Object.assign({}, cosas, { beneficios: [] })); }
+    }
+    const saldo = (c.saldo || 0) + res.monto, ops = (c.ops || 0) + 1, nom = ((c.nombre || '') + ' ' + (c.apellido || '')).trim();
+    res.motivo = motivoDe(res, n).slice(0, 200);
     tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
     const mov = {
-      cuenta: cuentaId, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
-      monto: res.monto, motivo: motivoDe(res, n).slice(0, 200), tipo: 'ruleta', saldoDespues: saldo, profe: '',
+      cuenta: cuentaId, numero: String(c.numero || ''), nombre: nom, curso: c.curso || '',
+      monto: res.monto, motivo: res.motivo, tipo: 'ruleta', saldoDespues: saldo, profe: '',
       fecha: F.serverTimestamp(), tiro: n
     };
     if (res.beneficio) { mov.item = res.beneficio; mov.canje = 'pendiente'; }
-    const gatoNuevo = res.tipo === 'gatito' && !res.yaTenia;
+    if (res.tipo === 'disertacion') { mov.item = DISERTACION; mov.canje = 'pendiente'; mov.tema = res.tema; }
+    const gatoNuevo = (res.tipo === 'gatito' || res.tipo === 'sorpresa') && !res.yaTenia;
     if (gatoNuevo) mov.gatito = res.gatito;
-    tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), mov);
+    if (res.accion) Object.assign(mov, { ticker: res.accion.ticker, acciones: res.accion.acciones, precio: res.accion.precio });
+    if (res.escapa) mov.escapa = res.escapa;
+    if (rm) mov.pierde = res.pierde.id;
+    const idMov = 'op-' + cuentaId + '-' + ops;
+    tx.set(F.doc(db, 'banco_movs', idMov), mov);
     tx.update(rr, { pendiente: false, actualizado: F.serverTimestamp() });
-    if (gatoNuevo) {
-      const nuevos = ids.concat([res.gatito]);
+    if (gatoNuevo || res.escapa) {
+      const nuevos = gatoNuevo ? ids.concat([res.gatito]) : ids.filter(g => g !== res.escapa);
       tx.set(rg, { uid: usuario.uid, nombre: DF.nombreCorto(usuario.displayName, usuario.email).slice(0, 80), ids: nuevos,
-        favorito: prev.favorito && nuevos.includes(prev.favorito) ? prev.favorito : res.gatito, actualizado: F.serverTimestamp() });
+        favorito: prev.favorito && nuevos.includes(prev.favorito) ? prev.favorito : (gatoNuevo ? res.gatito : (nuevos[0] || null)), actualizado: F.serverTimestamp() });
     }
-    return Object.assign(res, { saldo, n, ms, hoy: r.hoy || 0, dia: r.dia });
+    if (res.accion) tx.set(rp, { cuenta: cuentaId, ticker: res.accion.ticker, acciones: (p.acciones || 0) + res.accion.acciones,
+      invertido: p.invertido || 0, retirado: p.retirado || 0, nombre: nom, curso: c.curso || '', actualizado: F.serverTimestamp() });
+    if (rm) tx.update(rm, { canje: 'perdida' });
+    return Object.assign(res, { saldo, n, ms, retenido: ret, hoy: r.hoy || 0, dia: r.dia, idMov });
   });
 }
 async function tirar() {
+  const cosasP = cargarCosas();   // en paralelo con la apuesta
   try { await apostar(); }
   catch (e) { if (e.message !== 'PENDIENTE') { e.paso = 'apostar'; throw e; } }   // había uno sin resolver: se resuelve ese
-  try { return await resolver(); }
+  try { return await resolver(await cosasP); }
   catch (e) { e.paso = 'resolver'; throw e; }
 }
 
@@ -383,13 +544,19 @@ function pintar() {
 }
 function pintarProbabilidades() {
   const filas = {};
-  ORDEN.forEach(c => { const k = CASILLA(c); (filas[k.txt] ||= { ...k, n: 0 }).n++; });
-  const peso = f => f.dinero ?? (f.tipo === 'beneficio' ? -1e9 : -2e9);
-  const orden = Object.values(filas).sort((a, b) => peso(b) - peso(a));
+  ORDEN.forEach(c => { const k = CASILLA(c), clave = k.tipo === 'beneficio' ? k.beneficio : k.tipo + (k.dinero ?? ''); (filas[clave] ||= { ...k, n: 0 }).n++; });
+  const NOMBRE = {
+    disertacion: 'Castigo: disertación (tema al azar; puedes cambiarlo)', gatito: 'Gatito común gratis', sorpresa: 'Gatito sorpresa (de poco común a mítico, hasta 1.000.000 ₣)',
+    acciones: 'Acciones de regalo por 100.000 ₣ (sin acciones en la Bolsa: +100.000 ₣)',
+    pierdeAcciones: 'Pierdes acciones por hasta 150.000 ₣ (si no tienes: −150.000 ₣)',
+    escapa: 'Se escapa un gatito común o poco común (si no tienes: −60.000 ₣)',
+    pierdeBenef: 'Pierdes un beneficio por canjear, el más antiguo (si no tienes: −100.000 ₣)', nada: 'Nada (solo pierdes el tiro)'
+  };
+  const grupo = f => f.tipo === 'premio' || f.tipo === 'nada' || f.tipo === 'castigo' ? 0 : f.castigo ? 2 : 1;
+  const orden = Object.values(filas).sort((a, b) => grupo(a) - grupo(b) || (b.dinero ?? 0) - (a.dinero ?? 0));
   $('prob').innerHTML = orden.map(f => {
-    const nombre = f.tipo === 'beneficio' ? 'Beneficio: ' + f.beneficio.replace(/^Ruleta: /, '')
-                 : f.tipo === 'gatito' ? 'Gatito gratis (común)' : f.tipo === 'nada' ? 'Nada (solo pierdes el tiro)'
-                 : f.dinero === 30000 ? 'Tiro gratis (+30.000 ₣)' : (f.dinero > 0 ? '+' : '−') + fmt(Math.abs(f.dinero));
+    const nombre = f.tipo === 'beneficio' ? (/décima/.test(f.beneficio) ? 'Décimas: ' : 'Beneficio: ') + f.beneficio.replace(/^Ruleta: /, '')
+                 : NOMBRE[f.tipo] || (f.dinero === 30000 ? 'Tiro gratis (+30.000 ₣)' : (f.dinero > 0 ? '+' : '−') + fmt(Math.abs(f.dinero)));
     return `<tr><td><i style="--c:${f.color}"></i>${f.emoji} ${esc(nombre)}</td><td>${f.n}/32 · ${(f.n / 32 * 100).toLocaleString('es-CL', { maximumFractionDigits: 1 })}%</td></tr>`;
   }).join('');
 }
@@ -426,8 +593,9 @@ function aclarar(hex, pct) {
 }
 // Ampolletas del aro
 $('rim').innerHTML = Array.from({ length: 24 }, (_, i) => `<span class="bulb" style="--i:${i}"></span>`).join('');
-new ResizeObserver(dibujar).observe(canvas);
-document.fonts?.ready.then(dibujar);
+let tamDibujado = 0, rafDibujo = 0;
+new ResizeObserver(() => { cancelAnimationFrame(rafDibujo); rafDibujo = requestAnimationFrame(() => { if (canvas.clientWidth !== tamDibujado) { tamDibujado = canvas.clientWidth; dibujar(); } }); }).observe(canvas);
+document.fonts?.ready.then(() => { tamDibujado = canvas.clientWidth; dibujar(); });
 
 /* ── Giro ── */
 const easing = t => t < .08 ? .5 * Math.pow(t / .08, 2) * .04 : .02 + .98 * (1 - Math.pow(1 - (t - .08) / .92, 4));
@@ -481,8 +649,9 @@ async function alPulsar() {
     await animarHasta(ORDEN.indexOf(r.c));
     cuenta.saldo = r.saldo; tiros = r.n;
     estado = Object.assign({}, estado, { n: r.n, pendiente: false, dia: r.dia, hoy: r.hoy });
+    if (r.tipo === 'disertacion') { disert.push({ id: r.idMov, tema: r.tema, tiro: r.n }); pintarDisertaciones(); }
     mostrar(r);
-    cargarHistorial();
+    sumarAlHistorial(r);
   } catch (e) {
     precalentando = false;
     await cargar();   // vuelve a leer saldo y estado (por si quedó un tiro pendiente)
@@ -511,20 +680,48 @@ function mostrarError(e) {
   $('velo').classList.add('on');
 }
 function mostrar(r) {
-  const cas = CASILLA(r.c);
-  const col = r.tipo === 'castigo' ? 'var(--neg)' : r.tipo === 'nada' ? '#8a90a0' : r.tipo === 'beneficio' ? '#22a7ff' : r.tipo === 'gatito' ? 'var(--pink)' : 'var(--acid)';
-  let cabeza = `<span class="emo">${cas.emoji}</span>`, badge, titulo, texto;
-  if (r.tipo === 'premio') { badge = '¡Premio!'; titulo = '+' + fmt(r.premio); texto = `Ganaste ${fmt(r.premio)} y el tiro costó ${fmt(RULETA.costo)}: tu saldo sube ${fmt(r.neto)}.`; }
-  else if (r.tipo === 'castigo') { badge = 'Castigo'; titulo = '−' + fmt(-r.premio); texto = r.alCero ? 'El castigo era mayor que tu saldo: quedaste en 0.' : `Pierdes ${fmt(-r.premio)} más el tiro (${fmt(RULETA.costo)}): en total ${fmt(-r.neto)}.`; }
-  else if (r.tipo === 'nada') { badge = 'Nada'; titulo = 'Casilla vacía'; texto = `No ganas ni pierdes nada más: solo el tiro (${fmt(RULETA.costo)}).`; }
-  else if (r.tipo === 'beneficio') { badge = 'Beneficio'; titulo = r.beneficio.replace(/^Ruleta: /, ''); texto = 'Quedó guardado como pendiente. Pídele al profe que te lo canjee.'; }
-  else {
-    cabeza = `<img src="gatitos/img/${esc(r.gatito)}.webp" alt="">`;
-    badge = r.yaTenia ? 'Gatito repetido' : '¡Gatito gratis!'; titulo = nombreGatito(r.gatito);
-    texto = r.yaTenia ? `Ya lo tenías, así que recibes su precio: ${fmt(r.premio)}.` : 'Ya está en tu colección del <a href="gatitos.html">mercado de gatitos</a>.';
+  const cas = CASILLA(r.c), malo = cas.castigo || (r.premio < 0);
+  const col = malo ? 'var(--neg)' : r.tipo === 'nada' ? '#8a90a0' : r.tipo === 'beneficio' ? '#22a7ff' : r.tipo === 'gatito' || r.tipo === 'sorpresa' ? 'var(--pink)' : 'var(--acid)';
+  let cabeza = `<span class="emo">${cas.emoji}</span>`, badge, titulo, texto, extra = '';
+  const neto = ` Con el tiro (${fmt(RULETA.costo)}), tu saldo ${r.neto >= 0 ? 'sube ' + fmt(r.neto) : 'baja ' + fmt(-r.neto)}.`;
+  const img = g => `<img src="gatitos/img/${esc(g)}.webp" alt="">`;
+  switch (r.tipo) {
+    case 'premio': badge = '¡Premio!'; titulo = '+' + fmt(r.premio); texto = `Ganaste ${fmt(r.premio)} y el tiro costó ${fmt(RULETA.costo)}: tu saldo sube ${fmt(r.neto)}.`; break;
+    case 'castigo': badge = 'Castigo'; titulo = '−' + fmt(-r.premio); texto = r.alCero ? 'El castigo era mayor que tu saldo: quedaste en 0.' : `Pierdes ${fmt(-r.premio)} más el tiro (${fmt(RULETA.costo)}): en total ${fmt(-r.neto)}.`; break;
+    case 'nada': badge = 'Nada'; titulo = 'Casilla vacía'; texto = `No ganas ni pierdes nada más: solo el tiro (${fmt(RULETA.costo)}).`; break;
+    case 'beneficio': badge = /décima/.test(r.beneficio) ? '¡Décimas!' : 'Beneficio'; titulo = r.beneficio.replace(/^Ruleta: /, ''); texto = 'Quedó en <a href="cuenta.html">Mi cuenta</a> como «por usar». Pídele al profe que te lo aplique.'; break;
+    case 'disertacion':
+      badge = 'Castigo'; titulo = 'Disertación';
+      texto = `Te toca una disertación breve frente al curso, cuando el profe lo indique. Tema sorteado: <b id="mTema">${esc(r.tema)}</b>. Puedes cambiarlo hasta que la hagas.`;
+      extra = `<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:4px 0 6px"><button class="btn" type="button" data-a="temaAzar" data-id="${esc(r.idMov)}">🎲 Otro tema</button><button class="btn" type="button" data-a="temaPropio" data-id="${esc(r.idMov)}">✏️ Elegir mi tema</button></div>`;
+      break;
+    case 'acciones':
+      badge = '¡Acciones de regalo!';
+      if (r.accion) { titulo = '+' + r.accion.acciones + ' × ' + r.accion.ticker; texto = `Ya están en tu cartera de la <a href="banco-felipeso/bolsa.html">Bolsa</a> (valen ${fmt(r.accion.acciones * r.accion.precio)} hoy).` + neto; }
+      else { titulo = '+' + fmt(r.premio); texto = 'No hay empresas activas en la Bolsa, así que recibes su valor en Hipopesos.' + neto; }
+      break;
+    case 'pierdeAcciones':
+      badge = 'Castigo';
+      if (r.accion) { titulo = r.accion.acciones + ' × ' + r.accion.ticker; texto = `Pierdes ${-r.accion.acciones} acciones de ${esc(r.accion.ticker)} (valían ${fmt(-r.accion.acciones * r.accion.precio)}).` + neto; }
+      else { titulo = '−' + fmt(-r.premio); texto = 'No tenías acciones, así que pagas en Hipopesos.' + neto; }
+      break;
+    case 'escapa':
+      badge = 'Castigo';
+      if (r.escapa) { cabeza = img(r.escapa); titulo = '¡Se escapó ' + nombreGatito(r.escapa) + '!'; texto = 'Salió corriendo de tu colección. Puedes volver a comprarlo en el <a href="gatitos.html">mercado</a>.' + neto; }
+      else { titulo = '−' + fmt(-r.premio); texto = 'No tenías gatitos comunes ni poco comunes que se escaparan, así que pagas en Hipopesos.' + neto; }
+      break;
+    case 'pierdeBenef':
+      badge = 'Castigo';
+      if (r.pierde) { titulo = 'Pierdes un beneficio'; texto = `Se pierde «${esc(String(r.pierde.item).replace(/^Ruleta: /, ''))}», el más antiguo que tenías por canjear.` + neto; }
+      else { titulo = '−' + fmt(-r.premio); texto = 'No tenías beneficios por canjear, así que pagas en Hipopesos.' + neto; }
+      break;
+    default:   // gatito o sorpresa
+      cabeza = img(r.gatito);
+      badge = r.yaTenia ? 'Gatito repetido' : r.tipo === 'sorpresa' ? '¡Gatito sorpresa!' : '¡Gatito gratis!'; titulo = nombreGatito(r.gatito);
+      texto = r.yaTenia ? `Ya lo tenías, así que recibes su precio: ${fmt(r.premio)}.` : 'Ya está en tu colección del <a href="gatitos.html">mercado de gatitos</a>.';
   }
   $('modal').style.setProperty('--c', col);
-  $('modal').innerHTML = `${cabeza}<span class="badge">${badge}</span><h3 id="mTitulo">${esc(titulo)}</h3><p>${texto}</p>
+  $('modal').innerHTML = `${cabeza}<span class="badge">${badge}</span><h3 id="mTitulo">${esc(titulo)}</h3><p>${texto}</p>${extra}
     <p class="saldo">Tu saldo: ${fmt(r.saldo)}</p>
     <details class="comprobante"><summary>🔒 Comprobante del tiro #${r.n}</summary>
       <p>Hora del servidor al apostar: <b>${new Date(r.ms).toLocaleTimeString('es-CL')}.${String(r.ms % 1000).padStart(3, '0')}</b> (${r.ms} ms)<br>
@@ -535,9 +732,9 @@ function mostrar(r) {
   $('velo').classList.add('on');
   ($('modal').querySelector('[data-a="otra"]') || $('modal').querySelector('[data-a="cerrar"]')).focus({ preventScroll: true });
   $('anuncio').textContent = badge + ': ' + titulo;
-  if (r.tipo === 'castigo') { sonCastigo(); const s = $('stage'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); }
+  if (malo) { sonCastigo(); const s = $('stage'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); }
   else if (r.tipo === 'nada') { beep(300, .25, 'triangle', .12); }
-  else { sonPremio(); if (!reducido) confeti(r.premio >= 300000 || r.tipo === 'gatito' ? 180 : 100); }
+  else { sonPremio(); if (!reducido) confeti(r.premio >= 300000 || r.tipo === 'gatito' || r.tipo === 'sorpresa' ? 180 : 100); }
 }
 function cerrar() { $('velo').classList.remove('on'); $('hub').focus({ preventScroll: true }); }
 
@@ -598,6 +795,12 @@ document.addEventListener('click', e => {
   if (a === 'salir') DF.salir().then(cargar);
   if (a === 'cerrar') cerrar();
   if (a === 'otra') { cerrar(); alPulsar(); }
+  if (a === 'temaAzar' || a === 'temaPropio') {
+    const id = e.target.closest('[data-a]').dataset.id, m = disert.find(x => x.id === id);
+    if (a === 'temaPropio') { elegirTemaPropio(id); return; }
+    const t = temaAlAzar(m && m.tema);
+    cambiarTema(id, t).then(ok => { if (ok && $('mTema')) $('mTema').textContent = t; });
+  }
 });
 $('velo').addEventListener('click', e => { if (e.target === $('velo')) cerrar(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
