@@ -361,7 +361,7 @@ function poderHtml(g) {
 }
 function pintarPoderes() {
   const el = $('poderes'); if (!el) return;
-  if (!usuario || esProfe || !cuenta) { el.innerHTML = `<div style="grid-column:1/-1"><h2 class="h2s">⚡ Poderes de tus gatitos</h2><p class="intro" style="margin:0">Cada gatito da décimas formativas por día (común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3; máximo ${PODER_MAX_DIA} por día). Ava y Calha traen un premio único de 5 formativas y 2 sumativas; el Gato Nietzsche y el Gato del tío César dan, cada uno, 5 formativas y 2 sumativas cada mes; los héroes (Rayo, Sombra y Luna) dan 30% de descuento en compras académicas. Los más valiosos dan además poderes especiales en clases.</p></div>`; return; }
+  if (!usuario || esProfe || !cuenta) { el.innerHTML = `<div style="grid-column:1/-1"><h2 class="h2s">⚡ Poderes de tus gatitos</h2><p class="intro" style="margin:0">Cada gatito da décimas formativas por día (común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3; máximo ${PODER_MAX_DIA} por día). Ava y Calha traen un premio único de 5 formativas y 2 sumativas; el Gato Nietzsche, el Gato del tío César y Gruñona dan, cada uno, 5 formativas y 2 sumativas cada mes; los héroes (Rayo, Sombra y Luna) dan 30% de descuento en compras académicas. Los más valiosos dan además poderes especiales en clases.</p></div>`; return; }
   const ids = coleccion.ids || [], pd = poderDelDia(ids), n = pd.formativas, txt = textoPoderDia(pd);
   const especiales = []; ids.forEach(id => { const g = gato(id); (g && g.poderes || []).forEach(p => especiales.push([p, g.nombre])); });
   const yaHoy = poderHoy && poderHoy.dia === diaHoy();

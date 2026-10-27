@@ -39,6 +39,8 @@ window.GATITOS = [
   { id: 'cosmico',     nombre: 'Gato Cósmico',         precio: 750000,  rareza: 'mitico',     txt: 'Lleva una constelación en el pelaje. Vino del observatorio.', poderes: ['🚶 Paseo por el colegio en cada clase (cuando amerite)', '📓 Cuaderno 5 minutos en cada evaluación'] },
   // Edición limitada de 2 unidades («stock»): al publicar el catálogo, su oferta sale con ese stock.
   { id: 'cesar',       nombre: 'Gato del tío César',   precio: 1000000, rareza: 'mitico',     txt: 'Huaso de chupalla y poncho, el gatito del tío César: baila cueca, toca guitarra y duerme siesta. Edición limitada: solo 2. Cada mes: 5 décimas formativas y 2 sumativas.', anim: true, stock: 2, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes'] },
+  // La gatita de la profe Paulina: matemática de corazón.
+  { id: 'grunona',     nombre: 'Gruñona',              precio: 5000000, rareza: 'mitico',     txt: 'La gatita de la profe Paulina: cuenta del 0 al 9, suma, resta, multiplica y divide, y nunca suelta su calculadora. Cada mes: 5 décimas formativas y 2 sumativas.', anim: true, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes'] },
   { id: 'dorado',      nombre: 'Gato Dorado',          precio: 1000000, rareza: 'mitico',     txt: 'El más valioso del colegio. Muy pocos lo tendrán.', poderes: ['🚶 Paseo por el colegio en cada clase (cuando amerite)', '📓 Cuaderno 5 minutos en cada evaluación', '🎵 Elegir la música de la clase'] }
 ];
 
