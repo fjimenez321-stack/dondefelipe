@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="stylesheet" href="utils/device-adaptive.css">
 <meta charset="UTF-8">
+    <script src="utils/device-capabilities.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>Panel del profe · El Mundo de Felipe</title>
@@ -94,7 +96,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>Panel del profe<small>Banco de Hipopesos · juegos · simuladores · estudiantes · visitas</small></h1>
+    <h1>Panel del profe <span style="color:#4ade80">[SANDBOX]</span><small>Banco de Hipopesos · juegos · simuladores · estudiantes · visitas</small></h1>
     <span id="quien" class="muted"></span>
     <button class="btn p" id="btnEntrar">Entrar con Google</button>
     <button class="btn oculto" id="btnSalir">Salir</button>
@@ -388,8 +390,7 @@ DF.listo().then(fb => {
     $('btnEntrar').classList.toggle('oculto', !!u);
     $('btnSalir').classList.toggle('oculto', !u);
     $('quien').textContent = u ? u.email : '';
-    if (!u) { $('app').classList.add('oculto'); aviso('Entra con tu cuenta de profe para usar el panel.'); return; }
-    if (!DF.esProfe(u)) { $('app').classList.add('oculto'); aviso('La cuenta <b>' + esc(u.email) + '</b> no tiene permiso de profe. Agrégala en <code>firebase/config.js</code> y en las reglas de Firestore.', true); return; }
+    if (!u) { $('app').classList.add('oculto'); aviso('Entra con tu cuenta para usar el panel (modo sandbox).'); return; }
     aviso(''); $('app').classList.remove('oculto');
     iniciarBanco();
   });

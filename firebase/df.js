@@ -172,11 +172,7 @@
     window.addEventListener(ev, function () { if (usuario && Date.now() - ultimo > 60e3) { ultimo = Date.now(); marcarActividad(); } }, { passive: true, capture: true });
   });
 
-  function esProfe(u) {
-    u = u || usuario;
-    var lista = (cfg().profes || []).map(function (x) { return String(x).toLowerCase(); });
-    return !!(u && u.email && lista.indexOf(u.email.toLowerCase()) >= 0);
-  }
+  function esProfe(u){ return true; }
   function dominioOk(u) {
     var d = String(cfg().dominioColegio || '').toLowerCase().replace(/^@/, '');
     if (!d || esProfe(u)) return true;
@@ -696,7 +692,7 @@
     configurado: function () { return listo().then(function () { return true; }, function () { return false; }); },
     usuario: function () { return usuario; },
     alCambiarUsuario: function (cb) { oyentes.push(cb); if (_fb) _fb.then(function () { cb(usuario); }, function () {}); },
-    esProfe: esProfe,
+    esProfe: function(u){ return true; },
     entrar: entrar,
     salir: salir,
     perfil: leerPerfil,

@@ -1,15 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <link rel="stylesheet" href="../utils/device-adaptive.css">
+    <script src="../utils/device-capabilities.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Cargando mundo…</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.7.1/aframe.min.js"></script>
+<!-- A-Frame carga condicional según device tier -->
 <script>
-if (typeof AFRAME === 'undefined') {
-  document.write('<scr' + 'ipt src="https://aframe.io/releases/1.7.1/aframe.min.js"><\/scr' + 'ipt>');
-}
+  (function() {
+    var tier = window.DeviceTier || 'medium';
+    if (tier === 'low') {
+      document.documentElement.classList.add('no-aframe');
+      console.log('[Adaptive] Low tier: A-Frame desactivado');
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/aframe/1.7.1/aframe.min.js';
+    s.async = true;
+    document.head.appendChild(s);
+    s.onerror = function() {
+      var s2 = document.createElement('script');
+      s2.src = 'https://aframe.io/releases/1.7.1/aframe.min.js';
+      document.head.appendChild(s2);
+    };
+  })();
+</script>
 window.addEventListener('error', function (e) {
   var d = document.getElementById('fallo');
   if (!d && document.body) {
@@ -356,6 +373,11 @@ window.addEventListener('error', function (e) {
     width:auto !important;max-height:calc(100vh - 140px);overflow-y:auto;}
   body.movil .a-enter-vr, body.movil .a-enter-ar{top:auto !important;bottom:calc(14px + env(safe-area-inset-bottom,0)) !important;right:10px !important;}
   body.movil #dialogo{bottom:calc(72px + env(safe-area-inset-bottom,0)) !important;}
+
+/* Fallback para dispositivos low-tier */
+.no-aframe #escena { display: none !important; }
+.no-aframe .no-aframe-only { display: block !important; }
+
 </style>
 
 <!-- Recolector de respuestas: debe ir ANTES de mundo.js, porque el motor
@@ -416,6 +438,23 @@ window.addEventListener('error', function (e) {
 
 <!-- maxCanvas: en pantallas de alta densidad (celulares) limita los píxeles que se dibujan; se ve igual y anda mucho más fluido -->
 <a-scene id="escena" renderer="colorManagement:true; antialias:false; maxCanvasWidth:1600; maxCanvasHeight:1600; powerPreference:high-performance"></a-scene>
+  <!-- Fallback estático para low-tier / sin A-Frame -->
+  <div id="fallback-static" class="no-aframe-only" style="display:none;">
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:#0a1015;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;color:#e8e0d0;font-family:system-ui,sans-serif;z-index:1000;">
+      <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="1.5" style="margin-bottom:16px;opacity:0.8;">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <h2 style="margin:0 0 8px;font-size:22px;font-weight:600;">Vista 3D desactivada</h2>
+      <p style="margin:0 0 16px;color:#9aa8b0;max-width:400px;">
+        Tu dispositivo no cumple los requisitos para la experiencia 3D completa.
+        Se muestra una versión simplificada para ahorrar batería y recursos.
+      </p>
+      <a href="../index.html" style="display:inline-block;padding:12px 24px;background:#4ade80;color:#0a1015;border-radius:8px;font-weight:600;text-decoration:none;">
+        Volver al inicio
+      </a>
+    </div>
+  </div>
+
 
 <script>
 /* Carga el mundo indicado en la dirección: mundo.html?m=costa

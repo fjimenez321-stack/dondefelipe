@@ -1,0 +1,46 @@
+/* Device Adaptive CSS - Se carga junto con device-capabilities.js
+   Clases disponibles en <html>: .device-tier-low, .device-tier-medium, .device-tier-high
+*/
+
+/* ===== REDUCIR ANIMACIONES EN LOW ===== */
+.device-tier-low *,
+.device-tier-low *::before,
+.device-tier-low *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* ===== DESACTIVAR EFECTOS PESADOS EN LOW ===== */
+.device-tier-low .particles,
+.device-tier-low .three-bg,
+.device-tier-low .shader-effect,
+.device-tier-low .blur-heavy,
+.device-tier-low [class*="parallax"] {
+  display: none !important;
+}
+
+/* ===== REDUCIR CALIDAD DE TEXTURAS/IMÁGENES EN LOW ===== */
+.device-tier-low img[data-high-res] {
+  content: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjwvc3ZnPg==');
+}
+
+/* ===== MEDIUM: REDUCIR ALGUNOS EFECTOS ===== */
+.device-tier-medium .particles { opacity: 0.5; }
+.device-tier-medium .shader-effect { filter: blur(1px); }
+
+/* ===== HIGH: TODO ACTIVO (por defecto) ===== */
+
+/* ===== UTILIDADES JS ===== */
+/* Uso: document.documentElement.classList.contains('device-tier-low') */
+/* Uso CSS: .device-tier-low .mi-componente { display: none; } */
+
+/* ===== RESPETAR PREFERENCIA DE USUARIO ===== */
+@media (prefers-reduced-motion: reduce) {
+  html.device-tier-high *,
+  html.device-tier-medium *,
+  html.device-tier-low * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
