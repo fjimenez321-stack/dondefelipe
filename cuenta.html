@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
 :root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
---ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;--pos:#4bd08c;
 --ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -89,6 +89,22 @@ label.ap input{width:18px;height:18px;margin-top:3px;accent-color:var(--acid)}
 .can.no{background:rgba(255,122,112,.14);color:var(--neg)}
 .can.anul{background:rgba(255,255,255,.08);color:var(--mute);text-decoration:line-through}
 /* resumen del perfil */
+.hogar{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:820px){.hogar{grid-template-columns:1.15fr 1fr}}
+.hogar .card{margin-top:16px}
+.hg h2{margin-top:0}
+.mz{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;align-items:center}
+.mz .esc{position:relative;height:130px;border-radius:14px;background:linear-gradient(180deg,#1b2440 0%,#2b2f52 60%,#3a2b22 60%,#2a1f19 100%);display:grid;place-items:end center;overflow:hidden}
+.mz .esc img{height:110px;margin-bottom:6px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5))}
+.mz .esc.enferma img{filter:grayscale(.75) brightness(.8)}.mz .esc.triste img{filter:saturate(.5) brightness(.85)}
+.mz .esc .cara{position:absolute;top:4px;right:6px;font-size:24px}
+.mz .bs{display:grid;gap:5px;font-size:12.5px}
+.mz .bs div{display:grid;grid-template-columns:22px minmax(0,1fr) 28px;gap:6px;align-items:center}
+.mz .bs i{display:block;height:8px;border-radius:99px;background:var(--slab2);overflow:hidden}.mz .bs i b{display:block;height:100%;border-radius:99px}
+.mz .bs span:last-child{text-align:right;color:var(--mute)}
+.bk{display:flex;gap:16px;flex-wrap:wrap;margin:4px 0 10px}
+.bk div{font:900 26px/1 var(--ff-d)}
+.bk small{display:block;font:700 10.5px var(--ff);letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);margin-top:3px}
 .resumen{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
 .resumen a{display:block;background:var(--slab2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-decoration:none;color:var(--ink)}
 .resumen a:hover{border-color:var(--acid)}
@@ -163,6 +179,14 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
       </div>
     </div>
     <p id="cargando" class="muted" style="margin:0">Cargando…</p>
+  </section>
+
+  <!-- Mi mascota y mi banco (lo primero que ve el jugador) -->
+  <section class="oculto" id="hogar">
+    <div class="hogar">
+      <div class="card hg" id="mascCont"><div class="vacio">Cargando tu mascota…</div></div>
+      <div class="card hg" id="bancoCont"><div class="vacio">Cargando tu banco…</div></div>
+    </div>
   </section>
 
   <!-- Lo que tengo -->
@@ -303,6 +327,7 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
 
 <script src="gatitos/catalogo.js?v=20261029"></script>
 <script src="gatitos/anim.js?v=20261029"></script>
+<script src="gatitos/mascota.js?v=20261029"></script>
 <script src="firebase/perfil-publico.js"></script>
 <script src="firebase/df.js?v=20261029" data-sin-visita data-sin-aviso></script>
 <script>
@@ -332,13 +357,13 @@ DF.listo().then(() => {
   DF.alCambiarUsuario(u => {
     ver('cargando', false);
     ver('fuera', !u); ver('dentro', !!u);
-    ['perfil', 'progreso', 'productos', 'banco', 'gatitosSec', 'miPerfil', 'datos'].forEach(s => ver(s, !!u));
+    ['hogar', 'perfil', 'progreso', 'productos', 'banco', 'gatitosSec', 'miPerfil', 'datos'].forEach(s => ver(s, !!u));
     $('aPanel').hidden = !(u && DF.esProfe(u));   // el panel solo aparece en la cuenta del profe
     if (!u) return;
     $('nombre').textContent = u.displayName || 'Sin nombre';
     $('correo').textContent = u.email || '';
     $('av').innerHTML = u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : esc((u.displayName || u.email || '?').charAt(0).toUpperCase());
-    cargarPerfil(); cargarProgreso(); cargarPerfilPublico(u);
+    cargarPerfil(); cargarProgreso(); cargarPerfilPublico(u); cargarMascota(u);
     DF.asegurarCuentaBanco().then(cargarBanco, cargarBanco);
   });
 }).catch(e => {
@@ -400,6 +425,49 @@ function cargarProgreso() {
 
 const diaHoy = () => Math.floor((Date.now() - 14400000) / 86400000);   // igual que en las reglas
 let podMes = {};
+// ── Mi mascota (resumen; se cuida en mascota.html). 3 lecturas: mascota, colección y pausa del profe.
+async function cargarMascota(u) {
+  const box = $('mascCont');
+  try {
+    const { F, db } = await DF.listo();
+    const [sm, sg, sc] = await Promise.all([F.getDoc(F.doc(db, 'mascotas', u.uid)), F.getDoc(F.doc(db, 'gatitos', u.uid)), F.getDoc(F.doc(db, 'config', 'mascotas')).catch(() => null)]);
+    const ids = sg.exists() ? sg.data().ids || [] : [];
+    if (!sm.exists()) {
+      box.innerHTML = `<h2><i class="fa-solid fa-paw"></i> Mi mascota</h2>
+        <p class="muted" style="margin:0 0 12px">${ids.length ? 'Adopta uno de tus gatitos y cuídalo: comida, baños, juegos y veterinario. Si está bien cuidado, el poder mensual de Nietzsche, César o Gruñona vale ×2.' : 'Consigue un gatito en el Mercado y adóptalo como mascota.'}</p>
+        <a class="btn p" href="${ids.length ? 'mascota.html' : 'gatitos.html'}">${ids.length ? '🐾 Adoptar mascota' : '🛒 Ir al Mercado'}</a>`;
+      return;
+    }
+    const m = sm.data(), M = window.MASCOTA, e = M.estado(m, DF.ahora ? DF.ahora() : Date.now(), sc && sc.exists() ? sc.data() : {}), an = M.animo(e);
+    const g = (window.GATITOS || []).find(x => x.id === m.gatito) || { id: m.gatito, nombre: m.gatito };
+    const col = v => v >= 70 ? 'var(--pos)' : v >= 35 ? 'var(--brass)' : 'var(--neg)';
+    box.innerHTML = `<h2><i class="fa-solid fa-paw"></i> ${esc(g.nombre)}</h2>
+      <div class="mz"><div class="esc ${an.clase}"><span class="cara">${an.cara}</span><img src="gatitos/img/${esc(g.id)}.webp" alt="${esc(g.nombre)}"></div>
+        <div class="bs">${M.estados.map(([k, emo]) => `<div><span>${emo}</span><i><b style="width:${e[k]}%;background:${col(e[k])}"></b></i><span>${Math.floor(e[k])}</span></div>`).join('')}</div></div>
+      <p class="muted" style="margin:10px 0">${esc(an.txt)}${M.feliz(e) && g.mensual ? ' <b style="color:var(--acid)">×2 en sus décimas del mes.</b>' : ''}</p>
+      <a class="btn p" href="mascota.html">🍗 Cuidar a ${esc(g.nombre)}</a>`;
+  } catch (e) { box.innerHTML = `<h2><i class="fa-solid fa-paw"></i> Mi mascota</h2><div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
+}
+// ── Préstamos y ahorro (resumen; se opera en banco-felipeso/banco.html). 2 lecturas.
+async function cargarMiBanco(cid, c) {
+  const box = $('bancoCont');
+  try {
+    const { F, db } = await DF.listo();
+    const [sa, sp] = await Promise.all([F.getDoc(F.doc(db, 'banco_ahorros', cid)), F.getDoc(F.doc(db, 'banco_prestamos', cid))]);
+    const a = sa.exists() ? sa.data() : null, p = sp.exists() ? sp.data() : null, t = DF.ahora ? DF.ahora() : Date.now();
+    const msD = x => x && x.toMillis ? x.toMillis() : 0;
+    const ah = !a || !a.monto ? 0 : a.monto >= 500000 ? a.monto : Math.min(500000, Math.floor(a.monto * Math.pow(1.1, Math.floor((t - msD(a.desde)) / 604800000))));
+    const vig = p && p.estado === 'vigente', sol = p && p.estado === 'solicitado', venc = vig && t > (p.venceMs || Infinity);
+    box.innerHTML = `<h2><i class="fa-solid fa-building-columns"></i> Préstamos y ahorro</h2>
+      <div class="bk"><div style="color:var(--acid)">₣${fmt(c.saldo)}<small>Saldo</small></div><div style="color:var(--pos)">₣${fmt(ah)}<small>Ahorro (+10%/semana)</small></div>
+        ${vig ? `<div style="color:var(--neg)">₣${fmt(p.deuda)}<small>${venc ? 'Deuda vencida' : 'Deuda'}</small></div>` : ''}</div>
+      <p class="muted" style="margin:0 0 12px">${venc ? '⛔ <b>Tu préstamo venció:</b> el banco está embargando tus bienes. Paga cuanto antes.'
+        : vig ? 'Debes pagar antes del <b>' + new Date(p.venceMs).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' }) + '</b> o se embargan tus bienes.'
+        : sol ? '⏳ Tu solicitud de préstamo está esperando al profe.'
+        : 'Ahorra y gana 10% cada semana (hasta ₣500.000), o pide un préstamo (devuelves lo pedido + 30% en 30 días).'}</p>
+      <div class="fila"><a class="btn p" href="banco-felipeso/banco.html">${vig ? '💸 Pagar préstamo' : '🐷 Ahorrar'}</a>${vig || sol ? '' : '<a class="btn" href="banco-felipeso/banco.html">🏦 Pedir préstamo</a>'}</div>`;
+  } catch (e) { box.innerHTML = `<h2><i class="fa-solid fa-building-columns"></i> Préstamos y ahorro</h2><div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
+}
 // Colección, gatitos congelados (a la venta), por llegar (comprados a un compañero) y poderes.
 async function cargarGatitos(u, banco) {
   const G = window.GATITOS || [], R = window.RAREZAS || {}, cid = banco ? banco.cuenta.id : '';
@@ -496,7 +564,9 @@ $('ppGuardar').onclick = async () => {
 };
 
 /* ── Transferencias: el estudiante las pide; el profe las autoriza en su panel ── */
-const TR_ESTADO = { pendiente: '<span class="can pend">Retenida · por autorizar</span>', aprobada: '<span class="can ok">Autorizada</span>',
+// Hasta ₣50.000 llega al instante; más que eso espera al profe. Máximo 3 por día (igual que en las reglas).
+const TR_AUTO = 50000, TR_DIA = 3;
+const TR_ESTADO = { pendiente: '<span class="can pend">Retenida · por autorizar</span>', aprobada: '<span class="can ok">Autorizada</span>', automatica: '<span class="can ok">Enviada al instante</span>',
   rechazada: '<span class="can no">Rechazada</span>', cancelada: '<span class="can anul">Cancelada</span>' };
 let trMia = null, trCuentas = [];
 async function cargarTransferencias(c) {
@@ -515,16 +585,18 @@ async function cargarTransferencias(c) {
     const lista = env.docs.map(d => Object.assign({ id: d.id, sale: true }, d.data())).concat(rec.docs.map(d => Object.assign({ id: d.id, sale: false }, d.data())))
       .sort((a, b) => ms(b.creada) - ms(a.creada));
     const pendientes = lista.filter(t => t.sale && t.estado === 'pendiente').length;
+    const diaHoyTr = Math.floor(((DF.ahora ? DF.ahora() : Date.now()) - 14400000) / 86400000);
+    const hoyTr = lista.filter(t => t.sale && t.creada && Math.floor((ms(t.creada) - 14400000) / 86400000) === diaHoyTr).length;
     const cursos = [...new Set(trCuentas.map(x => x.curso || 'Sin curso'))];
     box.innerHTML = `<p class="sub">Transferir Hipopesos</p>
-      <p class="muted" style="font-size:14px;margin:0">Elige a quién y cuánto. El dinero sale de tu cuenta al pedirla y queda retenido hasta que el profe la autorice; si la rechaza o la cancelas, te vuelve.</p>
+      <p class="muted" style="font-size:14px;margin:0">Elige a quién y cuánto. <b>Hasta ${fmt(TR_AUTO)} ₣ llega al instante.</b> Más que eso sale de tu cuenta y queda retenido hasta que el profe la autorice (si la rechaza o la cancelas, te vuelve). Máximo <b>${TR_DIA} transferencias por día</b>${hoyTr ? ` (hoy llevas ${hoyTr})` : ''}.</p>
       <form class="tr-form" id="trForm" autocomplete="off">
         <select id="trA" class="ancho" required><option value="">¿A quién le transfieres?</option>${cursos.map(cu => `<optgroup label="${esc(cu)}">${trCuentas.filter(x => (x.curso || 'Sin curso') === cu)
           .map(x => `<option value="${esc(x.id)}">${esc(((x.nombre || '') + ' ' + (x.apellido || '')).trim())} · N° ${esc(x.numero || '')}</option>`).join('')}</optgroup>`).join('')}</select>
         <input id="trMotivo" maxlength="120" placeholder="Motivo (ej.: te devuelvo lo de la formativa)">
         <input id="trMonto" type="number" min="100" step="100" placeholder="Monto ₣" required>
-        <div class="fila"><button class="btn p" id="trBtn"${pendientes >= 3 ? ' disabled' : ''}><i class="fa-solid fa-paper-plane"></i> Pedir transferencia</button>
-          <span class="muted" style="font-size:13px">${pendientes >= 3 ? 'Tienes 3 transferencias esperando al profe: espera a que las revise.' : 'Saldo disponible: ' + fmt(c.saldo) + ' ₣'}</span></div>
+        <div class="fila"><button class="btn p" id="trBtn"${hoyTr >= TR_DIA ? ' disabled' : ''}><i class="fa-solid fa-paper-plane"></i> Transferir</button>
+          <span class="muted" style="font-size:13px">${hoyTr >= TR_DIA ? `Ya hiciste ${TR_DIA} transferencias hoy: vuelve mañana.` : 'Saldo disponible: ' + fmt(c.saldo) + ' ₣'}</span></div>
         <div class="ancho" id="trMsg"></div>
       </form>
       <p class="sub">Mis transferencias</p>
@@ -542,25 +614,41 @@ document.addEventListener('submit', async ev => {
   if (monto < 100) return msg('El monto mínimo es 100 ₣.', 'err');
   if (monto > (c.saldo || 0)) return msg(`No te alcanza: tienes ${fmt(c.saldo)} ₣.`, 'err');
   const nA = ((a.nombre || '') + ' ' + (a.apellido || '')).trim(), nD = ((c.nombre || '') + ' ' + (c.apellido || '')).trim();
-  if (!confirm(`¿Transferir ${fmt(monto)} ₣ a ${nA} (N° ${a.numero || ''})?\nEl dinero sale ahora y queda retenido hasta que el profe autorice.`)) return;
+  const auto = monto <= TR_AUTO;
+  if (!confirm(`¿Transferir ${fmt(monto)} ₣ a ${nA} (N° ${a.numero || ''})?\n${auto ? 'Le llega al instante.' : 'El dinero sale ahora y queda retenido hasta que el profe autorice.'}`)) return;
   $('trBtn').disabled = true;
   try {
     const { F, db } = await DF.listo();
     // Una sola escritura: el dinero sale de tu cuenta y queda retenido junto con la solicitud.
     const rt = F.doc(F.collection(db, 'banco_transferencias')), tid = rt.id || rt.path.split('/').pop();
     await F.runTransaction(db, async tx => {
-      const rc = F.doc(db, 'banco_cuentas', c.id), sc = await tx.get(rc);
+      const rc = F.doc(db, 'banco_cuentas', c.id), rd = F.doc(db, 'banco_transf_dia', c.id), ra = F.doc(db, 'banco_cuentas', a.id);
+      const [sc, sd, sa] = await Promise.all([tx.get(rc), tx.get(rd), auto ? tx.get(ra) : null]);
       const cu = sc.data(), saldo = (cu.saldo || 0) - monto, ops = (cu.ops || 0) + 1, movId = 'op-' + c.id + '-' + ops;
       if (saldo < 0) throw new Error('no te alcanza');
+      const dia = Math.floor(((DF.ahora ? DF.ahora() : Date.now()) - 14400000) / 86400000), prev = sd.exists() ? sd.data() : { dia: -1, n: 0 };
+      const n = prev.dia === dia ? prev.n + 1 : 1;
+      if (n > TR_DIA) throw new Error(`ya hiciste ${TR_DIA} transferencias hoy`);
       tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
       tx.set(F.doc(db, 'banco_movs', movId), { cuenta: c.id, numero: String(cu.numero || ''), nombre: nD, curso: cu.curso || '', monto: -monto,
-        motivo: `Transferencia a N° ${a.numero || ''} ${nA} (retenida hasta que el profe la autorice)`.slice(0, 200), tipo: 'transferencia-envio',
+        motivo: (auto ? `Transferencia a N° ${a.numero || ''} ${nA}` : `Transferencia a N° ${a.numero || ''} ${nA} (retenida hasta que el profe la autorice)`).slice(0, 200), tipo: 'transferencia-envio',
         saldoDespues: saldo, profe: '', fecha: F.serverTimestamp(), transferencia: tid });
-      tx.set(rt, { de: c.id, a: a.id, monto, motivo, estado: 'pendiente', uid: DF.usuario().uid, mov: movId,
-        deNombre: nD.slice(0, 160), deNumero: String(c.numero || '').slice(0, 20), aNombre: nA.slice(0, 160), aNumero: String(a.numero || '').slice(0, 20), creada: F.serverTimestamp() });
+      tx.set(rd, { dia, n, actualizado: F.serverTimestamp() });
+      const t = { de: c.id, a: a.id, monto, motivo, estado: auto ? 'automatica' : 'pendiente', uid: DF.usuario().uid, mov: movId,
+        deNombre: nD.slice(0, 160), deNumero: String(c.numero || '').slice(0, 20), aNombre: nA.slice(0, 160), aNumero: String(a.numero || '').slice(0, 20), creada: F.serverTimestamp() };
+      if (auto) {
+        // llega al instante: se abona a quien recibe, con su propio movimiento
+        const ca = sa.data(), saldoA = (ca.saldo || 0) + monto;
+        t.resuelta = F.serverTimestamp();
+        tx.update(ra, { saldo: saldoA, actualizado: F.serverTimestamp() });
+        tx.set(F.doc(db, 'banco_movs', 'tr-' + tid), { cuenta: a.id, numero: String(ca.numero || ''), nombre: nA, curso: ca.curso || '', monto,
+          motivo: (`Transferencia de N° ${c.numero || ''} ${nD}` + (motivo ? ': ' + motivo : '')).slice(0, 200), tipo: 'transferencia-recibida',
+          saldoDespues: saldoA, profe: '', fecha: F.serverTimestamp(), transferencia: tid });
+      }
+      tx.set(rt, t);
     });
     cargarBanco();
-    setTimeout(() => { const m = $('trMsg'); if (m) m.innerHTML = '<div class="aviso ok" style="margin-top:4px">✓ Listo: el dinero salió de tu cuenta y queda retenido hasta que el profe autorice. Si la rechaza o la cancelas, te vuelve.</div>'; }, 400);
+    setTimeout(() => { const m = $('trMsg'); if (m) m.innerHTML = auto ? `<div class="aviso ok" style="margin-top:4px">✓ Listo: ${esc(nA)} ya recibió ${fmt(monto)} ₣.</div>` : '<div class="aviso ok" style="margin-top:4px">✓ Listo: el dinero salió de tu cuenta y queda retenido hasta que el profe autorice. Si la rechaza o la cancelas, te vuelve.</div>'; }, 400);
   } catch (e) { msg('No se pudo pedir la transferencia: ' + esc(/permission/i.test(e.message) ? 'el banco la rechazó (¿el profe publicó las reglas nuevas?)' : e.message), 'err'); $('trBtn').disabled = false; }
 });
 // Disertación de la ruleta: el estudiante puede cambiar el tema mientras no la haga.
@@ -610,6 +698,7 @@ function cargarBanco() {
     cargarGatitos(DF.usuario(), b);
     if (!b) {
       $('rSaldo').textContent = '—'; $('rUsar').textContent = '—';
+      $('bancoCont').innerHTML = '<h2><i class="fa-solid fa-building-columns"></i> Préstamos y ahorro</h2><div class="vacio">Cuando tu cuenta del banco esté conectada podrás ahorrar (10% por semana) y pedir préstamos.</div>';
       $('prodCont').innerHTML = '<div class="vacio">Cuando tu cuenta del banco esté conectada, aquí verás lo que compras y ganas.</div>';
       $('tCont').innerHTML = '';
       $('bCont').innerHTML = '<div class="vacio">Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule y aquí verás tu saldo y tus compras.</div>';
@@ -635,6 +724,7 @@ function cargarBanco() {
       <div class="lista">${b.movs.slice(0, 15).map(m => `<div class="it"><b>${esc(m.motivo)}</b><span class="v" style="color:${m.monto < 0 ? 'var(--neg)' : m.monto === 0 ? 'var(--mute)' : 'var(--acid)'}">${m.monto === 0 ? 'sin costo' : (m.monto < 0 ? '−' : '+') + fmt(Math.abs(m.monto))}</span><small>${fecha(m.fecha)}</small></div>`).join('') || '<div class="vacio">Sin movimientos.</div>'}</div>
       <p class="muted" style="font-size:14px;margin-top:12px"><a href="banco-felipeso/bases.html">Bases de los Hipopesos</a>: qué se puede comprar y cómo se gana.</p>`;
     cargarTransferencias(Object.assign({ id: b.cuenta.id }, c));
+    cargarMiBanco(b.cuenta.id, c);
   }).catch(e => { $('bCont').innerHTML = `<div class="vacio">No se pudo cargar tu banco: ${esc(e.message)}</div>`; cargarGatitos(DF.usuario(), null); });
 }
 

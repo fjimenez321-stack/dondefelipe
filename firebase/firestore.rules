@@ -846,7 +846,7 @@ service cloud.firestore {
     function opEnvio(id, d) {
       let t = getAfter(rutaTr(d.transferencia)).data;
       return d.transferencia is string && !exists(rutaTr(d.transferencia))
-        && t.de == d.cuenta && t.estado == 'pendiente' && t.mov == id
+        && t.de == d.cuenta && t.estado in ['pendiente', 'automatica'] && t.mov == id
         && d.monto == 0 - t.monto;
     }
     // Movimiento que retiene el pago de un pedido del Mercado (la compra queda «retenida»).
@@ -871,11 +871,50 @@ service cloud.firestore {
           && d.monto == get(rutaPedido(d.pedido)).data.precio);
     }
 
+    // ── Transferencias: hasta ₣50.000 llegan al instante (estado 'automatica'); más que eso, el profe autoriza.
+    //    Máximo 3 transferencias por día por cuenta (banco_transf_dia/<cuenta> = {dia, n}).
+    function topeAutomatica() { return 50000; }
+    function movRecibido(tid, d) {
+      let t = getAfter(rutaTr(tid)).data;
+      return !exists(rutaTr(tid)) && t.estado == 'automatica' && t.de == miCuentaBanco() && t.monto <= topeAutomatica()
+        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'transferencia'])
+        && d.cuenta == t.a && d.monto == t.monto && d.tipo == 'transferencia-recibida' && d.transferencia == tid
+        && d.saldoDespues == getAfter(rutaCuenta(t.a)).data.saldo
+        && d.profe == '' && d.fecha == request.time
+        && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200);
+    }
+    function maxTransfDia() { return 3; }
+    function rutaTrDia(c) { return /databases/$(database)/documents/banco_transf_dia/$(c); }
+    function cuentaTrDia(c) {
+      let antes = exists(rutaTrDia(c)) ? get(rutaTrDia(c)).data : {'dia': -1, 'n': 0};
+      let des = getAfter(rutaTrDia(c)).data;
+      return des.dia == diaHoy() && des.n == (antes.dia == diaHoy() ? antes.n + 1 : 1) && des.n <= maxTransfDia();
+    }
+    // La cuenta que RECIBE una transferencia automática: solo sube su saldo, en la misma escritura
+    // en que quien envía crea la transferencia y su movimiento (y el movimiento de quien recibe).
+    function abonoAutomatico(id) {
+      let c = miCuentaBanco();
+      let tid = opActual(c).get('transferencia', '');
+      let t = getAfter(rutaTr(tid)).data;
+      return c != '' && id != c && opsDespues(c) == opsAntes(c) + 1
+        && opActual(c).tipo == 'transferencia-envio' && !exists(rutaTr(tid))
+        && t.estado == 'automatica' && t.a == id && t.de == c && t.monto <= topeAutomatica()
+        && request.resource.data.saldo == resource.data.saldo + t.monto
+        && existsAfter(rutaMov('tr-' + tid));
+    }
+    match /banco_transf_dia/{c} {
+      allow read: if esProfe() || (c == miCuentaBanco() && c != '');
+      allow write: if esProfe();
+      allow create, update: if esColegio() && c == miCuentaBanco() && c != ''
+        && request.resource.data.keys().hasOnly(['dia', 'n', 'actualizado'])
+        && request.resource.data.actualizado == request.time
+        && opsDespues(c) == opsAntes(c) + 1 && opActual(c).tipo == 'transferencia-envio';
+    }
     match /banco_transferencias/{tid} {
       allow read: if esProfe()
         || (miCuentaBanco() != '' && (resource.data.de == miCuentaBanco() || resource.data.a == miCuentaBanco()));
       allow create: if esColegio() && miCuentaBanco() != ''
-        && request.resource.data.keys().hasOnly(['de', 'a', 'monto', 'motivo', 'estado', 'uid', 'deNombre', 'deNumero', 'aNombre', 'aNumero', 'creada', 'mov'])
+        && request.resource.data.keys().hasOnly(['de', 'a', 'monto', 'motivo', 'estado', 'uid', 'deNombre', 'deNumero', 'aNombre', 'aNumero', 'creada', 'mov', 'resuelta'])
         && request.resource.data.de == miCuentaBanco()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.a is string && request.resource.data.a != request.resource.data.de
@@ -884,7 +923,11 @@ service cloud.firestore {
         && texto(request.resource.data.motivo, 120)
         && texto(request.resource.data.deNombre, 160) && texto(request.resource.data.aNombre, 160)
         && texto(request.resource.data.deNumero, 20) && texto(request.resource.data.aNumero, 20)
-        && request.resource.data.estado == 'pendiente'
+        && (request.resource.data.estado == 'pendiente'
+            || (request.resource.data.estado == 'automatica' && request.resource.data.monto <= topeAutomatica()
+                && request.resource.data.resuelta == request.time
+                && getAfter(rutaCuenta(request.resource.data.a)).data.saldo == get(rutaCuenta(request.resource.data.a)).data.saldo + request.resource.data.monto))
+        && cuentaTrDia(miCuentaBanco())
         && request.resource.data.creada == request.time
         // el dinero se retiene en la misma escritura
         && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
@@ -1163,6 +1206,11 @@ service cloud.firestore {
         && request.resource.data.numero == string(getAfter(/databases/$(database)/documents/config/banco).data.siguiente - 1)
         && request.resource.data.creada == request.time
         && request.resource.data.actualizado == request.time;
+      // Abono de una transferencia automática (hasta ₣50.000) a otra cuenta.
+      allow update: if esColegio()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['saldo', 'actualizado'])
+        && request.resource.data.actualizado == request.time
+        && abonoAutomatico(id);
       // Operación del propio estudiante (bolsa o bono diario): el saldo cambia exactamente
       // en el monto del movimiento 'op-<cuenta>-<ops>' que se crea en la misma escritura.
       allow update: if esColegio() && id == miCuentaBanco() && id != ''
@@ -1195,6 +1243,9 @@ service cloud.firestore {
       allow read: if esProfe() || (resource.data.cuenta == miCuentaBanco() && miCuentaBanco() != '');
       allow create: if esProfe();
       allow create: if esColegio() && opValida(id, request.resource.data);
+      // Movimiento de quien RECIBE una transferencia automática (lo escribe quien envía, en la misma escritura).
+      allow create: if esColegio() && miCuentaBanco() != '' && id.matches('^tr-.+')
+        && movRecibido(id[3:id.size()], request.resource.data);
       allow update: if esProfe()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['canje', 'canjeNota', 'canjeFecha', 'canjeProfe', 'tema']);
       allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
