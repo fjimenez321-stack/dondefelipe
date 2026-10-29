@@ -380,7 +380,12 @@ service cloud.firestore {
     function ruletaActiva() { return true; }
     function costoRuleta() { return 30000; }
     function maxRetener() { return 330000; }   // costo + el peor castigo
-    function tirosPorDia() { return 20; }
+    function tirosPorDia() { return 10; }
+    // Horario: abierta de 08:00 a 16:00 (hora de Chile). Las reglas no conocen husos horarios, así que
+    // aceptan 11:00–20:00 UTC, que cubre las 08–16 tanto en horario de verano (UTC−3) como de invierno
+    // (UTC−4); la página aplica el horario exacto con la hora de Chile. Resolver un tiro pendiente se
+    // permite a cualquier hora.
+    function ruletaAbierta() { return request.time.hours() >= 11 && request.time.hours() < 20; }
     function salRuleta() { return 'dondefelipe-ruleta-v2'; }
     function rutaRuleta(c) { return /databases/$(database)/documents/ruleta/$(c); }
     function ruletaDe(c) { return exists(rutaRuleta(c)) ? get(rutaRuleta(c)).data : { 'n': 0 }; }
@@ -435,7 +440,7 @@ service cloud.firestore {
       let r = ruletaDe(c);
       let saldo = get(rutaCuenta(c)).data.saldo;
       let ret = saldo < maxRetener() ? saldo : maxRetener();
-      return ruletaActiva() && saldo >= costoRuleta()
+      return ruletaActiva() && ruletaAbierta() && saldo >= costoRuleta()
         && r.get('pendiente', false) == false
         && d.tiro == r.get('n', 0) + 1
         && d.monto == 0 - ret
@@ -500,12 +505,22 @@ service cloud.firestore {
       return m.cuenta == d.cuenta && m.get('canje', '') == 'pendiente' && m.get('item', '') != itemDisertacion()
         && getAfter(rutaMov(d.pierde)).data.canje == 'perdida';
     }
+    // Resumen guardado en ruleta/<cuenta>: ult = últimos 8 tiros (solo para mostrarlos), neto = balance
+    // en Hipopesos y nres = tiros resueltos. Desde que existe, cada tiro lo suma exactamente; la primera vez
+    // se siembra con el cálculo de la página (solo lo ve su dueño y el profe).
+    function resumenRuleta(a, b, m) {
+      return (!b.keys().hasAny(['ult']) || (b.ult is list && b.ult.size() <= 8))
+        && (!b.keys().hasAny(['neto']) || (b.neto is int
+              && (!a.keys().hasAny(['neto']) || b.neto == a.neto + m.monto - a.get('retenido', 0))))
+        && (!b.keys().hasAny(['nres']) || (b.nres is int
+              && (!a.keys().hasAny(['nres']) || b.nres == a.nres + 1)));
+    }
     // Estado de la ruleta de cada cuenta: n° de tiros, tiro pendiente, hora del servidor y tiros de hoy.
     match /ruleta/{c} {
       allow read: if esProfe() || (c == miCuentaBanco() && c != '');
       allow write: if esProfe();
       allow create, update: if esColegio() && c == miCuentaBanco() && c != ''
-        && request.resource.data.keys().hasOnly(['n', 'actualizado', 'pendiente', 'tFecha', 'retenido', 'dia', 'hoy'])
+        && request.resource.data.keys().hasOnly(['n', 'actualizado', 'pendiente', 'tFecha', 'retenido', 'dia', 'hoy', 'ult', 'neto', 'nres'])
         && request.resource.data.actualizado == request.time
         && opsDespues(c) == opsAntes(c) + 1
         && (
@@ -517,11 +532,17 @@ service cloud.firestore {
             && request.resource.data.retenido is int
             && request.resource.data.dia == diaHoy()
             && request.resource.data.hoy == (ruletaDe(c).get('dia', 0) == diaHoy() ? ruletaDe(c).get('hoy', 0) + 1 : 1)
-            && request.resource.data.hoy <= tirosPorDia())
-          // resolver: solo se cierra el pendiente (nada más cambia)
+            && request.resource.data.hoy <= tirosPorDia()
+            // el resumen (últimos tiros y balance) no se toca al apostar
+            && request.resource.data.get('ult', null) == ruletaDe(c).get('ult', null)
+            && request.resource.data.get('neto', null) == ruletaDe(c).get('neto', null)
+            && request.resource.data.get('nres', null) == ruletaDe(c).get('nres', null))
+          // resolver: se cierra el pendiente y se actualiza el resumen que muestra la página
+          // (así abrirla no tiene que leer todos los movimientos de la ruleta)
           || (getAfter(rutaOp(c, opsDespues(c))).data.tipo == 'ruleta' && resource != null
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pendiente', 'actualizado'])
-            && request.resource.data.pendiente == false)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pendiente', 'actualizado', 'ult', 'neto', 'nres'])
+            && request.resource.data.pendiente == false
+            && resumenRuleta(resource.data, request.resource.data, getAfter(rutaOp(c, opsDespues(c))).data))
         );
     }
     // ═════ Perfil público (opcional) ═════

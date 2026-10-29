@@ -436,7 +436,8 @@
   }
 
   /* ---------- mis datos: ver, descargar, borrar ---------- */
-  function misDatos() {
+  // opciones.sinBanco: no lee los movimientos del banco (que pueden ser cientos) cuando no se necesitan.
+  function misDatos(opciones) {
     return listo().then(function (fb) {
       if (!usuario) throw new Error('Primero entra con tu cuenta.');
       var F = fb.F, uid = usuario.uid;
@@ -445,7 +446,7 @@
         leerPerfil(),
         mios('puntajes'), mios('resultados'),
         F.getDocs(F.collection(fb.db, 'progreso', uid, 'items')),
-        miBanco().catch(function () { return null; }),
+        opciones && opciones.sinBanco ? null : miBanco().catch(function () { return null; }),
         F.getDoc(F.doc(fb.db, 'perfiles_publicos', uid)).catch(function () { return null; })
       ]).then(function (r) {
         var lista = function (s) { return s.docs.map(function (d) { return Object.assign({ _id: d.id }, d.data()); }); };

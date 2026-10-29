@@ -372,7 +372,7 @@ $('btnPerfil').onclick = () => {
 
 function cargarProgreso() {
   ['lProg', 'lJuegos', 'lSims'].forEach(id => $(id).innerHTML = '<div class="vacio">Cargando…</div>');
-  DF.misDatos().then(d => {
+  DF.misDatos({ sinBanco: true }).then(d => {   // el banco ya lo carga cargarBanco()
     $('lProg').innerHTML = d.progreso.length ? d.progreso.map(p => {
       const x = p.datos || {}, n = Object.keys(x.marcas || {}).length;
       const det = x.total ? `${n} de ${x.total} metas` : '';
@@ -400,18 +400,18 @@ async function cargarGatitos(u, banco) {
   const G = window.GATITOS || [], R = window.RAREZAS || {}, cid = banco ? banco.cuenta.id : '';
   try {
     const { F, db } = await DF.listo();
-    const [s, pubs, peds, pod, , movs] = await Promise.all([
+    const [s, pubs, peds, pod] = await Promise.all([
       F.getDoc(F.doc(db, 'gatitos', u.uid)),
       F.getDocs(F.query(F.collection(db, 'mercado_items'), F.where('uid', '==', u.uid))).catch(() => null),
       cid ? F.getDocs(F.query(F.collection(db, 'mercado_pedidos'), F.where('comprador', '==', cid))).catch(() => null) : null,
       cid ? F.getDoc(F.doc(db, 'gatitos_poderes', cid + '__' + diaHoy())).catch(() => null) : null,
       cid ? Promise.all((window.GATITOS || []).filter(g => g.mensual).map(g => F.getDoc(F.doc(db, 'gatitos_poderes_mes', idPoderMes(cid, mesHoy(), g.id)))
         .then(d => [g.id, d.exists()], () => [g.id, false]))) : [],
-      cid ? F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cid))).catch(() => null) : null
+      null   // los movimientos ya vienen en «banco» (DF.miBanco): no se vuelven a leer
     ]).then(r => { podMes = {}; (r[4] || []).forEach(([k, v]) => { podMes[k] = v; }); return r; });
     // Fecha de adquisición: compra en el mercado o premio de la ruleta, y compras a un compañero autorizadas
     const adq = {}, msF = t => t && t.toMillis ? t.toMillis() : 0;
-    if (movs) movs.docs.forEach(d => { const m = d.data(); if (m.gatito && (m.tipo === 'gatito-compra' || m.tipo === 'ruleta')) adq[m.gatito] = Math.max(adq[m.gatito] || 0, msF(m.fecha)); });
+    (banco ? banco.movs : []).forEach(m => { if (m.gatito && (m.tipo === 'gatito-compra' || m.tipo === 'ruleta')) adq[m.gatito] = Math.max(adq[m.gatito] || 0, msF(m.fecha)); });
     if (peds) peds.docs.forEach(d => { const p = d.data(); if (p.gatito && p.estado === 'aprobada') adq[p.gatito] = Math.max(adq[p.gatito] || 0, msF(p.resuelta) || msF(p.creada)); });
     const fechaAdq = id => adq[id] ? new Date(adq[id]).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
     const col = s.exists() ? s.data() : { ids: [] }, ids = col.ids || [];
