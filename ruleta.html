@@ -119,7 +119,7 @@ h1 span{color:var(--acid)}
   <a class="crumb" href="index.html">← El Mundo de Felipe</a>
   <p class="kick">Juego · Banco de Hipopesos</p>
   <h1>Ruleta de <span>Hipopesos</span></h1>
-  <p class="intro">Cada tiro cuesta <b id="costoTxt">30.000 ₣</b>. Hay 32 casillas y los premios y castigos caen en <b>tus cosas</b>: tu saldo, tus décimas y beneficios, tus acciones de la Bolsa y tus gatitos. Y ojo: hay castigos de disertación.</p>
+  <p class="intro">Cada tiro cuesta <b id="costoTxt">30.000 ₣</b>. Abierta de <b>08:00 a 16:00</b>, hasta 10 tiros por día. Hay 32 casillas y los premios y castigos caen en <b>tus cosas</b>: tu saldo, tus décimas y beneficios, tus acciones de la Bolsa y tus gatitos. Y ojo: hay castigos de disertación.</p>
 
   <div id="avisos"></div>
 
@@ -151,7 +151,7 @@ h1 span{color:var(--acid)}
         <h2>Probabilidades</h2>
         <table class="prob" id="prob"></table>
         <p class="nota">La ruleta tiene 32 casillas iguales y cada una sale con la misma probabilidad (1 de 32). Si un castigo es mayor que tu saldo, quedas en 0. Si ganas un gatito que ya tenías, recibes su precio en Hipopesos. Si un castigo cae sobre algo que no tienes, se paga en Hipopesos. Solo se pueden escapar gatitos comunes y poco comunes.</p>
-        <p class="nota">🔒 <b>Juego limpio:</b> al girar se retienen hasta 330.000 ₣ y el servidor anota su hora exacta; el resultado sale de esa hora, así que nadie puede saberlo antes. Lo retenido vuelve con tu premio en el mismo giro. Máximo 20 tiros por día.</p>
+        <p class="nota">🔒 <b>Juego limpio:</b> al girar se retienen hasta 330.000 ₣ y el servidor anota su hora exacta; el resultado sale de esa hora, así que nadie puede saberlo antes. Lo retenido vuelve con tu premio en el mismo giro. Máximo 10 tiros por día, de 08:00 a 16:00 (hora de Chile).</p>
       </section>
       <section class="card" id="disert" hidden></section>
       <section class="card">
@@ -181,7 +181,8 @@ h1 span{color:var(--acid)}
 const RULETA = {
   costo: 30000,
   retenerMax: 330000,
-  porDia: 20,
+  porDia: 10,
+  desde: 8, hasta: 16,   // horario (hora de Chile); las reglas lo exigen con un margen de 1 hora
   sal: 'dondefelipe-ruleta-v2',
   // Gatito común: según el 3er carácter del hash.
   gatito: c3 => '0123'.includes(c3) ? 'naranjo' : '4567'.includes(c3) ? 'gris' : '89ab'.includes(c3) ? 'dormilon' : 'patitas',
@@ -256,29 +257,12 @@ let usuario = null, cuentaId = null, cuenta = null, tiros = 0, perfilOk = false,
 const diaHoy = () => Math.floor(((DF.ahora ? DF.ahora() : Date.now()) - 14400000) / 86400000);   // igual que en las reglas
 const hoyJugados = () => estado && estado.dia === diaHoy() ? (estado.hoy || 0) : 0;
 let girando = false, angulo = 0, sonido = true, audio = null;
-let hist = null;          // { ap: {tiro: monto}, res: [movs] } — se carga una vez y se actualiza en cada tiro
+let hist = null;          // { ult: [últimos 8], neto, nres } — viene del estado de la ruleta
 let disert = [];          // disertaciones pendientes [{id, tema, tiro, fecha}]
 
 async function sha256hex(s) {
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
-}
-// Las cosas del jugador que pueden recibir un premio o un castigo (se leen mientras la rueda gira).
-async function cargarCosas() {
-  const { F, db } = await DF.listo();
-  const [pos, emp, ben] = await Promise.all([
-    F.getDocs(F.query(F.collection(db, 'bolsa_pos'), F.where('cuenta', '==', cuentaId))).catch(() => null),
-    F.getDocs(F.collection(db, 'bolsa_empresas')).catch(() => null),
-    F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('canje', '==', 'pendiente'))).catch(() => null)
-  ]);
-  const empresas = {}; (emp ? emp.docs : []).forEach(d => { empresas[d.id] = d.data(); });
-  return {
-    empresas,
-    activas: Object.keys(empresas).filter(t => empresas[t].activa && empresas[t].precio > 0).sort(),
-    posiciones: (pos ? pos.docs.map(d => d.data()) : []).filter(p => p.acciones > 0 && empresas[p.ticker] && empresas[p.ticker].precio > 0),
-    beneficios: (ben ? ben.docs.map(d => Object.assign({ id: d.id }, d.data())) : []).filter(m => m.item && m.item !== DISERTACION)
-      .sort((a, b) => ms(a.fecha) - ms(b.fecha))
-  };
 }
 const ms = t => t && t.toMillis ? t.toMillis() : 0;
 // Lo que sale y sobre qué cosa cae. «cosas» puede venir incompleta: lo que falte se resuelve con dinero.
@@ -325,9 +309,27 @@ function motivoDe(r, n) {
   return base + (r.premio > 0 ? 'gana ' : 'pierde ') + fmt(Math.abs(r.premio)) + (r.alCero ? ', saldo queda en 0' : '') + neto;
 }
 
-/* ── Datos ── */
-async function cargar() {
-  usuario = DF.usuario(); cuentaId = null; cuenta = null; tiros = 0; perfilOk = false; hist = null;
+/* ── Datos ──
+   Lecturas de Firebase de esta página (para revisarlas: agrega ?debug=1 a la dirección y mira la consola):
+   · Al abrir: vínculo + cuenta + estado de la ruleta (3 documentos) y las disertaciones pendientes (1 consulta
+     pequeña). El historial y el balance vienen dentro del estado de la ruleta (campo «ult», «neto», «nres»):
+     ya no se leen todos los movimientos de la ruleta. Solo una vez, si la cuenta aún no tiene ese resumen,
+     se leen sus movimientos para crearlo.
+   · Por tiro: apostar (cuenta + estado) y resolver (cuenta + estado, y solo si la casilla lo necesita:
+     gatitos, empresa y posición de la Bolsa o el beneficio). Las listas de «cosas» (acciones, empresas,
+     beneficios) se consultan solo cuando sale una casilla que las usa (4 de 32) y se reutilizan en memoria.
+   · Sin listeners en tiempo real ni sondeos. */
+const DEBUG = /[?&]debug=1\b/.test(location.search);
+const lect = (que, n) => { if (DEBUG) console.info('[ruleta] ' + que + ': ' + n + ' documento(s)'); };
+let cargadoPara = null, cargando = null;
+async function cargar(forzar) {
+  const u = DF.usuario(), clave = u ? u.uid : '';
+  if (!forzar && cargadoPara === clave) return cargando;   // no recargar si nada cambió (evita lecturas duplicadas)
+  cargadoPara = clave;
+  return (cargando = cargarAhora());
+}
+async function cargarAhora() {
+  usuario = DF.usuario(); cuentaId = null; cuenta = null; tiros = 0; perfilOk = false; hist = null; cosasCache = null; disert = [];
   aviso('');
   try {
     const { F, db } = await DF.listo();
@@ -337,66 +339,75 @@ async function cargar() {
       if (!perfilOk) aviso('Antes de jugar completa tu perfil (edad y grupo) en <a href="cuenta.html">Mi cuenta</a>.');
       else {
         await DF.asegurarCuentaBanco().catch(() => null);
-        const v = await F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase()));
+        const v = await F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase())); lect('vínculo', 1);
         if (v.exists()) {
           cuentaId = v.data().cuenta;
-          const [c, r] = await Promise.all([F.getDoc(F.doc(db, 'banco_cuentas', cuentaId)), F.getDoc(F.doc(db, 'ruleta', cuentaId))]);
+          const [c, r] = await Promise.all([F.getDoc(F.doc(db, 'banco_cuentas', cuentaId)), F.getDoc(F.doc(db, 'ruleta', cuentaId))]); lect('cuenta y estado', 2);
           if (c.exists()) cuenta = c.data();
           estado = r.exists() ? r.data() : null;
           tiros = estado ? (estado.n || 0) : 0;
         }
         if (!cuenta) aviso('Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule para poder jugar.');
+        else if (!abierta() && !(estado && estado.pendiente)) aviso('La ruleta abre de <b>' + RULETA.desde + ':00 a ' + RULETA.hasta + ':00</b> (hora de Chile). ' + proximaApertura());
         else if ((cuenta.saldo || 0) < RULETA.costo) aviso('Necesitas al menos ' + fmt(RULETA.costo) + ' para girar. Revisa el bono diario en la <a href="banco-felipeso/bolsa.html">Bolsa</a>.');
       }
     }
   } catch (e) { aviso('No se pudo cargar tu cuenta: ' + esc(e.message), 'err'); }
   pintar();
-  cargarHistorial();
+  await cargarHistorial();
   cargarDisertaciones();
   if (estado && estado.pendiente && cuenta) {
     aviso('Tenías un tiro sin terminar (lo retenido sigue guardado). Toca <b>Terminar</b> para ver su resultado.');
   }
 }
+// Historial: sale del resumen guardado en ruleta/<cuenta>. Solo las cuentas que todavía no lo
+// tienen leen (una vez) sus movimientos para calcularlo; el próximo tiro lo guarda.
 async function cargarHistorial() {
   if (!cuentaId) { pintarHistorial(); return; }
-  try {
+  if (estado && Array.isArray(estado.ult)) {
+    hist = { ult: estado.ult, neto: estado.neto, nres: estado.nres };
+  } else if (!estado || !estado.n) {
+    hist = { ult: [], neto: 0, nres: 0 };
+  } else try {
     const { F, db } = await DF.listo();
     const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('tipo', 'in', ['ruleta', 'ruleta-apuesta'])));
-    hist = { ap: {}, res: [] };
-    s.docs.forEach(d => { const m = d.data(); if (m.tipo === 'ruleta-apuesta') hist.ap[m.tiro] = m.monto; else hist.res.push(m); });
+    lect('historial antiguo (una sola vez)', s.size);
+    const ap = {}, res = [];
+    s.docs.forEach(d => { const m = d.data(); if (m.tipo === 'ruleta-apuesta') ap[m.tiro] = m.monto; else res.push(m); });
+    let neto = 0; res.forEach(m => { neto += m.monto + (ap[m.tiro] != null ? ap[m.tiro] : -RULETA.costo); });
+    const ult = res.sort((a, b) => (b.tiro || 0) - (a.tiro || 0)).slice(0, 8).map(m => {
+      const e = ap[m.tiro] != null ? m.monto + ap[m.tiro] : m.monto;
+      return entradaHist(m.tiro, e, String(m.motivo || ''), m.canje ? 'b' : m.gatito ? 'g' : '');
+    });
+    // Si quedó un tiro pendiente, su apuesta ya está descontada pero aún no tiene resultado: no entra al balance.
+    hist = { ult, neto, nres: res.length };
   } catch (e) { hist = { error: true }; }
   pintarHistorial();
 }
-// Sin volver a leer todo: el tiro recién jugado se agrega a lo que ya estaba cargado.
-function sumarAlHistorial(r) {
-  if (!hist || hist.error) return cargarHistorial();
-  hist.ap[r.n] = -r.retenido;
-  hist.res.push({ tiro: r.n, monto: r.monto, motivo: r.motivo, canje: r.beneficio || r.tipo === 'disertacion' ? 'pendiente' : undefined, gatito: r.gatito && !r.yaTenia ? r.gatito : undefined });
-  pintarHistorial();
+// Entrada compacta del historial (se guarda así en el resumen).
+function entradaHist(t, e, motivo, k) {
+  const x = String(motivo).replace(/^Ruleta \(tiro \d+\): /, '').replace(/ · neto .*$/, '').slice(0, 60);
+  const mala = /disertación|escapa|pierde/.test(x);
+  return { t: t || 0, e: Math.round(e || 0), x, k: mala ? 'm' : k || (e >= 0 ? 'p' : 'n') };
 }
 function pintarHistorial() {
   const ul = $('hist');
   if (!cuentaId || !hist) { ul.innerHTML = '<li class="vacio">' + (!usuario ? 'Entra con tu cuenta para ver tus tiros.' : cuentaId ? 'Cargando…' : 'Sin cuenta del banco vinculada.') + '</li>'; return; }
   if (hist.error) { ul.innerHTML = '<li class="vacio">No se pudo cargar el historial.</li>'; return; }
-  const { ap, res } = hist;
-  const movs = res.slice().sort((a, b) => (b.tiro || 0) - (a.tiro || 0)).slice(0, 8);
-  let neto = 0; res.forEach(m => { neto += m.monto + (ap[m.tiro] != null ? ap[m.tiro] : -RULETA.costo); });
-  ul.innerHTML = (movs.length ? `<li class="vacio" style="--c:transparent">Balance en Hipopesos de tus ${res.length} tiros: <b style="color:${neto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${neto >= 0 ? '+' : '−'}${fmt(Math.abs(neto))}</b></li>` : '') +
-    (movs.length ? movs.map(m => {
-      // tiros v2/v3: efecto real = devuelto − retenido; tiros antiguos (v1): el monto ya era el neto
-      const efecto = ap[m.tiro] != null ? m.monto + ap[m.tiro] : m.monto;
-      const txt = String(m.motivo || '').replace(/^Ruleta \(tiro \d+\): /, '').replace(/ · neto .*$/, '');
-      const col = /disertación|escapa|pierde/.test(txt) ? 'var(--neg)' : m.canje ? '#1f9fd0' : m.gatito || /regalo/.test(txt) ? '#ff2e7e' : efecto >= 0 ? 'var(--pos)' : 'var(--neg)';
-      return `<li style="--c:${col}"><span>#${m.tiro} · ${esc(txt)}</span><b style="color:${efecto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${efecto >= 0 ? '+' : '−'}${fmt(Math.abs(efecto))}</b></li>`;
-    }).join('') : '<li class="vacio">Todavía no has girado.</li>');
+  const COL = { m: 'var(--neg)', b: '#1f9fd0', g: '#ff2e7e', p: 'var(--pos)', n: 'var(--neg)' };
+  const l = hist.ult || [];
+  ul.innerHTML = (l.length && typeof hist.neto === 'number' ? `<li class="vacio" style="--c:transparent">Balance en Hipopesos de tus ${hist.nres} tiros: <b style="color:${hist.neto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${hist.neto >= 0 ? '+' : '−'}${fmt(Math.abs(hist.neto))}</b></li>` : '') +
+    (l.length ? l.map(m => `<li style="--c:${COL[m.k] || 'var(--line2)'}"><span>#${esc(m.t)} · ${esc(m.x)}</span><b style="color:${m.e >= 0 ? 'var(--pos)' : 'var(--neg)'}">${m.e >= 0 ? '+' : '−'}${fmt(Math.abs(m.e))}</b></li>`).join('')
+      : '<li class="vacio">Todavía no has girado.</li>');
 }
-// Disertaciones que debe (castigo): se puede cambiar el tema hasta que el profe la marque como hecha.
+// Disertaciones que debe (castigo): una consulta pequeña (solo las disertaciones pendientes).
 async function cargarDisertaciones() {
   disert = [];
   if (cuentaId) try {
     const { F, db } = await DF.listo();
-    const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('canje', '==', 'pendiente')));
-    disert = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => m.item === DISERTACION).sort((a, b) => (a.tiro || 0) - (b.tiro || 0));
+    const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('item', '==', DISERTACION), F.where('canje', '==', 'pendiente')));
+    lect('disertaciones pendientes', Math.max(1, s.size));
+    disert = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (a.tiro || 0) - (b.tiro || 0));
   } catch (e) { }
   pintarDisertaciones();
 }
@@ -436,10 +447,11 @@ async function apostar() {
   const { F, db } = await DF.listo(); await (DF.reloj ? DF.reloj() : null);
   const rc = F.doc(db, 'banco_cuentas', cuentaId), rr = F.doc(db, 'ruleta', cuentaId);
   await F.runTransaction(db, async tx => {
-    const [sc, sr] = await Promise.all([tx.get(rc), tx.get(rr)]);
+    const [sc, sr] = await Promise.all([tx.get(rc), tx.get(rr)]); lect('apostar: cuenta y estado', 2);
     if (!sc.exists()) throw new Error('no se encontró tu cuenta del banco');
     const c = sc.data(), saldoAntes = c.saldo || 0, r = sr.exists() ? sr.data() : {};
     if (r.pendiente) throw new Error('PENDIENTE');
+    if (!abierta()) throw new Error('la ruleta abre de ' + RULETA.desde + ':00 a ' + RULETA.hasta + ':00 (hora de Chile)');
     if (saldoAntes < RULETA.costo) throw new Error('cada tiro cuesta ' + fmt(RULETA.costo) + ' y tienes ' + fmt(saldoAntes));
     const dia = diaHoy(), hoy = r.dia === dia ? (r.hoy || 0) + 1 : 1;
     if (hoy > RULETA.porDia) throw new Error('ya jugaste los ' + RULETA.porDia + ' tiros de hoy. Vuelve mañana');
@@ -449,28 +461,65 @@ async function apostar() {
       cuenta: cuentaId, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
       monto: -ret, motivo: ('Ruleta (tiro ' + n + '): apuesta retenida mientras gira').slice(0, 200), tipo: 'ruleta-apuesta',
       saldoDespues: saldo, profe: '', fecha: F.serverTimestamp(), tiro: n });
-    tx.set(rr, { n, pendiente: true, tFecha: F.serverTimestamp(), retenido: ret, dia, hoy, actualizado: F.serverTimestamp() });
+    // el resumen del historial se conserva tal cual (las reglas lo exigen)
+    const nuevo = { n, pendiente: true, tFecha: F.serverTimestamp(), retenido: ret, dia, hoy, actualizado: F.serverTimestamp() };
+    ['ult', 'neto', 'nres'].forEach(k => { if (r[k] !== undefined) nuevo[k] = r[k]; });
+    tx.set(rr, nuevo);
   });
 }
+// «Cosas» del jugador que solo se consultan cuando sale una casilla que las usa; se guardan en memoria.
+let cosasCache = null;
+async function cosasPara(tipo) {
+  const { F, db } = await DF.listo();
+  cosasCache = cosasCache || {};
+  const k = cosasCache;
+  if ((tipo === 'acciones' || tipo === 'pierdeAcciones') && !k.empresas) {
+    const emp = await F.getDocs(F.collection(db, 'bolsa_empresas')); lect('empresas de la Bolsa', emp.size);
+    k.empresas = {}; emp.docs.forEach(d => { k.empresas[d.id] = d.data(); });
+  }
+  if (tipo === 'pierdeAcciones' && !k.pos) {
+    const pos = await F.getDocs(F.query(F.collection(db, 'bolsa_pos'), F.where('cuenta', '==', cuentaId))); lect('tus acciones', Math.max(1, pos.size));
+    k.pos = {}; pos.docs.forEach(d => { const p = d.data(); k.pos[p.ticker] = p.acciones || 0; });
+  }
+  if (tipo === 'pierdeBenef' && !k.ben) {
+    const ben = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('canje', '==', 'pendiente'))); lect('beneficios por canjear', Math.max(1, ben.size));
+    k.ben = ben.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => m.item && m.item !== DISERTACION);
+  }
+  const emp = k.empresas || {};
+  return {
+    empresas: emp,
+    activas: Object.keys(emp).filter(t => emp[t].activa && emp[t].precio > 0).sort(),
+    posiciones: Object.keys(k.pos || {}).filter(t => k.pos[t] > 0 && emp[t] && emp[t].precio > 0).map(t => ({ ticker: t, acciones: k.pos[t] })),
+    beneficios: (k.ben || []).slice().sort((a, b) => ms(a.fecha) - ms(b.fecha))
+  };
+}
+const NECESITA_COSAS = ['acciones', 'pierdeAcciones', 'pierdeBenef'];
+const NECESITA_GATITOS = ['gatito', 'sorpresa', 'escapa'];
 // PASO 2 · resolver: con la hora que anotó el servidor se calcula el resultado, se paga
 // y se aplica sobre la cosa del jugador que corresponda (todo en la misma transacción).
-async function resolver(cosas) {
+async function resolver() {
   const { F, db } = await DF.listo();
   const rc = F.doc(db, 'banco_cuentas', cuentaId), rr = F.doc(db, 'ruleta', cuentaId), rg = F.doc(db, 'gatitos', usuario.uid);
   return F.runTransaction(db, async tx => {
-    const [sc, sr, sg] = await Promise.all([tx.get(rc), tx.get(rr), tx.get(rg)]);
+    const [sc, sr] = await Promise.all([tx.get(rc), tx.get(rr)]); lect('resolver: cuenta y estado', 2);
     const r = sr.exists() ? sr.data() : null;
     if (!r || !r.pendiente || !r.tFecha) throw new Error('no hay un tiro pendiente');
-    const c = sc.data(), prev = sg.exists() ? sg.data() : { ids: [], favorito: null }, ids = prev.ids || [];
+    const c = sc.data();
     // Firestore guarda microsegundos: toMillis() del navegador puede traer decimales
     // (…567.891). Las reglas usan milisegundos enteros, así que se trunca igual que allá.
     const ms = Math.floor(r.tFecha.toMillis()), n = r.n, ret = r.retenido || 0, h = await sha256hex(RULETA.sal + '|' + cuentaId + '|' + n + '|' + ms);
+    const tipo = CASILLA(casillaDeHash(h)).tipo;
+    // Solo se lee lo que la casilla necesita.
+    let prev = { ids: [], favorito: null };
+    if (NECESITA_GATITOS.includes(tipo)) { const sg = await tx.get(rg); lect('tus gatitos', 1); if (sg.exists()) prev = sg.data(); }
+    const ids = prev.ids || [];
+    const cosas = NECESITA_COSAS.includes(tipo) ? await cosasPara(tipo) : { empresas: {}, activas: [], posiciones: [], beneficios: [] };
     let res = resultadoDe(h, ret, ids, cosas);
     // Se confirma, dentro de la transacción, que la cosa elegida sigue ahí; si no, se paga con dinero.
     let rp = null, p = null, rm = null;
     if (res.accion) {
       rp = F.doc(db, 'bolsa_pos', cuentaId + '__' + res.accion.ticker);
-      const [se, spos] = await Promise.all([tx.get(F.doc(db, 'bolsa_empresas', res.accion.ticker)), tx.get(rp)]);
+      const [se, spos] = await Promise.all([tx.get(F.doc(db, 'bolsa_empresas', res.accion.ticker)), tx.get(rp)]); lect('empresa y posición', 2);
       const e = se.exists() ? se.data() : null; p = spos.exists() ? spos.data() : { acciones: 0, invertido: 0, retirado: 0 };
       const ok = e && e.precio > 0 && (res.tipo === 'acciones' ? e.activa : (p.acciones || 0) > 0);
       if (!ok) res = resultadoDe(h, ret, ids, Object.assign({}, cosas, { activas: [], posiciones: [] }));
@@ -482,7 +531,7 @@ async function resolver(cosas) {
     }
     if (res.pierde) {
       rm = F.doc(db, 'banco_movs', res.pierde.id);
-      const sm = await tx.get(rm);
+      const sm = await tx.get(rm); lect('beneficio a perder', 1);
       if (!sm.exists() || sm.data().canje !== 'pendiente' || sm.data().item === DISERTACION) { rm = null; res = resultadoDe(h, ret, ids, Object.assign({}, cosas, { beneficios: [] })); }
     }
     const saldo = (c.saldo || 0) + res.monto, ops = (c.ops || 0) + 1, nom = ((c.nombre || '') + ' ' + (c.apellido || '')).trim();
@@ -502,7 +551,15 @@ async function resolver(cosas) {
     if (rm) mov.pierde = res.pierde.id;
     const idMov = 'op-' + cuentaId + '-' + ops;
     tx.set(F.doc(db, 'banco_movs', idMov), mov);
-    tx.update(rr, { pendiente: false, actualizado: F.serverTimestamp() });
+    // Resumen para la página (las reglas comprueban que el balance sume exactamente este tiro).
+    const entrada = entradaHist(n, res.monto - ret, res.motivo, res.beneficio ? 'b' : gatoNuevo || res.tipo === 'acciones' ? 'g' : '');
+    const base = Array.isArray(r.ult) ? r.ult : (hist && !hist.error ? hist.ult || [] : []);
+    const cierre = { pendiente: false, actualizado: F.serverTimestamp(), ult: [entrada].concat(base.filter(x => x.t !== n)).slice(0, 8) };
+    const netoAntes = typeof r.neto === 'number' ? r.neto : (hist && typeof hist.neto === 'number' ? hist.neto : null);
+    const nresAntes = typeof r.nres === 'number' ? r.nres : (hist && typeof hist.nres === 'number' ? hist.nres : null);
+    if (netoAntes !== null) cierre.neto = netoAntes + res.monto - ret;
+    if (nresAntes !== null) cierre.nres = nresAntes + 1;
+    tx.update(rr, cierre);
     if (gatoNuevo || res.escapa) {
       const nuevos = gatoNuevo ? ids.concat([res.gatito]) : ids.filter(g => g !== res.escapa);
       tx.set(rg, { uid: usuario.uid, nombre: DF.nombreCorto(usuario.displayName, usuario.email).slice(0, 80), ids: nuevos,
@@ -511,16 +568,36 @@ async function resolver(cosas) {
     if (res.accion) tx.set(rp, { cuenta: cuentaId, ticker: res.accion.ticker, acciones: (p.acciones || 0) + res.accion.acciones,
       invertido: p.invertido || 0, retirado: p.retirado || 0, nombre: nom, curso: c.curso || '', actualizado: F.serverTimestamp() });
     if (rm) tx.update(rm, { canje: 'perdida' });
-    return Object.assign(res, { saldo, n, ms, retenido: ret, hoy: r.hoy || 0, dia: r.dia, idMov });
+    return Object.assign(res, { saldo, n, ms, retenido: ret, hoy: r.hoy || 0, dia: r.dia, idMov, cierre });
   });
 }
+// Después de un tiro confirmado: se actualiza lo que está en memoria, sin volver a leer.
+function aplicarEnMemoria(r) {
+  estado = Object.assign({}, estado, { n: r.n, pendiente: false, dia: r.dia, hoy: r.hoy, ult: r.cierre.ult });
+  if ('neto' in r.cierre) { estado.neto = r.cierre.neto; estado.nres = r.cierre.nres; }
+  hist = { ult: r.cierre.ult, neto: estado.neto, nres: estado.nres };
+  const k = cosasCache;
+  if (k) {
+    if (r.accion && k.pos) k.pos[r.accion.ticker] = (k.pos[r.accion.ticker] || 0) + r.accion.acciones;
+    if (r.pierde && k.ben) k.ben = k.ben.filter(m => m.id !== r.pierde.id);
+    if (r.beneficio && k.ben) k.ben.push({ id: r.idMov, item: r.beneficio, fecha: null });
+  }
+  if (r.tipo === 'disertacion') { disert.push({ id: r.idMov, tema: r.tema, tiro: r.n }); pintarDisertaciones(); }
+  pintarHistorial();
+}
 async function tirar() {
-  const cosasP = cargarCosas();   // en paralelo con la apuesta
   try { await apostar(); }
   catch (e) { if (e.message !== 'PENDIENTE') { e.paso = 'apostar'; throw e; } }   // había uno sin resolver: se resuelve ese
-  try { return await resolver(await cosasP); }
+  try { return await resolver(); }
   catch (e) { e.paso = 'resolver'; throw e; }
 }
+// Horario de Chile (con la hora del servidor), sin depender del huso del teléfono.
+function horaChile() {
+  const t = new Date(DF.ahora ? DF.ahora() : Date.now());
+  return +new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', hour: 'numeric', hourCycle: 'h23' }).format(t);
+}
+const abierta = () => { const h = horaChile(); return h >= RULETA.desde && h < RULETA.hasta; };
+const proximaApertura = () => horaChile() < RULETA.desde ? 'Abre hoy a las ' + RULETA.desde + ':00.' : 'Abre mañana a las ' + RULETA.desde + ':00.';
 
 /* ── Interfaz ── */
 var SUSPENDIDA = false;   // para suspenderla: true aquí y ruletaActiva() = false en las reglas
@@ -535,10 +612,10 @@ function pintar() {
   const hub = $('hub');
   if (SUSPENDIDA) { hub.disabled = true; hub.innerHTML = 'Suspendida'; hub.setAttribute('aria-label', 'Ruleta suspendida'); return; }
   if (girando) return;
-  const pendiente = estado && estado.pendiente, agotado = hoyJugados() >= RULETA.porDia && !pendiente;
-  const puede = cuenta && (pendiente || ((cuenta.saldo || 0) >= RULETA.costo && !agotado));
+  const pendiente = estado && estado.pendiente, agotado = hoyJugados() >= RULETA.porDia && !pendiente, cerrada = !abierta() && !pendiente;
+  const puede = cuenta && (pendiente || ((cuenta.saldo || 0) >= RULETA.costo && !agotado && !cerrada));
   hub.disabled = !!usuario && !puede;
-  hub.innerHTML = !usuario ? 'Entrar' : pendiente ? 'Terminar<small>tiro pendiente</small>' : agotado ? 'Mañana<small>' + RULETA.porDia + ' de ' + RULETA.porDia + '</small>'
+  hub.innerHTML = !usuario ? 'Entrar' : pendiente ? 'Terminar<small>tiro pendiente</small>' : cerrada ? 'Cerrada<small>abre ' + RULETA.desde + ':00</small>' : agotado ? 'Mañana<small>' + RULETA.porDia + ' de ' + RULETA.porDia + '</small>'
     : puede ? `Girar<small>${fmt(RULETA.costo)}</small>` : 'Girar';
   hub.setAttribute('aria-label', !usuario ? 'Entrar con Google para jugar' : 'Girar la ruleta por ' + fmt(RULETA.costo));
 }
@@ -648,13 +725,11 @@ async function alPulsar() {
     precalentando = false;
     await animarHasta(ORDEN.indexOf(r.c));
     cuenta.saldo = r.saldo; tiros = r.n;
-    estado = Object.assign({}, estado, { n: r.n, pendiente: false, dia: r.dia, hoy: r.hoy });
-    if (r.tipo === 'disertacion') { disert.push({ id: r.idMov, tema: r.tema, tiro: r.n }); pintarDisertaciones(); }
+    aplicarEnMemoria(r);
     mostrar(r);
-    sumarAlHistorial(r);
   } catch (e) {
     precalentando = false;
-    await cargar();   // vuelve a leer saldo y estado (por si quedó un tiro pendiente)
+    await cargar(true);   // una sola relectura de saldo y estado (por si quedó un tiro pendiente); sin reintentos automáticos
     mostrarError(e);  // después de cargar(), que limpia los avisos
   }
   girando = false;
@@ -671,7 +746,7 @@ function mostrarError(e) {
     texto = 'Las reglas publicadas en Firebase no calzan con esta ruleta (32 casillas). <b>Lo apostado no se perdió</b>: queda retenido y vuelve con el resultado apenas el profe publique las reglas nuevas y toques <b>Terminar</b>.';
   } else if (permiso) {
     titulo = 'El banco no aceptó la apuesta';
-    texto = 'No se movió nada de tu saldo. Puede que hayas llegado al límite de ' + RULETA.porDia + ' tiros de hoy, o que el profe aún no publique las reglas nuevas de la ruleta.';
+    texto = 'No se movió nada de tu saldo. Puede que hayas llegado al límite de ' + RULETA.porDia + ' tiros de hoy, que la ruleta esté cerrada (abre de ' + RULETA.desde + ':00 a ' + RULETA.hasta + ':00), o que el profe aún no publique las reglas nuevas de la ruleta.';
   } else if (/hoy/.test(m)) { titulo = 'Límite de hoy'; }
   $('modal').style.setProperty('--c', 'var(--neg)');
   $('modal').innerHTML = `<span class="emo">⚠️</span><span class="badge">Aviso</span><h3 id="mTitulo">${esc(titulo)}</h3><p>${texto}</p>
@@ -728,7 +803,7 @@ function mostrar(r) {
       Código: <code>${esc(r.h.slice(0, 16))}…</code> → casilla «${esc(r.h[0])}»</p>
       <p>El resultado es sha256 de tu cuenta, el n° de tiro y esa hora exacta, que nadie conoce antes de apostar: ni tú, ni el profe, ni la página. Por eso no se puede adivinar ni elegir.</p></details>
     <div style="display:flex;gap:8px;justify-content:center"><button class="btn" type="button" data-a="cerrar">Cerrar</button>
-    ${r.saldo >= RULETA.costo && hoyJugados() < RULETA.porDia ? '<button class="btn p" type="button" data-a="otra">Girar otra vez</button>' : ''}</div>`;
+    ${r.saldo >= RULETA.costo && hoyJugados() < RULETA.porDia && abierta() ? '<button class="btn p" type="button" data-a="otra">Girar otra vez</button>' : ''}</div>`;
   $('velo').classList.add('on');
   ($('modal').querySelector('[data-a="otra"]') || $('modal').querySelector('[data-a="cerrar"]')).focus({ preventScroll: true });
   $('anuncio').textContent = badge + ': ' + titulo;
@@ -739,7 +814,7 @@ function mostrar(r) {
 function cerrar() { $('velo').classList.remove('on'); $('hub').focus({ preventScroll: true }); }
 
 function entrar() {
-  DF.entrar().then(cargar).catch(e => { if (!e.cancelado) aviso(esc(e.message), 'err'); });
+  DF.entrar().then(() => cargar()).catch(e => { if (!e.cancelado) aviso(esc(e.message), 'err'); });
 }
 
 /* ── Efectos ── */
@@ -792,7 +867,7 @@ $('sonido').addEventListener('click', e => {
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-a]')?.dataset.a;
   if (a === 'entrar') entrar();
-  if (a === 'salir') DF.salir().then(cargar);
+  if (a === 'salir') DF.salir().then(() => cargar());
   if (a === 'cerrar') cerrar();
   if (a === 'otra') { cerrar(); alPulsar(); }
   if (a === 'temaAzar' || a === 'temaPropio') {
@@ -807,7 +882,10 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); })
 
 pintarProbabilidades();
 pintar();
+// Se llama una vez al iniciar y cada vez que cambia la sesión; cargar() no repite lecturas si el usuario es el mismo.
 DF.alCambiarUsuario(() => { if (!girando) cargar(); });
+// El horario se revisa en el reloj local (sin leer Firebase) para abrir o cerrar el botón a tiempo.
+setInterval(() => { if (!girando && !document.hidden) pintar(); }, 60000);
 </script>
 </body>
 </html>

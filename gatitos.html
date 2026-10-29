@@ -297,6 +297,24 @@ const R = window.RAREZAS, G = window.GATITOS, gato = id => G.find(g => g.id === 
 const ms = t => (t && t.toMillis ? t.toMillis() : (t && t.toDate ? t.toDate().getTime() : (typeof t === 'number' ? t : 0)));
 let usuario = null, esProfe = false, cuentaId = null, cuenta = null, coleccion = { ids: [], favorito: null };
 let publicaciones = [], misPedidos = [], misVentas = [], misBenef = [], poderHoy = null, poderMes = {}, premios = {}, reclamando = false;
+// Fecha de adquisición: se consultan solo los movimientos de los gatitos que tienes (una vez por gatito),
+// no todos los movimientos de la cuenta.
+let fechasPedidas = new Set();
+async function pedirFechas() {
+  if (!cuentaId || !coleccion) return;
+  [...fechasPedidas].forEach(id => { if (!(coleccion.ids || []).includes(id)) fechasPedidas.delete(id); });   // si se fue y vuelve, se consulta de nuevo
+  const nuevos = (coleccion.ids || []).filter(id => !fechasPedidas.has(id));
+  if (!nuevos.length) return;
+  nuevos.forEach(id => fechasPedidas.add(id));
+  try {
+    const { F, db } = await DF.listo();
+    for (let i = 0; i < nuevos.length; i += 30) {
+      const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('gatito', 'in', nuevos.slice(i, i + 30))));
+      s.docs.forEach(d => { const m = d.data(); if (m.tipo === 'gatito-compra' || m.tipo === 'ruleta') adquiridos[m.gatito] = Math.max(adquiridos[m.gatito] || 0, ms(m.fecha)); });
+    }
+    pintar();
+  } catch (e) { nuevos.forEach(id => fechasPedidas.delete(id)); }
+}
 let adquiridos = {};   // gatito → fecha (ms) en que llegó a tu colección (de tus movimientos y pedidos)
 const diaHoy = () => Math.floor(((window.DF && DF.ahora ? DF.ahora() : Date.now()) - 14400000) / 86400000);   // igual que diaHoy() en las reglas
 const BENEF = window.CATALOGO_BENEFICIOS || [];
@@ -615,14 +633,14 @@ async function cargar() {
   aviso('');
   unsubs.push(F.onSnapshot(F.collection(db, 'gatitos_ofertas'), s => { ofertas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); },
     e => aviso('No se pudieron leer las ofertas: ' + esc(e.message), 'err')));
-  misPedidos = []; misVentas = []; misBenef = []; publicaciones = []; poderHoy = null; poderMes = {}; premios = {}; adquiridos = {};
+  misPedidos = []; misVentas = []; misBenef = []; publicaciones = []; poderHoy = null; poderMes = {}; premios = {}; adquiridos = {}; fechasPedidas = new Set();
   if (usuario) {
     unsubs.push(F.onSnapshot(F.collection(db, 'mercado_items'), s => { publicaciones = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); }, () => {}));
     unsubs.push(F.onSnapshot(F.query(F.collection(db, 'gatitos_ventas'), F.orderBy('fecha', 'desc'), F.limit(40)), s => { ventas = s.docs.map(d => d.data()); pintar(); }, () => {}));
     try {
       await DF.asegurarCuentaBanco().catch(() => null);
       const v = await F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase()));
-      unsubs.push(F.onSnapshot(F.doc(db, 'gatitos', usuario.uid), g => { coleccion = g.exists() ? g.data() : { ids: [], favorito: null }; pintar(); },
+      unsubs.push(F.onSnapshot(F.doc(db, 'gatitos', usuario.uid), g => { coleccion = g.exists() ? g.data() : { ids: [], favorito: null }; pintar(); pedirFechas(); },
         e => aviso('No se pudo leer tu colección de gatitos (' + esc(e.message) + '). Recarga la página; si sigue, avísale al profe.', 'err')));
       if (v.exists()) {
         cuentaId = v.data().cuenta;
@@ -635,12 +653,13 @@ async function cargar() {
           pintar(); }, () => {}));
         unsubs.push(F.onSnapshot(F.query(F.collection(db, 'mercado_pedidos'), F.where('vendedor', '==', cuentaId)), s => {
           misVentas = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => ms(b.creada) - ms(a.creada)); pintar(); }, () => {}));
-        unsubs.push(F.onSnapshot(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId)), s => {
+        // Solo los beneficios por canjear (antes se escuchaban TODOS los movimientos de la cuenta,
+        // que crecen con cada tiro de la ruleta).
+        unsubs.push(F.onSnapshot(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('canje', '==', 'pendiente')), s => {
           const todos = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
           misBenef = todos.filter(m => m.canje === 'pendiente' && m.item && m.item !== 'Ruleta: disertación' && m.tipo !== 'poder-gatito' && m.tipo !== 'poder-mensual' && m.tipo !== 'premio-gatito');
-          // fecha de adquisición: compra en el mercado o premio de la ruleta (la más reciente, por si lo vendió y lo volvió a comprar)
-          todos.forEach(m => { if (m.gatito && (m.tipo === 'gatito-compra' || m.tipo === 'ruleta')) adquiridos[m.gatito] = Math.max(adquiridos[m.gatito] || 0, ms(m.fecha)); });
           pintar(); }, () => {}));
+        pedirFechas();
         unsubs.push(F.onSnapshot(F.doc(db, 'gatitos_poderes', cuentaId + '__' + diaHoy()), d => { poderHoy = d.exists() ? d.data() : false; pintar(); }, () => { poderHoy = null; }));
         G.filter(g => g.mensual).forEach(g => unsubs.push(F.onSnapshot(F.doc(db, 'gatitos_poderes_mes', idPoderMes(cuentaId, mesHoy(), g.id)),
           d => { poderMes[g.id] = d.exists() ? d.data() : false; pintar(); }, () => { poderMes[g.id] = null; })));
