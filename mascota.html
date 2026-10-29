@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi mascota · El Mundo de Felipe</title>
+<meta name="description" content="Adopta uno de tus gatitos como mascota: aliméntalo, báñalo, juega con él y llévalo al veterinario.">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;--pos:#4bd08c;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:15px/1.5 var(--ff);
+  background:radial-gradient(900px 420px at 80% -120px,rgba(255,46,126,.14),transparent),radial-gradient(700px 380px at 0% 0%,rgba(34,227,255,.08),transparent),var(--bg)}
+a{color:var(--cyan)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 70px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}.crumb:hover{color:var(--ink)}
+.kick{font:700 12px var(--ff);letter-spacing:4px;text-transform:uppercase;color:var(--pink);margin:26px 0 6px}
+h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(46px,10vw,84px);line-height:.9;letter-spacing:1px;text-transform:uppercase;margin:0}
+h1 span{color:var(--acid)}
+h2{font:900 26px/1 var(--ff-d);text-transform:uppercase;letter-spacing:.5px;margin:0 0 12px}
+.intro{color:var(--mute);max-width:64ch;margin:12px 0 0}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:18px clamp(16px,3vw,24px);margin-top:18px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:9px 16px;font:600 14px var(--ff);text-decoration:none;cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--acid)}
+.btn.p{background:var(--acid);color:#101400;border-color:var(--acid)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.aviso.ok{background:#102a1c;border-color:#1e5a38;color:#b8f5cf}
+.nota{color:var(--mute);font-size:13px;margin:10px 0 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--mute);font-size:13px}
+.top b{color:var(--acid);font:900 26px/1 var(--ff-d)}
+/* escena */
+.mesa{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:18px}
+@media (min-width:860px){.mesa{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+.mesa .card{margin-top:0}
+.escena{position:relative;height:320px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(180deg,#1b2440 0%,#2b2f52 58%,#3a2b22 58%,#2a1f19 100%)}
+.escena::after{content:"";position:absolute;left:0;right:0;top:58%;height:3px;background:rgba(255,255,255,.08)}
+.escena .gato{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);height:220px;filter:drop-shadow(0 12px 14px rgba(0,0,0,.5));transition:filter .4s}
+.escena.feliz .gato{animation:salta 2.4s ease-in-out infinite}
+.escena.triste .gato{filter:drop-shadow(0 12px 14px rgba(0,0,0,.5)) saturate(.5) brightness(.85)}
+.escena.enferma .gato{filter:drop-shadow(0 12px 14px rgba(0,0,0,.5)) grayscale(.75) brightness(.8)}
+.escena .cara{position:absolute;right:16px;top:14px;font-size:42px}
+.escena .nom{position:absolute;left:16px;top:14px;font:900 30px/1 var(--ff-d);text-transform:uppercase}
+.escena .nom small{display:block;font:600 12px var(--ff);letter-spacing:1px;color:var(--mute);text-transform:none;margin-top:4px}
+.fx{position:absolute;left:50%;bottom:150px;font-size:34px;pointer-events:none;animation:sube 1.4s ease-out forwards}
+.x2{position:absolute;left:16px;bottom:14px;font:800 12px var(--ff);letter-spacing:1px;padding:5px 10px;border-radius:999px;background:rgba(204,255,0,.15);color:var(--acid);border:1px solid rgba(204,255,0,.4)}
+@keyframes salta{0%,70%,100%{transform:translateX(-50%) translateY(0)}80%{transform:translateX(-50%) translateY(-14px)}}
+@keyframes sube{from{opacity:1;transform:translate(-50%,0) scale(.8)}to{opacity:0;transform:translate(-50%,-110px) scale(1.4)}}
+@media (prefers-reduced-motion:reduce){.escena .gato,.fx{animation:none!important}}
+/* barras */
+.barras{display:grid;gap:10px}
+.barra{display:grid;grid-template-columns:110px minmax(0,1fr) 40px;gap:10px;align-items:center;font-size:14px}
+.barra .b{height:12px;border-radius:99px;background:var(--slab2);overflow:hidden}
+.barra .b i{display:block;height:100%;border-radius:99px;transition:width .5s}
+.barra span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--mute)}
+.acciones{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:16px}
+.acc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);cursor:pointer;text-align:left;font:inherit}
+.acc:hover:not(:disabled){border-color:var(--acid)}
+.acc:disabled{opacity:.45;cursor:not-allowed}
+.acc b{font-size:15px}.acc small{color:var(--mute);font-size:12px}.acc .pr{color:var(--brass);font-weight:700;font-size:13px}
+.elegir{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px}
+.elegir button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px;border-radius:14px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);cursor:pointer;font:inherit}
+.elegir button:hover{border-color:var(--acid)}
+.elegir img{height:90px;object-fit:contain}
+.elegir small{color:var(--mute);font-size:12px}
+ul.reglas{margin:8px 0 0;padding-left:18px;color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="cuenta.html">← Mi cuenta</a>
+  <p class="kick">Gatitos · Mascota</p>
+  <h1>Mi <span>mascota</span></h1>
+  <p class="intro">Elige uno de tus gatitos y cuídalo: dale comida, báñalo, juega con él y llévalo al veterinario si se enferma. Si está <b>bien cuidado</b> y es un gatito con poder mensual (Nietzsche, César o Gruñona), sus décimas del mes valen <b>×2</b>.</p>
+  <div id="avisos"></div>
+  <div id="app"><section class="card"><div class="nota">Cargando…</div></section></div>
+  <section class="card">
+    <h2>Cómo funciona</h2>
+    <ul class="reglas">
+      <li>Cada hora baja la comida (2 puntos), la higiene y la diversión (1,4 cada una). La energía se recupera sola (5 por hora) y se gasta al jugar.</li>
+      <li>Si la comida, la higiene o la diversión llegan a 0, la salud empieza a bajar. La mascota nunca muere, pero se enferma: el veterinario la cura.</li>
+      <li><b>Bien cuidada</b> = comida, higiene, diversión y energía en 70 o más, y salud en 80 o más.</li>
+      <li>Puedes cambiar de mascota cada 7 días (o cuando quieras, si ya no tienes ese gatito).</li>
+      <li>En vacaciones el profe pausa las mascotas: no les baja nada.</li>
+    </ul>
+  </section>
+</div>
+
+<script src="gatitos/catalogo.js"></script>
+<script src="gatitos/anim.js"></script>
+<script src="gatitos/mascota.js"></script>
+<script src="firebase/df.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const fmt = n => '₣' + new Intl.NumberFormat('es-CL').format(Math.round(n || 0));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ahora = () => DF.ahora ? DF.ahora() : Date.now();
+const msDe = t => t && t.toMillis ? t.toMillis() : (typeof t === 'number' ? t : 0);
+const gato = id => (window.GATITOS || []).find(g => g.id === id);
+const M = window.MASCOTA;
+let usuario = null, cuentaId = null, cuenta = null, ids = [], masc = null, cfg = {}, ocupado = false, eligiendo = false;
+
+function aviso(html, tipo) { $('avisos').innerHTML = html ? `<div class="aviso ${tipo || ''}">${html}</div>` : ''; }
+
+// Lecturas al abrir: mascota, colección, pausa del profe, vínculo y cuenta (≈5 documentos). Sin listeners.
+let cargadoPara = null;
+async function cargar() {
+  const u = DF.usuario(), clave = u ? u.uid : '';
+  if (cargadoPara === clave) return; cargadoPara = clave;
+  usuario = u; cuentaId = null; cuenta = null; ids = []; masc = null; cfg = {};
+  if (!usuario) { pintar(); return; }
+  try {
+    const { F, db } = await DF.listo();
+    await DF.asegurarCuentaBanco().catch(() => null);
+    const [sm, sg, sc, sv] = await Promise.all([
+      F.getDoc(F.doc(db, 'mascotas', usuario.uid)), F.getDoc(F.doc(db, 'gatitos', usuario.uid)),
+      F.getDoc(F.doc(db, 'config', 'mascotas')).catch(() => null), F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase()))]);
+    masc = sm.exists() ? sm.data() : null; ids = sg.exists() ? sg.data().ids || [] : []; cfg = sc && sc.exists() ? sc.data() : {};
+    if (sv.exists()) { cuentaId = sv.data().cuenta; const c = await F.getDoc(F.doc(db, 'banco_cuentas', cuentaId)); cuenta = c.exists() ? c.data() : null; }
+  } catch (e) { aviso('No se pudo cargar tu mascota: ' + esc(e.message), 'err'); }
+  pintar();
+}
+
+function pintar() {
+  const app = $('app');
+  if (!usuario) { app.innerHTML = `<section class="card"><p>Entra con tu cuenta del colegio para cuidar a tu mascota.</p><button class="btn p" type="button" data-a="entrar">Entrar con Google</button></section>`; return; }
+  const mios = ids.map(gato).filter(Boolean);
+  if (!mios.length) { app.innerHTML = `<section class="card"><p>Todavía no tienes gatitos. Consigue uno en el <a href="gatitos.html">Mercado</a> (o en la <a href="ruleta.html">Ruleta</a>) y vuelve para adoptarlo como mascota.</p></section>`; return; }
+  if (!masc || eligiendo) { pintarElegir(mios); return; }
+  const g = gato(masc.gatito) || { id: masc.gatito, nombre: masc.gatito };
+  const e = M.estado(masc, ahora(), cfg), an = M.animo(e), feliz = M.feliz(e), tieneLo = ids.includes(masc.gatito);
+  const puedeCambiar = !tieneLo || ahora() > msDe(masc.cambio) + M.cambioDias * 86400000;
+  const col = v => v >= 70 ? 'var(--pos)' : v >= 35 ? 'var(--brass)' : 'var(--neg)';
+  app.innerHTML = `<div class="mesa">
+    <section class="card">
+      <div class="top"><span>${cfg.pausa ? '⏸️ Mascotas en pausa (vacaciones): no les baja nada.' : 'Tu saldo'}</span><b>${cuenta ? fmt(cuenta.saldo) : '—'}</b></div>
+      <div class="escena ${an.clase}" id="escena" style="margin-top:10px">
+        <div class="nom">${esc(g.nombre)}<small>${esc(an.txt)}</small></div>
+        <div class="cara" aria-hidden="true">${an.cara}</div>
+        <img class="gato" id="imgGato" src="gatitos/img/${esc(g.id)}.webp" alt="${esc(g.nombre)}">
+        ${feliz && g.mensual ? '<span class="x2">×2 en las décimas del mes</span>' : feliz ? '<span class="x2">Bien cuidada ✓</span>' : ''}
+      </div>
+      ${!tieneLo ? `<p class="aviso">Ya no tienes a ${esc(g.nombre)} en tu colección. Elige otra mascota.</p>` : ''}
+    </section>
+    <section class="card">
+      <h2>Estado</h2>
+      <div class="barras">${M.estados.map(([k, emo, nom]) => `<div class="barra"><span>${emo} ${nom}</span><span class="b"><i style="width:${e[k]}%;background:${col(e[k])}"></i></span><span>${Math.floor(e[k])}</span></div>`).join('')}</div>
+      <div class="acciones">${Object.entries(M.acciones).map(([k, a]) => {
+        const sinPlata = a.costo && (!cuenta || (cuenta.saldo || 0) < a.costo), sinEnergia = k === 'jugar' && e.energia < 20;
+        return `<button class="acc" type="button" data-acc="${k}" ${ocupado || sinPlata || sinEnergia || !tieneLo ? 'disabled' : ''}><b>${a.emoji} ${a.nombre}</b><small>${a.txt}</small><span class="pr">${a.costo ? fmt(a.costo) : 'Gratis'}</span></button>`;
+      }).join('')}</div>
+      ${!cuenta ? '<p class="nota">Para comprar comida, baños o veterinario necesitas tu cuenta del banco vinculada.</p>' : ''}
+      <p class="nota">${g.mensual ? (feliz ? '✨ Bien cuidada: al reclamar su poder mensual en el Mercado recibes el doble.' : `Si la mantienes bien cuidada, el poder mensual de ${esc(g.nombre)} vale ×2.`) : 'El ×2 solo aplica a gatitos con poder mensual (Nietzsche, César y Gruñona).'}</p>
+      <div style="margin-top:12px"><button class="btn" type="button" data-a="cambiar" ${puedeCambiar ? '' : 'disabled'}>🔄 Cambiar de mascota</button>
+        ${puedeCambiar ? '' : `<span class="nota">Podrás cambiarla desde el ${new Date(msDe(masc.cambio) + M.cambioDias * 86400000).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}.</span>`}</div>
+    </section></div>`;
+}
+function pintarElegir(mios) {
+  $('app').innerHTML = `<section class="card"><h2>${masc ? 'Cambiar de mascota' : 'Elige tu mascota'}</h2>
+    <p class="nota" style="margin-top:0">${masc ? 'Conserva sus estados actuales. Después de cambiar, tendrás que esperar 7 días para volver a hacerlo.' : 'Empieza con todo en 100. Podrás cambiarla cada 7 días.'}</p>
+    <div class="elegir">${mios.filter(g => !masc || g.id !== masc.gatito).map(g => `<button type="button" data-adoptar="${esc(g.id)}"><img src="gatitos/img/${esc(g.id)}.webp" alt=""><b>${esc(g.nombre)}</b><small>${g.mensual ? '📜 poder mensual ×2' : ''}</small></button>`).join('')}</div>
+    ${masc ? '<div style="margin-top:12px"><button class="btn" type="button" data-a="volver">Volver</button></div>' : ''}</section>`;
+}
+
+function fx(emoji) {
+  const es = $('escena'); if (!es) return;
+  const s = document.createElement('span'); s.className = 'fx'; s.textContent = emoji; es.appendChild(s); setTimeout(() => s.remove(), 1500);
+}
+const ANIM = { comer1: ['sentarse'], comer2: ['sentarse'], banar: ['girar'], jugar: ['jugar'], vet: ['dormir'] };
+
+async function adoptar(gid) {
+  const { F, db } = await DF.listo(); await (DF.reloj ? DF.reloj() : null);
+  const rm = F.doc(db, 'mascotas', usuario.uid);
+  if (!masc) {
+    const d = { uid: usuario.uid, cuenta: cuentaId || '', gatito: gid, comida: 100, higiene: 100, diversion: 100, energia: 100, salud: 100,
+      acc: 'adoptar', t: F.serverTimestamp(), cambio: F.serverTimestamp(), actualizado: F.serverTimestamp() };
+    await F.setDoc(rm, d);
+    masc = Object.assign({}, d, { t: ahora(), cambio: ahora() });
+    return '✓ ¡Adoptaste a ' + esc(gato(gid).nombre) + '!';
+  }
+  const n = M.aplicar(M.estado(masc, ahora(), cfg), 'cambiar');
+  const d = Object.assign({}, masc, n, { gatito: gid, acc: 'cambiar', t: F.serverTimestamp(), cambio: F.serverTimestamp(), actualizado: F.serverTimestamp() });
+  await F.setDoc(rm, d);
+  masc = Object.assign({}, d, { t: ahora(), cambio: ahora() });
+  return '✓ Ahora tu mascota es ' + esc(gato(gid).nombre) + '.';
+}
+async function accion(a) {
+  const A = M.acciones[a], { F, db } = await DF.listo(); await (DF.reloj ? DF.reloj() : null);
+  const rm = F.doc(db, 'mascotas', usuario.uid);
+  const res = await F.runTransaction(db, async tx => {
+    const reads = [tx.get(rm)]; if (A.costo) reads.push(tx.get(F.doc(db, 'banco_cuentas', cuentaId)));
+    const [sm, sc] = await Promise.all(reads);
+    const m = sm.data(), e = M.estado(m, ahora(), cfg);
+    if (a === 'jugar' && e.energia < 20) throw new Error('Está muy cansada para jugar: deja que duerma un rato.');
+    const n = M.aplicar(e, a);
+    const d = Object.assign({}, m, n, { acc: a, t: F.serverTimestamp(), actualizado: F.serverTimestamp() });
+    let saldo = null;
+    if (A.costo) {
+      const c = sc.data(); if ((c.saldo || 0) < A.costo) throw new Error('No te alcanza: ' + A.nombre.toLowerCase() + ' cuesta ' + fmt(A.costo) + '.');
+      saldo = (c.saldo || 0) - A.costo; const ops = (c.ops || 0) + 1;
+      tx.update(F.doc(db, 'banco_cuentas', cuentaId), { saldo, ops, actualizado: F.serverTimestamp() });
+      tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), { cuenta: cuentaId, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
+        monto: -A.costo, motivo: ('Mascota: ' + A.nombre.toLowerCase() + ' a ' + ((gato(m.gatito) || {}).nombre || m.gatito)).slice(0, 200), tipo: 'mascota', saldoDespues: saldo, profe: '', fecha: F.serverTimestamp() });
+    }
+    tx.set(rm, d);
+    return { d, saldo };
+  });
+  masc = Object.assign({}, res.d, { t: ahora() }); if (res.saldo !== null) cuenta.saldo = res.saldo;
+  return A.emoji;
+}
+async function hacer(fn) {
+  if (ocupado) return; ocupado = true; aviso(''); pintar();
+  let emo = null;
+  try { const r = await fn(); if (r && r.length <= 3) emo = r; else aviso(r, 'ok'); }
+  catch (e) { aviso(/permission|insufficient/i.test(e.message) ? 'No se pudo guardar (puede que el profe aún no publique las reglas nuevas).' : esc(e.message), 'err'); }
+  ocupado = false; pintar();
+  return emo;
+}
+document.addEventListener('click', async ev => {
+  const t = ev.target.closest('[data-a],[data-acc],[data-adoptar]'); if (!t) return;
+  if (t.dataset.a === 'entrar') DF.entrar().then(() => { cargadoPara = null; cargar(); }).catch(x => { if (!x.cancelado) aviso(esc(x.message), 'err'); });
+  if (t.dataset.a === 'cambiar') { eligiendo = true; pintar(); }
+  if (t.dataset.a === 'volver') { eligiendo = false; pintar(); }
+  if (t.dataset.adoptar) { const gid = t.dataset.adoptar; eligiendo = false; await hacer(() => adoptar(gid)); }
+  if (t.dataset.acc) {
+    const a = t.dataset.acc, emo = await hacer(() => accion(a));
+    if (emo) { fx(emo); fx(['💖', '✨', '😸'][Math.floor(Math.random() * 3)]); const img = $('imgGato'); if (img && window.GatoAnim) GatoAnim.jugar(img, ANIM[a]); }
+  }
+});
+DF.alCambiarUsuario(() => cargar());
+setInterval(() => { if (!ocupado && !document.hidden) pintar(); }, 60000);   // las barras bajan con el reloj, sin leer Firebase
+</script>
+</body>
+</html>

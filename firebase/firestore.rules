@@ -366,7 +366,91 @@ service cloud.firestore {
             || (d.tipo == 'gatito-compra' && opGatito(d)) || (d.tipo == 'ruleta' && opRuleta(d)) || (d.tipo == 'ruleta-apuesta' && opApuesta(d))
             || (d.tipo == 'transferencia-envio' && opEnvio(id, d)) || (d.tipo == 'compra' && opPedido(id, d))
             || (d.tipo == 'devolucion' && opDevolucion(d)) || (d.tipo == 'poder-gatito' && opPoder(d)) || (d.tipo == 'poder-mensual' && opPoderMes(d)) || (d.tipo == 'premio-gatito' && opPremio(d))
-            || (d.tipo == 'prestamo-pago' && opPagoPrestamo(d)) || (d.tipo in ['ahorro-deposito', 'ahorro-retiro'] && opAhorro(d)));
+            || (d.tipo == 'prestamo-pago' && opPagoPrestamo(d)) || (d.tipo == 'mascota' && opMascota(d)) || (d.tipo in ['ahorro-deposito', 'ahorro-retiro'] && opAhorro(d)));
+    }
+
+    // ═════ Mascotas (como Pou / Tamagotchi) ═════
+    // mascotas/<uid>: un gatito de tu colección con comida, higiene, diversión, energía y salud (0–100).
+    // Nada se descuenta en tiempo real: se guarda el valor y la hora (t) y se calcula lo que bajó desde
+    // entonces (por hora: comida −2, higiene −1,4, diversión −1,4, energía +5; la salud baja 1,5 por
+    // hora por cada estado que esté en 0). Nunca muere. En vacaciones el profe pausa todo (config/mascotas).
+    // Debe coincidir con gatitos/mascota.js.
+    function rutaMascota(u) { return /databases/$(database)/documents/mascotas/$(u); }
+    function cfgMascotas() {
+      return exists(/databases/$(database)/documents/config/mascotas)
+        ? get(/databases/$(database)/documents/config/mascotas).data : {'pausa': false};
+    }
+    function horasMascota(m) {
+      let c = cfgMascotas();
+      let ini = c.get('reanudada', null) != null && c.reanudada > m.t ? c.reanudada : m.t;
+      return c.get('pausa', false) == true ? 0.0 : (request.time.toMillis() - ini.toMillis()) / 3600000.0;
+    }
+    function bajar(v, r, h) { return v - r * h < 0 ? 0.0 : v - r * h; }
+    function enCero(v, r, h) { return h - v / r < 0 ? 0.0 : h - v / r; }
+    function estadoMascota(m) {
+      let h = horasMascota(m);
+      return {
+        'comida': bajar(m.comida, 2.0, h), 'higiene': bajar(m.higiene, 1.4, h), 'diversion': bajar(m.diversion, 1.4, h),
+        'energia': m.energia + 5.0 * h > 100 ? 100.0 : m.energia + 5.0 * h,
+        'salud': bajar(m.salud, 1.5, enCero(m.comida, 2.0, h) + enCero(m.higiene, 1.4, h) + enCero(m.diversion, 1.4, h))
+      };
+    }
+    // Bien cuidada: comida, higiene, diversión y energía ≥ 70 y salud ≥ 80.
+    function estadoFeliz(e) { return e.comida >= 70 && e.higiene >= 70 && e.diversion >= 70 && e.energia >= 70 && e.salud >= 80; }
+    function mascotaFeliz(g) {
+      return exists(rutaMascota(request.auth.uid)) && get(rutaMascota(request.auth.uid)).data.gatito == g
+        && estadoFeliz(estadoMascota(get(rutaMascota(request.auth.uid)).data));
+    }
+    function costoMascota(a) { return {'comer1': 8000, 'comer2': 20000, 'banar': 10000, 'vet': 40000}.get(a, 0); }
+    function tope100(v) { return v > 100 ? 100.0 : v; }
+    function cerca2(a, b) { return a - b <= 2 && b - a <= 2; }
+    function intEntre(v) { return v is int && v >= 0 && v <= 100; }
+    // Valores nuevos = estado calculado ahora + efecto de la acción (con 2 puntos de tolerancia por redondeo).
+    function accionValida(n, e, a) {
+      return intEntre(n.comida) && intEntre(n.higiene) && intEntre(n.diversion) && intEntre(n.energia) && intEntre(n.salud)
+        && cerca2(n.comida, a == 'comer1' ? tope100(e.comida + 40) : (a == 'comer2' ? 100.0 : e.comida))
+        && cerca2(n.higiene, a == 'banar' ? 100.0 : (a == 'jugar' ? bajar(e.higiene, 5.0, 1.0) : e.higiene))
+        && cerca2(n.diversion, a == 'jugar' ? tope100(e.diversion + 25) : e.diversion)
+        && cerca2(n.energia, a == 'jugar' ? e.energia - 20 : e.energia)
+        && (a != 'jugar' || e.energia >= 20)
+        && cerca2(n.salud, a == 'vet' ? 100.0 : (a == 'comer2' ? tope100(e.salud + 5) : e.salud));
+    }
+    function opMascota(d) {
+      let m = getAfter(rutaMascota(request.auth.uid)).data;
+      return m.t == request.time && costoMascota(m.acc) > 0 && d.monto == 0 - costoMascota(m.acc);
+    }
+    match /mascotas/{uid} {
+      allow read: if esProfe() || soyYo(uid);
+      allow write: if esProfe();
+      // adoptar: un gatito de tu colección, con todo en 100
+      allow create: if esColegio() && soyYo(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'cuenta', 'gatito', 'comida', 'higiene', 'diversion', 'energia', 'salud', 't', 'cambio', 'acc', 'actualizado'])
+        && request.resource.data.uid == uid && request.resource.data.cuenta == miCuentaBanco()
+        && request.resource.data.gatito in gatitosAntes(uid)
+        && request.resource.data.comida == 100 && request.resource.data.higiene == 100 && request.resource.data.diversion == 100
+        && request.resource.data.energia == 100 && request.resource.data.salud == 100
+        && request.resource.data.acc == 'adoptar'
+        && request.resource.data.t == request.time && request.resource.data.cambio == request.time && request.resource.data.actualizado == request.time;
+      // cuidar (o cambiar de gatito, cada 7 días o si ya no lo tienes)
+      allow update: if esColegio() && soyYo(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'cuenta', 'gatito', 'comida', 'higiene', 'diversion', 'energia', 'salud', 't', 'cambio', 'acc', 'actualizado'])
+        && request.resource.data.uid == uid && request.resource.data.cuenta == resource.data.cuenta
+        && request.resource.data.t == request.time && request.resource.data.actualizado == request.time
+        && request.resource.data.acc in ['comer1', 'comer2', 'banar', 'jugar', 'vet', 'cambiar']
+        && accionValida(request.resource.data, estadoMascota(resource.data), request.resource.data.acc)
+        && (request.resource.data.acc == 'cambiar'
+              ? (request.resource.data.gatito in gatitosAntes(uid) && request.resource.data.gatito != resource.data.gatito
+                 && request.resource.data.cambio == request.time
+                 && (request.time > resource.data.cambio + duration.value(7, 'd') || !(resource.data.gatito in gatitosAntes(uid))))
+              : (request.resource.data.gatito == resource.data.gatito && request.resource.data.cambio == resource.data.cambio))
+        // las acciones con costo van con su movimiento 'mascota' en la misma escritura
+        && (costoMascota(request.resource.data.acc) == 0
+              || (miCuentaBanco() != '' && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
+                  && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.tipo == 'mascota'));
+    }
+    match /config/mascotas {
+      allow read: if true;
+      allow write: if esProfe();
     }
 
     // ═════ Préstamos y ahorro ═════
@@ -652,10 +736,12 @@ service cloud.firestore {
     }
     function rutaGatitos(uid) { return /databases/$(database)/documents/gatitos/$(uid); }
     function gatitosAntes(uid) { return exists(rutaGatitos(uid)) ? get(rutaGatitos(uid)).data.ids : []; }
-    // ═════ Poderes de los gatitos: décimas formativas por día ═════
-    // común/poco común: 1 · raro/épico: 2 · legendario/mítico: 3 · máximo 3 por día.
+    // ═════ Poderes de los gatitos: décimas formativas por SEMANA (lunes a domingo) ═════
+    // común/poco común: 1 · raro/épico: 2 · legendario/mítico: 3 · máximo 3 por semana.
+    // (Hasta octubre de 2026 eran por día: los documentos antiguos <cuenta>__<día> quedan como historial.)
+    function semanaHoy() { return math.floor((diaHoy() + 3) / 7); }
     // Debe coincidir con gatitos/catalogo.js (PODER_DECIMAS y PODER_MAX_DIA).
-    function rutaPoder(c, d) { return /databases/$(database)/documents/gatitos_poderes/$(c + '__' + string(d)); }
+    function rutaPoder(c, s) { return /databases/$(database)/documents/gatitos_poderes/$(c + '__s' + string(s)); }
     function decimasPoder(uid) {
       let s = gatitosAntes(uid).toSet();
       let n = s.intersection(['naranjo', 'gris', 'dormilon', 'patitas', 'aseo', 'blanconegro', 'tricolor', 'comelon'].toSet()).size()
@@ -673,8 +759,8 @@ service cloud.firestore {
       let n = decimasPoder(request.auth.uid);
       return n > 0 && d.monto == 0 && d.canje == 'pendiente' && d.item == textoDecimas(n, sumativasPoder(request.auth.uid))
         && !d.keys().hasAny(['gatito', 'oferta', 'precio', 'pedido', 'transferencia'])
-        && !exists(rutaPoder(d.cuenta, diaHoy()))
-        && getAfter(rutaPoder(d.cuenta, diaHoy())).data.decimas == n;
+        && !exists(rutaPoder(d.cuenta, semanaHoy()))
+        && getAfter(rutaPoder(d.cuenta, semanaHoy())).data.decimas == n;
     }
     // ── Premio único: Ava y Calha dan 5 formativas y 2 sumativas una sola vez por cuenta y por gatita ──
     function rutaPremio(c, g) { return /databases/$(database)/documents/gatitos_premios/$(c + '__' + g); }
@@ -710,7 +796,9 @@ service cloud.firestore {
       let g = d.get('gatito', 'nietzsche');
       return g in ['nietzsche', 'cesar', 'grunona'] && g in gatitosAntes(request.auth.uid)
         && d.monto == 0 && d.canje == 'pendiente'
-        && d.item == nombreMensual(g) + ': 5 décimas formativas y 2 décimas sumativas del mes'
+        && (d.item == nombreMensual(g) + ': 5 décimas formativas y 2 décimas sumativas del mes'
+            // ×2 si ESE gatito es tu mascota y está bien cuidada
+            || (d.item == nombreMensual(g) + ': 10 décimas formativas y 4 décimas sumativas del mes (×2 mascota feliz)' && mascotaFeliz(g)))
         && !d.keys().hasAny(['oferta', 'precio', 'pedido', 'transferencia'])
         && !exists(rutaPoderMes(d.cuenta, mesHoy(), g))
         && getAfter(rutaPoderMes(d.cuenta, mesHoy(), g)).data.mes == mesHoy();
@@ -729,17 +817,17 @@ service cloud.firestore {
         && opsDespues(request.resource.data.cuenta) == opsAntes(request.resource.data.cuenta) + 1
         && getAfter(rutaOp(request.resource.data.cuenta, opsDespues(request.resource.data.cuenta))).data.tipo == 'poder-mensual';
     }
-    // Una vez al día por cuenta, junto con su movimiento.
+    // Una vez por semana por cuenta, junto con su movimiento.
     match /gatitos_poderes/{pid} {
       allow read: if esProfe() || (miCuentaBanco() != '' && pid.split('__')[0] == miCuentaBanco())  // también si aún no existe;
       allow write: if esProfe();
       allow create: if esColegio()
         && request.resource.data.cuenta == miCuentaBanco() && miCuentaBanco() != ''
-        && request.resource.data.keys().hasOnly(['cuenta', 'uid', 'dia', 'decimas', 'sumativas', 'fecha'])
+        && request.resource.data.keys().hasOnly(['cuenta', 'uid', 'semana', 'decimas', 'sumativas', 'fecha'])
         && request.resource.data.get('sumativas', 0) == sumativasPoder(request.auth.uid)
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.dia == diaHoy()
-        && pid == request.resource.data.cuenta + '__' + string(diaHoy())
+        && request.resource.data.semana == semanaHoy()
+        && pid == request.resource.data.cuenta + '__s' + string(semanaHoy())
         && request.resource.data.decimas == decimasPoder(request.auth.uid)
         && request.resource.data.fecha == request.time
         && opsDespues(request.resource.data.cuenta) == opsAntes(request.resource.data.cuenta) + 1

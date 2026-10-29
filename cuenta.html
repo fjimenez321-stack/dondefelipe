@@ -150,12 +150,13 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
         <a href="#banco"><small>Saldo</small><b id="rSaldo">—</b></a>
         <a href="#gatitosSec"><small>Gatitos</small><b id="rGatos">—</b></a>
         <a href="#banco"><small>Por usar</small><b id="rUsar">—</b></a>
-        <a href="gatitos.html#coleccion"><small>Décimas hoy</small><b id="rDec">—</b></a>
+        <a href="gatitos.html#coleccion"><small>Décimas semana</small><b id="rDec">—</b></a>
       </div>
       <div class="atajos">
         <a class="btn" href="gatitos.html"><i class="fa-solid fa-store"></i> Mercado</a>
         <a class="btn" href="banco-felipeso/bolsa.html"><i class="fa-solid fa-chart-line"></i> Bolsa</a>
         <a class="btn" href="ruleta.html"><i class="fa-solid fa-dharmachakra"></i> Ruleta</a>
+        <a class="btn" href="mascota.html"><i class="fa-solid fa-paw"></i> Mi mascota</a>
         <a class="btn" href="banco-felipeso/banco.html"><i class="fa-solid fa-building-columns"></i> Préstamos y ahorro</a>
         <a class="btn" href="banco-felipeso/bases.html"><i class="fa-solid fa-scroll"></i> Bases</a>
         <a class="btn" id="aPanel" href="panel-profe.html" hidden><i class="fa-solid fa-user-lock"></i> Panel del profe</a>
@@ -408,7 +409,7 @@ async function cargarGatitos(u, banco) {
       F.getDoc(F.doc(db, 'gatitos', u.uid)),
       F.getDocs(F.query(F.collection(db, 'mercado_items'), F.where('uid', '==', u.uid))).catch(() => null),
       cid ? F.getDocs(F.query(F.collection(db, 'mercado_pedidos'), F.where('comprador', '==', cid))).catch(() => null) : null,
-      cid ? F.getDoc(F.doc(db, 'gatitos_poderes', cid + '__' + diaHoy())).catch(() => null) : null,
+      cid ? F.getDoc(F.doc(db, 'gatitos_poderes', idPoderSemana(cid))).catch(() => null) : null,
       cid ? Promise.all((window.GATITOS || []).filter(g => g.mensual).map(g => F.getDoc(F.doc(db, 'gatitos_poderes_mes', idPoderMes(cid, mesHoy(), g.id)))
         .then(d => [g.id, d.exists()], () => [g.id, false]))) : [],
       null   // los movimientos ya vienen en «banco» (DF.miBanco): no se vuelven a leer
@@ -443,7 +444,7 @@ async function cargarGatitos(u, banco) {
       <p class="sub">Colección: ${mios.length} de ${G.length} · valor ${fmt(valor)} ₣${venta.length ? ` · ${venta.length} a la venta` : ''}${camino.length ? ` · ${camino.length} por llegar` : ''}</p>
       <div class="ggrid">${cat.map(mini).join('')}</div>
       <div class="gpod"><b>⚡ Poderes</b>
-        <div class="muted" style="font-size:14px">${dec ? `Tus gatitos te dan <b style="color:var(--acid)">${esc(textoPoderDia(pd))}</b> por día. ${yaHoy ? '✓ Ya las reclamaste hoy.' : '<a href="gatitos.html#coleccion">Reclámalas hoy en el Mercado</a> (si no, se pierden).'}` : 'Tus gatitos aún no dan décimas.'}</div>
+        <div class="muted" style="font-size:14px">${dec ? `Tus gatitos te dan <b style="color:var(--acid)">${esc(textoPoderDia(pd))}</b> por semana. ${yaHoy ? '✓ Ya las reclamaste esta semana.' : '<a href="gatitos.html#coleccion">Reclámalas esta semana en el Mercado</a> (si no, se pierden el domingo).'}` : 'Tus gatitos aún no dan décimas.'}</div>
         ${especiales.length ? `<ul>${especiales.map(([p, n]) => `<li>${esc(p)} <small>· ${esc(n)}</small></li>`).join('')}</ul>` : ''}
         ${mensualesDe(ids).map(g => `<div class="muted" style="font-size:14px;margin-top:6px">📜 Poder mensual de ${esc(g.nombre)}: ${podMes[g.id] ? '✓ ya lo reclamaste este mes.' : '<a href="gatitos.html#coleccion">reclámalo este mes en el Mercado</a>.'}</div>`).join('')}
       </div>

@@ -45,8 +45,9 @@ window.GATITOS = [
 ];
 
 /* ═════ Poderes de los gatitos ═════
-   Cada gatito que tienes da décimas formativas por día (se reclaman en el Mercado, pestaña Mi colección):
-   común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3. Máximo 3 décimas por día en total.
+   Cada gatito que tienes da décimas formativas cada SEMANA (lunes a domingo; se reclaman en el Mercado,
+   pestaña Mi colección): común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3. Máximo 3 por semana.
+   (Antes eran por día; desde octubre de 2026 son semanales.)
    Premio único (campo «premio»): Ava y Calha dan, además, 5 décimas formativas y 2 sumativas UNA sola vez
    por cuenta y por gatita (se reclama en Mi colección).
    Gato Nietzsche y Gato del tío César (diarias: 0, mensual): no dan décimas diarias; cada uno da 5 formativas
@@ -55,9 +56,12 @@ window.GATITOS = [
    respeta cuando la clase lo permite.
    ¡Ojo! Las décimas por rareza y el máximo también están en firebase/firestore.rules (decimasPoder). */
 window.PODER_DECIMAS = { comun: 1, pococomun: 1, raro: 2, epico: 2, legendario: 3, mitico: 3, heroe: 0 };
-window.PODER_MAX_DIA = 3;
+window.PODER_MAX_DIA = 3;   // máximo por SEMANA (el nombre se conserva por compatibilidad)
+// Semana escolar (lunes a domingo, hora de Chile aproximada UTC−4) como número. Igual que semanaHoy() en las reglas.
+window.semanaHoy = function () { var d = Math.floor(((window.DF && DF.ahora ? DF.ahora() : Date.now()) - 14400000) / 86400000); return Math.floor((d + 3) / 7); };
+window.idPoderSemana = function (cuenta) { return cuenta + '__s' + window.semanaHoy(); };
 window.GATITOS_ESPECIALES = {};   // (sin gatitos con décimas diarias especiales por ahora)
-// Lo que da un gatito por día y lo que dan todos juntos hoy.
+// Lo que da un gatito por semana y lo que dan todos juntos esta semana.
 window.poderGato = function (g) {
   if (g.diarias === 0) return { formativas: 0, sumativas: 0 };
   var e = window.GATITOS_ESPECIALES[g.id];
@@ -80,7 +84,11 @@ window.mensualesDe = function (ids) {
 };
 // Documento que marca el reclamo del mes (el de Nietzsche conserva el formato antiguo).
 window.idPoderMes = function (cuenta, mes, gid) { return gid === 'nietzsche' ? cuenta + '__' + mes : cuenta + '__' + mes + '__' + gid; };
-window.textoMensual = function (g) { return g.nombre + ': ' + window.textoPoderDia(g.mensual) + ' del mes'; };
+// doble = ese gatito es tu mascota y está bien cuidada (ver gatitos/mascota.js): ×2.
+window.textoMensual = function (g, doble) {
+  var p = doble ? { formativas: g.mensual.formativas * 2, sumativas: g.mensual.sumativas * 2 } : g.mensual;
+  return g.nombre + ': ' + window.textoPoderDia(p) + ' del mes' + (doble ? ' (×2 mascota feliz)' : '');
+};
 window.poderDelMes = function (ids) {
   var f = 0, s = 0;
   (ids || []).forEach(function (id) { var g = window.GATITOS.find(function (x) { return x.id === id; }); if (g && g.mensual) { f = Math.max(f, g.mensual.formativas); s = Math.max(s, g.mensual.sumativas); } });
