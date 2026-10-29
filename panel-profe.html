@@ -104,6 +104,11 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
   <div id="avisos"></div>
 
   <div id="app" class="oculto">
+    <div class="card" style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span style="flex:1;min-width:220px">🌲 <b>Mundos 3D</b> <span class="muted" style="font-size:13px">· ocultos para los estudiantes mientras están en diseño y pruebas (solo se entra desde aquí)</span></span>
+      <a class="btn sm" href="a-frame/mundo.html#bosque" target="_blank" rel="noopener">Bosque</a>
+      <a class="btn sm" href="a-frame/index.html" target="_blank" rel="noopener">Todos los mundos</a>
+    </div>
     <nav class="tabs" id="tabs">
       <button data-t="banco" class="on">Banco</button>
       <button data-t="juegos">Juegos</button>
@@ -541,7 +546,7 @@ $('listaPend').onclick = ev => {
 
 /* ── transferencias entre cuentas (las pide el estudiante, las autoriza el profe) ── */
 let transPend = [], transHist = [];
-const ESTADO_TR = { aprobada: 'Autorizada', rechazada: 'Rechazada', cancelada: 'Cancelada por el estudiante' };
+const ESTADO_TR = { automatica: 'Automática (hasta $50.000, sin autorización)', aprobada: 'Autorizada', rechazada: 'Rechazada', cancelada: 'Cancelada por el estudiante' };
 let pedPend = [], pedHist = [];
 const ICO_SOL = { transferencia: '💸', beneficio: '🛍️', reventa: '🤝' };
 function solicitudes(pend) {
