@@ -147,6 +147,11 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
             <button class="btn sm" id="btnAuto">…</button>
           </div>
           <div class="card" style="margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <div style="flex:1;min-width:240px"><b>🐾 Mascotas: pausa de vacaciones</b>
+              <div class="muted" style="font-size:13px" id="mascTxt">Cargando…</div></div>
+            <button class="btn sm" id="btnMasc">…</button>
+          </div>
+          <div class="card" style="margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
             <div style="flex:1;min-width:240px"><b>Revisar operaciones de los estudiantes</b>
               <div class="muted" style="font-size:13px" id="opsTxt">Si a alguien no le funciona el bono diario, la bolsa, la ruleta o los gatitos («Missing or insufficient permissions»), su contador de operaciones puede estar desfasado (pasa si se reimportan cuentas). Esto lo revisa y lo arregla para todas las cuentas.</div></div>
             <button class="btn sm" id="btnOps">🔧 Revisar y reparar</button>
@@ -419,6 +424,7 @@ $('tabs').onclick = ev => {
 function iniciarBanco() {
   const { F, db } = FB;
   iniciarPrestamos();
+  F.getDoc(F.doc(db, 'config', 'mascotas')).then(s => { cfgMasc = s.exists() ? s.data() : {}; pintarMasc(); }, () => {});
   desuscribir.push(F.onSnapshot(F.collection(db, 'banco_cuentas'), s => {
     cuentas = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
     cuentas.sort((a, b) => String(a.curso || '').localeCompare(String(b.curso || ''), 'es') || String(a.apellido || '').localeCompare(String(b.apellido || ''), 'es'));
@@ -587,7 +593,7 @@ function pintarPoderes() {
   }).filter(f => f.pod.length).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
   $('nPod').textContent = filas.length;
   const l = q ? filas.filter(f => (f.nombre + ' ' + f.pod.map(p => p.join(' ')).join(' ')).toLowerCase().includes(q)) : filas;
-  $('listaPod').innerHTML = l.length ? l.map(f => `<div class="m"><div class="t"><b>${esc(f.nombre)}</b> <span class="pill">${f.dec} déc./día</span>
+  $('listaPod').innerHTML = l.length ? l.map(f => `<div class="m"><div class="t"><b>${esc(f.nombre)}</b> <span class="pill">${f.dec} déc./semana</span>
     <small>${f.pod.map(([p, n]) => `${esc(p)} <span class="muted">(${esc(n)})</span>`).join('<br>')}</small></div></div>`).join('')
     : `<div class="muted">${filas.length ? 'Sin resultados.' : 'Nadie tiene todavía un gatito con poder especial (raro o superior).'}</div>`;
 }
@@ -611,6 +617,21 @@ $('listaPerf').onclick = async ev => {
   catch (e) { toast('No se pudo: ' + e.message); }
 };
 
+
+/* ═════════ MASCOTAS: pausa de vacaciones (config/mascotas) ═════════
+   En pausa no les baja nada; al reanudar, el tiempo en pausa no cuenta (campo «reanudada»). */
+let cfgMasc = {};
+function pintarMasc() {
+  $('mascTxt').innerHTML = cfgMasc.pausa ? '<b class="neg">En pausa:</b> a las mascotas no les baja comida, higiene ni diversión.' : 'Activas: las mascotas necesitan cuidados. Pausa en vacaciones para que nadie vuelva a una mascota enferma.';
+  $('btnMasc').textContent = cfgMasc.pausa ? '▶️ Reanudar' : '⏸️ Pausar';
+}
+$('btnMasc').onclick = async () => {
+  const { F, db } = FB, pausa = !cfgMasc.pausa;
+  try {
+    await F.setDoc(F.doc(db, 'config', 'mascotas'), pausa ? { pausa: true, pausada: F.serverTimestamp(), reanudada: cfgMasc.reanudada || null } : { pausa: false, pausada: cfgMasc.pausada || null, reanudada: F.serverTimestamp() });
+    cfgMasc = Object.assign({}, cfgMasc, { pausa }); pintarMasc(); toast(pausa ? 'Mascotas en pausa' : 'Mascotas reanudadas');
+  } catch (e) { toast('Error: ' + e.message); }
+};
 
 /* ═════════ PRÉSTAMOS Y AHORRO ═════════
    Deben coincidir con firebase/firestore.rules y banco-felipeso/banco.html.
