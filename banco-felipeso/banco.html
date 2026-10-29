@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Préstamos y ahorro · Banco de Hipopesos</title>
+<meta name="description" content="Pide un préstamo o ahorra tus Hipopesos con intereses semanales.">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;--pos:#4bd08c;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:15px/1.5 var(--ff);
+  background:radial-gradient(900px 420px at 85% -120px,rgba(75,208,140,.13),transparent),radial-gradient(700px 380px at 0% 0%,rgba(233,185,73,.08),transparent),var(--bg)}
+a{color:var(--cyan)}
+.wrap{max-width:980px;margin:0 auto;padding:22px 16px 70px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}.crumb:hover{color:var(--ink)}
+.kick{font:700 12px var(--ff);letter-spacing:4px;text-transform:uppercase;color:var(--brass);margin:26px 0 6px}
+h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(44px,9vw,80px);line-height:.9;letter-spacing:1px;text-transform:uppercase;margin:0}
+h1 span{color:var(--acid)}
+h2{font:900 28px/1 var(--ff-d);text-transform:uppercase;letter-spacing:.5px;margin:0 0 12px}
+.intro{color:var(--mute);max-width:64ch;margin:12px 0 0}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:18px clamp(16px,3vw,24px);margin-top:18px}
+.estado{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.dato{font:900 36px/1 var(--ff-d);color:var(--acid)}
+.dato small{display:block;font:600 12px var(--ff);letter-spacing:2px;text-transform:uppercase;color:var(--mute);margin-top:4px}
+.dato.b{color:var(--brass)}.dato.r{color:var(--neg)}.dato.g{color:var(--pos)}
+.estado .sesion{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mute);font-size:13px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+@media (min-width:860px){.grid{grid-template-columns:1fr 1fr}}
+.grid .card{margin-top:0}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:9px 16px;font:600 14px var(--ff);text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--acid)}
+.btn.p{background:var(--acid);color:#101400;border-color:var(--acid)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+input,textarea{background:var(--slab2);color:var(--ink);border:1px solid var(--line2);border-radius:12px;padding:9px 12px;font:15px var(--ff)}
+input[type=number]{width:160px}
+textarea{width:100%;min-height:60px;resize:vertical}
+.nums{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 4px}
+.nums div{font:900 28px/1 var(--ff-d)}
+.nums small{display:block;font:600 11px var(--ff);letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin-top:3px}
+.nota{color:var(--mute);font-size:13px;margin:10px 0 0}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.aviso.ok{background:#102a1c;border-color:#1e5a38;color:#b8f5cf}
+.pill{display:inline-block;font:800 11px var(--ff);letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08)}
+.pill.r{background:rgba(255,122,112,.18);color:var(--neg)}.pill.g{background:rgba(75,208,140,.18);color:var(--pos)}.pill.b{background:rgba(233,185,73,.18);color:var(--brass)}
+.barra{height:8px;border-radius:99px;background:var(--slab2);overflow:hidden;margin:10px 0 4px}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,var(--pos),var(--acid))}
+.barra.r i{background:linear-gradient(90deg,var(--brass),var(--neg))}
+ul.reglas{margin:8px 0 0;padding-left:18px;color:var(--mute);font-size:14px}
+ul.reglas li{margin:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="../cuenta.html">← Mi cuenta</a>
+  <p class="kick">Banco de Hipopesos</p>
+  <h1>Préstamos <span>y ahorro</span></h1>
+  <p class="intro">Ahorra y gana <b>10% cada semana</b> (hasta ₣500.000), o pide un préstamo que el profe aprueba: devuelves lo pedido <b>más 30%</b> dentro de 30 días. Si no pagas a tiempo, el banco <b>embarga tus bienes</b>.</p>
+
+  <div id="avisos"></div>
+
+  <section class="card">
+    <div class="estado">
+      <div class="dato" id="saldo">—<small>Tu saldo</small></div>
+      <div class="dato g" id="dAhorro">—<small>Ahorrado</small></div>
+      <div class="dato r" id="dDeuda">—<small>Deuda</small></div>
+      <div class="sesion" id="sesion"></div>
+    </div>
+  </section>
+
+  <div class="grid" style="margin-top:18px">
+    <section class="card" id="cAhorro"><h2>🐷 Ahorro</h2><div class="nota">Entra con tu cuenta para ver tu ahorro.</div></section>
+    <section class="card" id="cPrestamo"><h2>🏦 Préstamo</h2><div class="nota">Entra con tu cuenta para ver tus préstamos.</div></section>
+  </div>
+
+  <section class="card">
+    <h2>Cómo funciona</h2>
+    <ul class="reglas">
+      <li><b>Ahorro:</b> por cada semana completa, tu ahorro crece 10% (interés compuesto). El tope es ₣500.000 contando los intereses: al llegar ahí deja de crecer.</li>
+      <li>Cada depósito o retiro suma lo ganado hasta ese momento y <b>reinicia la semana</b> en curso.</li>
+      <li>No puedes depositar mientras tengas un préstamo pedido o sin pagar (sí puedes retirar).</li>
+      <li><b>Préstamo:</b> pides entre ₣10.000 y ₣1.000.000 y el profe lo aprueba o lo rechaza. Uno a la vez.</li>
+      <li>Al aprobarse recibes el dinero y debes devolver <b>lo pedido + 30%</b> antes de 30 días. Puedes pagar en partes.</li>
+      <li><b>Embargo:</b> si vence sin pagar, el banco toma, hasta cubrir la deuda y en este orden: tu saldo, tu ahorro, tus acciones (al precio del día), tus gatitos (a su precio, primero los más baratos) y tus beneficios por canjear. Lo que vayas ganando después también se embarga. Si un bien vale más que lo que debías, la diferencia vuelve a tu saldo.</li>
+    </ul>
+    <p class="nota">Más detalles en las <a href="bases.html">Bases de los Hipopesos</a>.</p>
+  </section>
+</div>
+
+<script src="../firebase/df.js"></script>
+<script>
+'use strict';
+/* Debe coincidir con firebase/firestore.rules (sección «Préstamos y ahorro»). */
+const BANCO = {
+  tasaSemana: 0.10, topeAhorro: 500000, semanaMs: 604800000,
+  recargo: 0.30, plazoDias: 30, minPrestamo: 10000, maxPrestamo: 1000000
+};
+const $ = id => document.getElementById(id);
+const fmt = n => '₣' + new Intl.NumberFormat('es-CL').format(Math.round(n || 0));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ahora = () => DF.ahora ? DF.ahora() : Date.now();
+const msDe = t => t && t.toMillis ? t.toMillis() : (typeof t === 'number' ? t : 0);
+const fechaLarga = ms => new Date(ms).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+// Ahorro con intereses de las semanas completas (mismo cálculo que ahorroAl() en las reglas).
+function ahorroAl(a, t) {
+  if (!a || !a.monto) return 0;
+  const k = Math.floor((t - msDe(a.desde)) / BANCO.semanaMs);
+  if (a.monto >= BANCO.topeAhorro) return a.monto;
+  return Math.min(BANCO.topeAhorro, Math.floor(a.monto * Math.pow(1 + BANCO.tasaSemana, k)));
+}
+const CERRADO = ['pagado', 'rechazado', 'cancelado'];
+
+let usuario = null, cuentaId = null, cuenta = null, ahorro = null, prestamo = null, ocupado = false;
+
+function aviso(html, tipo) { $('avisos').innerHTML = html ? `<div class="aviso ${tipo || ''}">${html}</div>` : ''; }
+
+// Lecturas al abrir: vínculo, cuenta, préstamo y ahorro (4 documentos). Sin listeners.
+let cargadoPara = null;
+async function cargar(forzar) {
+  const u = DF.usuario(), clave = u ? u.uid : '';
+  if (!forzar && cargadoPara === clave) return;
+  cargadoPara = clave;
+  usuario = u; cuentaId = null; cuenta = null; ahorro = null; prestamo = null;
+  try {
+    const { F, db } = await DF.listo();
+    if (usuario) {
+      await DF.asegurarCuentaBanco().catch(() => null);
+      const v = await F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase()));
+      if (v.exists()) {
+        cuentaId = v.data().cuenta;
+        const [c, p, a] = await Promise.all([F.getDoc(F.doc(db, 'banco_cuentas', cuentaId)), F.getDoc(F.doc(db, 'banco_prestamos', cuentaId)), F.getDoc(F.doc(db, 'banco_ahorros', cuentaId))]);
+        cuenta = c.exists() ? c.data() : null; prestamo = p.exists() ? p.data() : null; ahorro = a.exists() ? a.data() : null;
+      }
+      if (!cuenta) aviso('Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule.');
+    }
+  } catch (e) { aviso('No se pudo cargar tu cuenta: ' + esc(e.message), 'err'); }
+  pintar();
+}
+
+function enCurso() { return prestamo && !CERRADO.includes(prestamo.estado); }
+function pintar() {
+  const t = ahora();
+  $('sesion').innerHTML = usuario
+    ? `<span>${esc(usuario.email)}</span><button class="btn" type="button" data-a="salir">Salir</button>`
+    : `<button class="btn p" type="button" data-a="entrar">Entrar con Google</button>`;
+  $('saldo').innerHTML = (cuenta ? fmt(cuenta.saldo) : '—') + '<small>Tu saldo</small>';
+  const ah = ahorroAl(ahorro, t);
+  $('dAhorro').innerHTML = (cuenta ? fmt(ah) : '—') + '<small>Ahorrado</small>';
+  $('dDeuda').innerHTML = (cuenta ? fmt(prestamo && prestamo.estado === 'vigente' ? prestamo.deuda : 0) : '—') + '<small>Deuda</small>';
+  if (!cuenta) return;
+  pintarAhorro(ah, t); pintarPrestamo(t);
+}
+function pintarAhorro(ah, t) {
+  const a = ahorro, desde = a ? msDe(a.desde) : 0, k = a ? Math.floor((t - desde) / BANCO.semanaMs) : 0;
+  const prox = a && a.monto ? desde + (k + 1) * BANCO.semanaMs : 0, sig = Math.min(BANCO.topeAhorro, Math.floor(a ? a.monto * Math.pow(1 + BANCO.tasaSemana, k + 1) : 0));
+  const tope = ah >= BANCO.topeAhorro, bloqueo = enCurso();
+  const espacio = Math.max(0, BANCO.topeAhorro - ah);
+  $('cAhorro').innerHTML = `<h2>🐷 Ahorro</h2>
+    <div class="nums"><div style="color:var(--pos)">${fmt(ah)}<small>Ahorrado ahora</small></div>
+      <div style="color:var(--brass)">${fmt((a ? a.intereses || 0 : 0) + (ah - (a ? a.monto : 0)))}<small>Intereses ganados</small></div></div>
+    <div class="barra"><i style="width:${Math.min(100, ah / BANCO.topeAhorro * 100)}%"></i></div>
+    <p class="nota" style="margin-top:2px">${fmt(ah)} de ${fmt(BANCO.topeAhorro)} (tope).
+      ${tope ? '<b>Llegaste al tope: tu ahorro ya no crece.</b>' : ah > 0 ? `Próximo interés: <b>${fechaLarga(prox)}</b>, a las ${new Date(prox).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} → tendrás <b>${fmt(sig)}</b>.` : 'Deposita para empezar a ganar 10% por semana.'}</p>
+    <div class="fila"><input type="number" id="mAhorro" min="1" step="1000" placeholder="Monto" inputmode="numeric">
+      <button class="btn p" type="button" data-a="depositar" ${bloqueo || tope ? 'disabled' : ''}>Depositar</button>
+      <button class="btn" type="button" data-a="retirar" ${ah > 0 ? '' : 'disabled'}>Retirar</button>
+      <button class="btn" type="button" data-a="retirarTodo" ${ah > 0 ? '' : 'disabled'}>Retirar todo</button></div>
+    <p class="nota">${bloqueo ? '🔒 No puedes depositar mientras tengas un préstamo pedido o sin pagar.' : tope ? '' : `Puedes depositar hasta ${fmt(Math.min(espacio, cuenta.saldo || 0))}.`} Depositar o retirar reinicia la semana en curso.</p>`;
+}
+function pintarPrestamo(t) {
+  const p = prestamo, box = $('cPrestamo');
+  if (!p || CERRADO.includes(p.estado)) {
+    const ultimo = p ? (p.estado === 'pagado' ? `<p class="nota">Tu último préstamo quedó <span class="pill g">pagado</span>${p.embargado ? ' (con ' + fmt(p.embargado) + ' embargados)' : ''}.</p>`
+      : p.estado === 'rechazado' ? `<p class="nota">Tu última solicitud fue <span class="pill r">rechazada</span>${p.nota ? ': ' + esc(p.nota) : ''}.</p>` : '') : '';
+    box.innerHTML = `<h2>🏦 Préstamo</h2>${ultimo}
+      <p>Pide entre ${fmt(BANCO.minPrestamo)} y ${fmt(BANCO.maxPrestamo)}. Devolverás <b>lo pedido + 30%</b> antes de 30 días desde que el profe lo apruebe.</p>
+      <div class="fila"><input type="number" id="mPrestamo" min="${BANCO.minPrestamo}" max="${BANCO.maxPrestamo}" step="1000" placeholder="Monto" inputmode="numeric"> <span class="nota" id="devolver" style="margin:0"></span></div>
+      <div class="fila"><textarea id="motivoP" maxlength="120" placeholder="¿Para qué lo necesitas? (lo lee el profe)"></textarea></div>
+      <div class="fila"><button class="btn p" type="button" data-a="pedir">Pedir préstamo</button></div>
+      <p class="nota">⚠️ Si no pagas a tiempo, se embargan tu saldo, tu ahorro, tus acciones, tus gatitos y tus beneficios.</p>`;
+    return;
+  }
+  if (p.estado === 'solicitado') {
+    box.innerHTML = `<h2>🏦 Préstamo</h2><p><span class="pill b">Esperando al profe</span></p>
+      <div class="nums"><div>${fmt(p.monto)}<small>Pedido</small></div><div style="color:var(--neg)">${fmt(Math.round(p.monto * (1 + BANCO.recargo)))}<small>Devolverás</small></div></div>
+      <p class="nota">Motivo: ${esc(p.motivo)}</p>
+      <div class="fila"><button class="btn" type="button" data-a="cancelar">Cancelar solicitud</button></div>`;
+    return;
+  }
+  // vigente
+  const vence = p.venceMs || 0, dias = Math.ceil((vence - t) / 86400000), vencido = t > vence;
+  const total = Math.round(p.monto * (1 + BANCO.recargo)), pagadoPct = total ? Math.min(100, (total - p.deuda) / total * 100) : 0;
+  box.innerHTML = `<h2>🏦 Préstamo</h2>
+    <p>${vencido ? '<span class="pill r">Vencido · en embargo</span>' : `<span class="pill b">Vigente · ${dias} día${dias === 1 ? '' : 's'}</span>`}</p>
+    <div class="nums"><div style="color:var(--neg)">${fmt(p.deuda)}<small>Debes</small></div><div>${fmt(p.monto)}<small>Pediste</small></div><div style="color:var(--mute)">${fmt(total)}<small>Total a devolver</small></div></div>
+    <div class="barra r"><i style="width:${pagadoPct}%"></i></div>
+    <p class="nota" style="margin-top:2px">Pagado: ${fmt(p.pagado || 0)}${p.embargado ? ' · embargado: ' + fmt(p.embargado) : ''}. ${vencido ? '<b>Venció el ' + fechaLarga(vence) + '.</b> Mientras no pagues, el profe embarga tus bienes.' : 'Vence el <b>' + fechaLarga(vence) + '</b>.'}</p>
+    <div class="fila"><input type="number" id="mPago" min="1" step="1000" placeholder="Monto" inputmode="numeric">
+      <button class="btn p" type="button" data-a="pagar">Pagar</button>
+      <button class="btn" type="button" data-a="pagarTodo" ${(cuenta.saldo || 0) > 0 ? '' : 'disabled'}>Pagar ${fmt(Math.min(p.deuda, cuenta.saldo || 0))}</button></div>`;
+}
+
+/* ── Operaciones (cada una: cuenta + movimiento op-<cuenta>-<n> + su documento, en una transacción) ── */
+function movBase(c, ops, monto, saldo, motivo, tipo) {
+  return { cuenta: cuentaId, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
+    monto, motivo: String(motivo).slice(0, 200), tipo, saldoDespues: saldo, profe: '', fecha: null, _ops: ops };
+}
+async function operar(fn) {
+  if (ocupado) return; ocupado = true; aviso('');
+  try { await (DF.reloj ? DF.reloj() : null); const msg = await fn(); aviso(msg, 'ok'); }
+  catch (e) { aviso(/permission|insufficient/i.test(e.message) ? 'El banco no aceptó la operación. Si el problema sigue, avísale al profe (puede que falte publicar las reglas nuevas).' : esc(e.message), 'err'); await cargar(true); }
+  ocupado = false; pintar();
+}
+// La semana se cuenta en el servidor: cerca del cambio de semana se espera un poco para no calcular distinto.
+function cercaDelCambio(a, t) {
+  if (!a || !a.monto) return false;
+  const pasado = t - msDe(a.desde), r = pasado % BANCO.semanaMs;
+  return BANCO.semanaMs - r < 60000 || (pasado > BANCO.semanaMs && r < 60000);
+}
+async function moverAhorro(monto) {   // monto > 0 deposita, < 0 retira
+  const { F, db } = await DF.listo();
+  const rc = F.doc(db, 'banco_cuentas', cuentaId), ra = F.doc(db, 'banco_ahorros', cuentaId);
+  const res = await F.runTransaction(db, async tx => {
+    const [sc, sa] = await Promise.all([tx.get(rc), tx.get(ra)]);
+    const c = sc.data(), a = sa.exists() ? sa.data() : null, t = ahora();
+    if (cercaDelCambio(a, t)) throw new Error('Tu ahorro está justo cumpliendo una semana: espera un minuto y vuelve a intentarlo.');
+    const cap = ahorroAl(a, t);
+    if (monto > 0) {
+      if (enCurso()) throw new Error('No puedes depositar mientras tengas un préstamo pedido o sin pagar.');
+      if (monto > (c.saldo || 0)) throw new Error('No te alcanza: tienes ' + fmt(c.saldo));
+      if (cap + monto > BANCO.topeAhorro) throw new Error('Con eso pasarías el tope: puedes depositar hasta ' + fmt(BANCO.topeAhorro - cap) + '.');
+    } else if (-monto > cap) throw new Error('Solo tienes ' + fmt(cap) + ' ahorrados.');
+    const saldo = (c.saldo || 0) - monto, ops = (c.ops || 0) + 1, nuevo = cap + monto;
+    tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+    const m = movBase(c, ops, -monto, saldo, monto > 0 ? 'Ahorro: depósito de ' + fmt(monto) : 'Ahorro: retiro de ' + fmt(-monto), monto > 0 ? 'ahorro-deposito' : 'ahorro-retiro');
+    delete m._ops; m.fecha = F.serverTimestamp();
+    tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), m);
+    const intereses = (a ? a.intereses || 0 : 0) + (cap - (a ? a.monto : 0));
+    tx.set(ra, { cuenta: cuentaId, monto: nuevo, desde: F.serverTimestamp(), intereses, actualizado: F.serverTimestamp() });
+    return { saldo, nuevo, intereses, t };
+  });
+  cuenta.saldo = res.saldo; ahorro = { cuenta: cuentaId, monto: res.nuevo, desde: res.t, intereses: res.intereses };
+  return monto > 0 ? '✓ Depositaste ' + fmt(monto) + '. Tu ahorro: ' + fmt(res.nuevo) + '.' : '✓ Retiraste ' + fmt(-monto) + '. Quedan ' + fmt(res.nuevo) + ' ahorrados.';
+}
+async function pedirPrestamo() {
+  const monto = Math.round(+$('mPrestamo').value || 0), motivo = $('motivoP').value.trim();
+  if (monto < BANCO.minPrestamo || monto > BANCO.maxPrestamo) throw new Error('El monto debe estar entre ' + fmt(BANCO.minPrestamo) + ' y ' + fmt(BANCO.maxPrestamo) + '.');
+  if (motivo.length < 3) throw new Error('Cuéntale al profe para qué lo necesitas.');
+  if (!confirm(`¿Pedir ${fmt(monto)}?\n\nSi el profe lo aprueba, tendrás 30 días para devolver ${fmt(Math.round(monto * 1.3))}. Si no pagas a tiempo, se embargan tus bienes.`)) return '';
+  const { F, db } = await DF.listo();
+  const d = { cuenta: cuentaId, numero: String(cuenta.numero || ''), nombre: ((cuenta.nombre || '') + ' ' + (cuenta.apellido || '')).trim(), curso: cuenta.curso || '',
+    monto, motivo: motivo.slice(0, 120), estado: 'solicitado', solicitado: F.serverTimestamp(), n: (prestamo ? prestamo.n || 0 : 0) + 1,
+    deuda: 0, pagado: 0, embargado: 0, actualizado: F.serverTimestamp() };
+  await F.setDoc(F.doc(db, 'banco_prestamos', cuentaId), d);
+  prestamo = Object.assign({}, d, { solicitado: ahora() });
+  return '✓ Solicitud enviada. El profe la revisará.';
+}
+async function cancelarPrestamo() {
+  if (!confirm('¿Cancelar tu solicitud de préstamo?')) return '';
+  const { F, db } = await DF.listo();
+  await F.updateDoc(F.doc(db, 'banco_prestamos', cuentaId), { estado: 'cancelado', actualizado: F.serverTimestamp() });
+  prestamo.estado = 'cancelado';
+  return 'Solicitud cancelada.';
+}
+async function pagar(monto) {
+  const { F, db } = await DF.listo();
+  const rc = F.doc(db, 'banco_cuentas', cuentaId), rp = F.doc(db, 'banco_prestamos', cuentaId);
+  const res = await F.runTransaction(db, async tx => {
+    const [sc, sp] = await Promise.all([tx.get(rc), tx.get(rp)]);
+    const c = sc.data(), p = sp.exists() ? sp.data() : null;
+    if (!p || p.estado !== 'vigente') throw new Error('No tienes un préstamo por pagar.');
+    monto = Math.min(monto, p.deuda);
+    if (monto <= 0) throw new Error('Escribe cuánto quieres pagar.');
+    if (monto > (c.saldo || 0)) throw new Error('No te alcanza: tienes ' + fmt(c.saldo));
+    const saldo = (c.saldo || 0) - monto, ops = (c.ops || 0) + 1, deuda = p.deuda - monto;
+    tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+    const m = movBase(c, ops, -monto, saldo, 'Préstamo: pago de ' + fmt(monto) + (deuda ? ' (quedan ' + fmt(deuda) + ')' : ' (¡pagado!)'), 'prestamo-pago');
+    delete m._ops; m.fecha = F.serverTimestamp();
+    tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), m);
+    const cambio = { deuda, pagado: (p.pagado || 0) + monto, estado: deuda === 0 ? 'pagado' : 'vigente', actualizado: F.serverTimestamp() };
+    tx.update(rp, cambio);
+    return { saldo, cambio, monto };
+  });
+  cuenta.saldo = res.saldo; Object.assign(prestamo, res.cambio);
+  return res.cambio.deuda ? '✓ Pagaste ' + fmt(res.monto) + '. Debes ' + fmt(res.cambio.deuda) + '.' : '✓ ¡Préstamo pagado!';
+}
+
+document.addEventListener('input', e => {
+  if (e.target.id === 'mPrestamo') { const m = Math.round(+e.target.value || 0); $('devolver').textContent = m ? 'devolverás ' + fmt(Math.round(m * 1.3)) : ''; }
+});
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return;
+  const val = id => Math.round(+($(id) || {}).value || 0);
+  if (a === 'entrar') DF.entrar().then(() => cargar()).catch(x => { if (!x.cancelado) aviso(esc(x.message), 'err'); });
+  if (a === 'salir') DF.salir().then(() => cargar());
+  if (a === 'depositar') { const m = val('mAhorro'); if (m > 0) operar(() => moverAhorro(m)); else aviso('Escribe cuánto quieres depositar.', 'err'); }
+  if (a === 'retirar') { const m = val('mAhorro'); if (m > 0) operar(() => moverAhorro(-m)); else aviso('Escribe cuánto quieres retirar.', 'err'); }
+  if (a === 'retirarTodo') operar(() => moverAhorro(-ahorroAl(ahorro, ahora())));
+  if (a === 'pedir') operar(pedirPrestamo);
+  if (a === 'cancelar') operar(cancelarPrestamo);
+  if (a === 'pagar') { const m = val('mPago'); if (m > 0) operar(() => pagar(m)); else aviso('Escribe cuánto quieres pagar.', 'err'); }
+  if (a === 'pagarTodo') operar(() => pagar(Math.min(prestamo.deuda, cuenta.saldo || 0)));
+});
+DF.alCambiarUsuario(() => cargar());
+setInterval(() => { if (!ocupado && !document.hidden && !document.activeElement.matches('input,textarea')) pintar(); }, 60000);   // reloj local, sin leer Firebase
+</script>
+</body>
+</html>

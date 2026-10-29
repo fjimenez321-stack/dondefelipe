@@ -26,6 +26,7 @@ h2 i{color:var(--acid);font-size:20px}
 .card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:20px clamp(16px,3vw,26px);margin-top:16px}
 .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:9px 16px;font:600 14px var(--ff);text-decoration:none;cursor:pointer;white-space:nowrap}
 .btn:hover{border-color:var(--acid)}
+.btn[hidden]{display:none}
 .btn.p{background:var(--acid);color:#101400;border-color:var(--acid)}
 .btn.r{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
 .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -155,7 +156,9 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
         <a class="btn" href="gatitos.html"><i class="fa-solid fa-store"></i> Mercado</a>
         <a class="btn" href="banco-felipeso/bolsa.html"><i class="fa-solid fa-chart-line"></i> Bolsa</a>
         <a class="btn" href="ruleta.html"><i class="fa-solid fa-dharmachakra"></i> Ruleta</a>
+        <a class="btn" href="banco-felipeso/banco.html"><i class="fa-solid fa-building-columns"></i> Préstamos y ahorro</a>
         <a class="btn" href="banco-felipeso/bases.html"><i class="fa-solid fa-scroll"></i> Bases</a>
+        <a class="btn" id="aPanel" href="panel-profe.html" hidden><i class="fa-solid fa-user-lock"></i> Panel del profe</a>
       </div>
     </div>
     <p id="cargando" class="muted" style="margin:0">Cargando…</p>
@@ -329,6 +332,7 @@ DF.listo().then(() => {
     ver('cargando', false);
     ver('fuera', !u); ver('dentro', !!u);
     ['perfil', 'progreso', 'productos', 'banco', 'gatitosSec', 'miPerfil', 'datos'].forEach(s => ver(s, !!u));
+    $('aPanel').hidden = !(u && DF.esProfe(u));   // el panel solo aparece en la cuenta del profe
     if (!u) return;
     $('nombre').textContent = u.displayName || 'Sin nombre';
     $('correo').textContent = u.email || '';
@@ -618,7 +622,7 @@ function cargarBanco() {
     $('rUsar').textContent = porUsar.length;
     pintarProductos(compras);
     const estado = m => m.canje === 'usada' ? `<span class="can usada">Usada</span>${m.canjeNota ? ' <small class="muted">' + esc(m.canjeNota) + '</small>' : ''}`
-      : m.canje === 'anulada' ? '<span class="can anul">Anulada</span>' : m.canje === 'perdida' ? '<span class="can anul">Perdida en la ruleta</span>' : m.item === 'Ruleta: disertación' && m.canje === 'pendiente' ? `<span class="can pend">Por hacer · tema: ${esc(m.tema || '—')}</span> <button class="btn" style="padding:4px 10px;font-size:12px" type="button" data-tema="${esc(m._id)}" data-actual="${esc(m.tema || '')}">Cambiar tema</button>` : m.canje === 'retenida' ? '<span class="can pend">Retenida · esperando al profe</span>' : m.canje === 'en-venta' ? '<span class="can pend">En venta (congelada)</span>' : m.canje === 'entregada' ? '<span class="can usada">Entregada</span>' : m.canje === 'traspasada' ? `<span class="can anul">Vendida</span> <small class="muted">${esc(m.canjeNota || '')}</small>` : '<span class="can pend">Por usar</span>';
+      : m.canje === 'anulada' ? '<span class="can anul">Anulada</span>' : m.canje === 'perdida' ? '<span class="can anul">Perdida en la ruleta</span>' : m.canje === 'embargada' ? '<span class="can anul">Embargada (préstamo)</span>' : m.item === 'Ruleta: disertación' && m.canje === 'pendiente' ? `<span class="can pend">Por hacer · tema: ${esc(m.tema || '—')}</span> <button class="btn" style="padding:4px 10px;font-size:12px" type="button" data-tema="${esc(m._id)}" data-actual="${esc(m.tema || '')}">Cambiar tema</button>` : m.canje === 'retenida' ? '<span class="can pend">Retenida · esperando al profe</span>' : m.canje === 'en-venta' ? '<span class="can pend">En venta (congelada)</span>' : m.canje === 'entregada' ? '<span class="can usada">Entregada</span>' : m.canje === 'traspasada' ? `<span class="can anul">Vendida</span> <small class="muted">${esc(m.canjeNota || '')}</small>` : '<span class="can pend">Por usar</span>';
     $('bCont').innerHTML = `
       <div class="saldo"><b class="${(c.saldo || 0) < 0 ? 'neg' : ''}">${fmt(c.saldo)} ₣</b><span class="muted">Cuenta N° ${esc(c.numero)}${c.curso ? ' · ' + esc(c.curso) : ''}</span></div>
       <p class="sub">Por usar (${porUsar.length})</p>

@@ -365,7 +365,78 @@ service cloud.firestore {
         && ((d.tipo in ['bolsa-compra', 'bolsa-venta'] && opBolsa(d)) || (d.tipo == 'bono-ingreso' && opBono(d))
             || (d.tipo == 'gatito-compra' && opGatito(d)) || (d.tipo == 'ruleta' && opRuleta(d)) || (d.tipo == 'ruleta-apuesta' && opApuesta(d))
             || (d.tipo == 'transferencia-envio' && opEnvio(id, d)) || (d.tipo == 'compra' && opPedido(id, d))
-            || (d.tipo == 'devolucion' && opDevolucion(d)) || (d.tipo == 'poder-gatito' && opPoder(d)) || (d.tipo == 'poder-mensual' && opPoderMes(d)) || (d.tipo == 'premio-gatito' && opPremio(d)));
+            || (d.tipo == 'devolucion' && opDevolucion(d)) || (d.tipo == 'poder-gatito' && opPoder(d)) || (d.tipo == 'poder-mensual' && opPoderMes(d)) || (d.tipo == 'premio-gatito' && opPremio(d))
+            || (d.tipo == 'prestamo-pago' && opPagoPrestamo(d)) || (d.tipo in ['ahorro-deposito', 'ahorro-retiro'] && opAhorro(d)));
+    }
+
+    // ═════ Préstamos y ahorro ═════
+    // PRÉSTAMOS (banco_prestamos/<cuenta>, uno a la vez): el estudiante lo pide, el profe lo aprueba
+    // (deuda = monto + 30%, vence en 30 días) y el estudiante paga total o parcialmente con 'prestamo-pago'.
+    // Si vence sin pagar, el profe embarga bienes desde su panel (saldo, ahorro, acciones, gatitos, beneficios).
+    // AHORRO (banco_ahorros/<cuenta>): 10% por cada semana completa, con tope de ₣500.000 (capital + intereses).
+    // Cada depósito o retiro capitaliza lo ganado y reinicia la semana. No se puede depositar con un préstamo.
+    function rutaPrestamo(c) { return /databases/$(database)/documents/banco_prestamos/$(c); }
+    function rutaAhorro(c) { return /databases/$(database)/documents/banco_ahorros/$(c); }
+    function topeAhorro() { return 500000; }
+    function sinPrestamo(c) { return !exists(rutaPrestamo(c)) || get(rutaPrestamo(c)).data.estado in ['pagado', 'rechazado', 'cancelado']; }
+    function cerca(a, b) { return a - b <= 1 && b - a <= 1; }
+    // Ahorro con los intereses de las semanas completas desde «desde» (mismo cálculo que banco.html).
+    function ahorroAl(a) {
+      let k = math.floor((request.time.toMillis() - a.desde.toMillis()) / 604800000);
+      let v = math.floor(a.monto * math.pow(1.1, k));
+      return a.monto >= topeAhorro() ? a.monto : (v > topeAhorro() ? topeAhorro() : v);
+    }
+    function opAhorro(d) {
+      let antes = exists(rutaAhorro(d.cuenta)) ? get(rutaAhorro(d.cuenta)).data : {'monto': 0, 'intereses': 0, 'desde': request.time};
+      let cap = ahorroAl(antes);
+      let des = getAfter(rutaAhorro(d.cuenta)).data;
+      return des.desde == request.time && des.monto >= 0 && des.monto <= topeAhorro()
+        && cerca(des.monto, cap - d.monto)
+        && des.intereses == antes.get('intereses', 0) + (des.monto + d.monto - antes.monto)
+        && (d.tipo == 'ahorro-deposito' ? (d.monto < 0 && sinPrestamo(d.cuenta)) : (d.monto > 0 && d.monto <= cap));
+    }
+    function opPagoPrestamo(d) {
+      let p = get(rutaPrestamo(d.cuenta)).data;
+      let a = getAfter(rutaPrestamo(d.cuenta)).data;
+      return p.estado == 'vigente' && d.monto < 0 && 0 - d.monto <= p.deuda
+        && a.deuda == p.deuda + d.monto && a.pagado == p.get('pagado', 0) - d.monto
+        && a.estado == (a.deuda == 0 ? 'pagado' : 'vigente');
+    }
+    match /banco_ahorros/{c} {
+      allow read: if esProfe() || (c == miCuentaBanco() && c != '');
+      allow write: if esProfe();
+      allow create, update: if esColegio() && c == miCuentaBanco() && c != ''
+        && request.resource.data.keys().hasOnly(['cuenta', 'monto', 'desde', 'intereses', 'actualizado'])
+        && request.resource.data.cuenta == c && request.resource.data.monto is int && request.resource.data.intereses is int
+        && request.resource.data.actualizado == request.time
+        && opsDespues(c) == opsAntes(c) + 1
+        && getAfter(rutaOp(c, opsDespues(c))).data.tipo in ['ahorro-deposito', 'ahorro-retiro'];
+    }
+    match /banco_prestamos/{c} {
+      allow read: if esProfe() || (c == miCuentaBanco() && c != '');
+      allow write: if esProfe();
+      // pedir un préstamo (si no tiene uno en curso)
+      allow create, update: if esColegio() && c == miCuentaBanco() && c != ''
+        && (resource == null || resource.data.estado in ['pagado', 'rechazado', 'cancelado'])
+        && request.resource.data.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'estado', 'solicitado', 'n', 'deuda', 'pagado', 'embargado', 'actualizado'])
+        && request.resource.data.cuenta == c && request.resource.data.estado == 'solicitado'
+        && request.resource.data.monto is int && request.resource.data.monto >= 10000 && request.resource.data.monto <= 1000000
+        && texto(request.resource.data.motivo, 120) && request.resource.data.motivo.size() >= 3
+        && texto(request.resource.data.nombre, 160) && texto(request.resource.data.curso, 40) && texto(request.resource.data.numero, 20)
+        && request.resource.data.n == (resource == null ? 1 : resource.data.get('n', 0) + 1)
+        && request.resource.data.deuda == 0 && request.resource.data.pagado == 0 && request.resource.data.embargado == 0
+        && request.resource.data.solicitado == request.time && request.resource.data.actualizado == request.time;
+      // cancelar la solicitud antes de que el profe la apruebe
+      allow update: if esColegio() && c == miCuentaBanco() && c != ''
+        && resource.data.estado == 'solicitado' && request.resource.data.estado == 'cancelado'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'actualizado'])
+        && request.resource.data.actualizado == request.time;
+      // pagar (todo o parte), junto con su movimiento 'prestamo-pago'
+      allow update: if esColegio() && c == miCuentaBanco() && c != ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deuda', 'pagado', 'estado', 'actualizado'])
+        && request.resource.data.actualizado == request.time
+        && opsDespues(c) == opsAntes(c) + 1
+        && getAfter(rutaOp(c, opsDespues(c))).data.tipo == 'prestamo-pago';
     }
 
     // ═════ Ruleta de Hipopesos (v2: azar con la hora del servidor) ═════
