@@ -156,6 +156,11 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
               <div class="muted" style="font-size:13px" id="opsTxt">Si a alguien no le funciona el bono diario, la bolsa, la ruleta o los gatitos («Missing or insufficient permissions»), su contador de operaciones puede estar desfasado (pasa si se reimportan cuentas). Esto lo revisa y lo arregla para todas las cuentas.</div></div>
             <button class="btn sm" id="btnOps">🔧 Revisar y reparar</button>
           </div>
+          <div class="card porcanjear" id="cardPrest" style="margin-top:16px">
+            <h3 style="margin:0 0 4px">🏦 Préstamos <span class="pill" id="nPrest">0</span></h3>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">Solicitudes por aprobar y préstamos vigentes. Al aprobar, el estudiante recibe el dinero y debe devolver lo pedido + 30% en 30 días. Si vence con deuda, <b>al abrir este panel</b> se embarga automáticamente (saldo → ahorro → acciones → gatitos → beneficios); también puedes hacerlo con el botón.</p>
+            <div class="lista-movs" id="listaPrest"><div class="muted">—</div></div>
+          </div>
           <div class="card porcanjear" style="margin-top:16px">
             <h3 style="margin:0 0 4px">Compras por canjear <span class="pill" id="nPend">0</span></h3>
             <p class="muted" style="margin:0 0 8px;font-size:13px">Lo que los estudiantes compraron y todavía no usan. Al aplicarlo (por ejemplo, borrar la formativa), márcalo como usado y anota dónde.</p>
@@ -166,11 +171,6 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
             <p class="muted" style="margin:0 0 8px;font-size:13px">💸 Transferencias, 🛍️ compras de beneficios en el Mercado y 🤝 compras entre estudiantes. Al pedir, el dinero (y lo que se vende) sale de la cuenta y queda congelado: autorizar lo entrega, rechazar lo devuelve.</p>
             <div class="lista-movs" id="listaTr"><div class="muted">—</div></div>
             <details style="margin-top:8px"><summary class="muted" style="cursor:pointer;font-size:13px">Últimas solicitudes resueltas</summary><div class="lista-movs" id="listaTrHist"></div></details>
-          </div>
-          <div class="card porcanjear" style="margin-top:16px">
-            <h3 style="margin:0 0 4px">🏦 Préstamos <span class="pill" id="nPrest">0</span></h3>
-            <p class="muted" style="margin:0 0 8px;font-size:13px">Solicitudes por aprobar y préstamos vigentes. Al aprobar, el estudiante recibe el dinero y debe devolver lo pedido + 30% en 30 días. Si vence con deuda, <b>al abrir este panel</b> se embarga automáticamente (saldo → ahorro → acciones → gatitos → beneficios); también puedes hacerlo con el botón.</p>
-            <div class="lista-movs" id="listaPrest"><div class="muted">—</div></div>
           </div>
           <div class="card porcanjear" style="margin-top:16px">
             <h3 style="margin:0 0 4px">⚡ Poderes de los gatitos <span class="pill" id="nPod">0</span></h3>
@@ -349,9 +349,9 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
 </dialog>
 
 <script src="banco-felipeso/catalogo.js"></script>
-<script src="gatitos/catalogo.js"></script>
-<script src="gatitos/anim.js"></script>
-<script src="firebase/df.js" data-sin-visita data-sin-aviso></script>
+<script src="gatitos/catalogo.js?v=20261029"></script>
+<script src="gatitos/anim.js?v=20261029"></script>
+<script src="firebase/df.js?v=20261029" data-sin-visita data-sin-aviso></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    CATÁLOGO DEL BANCO — edita aquí precios y multas
@@ -651,10 +651,22 @@ function iniciarPrestamos() {
   const { F, db } = FB;
   desuscribir.push(F.onSnapshot(F.query(F.collection(db, 'banco_prestamos'), F.where('estado', 'in', ['solicitado', 'vigente'])), s => {
     prestamos = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
-    pintarPrestamos();
+    pintarPrestamos(); avisoPrestamos();
     // Embargo automático de los préstamos vencidos (una vez por apertura del panel y por deuda).
     prestamos.filter(vencido).forEach(p => { const k = p.id + ':' + p.deuda; if (!embargados.has(k)) { embargados.add(k); embargar(p, true); } });
-  }, e => console.info(e)));
+  }, e => {
+    // Antes el error quedaba solo en la consola: ahora se ve en la tarjeta.
+    $('listaPrest').innerHTML = `<div class="neg">No se pudieron leer los préstamos: ${esc(e.message)}${/permission|insufficient/i.test(e.message) ? '<br>Falta publicar las reglas nuevas de Firestore (sección «Préstamos y ahorro»).' : ''}</div>`;
+  }));
+}
+// Aviso arriba del panel cuando hay préstamos por aprobar o vencidos.
+function avisoPrestamos() {
+  let box = $('avisoPrest');
+  if (!box) { box = document.createElement('div'); box.id = 'avisoPrest'; $('app').prepend(box); }
+  const sol = prestamos.filter(p => p.estado === 'solicitado').length, ven = prestamos.filter(vencido).length;
+  box.innerHTML = sol || ven ? `<div class="card" style="margin-bottom:12px;border-color:var(--acid);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span style="flex:1">🏦 ${sol ? `<b>${sol} préstamo${sol === 1 ? '' : 's'} por aprobar</b>` : ''}${sol && ven ? ' · ' : ''}${ven ? `<b class="neg">${ven} vencido${ven === 1 ? '' : 's'}</b>` : ''}</span>
+    <button class="btn sm p" type="button" onclick="document.getElementById('cardPrest').scrollIntoView({behavior:'smooth',block:'start'})">Ver préstamos</button></div>` : '';
 }
 const vencido = p => p.estado === 'vigente' && p.deuda > 0 && Date.now() > (p.venceMs || Infinity);
 function pintarPrestamos() {
