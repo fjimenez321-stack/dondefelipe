@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Copa San Agustín 2026 · Octavos de Final</title>
+<title>Copa San Agustín 2026 · Final</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,800;1,700;1,800;1,900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -138,6 +138,9 @@
 
   .round.semifinal .slot .nombre{font-style:normal;color:var(--bone);font-weight:600}
   .round.semifinal .slot .curso{color:var(--bone);background:rgba(31,91,255,.35)}
+  .round.semifinal .slot.ganador .nombre{color:var(--ball);font-weight:800;font-style:italic}
+  .round.semifinal .slot.ganador .curso{color:var(--void);background:var(--ball)}
+  .round.semifinal .slot.perdedor .nombre{text-decoration:line-through;text-decoration-color:var(--paddle)}
   .slot.ganador .nombre{color:var(--ball);font-weight:800}
   .slot.ganador .curso{color:var(--void);background:var(--ball)}
   .slot.ganador::after{content:'';margin-left:auto;width:10px;height:10px;border-radius:50%;flex-shrink:0;
@@ -157,6 +160,14 @@
   .final-match .trofeo{font-size:2rem;margin-bottom:.4rem;filter:drop-shadow(0 0 10px rgba(255,176,103,.7))}
   .final-match .txt{font-family:var(--ff-display);font-style:italic;font-size:1.2rem;letter-spacing:1.4px;font-weight:900;
     color:var(--bone);text-transform:uppercase;line-height:1.05}
+
+  .finalistas{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:.7rem}
+  .finalistas .slot{justify-content:center;font-size:.95rem}
+  .finalistas .slot .nombre{font-style:normal;color:var(--bone);font-weight:800}
+  .finalistas .slot .curso{color:var(--bone);background:rgba(31,91,255,.35)}
+  .vs-final{font-family:var(--ff-display);font-style:italic;font-weight:900;font-size:.75rem;letter-spacing:1px;
+    color:var(--chalk);background:var(--paddle);padding:0 7px;border-radius:3px;transform:skewX(-12deg)}
+  .final-match .finalistas + .txt{font-size:.85rem;opacity:.8}
 
   /* ── Bases ── */
   .bases-toggle{display:flex;justify-content:center;margin-top:1.4rem}
@@ -232,12 +243,12 @@
     <header>
       <div class="mesa" aria-hidden="true"><div class="mesa-plano"></div><div class="pelota"></div></div>
       <div class="eyebrow">Copa San Agustín 2026</div>
-      <h1>Octavos de final</h1>
+      <h1>Final</h1>
       <p class="subt">Mini campeonato de ping pong · eliminación simple · 16 cupos, 2 por curso, desde 5° Básico hasta 4° Medio.</p>
 
       <div class="estado">
         <span class="dot" style="background:var(--acid);box-shadow:0 0 10px rgba(204,255,0,.6)"></span>
-        <span class="txt"><b>Cuadro publicado.</b> 16 inscritos, cruces sembrados: los dos representantes de un mismo curso quedaron en mitades opuestas del cuadro, por lo que solo podrían encontrarse en la final.</span>
+        <span class="txt"><b>¡Tenemos finalistas!</b> Gaspi (1°M) e Isaí (8°B) ganaron sus semifinales y se enfrentan por el título de la Copa San Agustín 2026.</span>
       </div>
     </header>
 
@@ -314,13 +325,13 @@
         <div class="round semifinal">
           <div class="round-title">Semifinal · 2 partidos</div>
           <div class="pair">
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
-              <div class="slot"><span class="curso">1°M</span><span class="nombre">Gaspi</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot perdedor"><span class="curso">7°B</span><span class="nombre">Maxi</span></div>
+              <div class="slot ganador"><span class="curso">1°M</span><span class="nombre">Gaspi</span></div>
             </div>
-            <div class="match"><span class="vs">VS</span>
-              <div class="slot"><span class="curso">1°M</span><span class="nombre">Joaquín</span></div>
-              <div class="slot"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
+            <div class="match jugado"><span class="vs">VS</span>
+              <div class="slot perdedor"><span class="curso">1°M</span><span class="nombre">Joaquín</span></div>
+              <div class="slot ganador"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
             </div>
           </div>
         </div>
@@ -330,6 +341,11 @@
           <div class="final-slot">
             <div class="final-match">
               <div class="trofeo">🏆</div>
+              <div class="finalistas">
+                <div class="slot"><span class="curso">1°M</span><span class="nombre">Gaspi</span></div>
+                <span class="vs-final">VS</span>
+                <div class="slot"><span class="curso">8°B</span><span class="nombre">Isaí</span></div>
+              </div>
               <div class="txt">Campeón<br>por definir</div>
             </div>
           </div>
