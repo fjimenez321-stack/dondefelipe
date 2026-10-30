@@ -402,18 +402,25 @@ service cloud.firestore {
       return exists(rutaMascota(request.auth.uid)) && get(rutaMascota(request.auth.uid)).data.gatito == g
         && estadoFeliz(estadoMascota(get(rutaMascota(request.auth.uid)).data));
     }
-    function costoMascota(a) { return {'comer1': 8000, 'comer2': 20000, 'banar': 10000, 'vet': 40000}.get(a, 0); }
+    function costoMascota(a) { return {'comer1': 8000, 'comer2': 20000, 'banar': 10000, 'vet': 40000,
+      'galletas': 4000, 'atun': 14000, 'raton': 6000, 'laser': 12000, 'cepillo': 5000, 'cama': 9000}.get(a, 0); }
+    // Energía mínima para las acciones que cansan.
+    function energiaMinMascota(a) { return {'jugar': 20, 'raton': 10, 'laser': 25}.get(a, 0); }
     function tope100(v) { return v > 100 ? 100.0 : v; }
     function cerca2(a, b) { return a - b <= 2 && b - a <= 2; }
     function intEntre(v) { return v is int && v >= 0 && v <= 100; }
     // Valores nuevos = estado calculado ahora + efecto de la acción (con 2 puntos de tolerancia por redondeo).
     function accionValida(n, e, a) {
       return intEntre(n.comida) && intEntre(n.higiene) && intEntre(n.diversion) && intEntre(n.energia) && intEntre(n.salud)
-        && cerca2(n.comida, a == 'comer1' ? tope100(e.comida + 40) : (a == 'comer2' ? 100.0 : e.comida))
-        && cerca2(n.higiene, a == 'banar' ? 100.0 : (a == 'jugar' ? bajar(e.higiene, 5.0, 1.0) : e.higiene))
-        && cerca2(n.diversion, a == 'jugar' ? tope100(e.diversion + 25) : e.diversion)
-        && cerca2(n.energia, a == 'jugar' ? e.energia - 20 : e.energia)
-        && (a != 'jugar' || e.energia >= 20)
+        && cerca2(n.comida, a == 'comer1' ? tope100(e.comida + 40) : (a == 'comer2' ? 100.0
+              : (a == 'galletas' ? tope100(e.comida + 15) : (a == 'atun' ? tope100(e.comida + 70) : e.comida))))
+        && cerca2(n.higiene, a == 'banar' ? 100.0 : (a == 'jugar' ? bajar(e.higiene, 5.0, 1.0)
+              : (a == 'cepillo' ? tope100(e.higiene + 40) : e.higiene)))
+        && cerca2(n.diversion, a == 'jugar' ? tope100(e.diversion + 25) : (a == 'galletas' ? tope100(e.diversion + 10)
+              : (a == 'raton' ? tope100(e.diversion + 40) : (a == 'laser' ? 100.0 : e.diversion))))
+        && cerca2(n.energia, a == 'jugar' ? e.energia - 20 : (a == 'raton' ? e.energia - 10
+              : (a == 'laser' ? e.energia - 25 : (a == 'cama' ? 100.0 : e.energia))))
+        && e.energia >= energiaMinMascota(a)
         && cerca2(n.salud, a == 'vet' ? 100.0 : (a == 'comer2' ? tope100(e.salud + 5) : e.salud));
     }
     function opMascota(d) {
@@ -437,7 +444,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['uid', 'cuenta', 'gatito', 'comida', 'higiene', 'diversion', 'energia', 'salud', 't', 'cambio', 'acc', 'actualizado'])
         && request.resource.data.uid == uid && request.resource.data.cuenta == resource.data.cuenta
         && request.resource.data.t == request.time && request.resource.data.actualizado == request.time
-        && request.resource.data.acc in ['comer1', 'comer2', 'banar', 'jugar', 'vet', 'cambiar']
+        && request.resource.data.acc in ['comer1', 'comer2', 'banar', 'jugar', 'vet', 'cambiar', 'galletas', 'atun', 'raton', 'laser', 'cepillo', 'cama']
         && accionValida(request.resource.data, estadoMascota(resource.data), request.resource.data.acc)
         && (request.resource.data.acc == 'cambiar'
               ? (request.resource.data.gatito in gatitosAntes(uid) && request.resource.data.gatito != resource.data.gatito

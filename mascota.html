@@ -59,6 +59,7 @@ h2{font:900 26px/1 var(--ff-d);text-transform:uppercase;letter-spacing:.5px;marg
 .barra .b{height:12px;border-radius:99px;background:var(--slab2);overflow:hidden}
 .barra .b i{display:block;height:100%;border-radius:99px;transition:width .5s}
 .barra span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--mute)}
+.sub-acc{margin:18px 0 0;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;color:var(--mute)}
 .acciones{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:16px}
 .acc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);cursor:pointer;text-align:left;font:inherit}
 .acc:hover:not(:disabled){border-color:var(--acid)}
@@ -94,7 +95,7 @@ ul.reglas{margin:8px 0 0;padding-left:18px;color:var(--mute);font-size:14px}
 
 <script src="gatitos/catalogo.js?v=20261029"></script>
 <script src="gatitos/anim.js?v=20261029"></script>
-<script src="gatitos/mascota.js?v=20261029"></script>
+<script src="gatitos/mascota.js?v=20261030"></script>
 <script src="firebase/df.js?v=20261029"></script>
 <script>
 'use strict';
@@ -152,11 +153,12 @@ function pintar() {
     <section class="card">
       <h2>Estado</h2>
       <div class="barras">${M.estados.map(([k, emo, nom]) => `<div class="barra"><span>${emo} ${nom}</span><span class="b"><i style="width:${e[k]}%;background:${col(e[k])}"></i></span><span>${Math.floor(e[k])}</span></div>`).join('')}</div>
-      <div class="acciones">${Object.entries(M.acciones).map(([k, a]) => {
-        const sinPlata = a.costo && (!cuenta || (cuenta.saldo || 0) < a.costo), sinEnergia = k === 'jugar' && e.energia < 20;
+      ${[['Cuidados', ([k, a]) => !a.tienda], ['🛒 Tienda para gatos: comida, juguetes y cuidado', ([k, a]) => a.tienda]].map(([tit, filtro]) => `<h3 class="sub-acc">${tit}</h3>
+      <div class="acciones">${Object.entries(M.acciones).filter(filtro).map(([k, a]) => {
+        const sinPlata = a.costo && (!cuenta || (cuenta.saldo || 0) < a.costo), sinEnergia = a.energiaMin && e.energia < a.energiaMin;
         return `<button class="acc" type="button" data-acc="${k}" ${ocupado || sinPlata || sinEnergia || !tieneLo ? 'disabled' : ''}><b>${a.emoji} ${a.nombre}</b><small>${a.txt}</small><span class="pr">${a.costo ? fmt(a.costo) : 'Gratis'}</span></button>`;
-      }).join('')}</div>
-      ${!cuenta ? '<p class="nota">Para comprar comida, baños o veterinario necesitas tu cuenta del banco vinculada.</p>' : ''}
+      }).join('')}</div>`).join('')}
+      ${!cuenta ? '<p class="nota">Para comprar comida, juguetes, baños o veterinario necesitas tu cuenta del banco vinculada.</p>' : ''}
       <p class="nota">${g.mensual ? (feliz ? '✨ Bien cuidada: al reclamar su poder mensual en el Mercado recibes el doble.' : `Si la mantienes bien cuidada, el poder mensual de ${esc(g.nombre)} vale ×2.`) : 'El ×2 solo aplica a gatitos con poder mensual (Nietzsche, César y Gruñona).'}</p>
       <div style="margin-top:12px"><button class="btn" type="button" data-a="cambiar" ${puedeCambiar ? '' : 'disabled'}>🔄 Cambiar de mascota</button>
         ${puedeCambiar ? '' : `<span class="nota">Podrás cambiarla desde el ${new Date(msDe(masc.cambio) + M.cambioDias * 86400000).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}.</span>`}</div>
@@ -198,7 +200,7 @@ async function accion(a) {
     const reads = [tx.get(rm)]; if (A.costo) reads.push(tx.get(F.doc(db, 'banco_cuentas', cuentaId)));
     const [sm, sc] = await Promise.all(reads);
     const m = sm.data(), e = M.estado(m, ahora(), cfg);
-    if (a === 'jugar' && e.energia < 20) throw new Error('Está muy cansada para jugar: deja que duerma un rato.');
+    if (A.energiaMin && e.energia < A.energiaMin) throw new Error('Está muy cansada para eso: deja que duerma un rato.');
     const n = M.aplicar(e, a);
     const d = Object.assign({}, m, n, { acc: a, t: F.serverTimestamp(), actualizado: F.serverTimestamp() });
     let saldo = null;

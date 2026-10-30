@@ -10,5 +10,6 @@ window.CATALOGO_BENEFICIOS = [
   { ico: '✂️', nombre: 'Eliminar décimas de una prueba', precio: 50000, desc: 'Prueba sumativa: se quitan las décimas descontadas en una pregunta mal respondida, según criterio del profesor. Son décimas de la nota, no puntos.', academico: true },
   { ico: '📱', nombre: 'Uso de celular libre',          precio: 150000, desc: 'Uso del celular durante una clase, sin fines pedagógicos.', ocasion: true },
   { ico: '🍪', nombre: 'Comer',                         precio: 50000,  desc: 'Permiso para comer algo durante la clase.' },
-  { ico: '🎧', nombre: 'Su playlist en clases',         precio: 50000,  desc: 'Su playlist suena mientras se trabaja (contenido apropiado, volumen bajo).', ocasion: true }
+  { ico: '🎧', nombre: 'Su playlist en clases',         precio: 50000,  desc: 'Su playlist suena mientras se trabaja (contenido apropiado, volumen bajo).', ocasion: true },
+  { ico: '💺', nombre: 'Cambio de puesto libre',        precio: 200000, desc: 'Se sienta donde quiera durante al menos una semana de clases (respetando la convivencia y las indicaciones del profesor).' }
 ];
