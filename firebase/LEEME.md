@@ -45,3 +45,10 @@ Después agrega `'snake'` a `JUEGOS` en `rankings.html` y en `panel-profe.html`.
 DF.guardarProgreso('mi-clave', { nivel: 3, logros: 5 });   // necesita sesión iniciada
 DF.leerProgreso('mi-clave').then(datos => { … });
 ```
+
+## Casa de Subastas (`subastas.html`)
+- Solo el profe publica: objeto, descripción, emoji o imagen, **monto mínimo**, **alza mínima** y **hora de cierre**. El panel aparece en la misma página al entrar con la cuenta de profe.
+- Cada oferta se paga al instante con Hipopesos y queda **retenida**. Si alguien ofrece más, la oferta anterior vuelve completa a su dueño en la misma escritura (movimiento `subasta-devuelta`).
+- Al cierre ya no se aceptan ofertas (lo impide `firestore.rules`). El profe presiona **Adjudicar** y entrega el objeto; el dinero de quien ganó ya está cobrado. **Anular** devuelve la oferta vigente.
+- La portada muestra las subastas abiertas con su oferta actual y cuenta regresiva.
+- Requiere publicar el `firestore.rules` actualizado (colección `subastas`).
