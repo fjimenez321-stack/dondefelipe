@@ -10,8 +10,15 @@
       comer1: { nombre: 'Alimentar', emoji: '🍗', costo: 8000, txt: '+40 comida' },
       comer2: { nombre: 'Comida premium', emoji: '🍣', costo: 20000, txt: 'comida al 100 y +5 salud' },
       banar: { nombre: 'Bañar', emoji: '🛁', costo: 10000, txt: 'higiene al 100' },
-      jugar: { nombre: 'Jugar', emoji: '🧶', costo: 0, txt: '+25 diversión · −20 energía · −5 higiene' },
-      vet: { nombre: 'Veterinario', emoji: '🩺', costo: 40000, txt: 'salud al 100' }
+      jugar: { nombre: 'Jugar', emoji: '🧶', costo: 0, txt: '+25 diversión · −20 energía · −5 higiene', energiaMin: 20 },
+      vet: { nombre: 'Veterinario', emoji: '🩺', costo: 40000, txt: 'salud al 100' },
+      // tienda: comida, juguetes y cuidado
+      galletas: { nombre: 'Galletas para gato', emoji: '🍪', costo: 4000, txt: '+15 comida · +10 diversión', tienda: true },
+      atun: { nombre: 'Lata de atún', emoji: '🐟', costo: 14000, txt: '+70 comida', tienda: true },
+      raton: { nombre: 'Ratón de juguete', emoji: '🐭', costo: 6000, txt: '+40 diversión · −10 energía', energiaMin: 10, tienda: true },
+      laser: { nombre: 'Puntero láser', emoji: '🔴', costo: 12000, txt: 'diversión al 100 · −25 energía', energiaMin: 25, tienda: true },
+      cepillo: { nombre: 'Cepillado', emoji: '🪮', costo: 5000, txt: '+40 higiene', tienda: true },
+      cama: { nombre: 'Cama mullida', emoji: '🛏️', costo: 9000, txt: 'energía al 100', tienda: true }
     },
     estados: [['comida', '🍗', 'Comida'], ['higiene', '🧼', 'Higiene'], ['diversion', '🎾', 'Diversión'], ['energia', '😴', 'Energía'], ['salud', '❤️', 'Salud']],
     cambioDias: 7
@@ -44,6 +51,12 @@
     if (a === 'banar') n.higiene = 100;
     if (a === 'jugar') { n.diversion = Math.min(100, e.diversion + 25); n.energia = e.energia - 20; n.higiene = Math.max(0, e.higiene - 5); }
     if (a === 'vet') n.salud = 100;
+    if (a === 'galletas') { n.comida = Math.min(100, e.comida + 15); n.diversion = Math.min(100, e.diversion + 10); }
+    if (a === 'atun') n.comida = Math.min(100, e.comida + 70);
+    if (a === 'raton') { n.diversion = Math.min(100, e.diversion + 40); n.energia = e.energia - 10; }
+    if (a === 'laser') { n.diversion = 100; n.energia = e.energia - 25; }
+    if (a === 'cepillo') n.higiene = Math.min(100, e.higiene + 40);
+    if (a === 'cama') n.energia = 100;
     Object.keys(n).forEach(function (k) { n[k] = Math.max(0, Math.min(100, Math.floor(n[k]))); });
     return n;
   };
