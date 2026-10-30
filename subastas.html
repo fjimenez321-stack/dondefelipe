@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08080c">
+<title>Casa de Subastas · El Mundo de Felipe</title>
+<meta name="description" content="Oferta tus Hipopesos por los objetos que subasta el profe. Gana la oferta más alta al cierre.">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 420px at 85% -120px,rgba(233,185,73,.16),transparent),radial-gradient(700px 380px at 0% 0%,rgba(255,46,126,.08),transparent),var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 70px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}.crumb:hover{color:var(--ink)}
+.cab{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:26px}
+.kick{font:700 12px var(--ff);letter-spacing:4px;text-transform:uppercase;color:var(--brass);margin:0 0 6px}
+h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(46px,10vw,88px);line-height:.9;letter-spacing:1px;text-transform:uppercase;margin:0}
+h1 span{color:var(--brass)}
+.mazo{font-size:84px;margin-left:auto;line-height:1;transform-origin:80% 80%;animation:golpe 3.2s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5))}
+@keyframes golpe{0%,70%,100%{transform:rotate(0)}78%{transform:rotate(-28deg)}84%{transform:rotate(6deg)}90%{transform:rotate(0)}}
+.intro{color:var(--mute);max-width:64ch;margin:12px 0 0}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:18px clamp(16px,3vw,24px);margin-top:18px}
+.estado{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.estado .saldo{font:900 40px/1 var(--ff-d);color:var(--acid)}
+.estado .saldo small{display:block;font:600 12px var(--ff);letter-spacing:2px;text-transform:uppercase;color:var(--mute);margin-top:4px}
+.estado .col{flex:1;min-width:200px;color:var(--mute);font-size:14.5px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:9px 16px;font:600 14px var(--ff);text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--brass)}
+.btn.p{background:var(--brass);color:#1a1300;border-color:var(--brass);font-weight:800}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn.peligro:hover{border-color:var(--neg);color:var(--neg)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.aviso.ok{background:#14301f;border-color:#2c6b44;color:#c9f7d9}
+h2.sec{font:900 30px/1 var(--ff-d);text-transform:uppercase;letter-spacing:.5px;margin:34px 0 0}
+h2.sec small{font:600 14px var(--ff);letter-spacing:0;text-transform:none;color:var(--mute);margin-left:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-top:16px}
+.lote{position:relative;background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.lote::before{content:'';position:absolute;inset:0;background:radial-gradient(300px 160px at 50% 0%,rgba(233,185,73,.16),transparent 70%);pointer-events:none}
+.lote.gano{border-color:var(--acid)}
+.lote.mio{border-color:var(--acid);box-shadow:0 0 0 1px var(--acid) inset}
+.lote.supero{border-color:var(--pink)}
+.lote .vis{position:relative;height:150px;display:grid;place-items:center;border-radius:12px;background:var(--slab2);overflow:hidden}
+.lote .vis .emo{font-size:84px;line-height:1;filter:drop-shadow(0 10px 14px rgba(0,0,0,.45))}
+.lote .vis img{max-width:100%;max-height:150px;object-fit:contain}
+.lote h3{position:relative;font:800 26px/1 var(--ff-d);letter-spacing:.5px;margin:0;text-transform:uppercase}
+.lote .desc{position:relative;margin:0;color:var(--mute);font-size:14px;line-height:1.45;white-space:pre-line}
+.chips{position:relative;display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:700 11.5px var(--ff);border-radius:999px;padding:2px 8px;border:1px solid var(--line2);color:var(--mute)}
+.chip.hot{border-color:var(--pink);color:var(--pink)}
+.chip.lim{border-color:var(--brass);color:var(--brass)}
+.chip.ok{border-color:var(--acid);color:var(--acid)}
+.puja{position:relative;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:end;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid var(--line)}
+.puja .lbl{font:700 11px var(--ff);letter-spacing:2px;text-transform:uppercase;color:var(--mute)}
+.puja .monto{font:900 34px/1 var(--ff-d);color:var(--brass)}
+.puja .quien{font-size:13.5px;color:var(--ink)}
+.puja .reloj{text-align:right;font:800 22px/1 var(--ff-d);letter-spacing:.5px;font-variant-numeric:tabular-nums}
+.puja .reloj.urge{color:var(--pink)}
+.puja .reloj small{display:block;font:600 11px var(--ff);color:var(--mute);letter-spacing:1px;text-transform:uppercase}
+.ofertar{position:relative;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ofertar input{flex:1;min-width:120px;background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:9px 14px;font:700 15px var(--ff)}
+.ofertar input:focus{outline:2px solid var(--brass);outline-offset:1px}
+.ofertar .nota{flex-basis:100%;font-size:12.5px;color:var(--mute)}
+.res{position:relative;font-size:14px;color:var(--mute)}
+.res b{color:var(--ink)}
+.vacio{grid-column:1/-1;text-align:center;color:var(--mute);padding:34px 16px;border:1px dashed var(--line2);border-radius:18px}
+.vacio .emo{font-size:46px;display:block;margin-bottom:6px}
+/* profe */
+.profe h2{font:900 26px/1 var(--ff-d);text-transform:uppercase;margin:0 0 4px;color:var(--brass)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.form label{display:flex;flex-direction:column;gap:5px;font:700 12px var(--ff);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+.form .ancho{grid-column:1/-1}
+.form input,.form textarea{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:9px 11px;font:500 15px var(--ff);letter-spacing:0;text-transform:none}
+.form textarea{min-height:70px;resize:vertical}
+.form small{font:500 12px var(--ff);letter-spacing:0;text-transform:none;color:var(--mute)}
+.adm{position:relative;display:flex;gap:6px;flex-wrap:wrap;padding-top:8px;border-top:1px dashed var(--line2)}
+.adm .q{flex-basis:100%;font-size:13px;color:var(--mute)}
+.velo{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px;z-index:50}
+.velo[hidden]{display:none}
+.modal{width:min(440px,100%);background:var(--slab);border:1px solid var(--line2);border-radius:22px;padding:22px;text-align:center;animation:entra .25s cubic-bezier(.3,1.4,.5,1)}
+@keyframes entra{from{transform:scale(.9);opacity:0}}
+.modal .emo{font-size:72px;line-height:1}
+.modal h3{font:900 32px/1 var(--ff-d);text-transform:uppercase;margin:8px 0 4px}
+.modal p{color:var(--mute);margin:6px 0 0}
+.modal .fila{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.modal .cuentas{display:grid;grid-template-columns:1fr auto;gap:4px 16px;text-align:left;margin:14px auto 0;max-width:290px;font-size:15px}
+.modal .cuentas b{text-align:right}
+@media (max-width:520px){.mazo{font-size:60px}.puja .monto{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="index.html"><i class="fa-solid fa-arrow-left"></i> El Mundo de Felipe</a>
+  <header class="cab">
+    <div>
+      <p class="kick">Banco de Hipopesos</p>
+      <h1>Casa de <span>Subastas</span></h1>
+      <p class="intro">El profe pone un objeto, un monto mínimo y una hora de cierre. Ofertas con tus Hipopesos: tu oferta se descuenta y queda retenida. Si alguien te supera, te vuelve al instante. Al cierre, gana la oferta más alta.</p>
+    </div>
+    <div class="mazo" aria-hidden="true">🔨</div>
+  </header>
+
+  <section class="card" id="estado"></section>
+  <div id="aviso"></div>
+
+  <section class="card profe" id="profe" hidden>
+    <h2><i class="fa-solid fa-gavel"></i> Nueva subasta</h2>
+    <p class="intro" style="margin:0">Solo tú ves este panel. La subasta aparece al instante aquí y en la portada.</p>
+    <div class="form">
+      <label class="ancho">Objeto<input id="fTitulo" maxlength="80" placeholder="Ej.: Pase para elegir puesto una semana"></label>
+      <label class="ancho">Descripción<textarea id="fDesc" maxlength="400" placeholder="Qué es, cuándo se entrega, condiciones…"></textarea></label>
+      <label>Emoji<input id="fIco" maxlength="8" value="🎁"></label>
+      <label>Imagen (opcional)<input id="fImg" maxlength="300" placeholder="https://… o gatitos/img/luna.webp"></label>
+      <label>Monto mínimo (₣)<input id="fMin" type="number" min="100" step="100" value="10000"></label>
+      <label>Alza mínima (₣)<input id="fInc" type="number" min="100" step="100" value="1000"><small>Cuánto debe subir cada nueva oferta.</small></label>
+      <label>Cierre<input id="fCierre" type="datetime-local"></label>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">
+      <button class="btn p" id="fPublicar"><i class="fa-solid fa-gavel"></i> Publicar subasta</button>
+      <span id="fMsg" style="font-size:14px"></span>
+    </div>
+  </section>
+
+  <h2 class="sec">Abiertas <small id="nAbiertas"></small></h2>
+  <div class="grid" id="abiertas"><div class="vacio">Cargando subastas…</div></div>
+
+  <h2 class="sec">Terminadas</h2>
+  <div class="grid" id="cerradas"></div>
+
+  <p class="intro" style="margin-top:28px">¿Cómo se ganan Hipopesos? Revisa las <a href="banco-felipeso/bases.html">Bases de los Hipopesos</a>, la <a href="banco-felipeso/bolsa.html">Bolsa de Comercio</a> o el <a href="gatitos.html">Mercado</a>.</p>
+</div>
+
+<div class="velo" id="velo" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+
+<script src="firebase/df.js?v=20261030"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => new Intl.NumberFormat('es-CL').format(Math.round(n || 0)) + ' ₣';
+const ms = t => (t && t.toMillis ? t.toMillis() : (t && t.toDate ? t.toDate().getTime() : (typeof t === 'number' ? t : 0)));
+const ahora = () => (window.DF && DF.ahora ? DF.ahora() : Date.now());
+const imgOk = u => /^(https:\/\/|[a-z0-9_\-\/]+\.(webp|png|jpe?g|gif|svg)$)/i.test(String(u || ''));
+
+let usuario = null, esProfe = false, cuentaId = null, cuenta = null, subastas = [], unsubs = [], ofertando = false, cuentasGanadores = {};
+
+function aviso(t, tipo) { $('aviso').innerHTML = t ? `<div class="aviso ${tipo || ''}">${t}</div>` : ''; }
+const abierta = s => s.estado === 'abierta' && ms(s.cierre) > ahora();
+const minimoSiguiente = s => s.mejorCuenta ? (s.mejor || 0) + (s.incremento || 100) : (s.minimo || 100);
+
+function restante(t) {
+  let d = Math.max(0, Math.floor((t - ahora()) / 1000));
+  const dd = Math.floor(d / 86400); d %= 86400;
+  const h = Math.floor(d / 3600); d %= 3600;
+  const m = Math.floor(d / 60), s = d % 60, p = n => String(n).padStart(2, '0');
+  return dd ? `${dd}d ${p(h)}h ${p(m)}m` : `${p(h)}:${p(m)}:${p(s)}`;
+}
+const fechaTxt = t => new Date(t).toLocaleString('es-CL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+/* ═════════ pintar ═════════ */
+function pintarEstado() {
+  const e = $('estado');
+  if (!usuario) { e.innerHTML = `<div class="estado"><div class="col">Para ofertar, entra con tu cuenta. Puedes mirar las subastas sin entrar.</div><button class="btn p" data-a="entrar"><i class="fa-brands fa-google"></i> Entrar</button></div>`; return; }
+  if (esProfe) { e.innerHTML = `<div class="estado"><div class="col"><b style="color:var(--ink)">Hola, profe.</b> Publica subastas más abajo. Cuando una termina, la adjudicas y entregas el objeto: el dinero de quien ganó ya está cobrado.</div></div>`; return; }
+  if (!cuenta) { e.innerHTML = `<div class="estado"><div class="col">Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule para poder ofertar.</div></div>`; return; }
+  const ganando = subastas.filter(s => abierta(s) && s.mejorCuenta === cuentaId);
+  const retenido = ganando.reduce((a, s) => a + (s.mejor || 0), 0);
+  e.innerHTML = `<div class="estado"><div class="saldo">${fmt(cuenta.saldo)}<small>Tu saldo disponible</small></div>
+    <div class="col">${ganando.length ? `Vas ganando <b style="color:var(--acid)">${ganando.length}</b> subasta${ganando.length === 1 ? '' : 's'} · <b style="color:var(--ink)">${fmt(retenido)}</b> retenidos en tus ofertas.` : 'No tienes ofertas activas. Si ofertas, el monto sale de tu saldo y queda retenido hasta que alguien te supere o termine la subasta.'}</div></div>`;
+}
+
+function visual(s) {
+  return `<div class="vis">${s.imagen && imgOk(s.imagen) ? `<img src="${esc(s.imagen)}" alt="" loading="lazy">` : `<span class="emo">${esc(s.ico || '🎁')}</span>`}</div>`;
+}
+function tarjetaAbierta(s) {
+  const mio = cuentaId && s.mejorCuenta === cuentaId, t = ms(s.cierre), urge = t - ahora() < 3600e3;
+  const sig = minimoSiguiente(s);
+  let accion;
+  if (!usuario) accion = `<button class="btn p" data-a="entrar">Entrar para ofertar</button>`;
+  else if (esProfe) accion = '';
+  else if (!cuenta) accion = `<span class="res">Sin cuenta del banco vinculada.</span>`;
+  else if (mio) accion = `<span class="chip ok" style="font-size:13px;padding:5px 12px"><i class="fa-solid fa-crown"></i> Vas ganando con ${fmt(s.mejor)}</span>`;
+  else {
+    const alcanza = (cuenta.saldo || 0) >= sig;
+    accion = `<input type="number" inputmode="numeric" min="${sig}" step="${s.incremento || 100}" value="${sig}" aria-label="Tu oferta en Hipopesos" data-monto="${esc(s.id)}">
+      <button class="btn p" data-ofertar="${esc(s.id)}"${alcanza ? '' : ' disabled'}><i class="fa-solid fa-gavel"></i> Ofertar</button>
+      <span class="nota">${alcanza ? `Mínimo ${fmt(sig)}${s.mejorCuenta ? ` (oferta actual + ${fmt(s.incremento)})` : ''}.` : `Necesitas al menos ${fmt(sig)}: te faltan ${fmt(sig - (cuenta.saldo || 0))}.`}</span>`;
+  }
+  return `<article class="lote${mio ? ' mio' : ''}">${visual(s)}
+    <div class="chips"><span class="chip lim">${s.ofertas || 0} oferta${s.ofertas === 1 ? '' : 's'}</span><span class="chip">Mínimo ${fmt(s.minimo)}</span><span class="chip">Alza ${fmt(s.incremento)}</span></div>
+    <h3>${esc(s.titulo)}</h3>${s.descripcion ? `<p class="desc">${esc(s.descripcion)}</p>` : ''}
+    <div class="puja"><div><div class="lbl">${s.mejorCuenta ? 'Oferta más alta' : 'Parte en'}</div><div class="monto">${fmt(s.mejorCuenta ? s.mejor : s.minimo)}</div>
+      <div class="quien">${s.mejorCuenta ? (mio ? '<b style="color:var(--acid)">Tú</b>' : esc(s.mejorNombre || 'Alguien')) : 'Aún sin ofertas'}</div></div>
+      <div class="reloj${urge ? ' urge' : ''}" data-cierre="${t}"><small>Cierra en</small><span>${restante(t)}</span></div></div>
+    <div class="ofertar">${accion}</div>
+    <div class="res" style="font-size:12.5px">Cierra el ${esc(fechaTxt(t))}</div>
+    ${esProfe ? adminBotones(s) : ''}</article>`;
+}
+function tarjetaCerrada(s) {
+  const mio = cuentaId && s.mejorCuenta === cuentaId;
+  let res;
+  if (s.estado === 'cancelada') res = 'Anulada por el profe. Las ofertas se devolvieron.';
+  else if (!s.mejorCuenta) res = 'Nadie ofertó: quedó desierta.';
+  else res = mio ? `<b style="color:var(--acid)">¡La ganaste!</b> Pagaste ${fmt(s.mejor)}. ${s.entregado ? 'Ya te la entregaron.' : 'El profe te la entregará.'}`
+    : `Ganó <b>${esc(s.mejorNombre || 'alguien')}</b> con ${fmt(s.mejor)}.`;
+  const pend = s.estado === 'abierta';
+  return `<article class="lote${mio && s.estado !== 'cancelada' ? ' gano' : ''}">${visual(s)}
+    <div class="chips">${pend ? '<span class="chip hot">Terminó · por adjudicar</span>' : s.estado === 'adjudicada' ? `<span class="chip ok">Adjudicada${s.entregado ? ' · entregada' : ''}</span>` : s.estado === 'cancelada' ? '<span class="chip">Anulada</span>' : '<span class="chip">Desierta</span>'}<span class="chip">${s.ofertas || 0} oferta${s.ofertas === 1 ? '' : 's'}</span></div>
+    <h3>${esc(s.titulo)}</h3>
+    <p class="res">${res}</p>
+    <div class="res" style="font-size:12.5px">Cerró el ${esc(fechaTxt(ms(s.cierre)))}</div>
+    ${esProfe ? adminBotones(s) : ''}</article>`;
+}
+function adminBotones(s) {
+  const id = esc(s.id), ab = abierta(s), terminada = s.estado === 'abierta' && !ab;
+  let q = '';
+  if (s.mejorCuenta && s.estado !== 'cancelada') {
+    const c = cuentasGanadores[s.mejorCuenta];
+    q = `<span class="q">${ab ? 'Va ganando' : 'Ganó'}: ${c ? `N° ${esc(c.numero)} · ${esc(((c.nombre || '') + ' ' + (c.apellido || '')).trim())}${c.curso ? ' · ' + esc(c.curso) : ''}` : esc(s.mejorNombre || s.mejorCuenta)} · ${fmt(s.mejor)}</span>`;
+  }
+  const b = [];
+  if (ab) { b.push(`<button class="btn sm" data-adm="extender" data-id="${id}">Cambiar cierre</button>`); b.push(`<button class="btn sm" data-adm="cerrar" data-id="${id}">Cerrar ahora</button>`); }
+  if (terminada) b.push(`<button class="btn sm p" data-adm="adjudicar" data-id="${id}">${s.mejorCuenta ? 'Adjudicar' : 'Marcar desierta'}</button>`);
+  if (s.estado === 'adjudicada') b.push(`<button class="btn sm" data-adm="entregado" data-id="${id}">${s.entregado ? 'Marcar no entregada' : 'Marcar entregada'}</button>`);
+  if (s.estado === 'abierta') b.push(`<button class="btn sm peligro" data-adm="anular" data-id="${id}">Anular${s.mejorCuenta ? ' y devolver' : ''}</button>`);
+  if (s.estado !== 'abierta') b.push(`<button class="btn sm peligro" data-adm="borrar" data-id="${id}">Borrar</button>`);
+  return `<div class="adm">${q}${b.join('')}</div>`;
+}
+function pintar() {
+  pintarEstado();
+  const ab = subastas.filter(abierta).sort((a, b) => ms(a.cierre) - ms(b.cierre));
+  const ce = subastas.filter(s => !abierta(s)).sort((a, b) => ms(b.cierre) - ms(a.cierre)).slice(0, esProfe ? 60 : 12);
+  $('nAbiertas').textContent = ab.length ? `${ab.length} en curso` : '';
+  // no repintar una tarjeta mientras alguien escribe su oferta
+  const foco = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.monto;
+  const valor = foco ? document.activeElement.value : null;
+  $('abiertas').innerHTML = ab.map(tarjetaAbierta).join('') || `<div class="vacio"><span class="emo">🔨</span>No hay subastas abiertas. El profe anunciará la próxima aquí y en la portada.</div>`;
+  $('cerradas').innerHTML = ce.map(tarjetaCerrada).join('') || `<div class="vacio">Todavía no termina ninguna subasta.</div>`;
+  if (foco) { const i = document.querySelector(`[data-monto="${CSS.escape(foco)}"]`); if (i) { i.value = valor; i.focus(); } }
+  $('profe').hidden = !esProfe;
+}
+// Relojes: se actualizan cada segundo sin repintar todo; al llegar a cero, se repinta.
+setInterval(() => {
+  let fin = false;
+  document.querySelectorAll('.reloj[data-cierre]').forEach(r => {
+    const t = +r.dataset.cierre; r.querySelector('span').textContent = restante(t);
+    r.classList.toggle('urge', t - ahora() < 3600e3);
+    if (t <= ahora()) fin = true;
+  });
+  if (fin) pintar();
+}, 1000);
+
+/* ═════════ datos ═════════ */
+function quitarSubs() { unsubs.forEach(u => { try { u(); } catch (e) {} }); unsubs = []; }
+async function cargar() {
+  const { F, db } = await DF.listo();
+  quitarSubs();
+  usuario = DF.usuario(); esProfe = !!(usuario && DF.esProfe(usuario)); cuentaId = null; cuenta = null;
+  aviso('');
+  unsubs.push(F.onSnapshot(F.collection(db, 'subastas'), s => {
+    subastas = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    if (esProfe) cargarGanadores();
+    pintar();
+  }, e => aviso('No se pudieron leer las subastas: ' + esc(e.message), 'err')));
+  if (usuario && !esProfe) {
+    try {
+      await DF.asegurarCuentaBanco().catch(() => null);
+      const v = await F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase()));
+      if (v.exists()) {
+        cuentaId = v.data().cuenta;
+        unsubs.push(F.onSnapshot(F.doc(db, 'banco_cuentas', cuentaId), c => { cuenta = c.exists() ? c.data() : null; pintar(); }, () => {}));
+      }
+    } catch (e) { aviso('No se pudo cargar tu cuenta: ' + esc(e.message), 'err'); }
+  }
+  pintar();
+}
+async function cargarGanadores() {
+  const { F, db } = await DF.listo();
+  const faltan = [...new Set(subastas.map(s => s.mejorCuenta).filter(c => c && !cuentasGanadores[c]))];
+  if (!faltan.length) return;
+  await Promise.all(faltan.map(c => F.getDoc(F.doc(db, 'banco_cuentas', c)).then(d => { if (d.exists()) cuentasGanadores[c] = d.data(); }).catch(() => {})));
+  pintar();
+}
+
+/* ═════════ ofertar ═════════
+   Una sola transacción: cobra la oferta (queda retenida), marca la nueva mejor oferta
+   y devuelve la oferta anterior a quien iba ganando. */
+async function ofertar(sid, monto) {
+  const { F, db } = await DF.listo();
+  return F.runTransaction(db, async tx => {
+    const rs = F.doc(db, 'subastas', sid), rc = F.doc(db, 'banco_cuentas', cuentaId);
+    const [ss, sc] = await Promise.all([tx.get(rs), tx.get(rc)]);
+    if (!ss.exists()) throw new Error('la subasta ya no existe');
+    if (!sc.exists()) throw new Error('no se encontró tu cuenta del banco');
+    const s = ss.data(), cu = sc.data();
+    if (s.estado !== 'abierta' || ms(s.cierre) <= ahora()) throw new Error('la subasta ya cerró');
+    if (s.mejorCuenta === cuentaId) throw new Error('ya vas ganando esta subasta');
+    const min = minimoSiguiente(s);
+    if (monto < min) throw new Error('alguien ofertó antes: ahora el mínimo es ' + fmt(min));
+    const prev = s.mejorCuenta, rp = prev ? F.doc(db, 'banco_cuentas', prev) : null, sp = rp ? await tx.get(rp) : null;
+    if (prev && !sp.exists()) throw new Error('no se encontró la cuenta de quien iba ganando; avísale al profe');
+    const saldo = (cu.saldo || 0) - monto, ops = (cu.ops || 0) + 1, opId = 'op-' + cuentaId + '-' + ops;
+    if (saldo < 0) throw new Error('no te alcanza: tienes ' + fmt(cu.saldo));
+    const titulo = String(s.titulo || '').slice(0, 120);
+    tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+    tx.set(F.doc(db, 'banco_movs', opId), {
+      cuenta: cuentaId, numero: String(cu.numero || ''), nombre: ((cu.nombre || '') + ' ' + (cu.apellido || '')).trim(), curso: cu.curso || '',
+      monto: -monto, motivo: `Subasta: oferta por «${titulo}» (retenida)`.slice(0, 200), tipo: 'subasta-oferta', saldoDespues: saldo, profe: '',
+      fecha: F.serverTimestamp(), subasta: sid
+    });
+    tx.update(rs, { mejor: monto, mejorCuenta: cuentaId, mejorNombre: cu.nombre || '', mejorMov: opId, ofertas: (s.ofertas || 0) + 1, actualizado: F.serverTimestamp() });
+    if (prev) {
+      const p = sp.data(), saldoP = (p.saldo || 0) + (s.mejor || 0);
+      tx.update(rp, { saldo: saldoP, actualizado: F.serverTimestamp() });
+      tx.set(F.doc(db, 'banco_movs', 'sb-' + sid + '-' + (s.ofertas || 0)), {
+        cuenta: prev, numero: String(p.numero || ''), nombre: ((p.nombre || '') + ' ' + (p.apellido || '')).trim(), curso: p.curso || '',
+        monto: s.mejor, motivo: `Subasta: te superaron en «${titulo}»; vuelve tu oferta`.slice(0, 200), tipo: 'subasta-devuelta',
+        saldoDespues: saldoP, profe: '', fecha: F.serverTimestamp(), subasta: sid
+      });
+    }
+    return { saldo, titulo };
+  });
+}
+function abrirOferta(s, monto) {
+  $('modal').innerHTML = `<div class="emo">${esc(s.ico || '🎁')}</div><h3>${esc(s.titulo)}</h3>
+    <p>Tu oferta sale ahora de tu saldo y queda retenida. Si alguien te supera, te vuelve completa. Si ganas, ya está pagada.</p>
+    <div class="cuentas"><span>Tu saldo</span><b>${fmt(cuenta.saldo)}</b><span>Tu oferta</span><b style="color:var(--neg)">− ${fmt(monto)}</b><span>Te quedan</span><b style="color:var(--acid)">${fmt((cuenta.saldo || 0) - monto)}</b></div>
+    <div id="mMsg"></div>
+    <div class="fila"><button class="btn" data-a="cerrar">Cancelar</button><button class="btn p" data-a="confirmar" data-id="${esc(s.id)}" data-m="${monto}"><i class="fa-solid fa-gavel"></i> Ofertar ${fmt(monto)}</button></div>`;
+  $('velo').hidden = false;
+}
+async function confirmar(sid, monto) {
+  if (ofertando) return;
+  ofertando = true; const b = document.querySelector('[data-a=confirmar]'); if (b) b.disabled = true;
+  try {
+    const r = await ofertar(sid, monto);
+    $('modal').innerHTML = `<div class="emo">👑</div><h3>¡Vas ganando!</h3><p>Ofertaste ${fmt(monto)} por «${esc(r.titulo)}». Si alguien te supera, te devolvemos todo al instante.</p>
+      <div class="fila"><button class="btn p" data-a="cerrar">Listo</button></div>`;
+  } catch (e) {
+    const m = String(e.message || e);
+    $('mMsg').innerHTML = `<div class="aviso err">No se pudo ofertar: ${esc(/permission/i.test(m) ? 'el banco rechazó la oferta (¿cerró la subasta, o el profe aún no publica las reglas nuevas?)' : m)}</div>`;
+    if (b) b.disabled = false;
+  }
+  ofertando = false;
+}
+
+/* ═════════ profe ═════════ */
+function cierrePorDefecto() {
+  const d = new Date(Date.now() + 2 * 86400e3); d.setHours(18, 0, 0, 0);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+$('fCierre').value = cierrePorDefecto();
+function msgProfe(t, tipo) { $('fMsg').innerHTML = t ? `<span style="color:${tipo === 'err' ? 'var(--neg)' : 'var(--acid)'}">${t}</span>` : ''; }
+async function publicar() {
+  const titulo = $('fTitulo').value.trim().slice(0, 80), descripcion = $('fDesc').value.trim().slice(0, 400);
+  const ico = $('fIco').value.trim().slice(0, 8) || '🎁', imagen = $('fImg').value.trim().slice(0, 300);
+  const minimo = Math.round(+$('fMin').value || 0), incremento = Math.round(+$('fInc').value || 0);
+  const cierre = $('fCierre').value ? new Date($('fCierre').value) : null;
+  if (titulo.length < 3) return msgProfe('Escribe qué se subasta.', 'err');
+  if (minimo < 100) return msgProfe('El monto mínimo debe ser al menos 100 ₣.', 'err');
+  if (incremento < 100) return msgProfe('El alza mínima debe ser al menos 100 ₣.', 'err');
+  if (!cierre || isNaN(cierre) || cierre.getTime() <= Date.now() + 60e3) return msgProfe('Elige una hora de cierre en el futuro.', 'err');
+  if (imagen && !imgOk(imagen)) return msgProfe('La imagen debe ser un enlace https:// o una ruta del sitio (…webp/png/jpg).', 'err');
+  const { F, db } = await DF.listo();
+  try {
+    await F.addDoc(F.collection(db, 'subastas'), { titulo, descripcion, ico, imagen, minimo, incremento,
+      cierre: F.Timestamp.fromDate(cierre), estado: 'abierta', mejor: 0, mejorCuenta: '', mejorNombre: '', mejorMov: '', ofertas: 0,
+      entregado: false, profe: usuario.email, creada: F.serverTimestamp(), actualizado: F.serverTimestamp() });
+    msgProfe(`✓ «${esc(titulo)}» publicada. Cierra el ${esc(fechaTxt(cierre.getTime()))}.`, 'ok');
+    $('fTitulo').value = ''; $('fDesc').value = ''; $('fImg').value = '';
+  } catch (e) { msgProfe('No se pudo publicar: ' + esc(e.message), 'err'); }
+}
+async function adm(a, sid) {
+  const s = subastas.find(x => x.id === sid); if (!s) return;
+  const { F, db } = await DF.listo(), rs = F.doc(db, 'subastas', sid), profe = usuario.email;
+  try {
+    if (a === 'extender') {
+      const actual = new Date(ms(s.cierre)), p = n => String(n).padStart(2, '0');
+      const v = prompt('Nuevo cierre (AAAA-MM-DD HH:MM):', `${actual.getFullYear()}-${p(actual.getMonth() + 1)}-${p(actual.getDate())} ${p(actual.getHours())}:${p(actual.getMinutes())}`);
+      if (v === null) return;
+      const d = new Date(v.trim().replace(' ', 'T'));
+      if (isNaN(d) || d.getTime() <= Date.now()) return alert('Fecha inválida o en el pasado.');
+      await F.updateDoc(rs, { cierre: F.Timestamp.fromDate(d), actualizado: F.serverTimestamp() });
+    }
+    if (a === 'cerrar') {
+      if (!confirm(`¿Cerrar «${s.titulo}» ahora?${s.mejorCuenta ? `\nGana ${s.mejorNombre} con ${fmt(s.mejor)}.` : '\nNadie ha ofertado: quedará desierta.'}`)) return;
+      await F.updateDoc(rs, { cierre: F.Timestamp.now(), estado: s.mejorCuenta ? 'adjudicada' : 'desierta', cerrada: F.serverTimestamp(), actualizado: F.serverTimestamp() });
+    }
+    if (a === 'adjudicar') await F.updateDoc(rs, { estado: s.mejorCuenta ? 'adjudicada' : 'desierta', cerrada: F.serverTimestamp(), actualizado: F.serverTimestamp() });
+    if (a === 'entregado') await F.updateDoc(rs, { entregado: !s.entregado, actualizado: F.serverTimestamp() });
+    if (a === 'anular') {
+      if (!confirm(`¿Anular «${s.titulo}»?${s.mejorCuenta ? `\nSe le devuelven ${fmt(s.mejor)} a ${s.mejorNombre}.` : ''}`)) return;
+      await F.runTransaction(db, async tx => {
+        const ss = await tx.get(rs); if (!ss.exists()) throw new Error('ya no existe');
+        const d = ss.data(); if (d.estado !== 'abierta') throw new Error('ya no está abierta');
+        if (d.mejorCuenta) {
+          const rc = F.doc(db, 'banco_cuentas', d.mejorCuenta), sc = await tx.get(rc);
+          if (!sc.exists()) throw new Error('no se encontró la cuenta de quien iba ganando');
+          const c = sc.data(), saldo = (c.saldo || 0) + (d.mejor || 0);
+          tx.update(rc, { saldo, actualizado: F.serverTimestamp() });
+          tx.set(F.doc(F.collection(db, 'banco_movs')), { cuenta: d.mejorCuenta, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
+            monto: d.mejor, motivo: `Subasta anulada: «${String(d.titulo || '').slice(0, 120)}»; vuelve tu oferta`.slice(0, 200), tipo: 'subasta-devuelta', saldoDespues: saldo, profe, fecha: F.serverTimestamp(), subasta: sid });
+        }
+        tx.update(rs, { estado: 'cancelada', cerrada: F.serverTimestamp(), actualizado: F.serverTimestamp() });
+      });
+    }
+    if (a === 'borrar') { if (!confirm(`¿Borrar «${s.titulo}» de la lista? (No cambia ningún saldo.)`)) return; await F.deleteDoc(rs); }
+  } catch (e) { alert('No se pudo: ' + e.message); }
+}
+
+/* ═════════ eventos ═════════ */
+document.addEventListener('click', ev => {
+  const t = ev.target.closest('button, [data-a]'); if (!t) return;
+  if (t.dataset.a === 'entrar') { DF.entrar().catch(e => aviso('No se pudo entrar: ' + esc(e.message), 'err')); return; }
+  if (t.dataset.a === 'cerrar') { $('velo').hidden = true; return; }
+  if (t.dataset.a === 'confirmar') { confirmar(t.dataset.id, +t.dataset.m); return; }
+  if (t.dataset.ofertar) {
+    const s = subastas.find(x => x.id === t.dataset.ofertar); if (!s) return;
+    const i = document.querySelector(`[data-monto="${CSS.escape(s.id)}"]`), monto = Math.round(+(i && i.value) || 0), min = minimoSiguiente(s);
+    if (monto < min) return aviso(`La oferta mínima es ${fmt(min)}.`, 'err');
+    if (monto > (cuenta.saldo || 0)) return aviso(`No te alcanza: tienes ${fmt(cuenta.saldo)}.`, 'err');
+    aviso(''); abrirOferta(s, monto); return;
+  }
+  if (t.dataset.adm) { adm(t.dataset.adm, t.dataset.id); return; }
+  if (t.id === 'fPublicar') publicar();
+});
+$('velo').addEventListener('click', ev => { if (ev.target === $('velo')) $('velo').hidden = true; });
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') $('velo').hidden = true; });
+
+DF.listo().then(() => DF.alCambiarUsuario(() => cargar()), e => {
+  aviso('Las subastas necesitan conexión con el banco: ' + esc(e.message), 'err');
+  $('abiertas').innerHTML = '';
+});
+})();
+</script>
+</body>
+</html>

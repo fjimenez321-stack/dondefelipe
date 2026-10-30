@@ -351,7 +351,7 @@ service cloud.firestore {
       return d.cuenta == miCuentaBanco() && d.cuenta != ''
         && opsDespues(d.cuenta) == opsAntes(d.cuenta) + 1
         && id == 'op-' + d.cuenta + '-' + string(opsDespues(d.cuenta))
-        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde'])
+        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta'])
         && (d.tipo == 'ruleta' || !d.keys().hasAny(['tema', 'escapa', 'pierde']))
         && d.profe == '' && d.fecha == request.time
         && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200)
@@ -366,7 +366,8 @@ service cloud.firestore {
             || (d.tipo == 'gatito-compra' && opGatito(d)) || (d.tipo == 'ruleta' && opRuleta(d)) || (d.tipo == 'ruleta-apuesta' && opApuesta(d))
             || (d.tipo == 'transferencia-envio' && opEnvio(id, d)) || (d.tipo == 'compra' && opPedido(id, d))
             || (d.tipo == 'devolucion' && opDevolucion(d)) || (d.tipo == 'poder-gatito' && opPoder(d)) || (d.tipo == 'poder-mensual' && opPoderMes(d)) || (d.tipo == 'premio-gatito' && opPremio(d))
-            || (d.tipo == 'prestamo-pago' && opPagoPrestamo(d)) || (d.tipo == 'mascota' && opMascota(d)) || (d.tipo in ['ahorro-deposito', 'ahorro-retiro'] && opAhorro(d)));
+            || (d.tipo == 'prestamo-pago' && opPagoPrestamo(d)) || (d.tipo == 'mascota' && opMascota(d)) || (d.tipo in ['ahorro-deposito', 'ahorro-retiro'] && opAhorro(d))
+            || (d.tipo == 'subasta-oferta' && opSubasta(id, d)));
     }
 
     // ═════ Mascotas (como Pou / Tamagotchi) ═════
@@ -945,6 +946,81 @@ service cloud.firestore {
       allow update, delete: if esProfe();
     }
 
+    // ═════ Casa de Subastas ═════
+    // Solo el profe publica (objeto, monto mínimo, alza mínima y cierre). Cada oferta, en UNA escritura:
+    //   banco_movs/op-<cuenta>-<ops>   el que oferta paga su oferta (queda retenida en la subasta)
+    //   banco_cuentas/<cuenta>         saldo − oferta, ops + 1 (no puede quedar negativo)
+    //   subastas/<sid>                 mejor, mejorCuenta, mejorNombre, mejorMov, ofertas + 1
+    //   y si había alguien ganando:
+    //   banco_cuentas/<anterior>       saldo + su oferta (se le devuelve al instante)
+    //   banco_movs/sb-<sid>-<n>        movimiento «subasta-devuelta» de quien fue superado
+    // Al cerrar, el dinero de quien ganó ya está cobrado. Si el profe anula, devuelve la oferta (lo hace el panel).
+    function rutaSubasta(sid) { return /databases/$(database)/documents/subastas/$(sid); }
+    function opSubasta(id, d) {
+      let s = get(rutaSubasta(d.subasta)).data;
+      let s2 = getAfter(rutaSubasta(d.subasta)).data;
+      return d.subasta is string
+        && s.estado == 'abierta' && request.time < s.cierre
+        && s.mejorCuenta != d.cuenta
+        && s2.mejorCuenta == d.cuenta && s2.mejorMov == id && s2.ofertas == s.ofertas + 1
+        && s2.mejor is int && d.monto == 0 - s2.mejor
+        && s2.mejor >= s.minimo
+        && (s.mejorCuenta == '' || s2.mejor >= s.mejor + s.incremento);
+    }
+    // La cuenta superada recibe de vuelta exactamente su oferta, en la misma escritura de la nueva oferta.
+    function abonoSubasta(id) {
+      let c = miCuentaBanco();
+      let sid = opActual(c).get('subasta', '');
+      let s = get(rutaSubasta(sid)).data;
+      return c != '' && id != c && opsDespues(c) == opsAntes(c) + 1
+        && opActual(c).tipo == 'subasta-oferta'
+        && s.mejorCuenta == id
+        && getAfter(rutaSubasta(sid)).data.mejorCuenta == c
+        && getAfter(rutaSubasta(sid)).data.ofertas == s.ofertas + 1
+        && request.resource.data.saldo == resource.data.saldo + s.mejor
+        && existsAfter(rutaMov('sb-' + sid + '-' + string(s.ofertas)));
+    }
+    // Movimiento de devolución para quien fue superado (lo escribe quien oferta).
+    function movSubastaDevuelta(id, d) {
+      let s = get(rutaSubasta(d.subasta)).data;
+      let s2 = getAfter(rutaSubasta(d.subasta)).data;
+      return d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'subasta'])
+        && d.subasta is string && id == 'sb-' + d.subasta + '-' + string(s.ofertas)
+        && d.tipo == 'subasta-devuelta'
+        && d.cuenta == s.mejorCuenta && d.cuenta != '' && d.cuenta != miCuentaBanco()
+        && d.monto == s.mejor
+        && s2.ofertas == s.ofertas + 1 && s2.mejorCuenta == miCuentaBanco()
+        && d.saldoDespues == getAfter(rutaCuenta(d.cuenta)).data.saldo
+        && d.profe == '' && d.fecha == request.time
+        && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200);
+    }
+    match /subastas/{sid} {
+      // Pública: la portada muestra las subastas abiertas (solo el nombre de pila de quien va ganando).
+      allow read: if true;
+      allow write: if esProfe();
+      // Ofertar: solo cambian los datos de la mejor oferta, junto con el pago (ver opSubasta).
+      allow update: if esColegio() && miCuentaBanco() != ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mejor', 'mejorCuenta', 'mejorNombre', 'mejorMov', 'ofertas', 'actualizado'])
+        && resource.data.estado == 'abierta' && request.time < resource.data.cierre
+        && request.resource.data.actualizado == request.time
+        && request.resource.data.ofertas == resource.data.ofertas + 1
+        && request.resource.data.mejorCuenta == miCuentaBanco()
+        && resource.data.mejorCuenta != miCuentaBanco()
+        && request.resource.data.mejorNombre == get(rutaCuenta(miCuentaBanco())).data.nombre
+        && request.resource.data.mejor is int
+        && request.resource.data.mejor >= resource.data.minimo
+        && (resource.data.mejorCuenta == '' || request.resource.data.mejor >= resource.data.mejor + resource.data.incremento)
+        && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
+        && request.resource.data.mejorMov == idOpActual(miCuentaBanco())
+        && opActual(miCuentaBanco()).tipo == 'subasta-oferta'
+        && opActual(miCuentaBanco()).subasta == sid
+        && opActual(miCuentaBanco()).monto == 0 - request.resource.data.mejor
+        // si había alguien ganando, se le devuelve su oferta en la misma escritura
+        && (resource.data.mejorCuenta == ''
+            || (getAfter(rutaCuenta(resource.data.mejorCuenta)).data.saldo == get(rutaCuenta(resource.data.mejorCuenta)).data.saldo + resource.data.mejor
+                && existsAfter(rutaMov('sb-' + sid + '-' + string(resource.data.ofertas)))));
+    }
+
     // Publicaciones entre estudiantes. Estados: venta → reservado (alguien la pidió) → vendido;
     // o venta → retirado. El objeto está congelado mientras la publicación está en venta o reservada.
     function datosPublicacion(d, iid) {
@@ -1211,6 +1287,11 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['saldo', 'actualizado'])
         && request.resource.data.actualizado == request.time
         && abonoAutomatico(id);
+      // Devolución de la oferta superada en una subasta (la escribe quien oferta más).
+      allow update: if esColegio() && miCuentaBanco() != ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['saldo', 'actualizado'])
+        && request.resource.data.actualizado == request.time
+        && abonoSubasta(id);
       // Operación del propio estudiante (bolsa o bono diario): el saldo cambia exactamente
       // en el monto del movimiento 'op-<cuenta>-<ops>' que se crea en la misma escritura.
       allow update: if esColegio() && id == miCuentaBanco() && id != ''
@@ -1246,6 +1327,9 @@ service cloud.firestore {
       // Movimiento de quien RECIBE una transferencia automática (lo escribe quien envía, en la misma escritura).
       allow create: if esColegio() && miCuentaBanco() != '' && id.matches('^tr-.+')
         && movRecibido(id[3:id.size()], request.resource.data);
+      // Devolución a quien fue superado en una subasta (la escribe quien oferta más, en la misma escritura).
+      allow create: if esColegio() && miCuentaBanco() != '' && id.matches('^sb-.+')
+        && movSubastaDevuelta(id, request.resource.data);
       allow update: if esProfe()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['canje', 'canjeNota', 'canjeFecha', 'canjeProfe', 'tema']);
       allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
