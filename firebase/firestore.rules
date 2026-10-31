@@ -739,7 +739,7 @@ service cloud.firestore {
               'aseo': 25000, 'blanconegro': 30000, 'tricolor': 35000, 'comelon': 40000,
               'siames': 60000, 'negro': 70000, 'estirado': 80000, 'jugueton': 100000,
               'caja': 150000, 'tronco': 200000, 'barril': 250000,
-              'muro': 400000, 'fantasma': 500000,
+              'muro': 400000, 'fantasma': 500000, 'masita': 500000, 'miauricio': 550000,
               'cosmico': 750000, 'dorado': 1000000, 'cesar': 1000000, 'grunona': 5000000}.get(g, 0);
     }
     function rutaGatitos(uid) { return /databases/$(database)/documents/gatitos/$(uid); }
@@ -754,7 +754,7 @@ service cloud.firestore {
       let s = gatitosAntes(uid).toSet();
       let n = s.intersection(['naranjo', 'gris', 'dormilon', 'patitas', 'aseo', 'blanconegro', 'tricolor', 'comelon'].toSet()).size()
         + 2 * s.intersection(['siames', 'negro', 'estirado', 'jugueton', 'caja', 'tronco', 'barril'].toSet()).size()
-        + 3 * s.intersection(['muro', 'fantasma', 'ava', 'calha', 'cosmico', 'dorado'].toSet()).size();
+        + 3 * s.intersection(['muro', 'fantasma', 'ava', 'calha', 'cosmico', 'dorado', 'masita', 'miauricio'].toSet()).size();
       return n > 3 ? 3 : n;
     }
     function sumativasPoder(uid) { return 0; }   // (ningún gatito da sumativas diarias por ahora)
@@ -772,9 +772,14 @@ service cloud.firestore {
     }
     // ── Premio único: Ava y Calha dan 5 formativas y 2 sumativas una sola vez por cuenta y por gatita ──
     function rutaPremio(c, g) { return /databases/$(database)/documents/gatitos_premios/$(c + '__' + g); }
-    function textoPremio(g) { return (g == 'ava' ? 'Ava' : 'Calha') + ': premio único de 5 décimas formativas y 2 décimas sumativas'; }
+    // Debe coincidir con textoPremio() de gatitos/catalogo.js.
+    function textoPremio(g) {
+      return {'ava': 'Ava: premio único de 5 décimas formativas y 2 décimas sumativas',
+              'calha': 'Calha: premio único de 5 décimas formativas y 2 décimas sumativas',
+              'miauricio': 'Miauricio: premio único de 5 décimas sumativas'}.get(g, '');
+    }
     function opPremio(d) {
-      return d.gatito is string && d.gatito in ['ava', 'calha'] && d.gatito in gatitosAntes(request.auth.uid)
+      return d.gatito is string && d.gatito in ['ava', 'calha', 'miauricio'] && d.gatito in gatitosAntes(request.auth.uid)
         && d.monto == 0 && d.canje == 'pendiente' && d.item == textoPremio(d.gatito)
         && !d.keys().hasAny(['oferta', 'precio', 'pedido', 'transferencia'])
         && !exists(rutaPremio(d.cuenta, d.gatito)) && existsAfter(rutaPremio(d.cuenta, d.gatito));
@@ -786,7 +791,7 @@ service cloud.firestore {
         && request.resource.data.cuenta == miCuentaBanco() && miCuentaBanco() != ''
         && request.resource.data.keys().hasOnly(['cuenta', 'uid', 'gatito', 'fecha'])
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.gatito in ['ava', 'calha']
+        && request.resource.data.gatito in ['ava', 'calha', 'miauricio']
         && request.resource.data.gatito in gatitosAntes(request.auth.uid)
         && pid == request.resource.data.cuenta + '__' + request.resource.data.gatito
         && request.resource.data.fecha == request.time
