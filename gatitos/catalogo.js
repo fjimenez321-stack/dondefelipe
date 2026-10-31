@@ -31,6 +31,9 @@ window.GATITOS = [
   { id: 'ava',         nombre: 'Ava',                  precio: 450000,  rareza: 'legendario', txt: 'Ava ♀. Gatita especial: trae un premio único de 5 décimas formativas y 2 sumativas. Camina, corre, juega y duerme siesta.', premio: { formativas: 5, sumativas: 2 }, anim: true, poderes: ['💎 Premio único: 5 décimas formativas y 2 sumativas', '🚶 Permiso de paseo por el colegio en cada clase (cuando amerite)'] },
   { id: 'calha',       nombre: 'Calha',                precio: 450000,  rareza: 'legendario', txt: 'Calha ♀. Gatita especial y compañera de Ava: trae un premio único de 5 décimas formativas y 2 sumativas.', premio: { formativas: 5, sumativas: 2 }, anim: true, poderes: ['💎 Premio único: 5 décimas formativas y 2 sumativas', '📓 Uso del cuaderno 5 minutos en cada evaluación'] },
   { id: 'nietzsche',   nombre: 'Gato Nietzsche',       precio: 500000,  rareza: 'legendario', txt: 'Filósofo, explorador y pensador. Cada mes: 5 décimas formativas y 2 sumativas.', anim: true, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes'] },
+  // Se disfrazan según la temporada (ver TEMPORADA_GATITOS en gatitos/anim.js): Halloween o Navidad.
+  { id: 'masita',      nombre: 'Masita',               precio: 500000,  rareza: 'legendario', txt: 'Masita ♀. Gatita tricolor que se disfraza en cada fiesta: bruja en Halloween y duende navideño en Navidad. Puedes usar el cuaderno 5 minutos en cada prueba.', poderes: ['📓 Uso del cuaderno 5 minutos en cada prueba'] },
+  { id: 'miauricio',   nombre: 'Miauricio',            precio: 550000,  rareza: 'legendario', txt: 'Miauricio ♂. Gato naranjo atigrado: vampiro en Halloween y bufanda de nieve en Navidad. Trae un premio único de 5 décimas sumativas.', premio: { formativas: 0, sumativas: 5 }, poderes: ['💎 Premio único: 5 décimas sumativas'] },
   // Héroes: edición limitada (el profe los publica de vez en cuando, con pocas unidades; «Publicar todo el catálogo» no los incluye).
   // Beneficio: 30% de descuento en las compras académicas del Mercado (ver «academico» en banco-felipeso/catalogo.js). No se suma entre ellos.
   { id: 'rayo',        nombre: 'Rayo',                 precio: 600000,  rareza: 'heroe',      txt: 'Velocidad y valentía. Edición limitada.', anim: true, exclusivo: true, diarias: 0, descuentoAcademico: 0.3, poderes: ['🎓 30% de descuento en compras académicas (puntos, formativas, décimas)'] },
@@ -104,7 +107,9 @@ window.descuentoAcademico = function (ids) {
 window.precioConDescuento = function (precio, d) { return d ? Math.round(precio * (1 - d) / 100) * 100 : precio; };
 window.textoPremio = function (g) { return g.nombre + ': premio único de ' + window.textoPoderDia(g.premio); };
 window.textoPoderDia = function (p) {
-  return window.textoDecimas(p.formativas) + (p.sumativas ? ' y ' + (p.sumativas === 1 ? '1 décima sumativa' : p.sumativas + ' décimas sumativas') : '');
+  var s = p.sumativas === 1 ? '1 décima sumativa' : p.sumativas + ' décimas sumativas';
+  if (!p.formativas && p.sumativas) return s;
+  return window.textoDecimas(p.formativas) + (p.sumativas ? ' y ' + s : '');
 };
 window.decimasDeGatitos = function (ids) { return window.poderDelDia(ids).formativas; };
 window.textoDecimas = function (n) { return n === 1 ? '1 décima formativa' : n + ' décimas formativas'; };

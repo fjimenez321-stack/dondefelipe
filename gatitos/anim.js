@@ -72,4 +72,29 @@
     if (Math.random() < .7) jugar(l[Math.floor(Math.random() * l.length)]);
   }, 4000);
   window.GatoAnim = { jugar: jugar, animados: ANIMADOS };
+
+  /* Disfraces de temporada: la imagen base (gatitos/img/<id>.webp) es la de Halloween; entre el
+     20 de noviembre y el 31 de enero se cambia sola por gatitos/img/<id>-navidad.webp. */
+  var TEMPORADA_GATITOS = ['masita', 'miauricio'];
+  function enNavidad() {
+    var p = new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', month: 'numeric', day: 'numeric' }).formatToParts(new Date()), m = 0, d = 0;
+    p.forEach(function (x) { if (x.type === 'month') m = +x.value; if (x.type === 'day') d = +x.value; });
+    var md = m * 100 + d; return md >= 1120 || md <= 131;
+  }
+  if (enNavidad()) {
+    var reTemp = new RegExp('gatitos\\/img\\/(' + TEMPORADA_GATITOS.join('|') + ')\\.webp');
+    var disfrazar = function (raizNodo) {
+      var imgs = raizNodo.tagName === 'IMG' ? [raizNodo] : (raizNodo.querySelectorAll ? raizNodo.querySelectorAll('img') : []);
+      Array.prototype.forEach.call(imgs, function (img) {
+        var src = img.getAttribute('src') || '';
+        if (reTemp.test(src)) img.setAttribute('src', src.replace(reTemp, function (t, id) { return 'gatitos/img/' + id + '-navidad.webp'; }));
+      });
+    };
+    var empezar = function () {
+      disfrazar(document.body);
+      new MutationObserver(function (ls) { ls.forEach(function (l) { l.addedNodes.forEach(function (n) { if (n.nodeType === 1) disfrazar(n); }); }); })
+        .observe(document.body, { childList: true, subtree: true });
+    };
+    if (document.body) empezar(); else document.addEventListener('DOMContentLoaded', empezar);
+  }
 })();
