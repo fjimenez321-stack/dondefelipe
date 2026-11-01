@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08080c">
+<meta name="referrer" content="no-referrer">
+<title>Canjear gift card · Hipopesos</title>
+<meta name="description" content="Canjea tu gift card de Hipopesos.">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(700px 420px at 50% -120px,rgba(233,185,73,.2),transparent),var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:520px;margin:0 auto;padding:22px 16px 60px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}
+.kick{font:700 12px var(--ff);letter-spacing:4px;text-transform:uppercase;color:var(--brass);margin:26px 0 6px;text-align:center}
+h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(40px,12vw,64px);line-height:.9;text-transform:uppercase;margin:0;text-align:center}
+.tarjeta{position:relative;margin:26px auto 0;aspect-ratio:1.586;max-width:420px;border-radius:20px;padding:22px;overflow:hidden;
+  background:radial-gradient(260px 180px at 85% 10%,rgba(255,255,255,.28),transparent 60%),linear-gradient(135deg,#e9b949,#b8860b 55%,#7a5a08);
+  color:#1a1300;box-shadow:0 24px 50px rgba(0,0,0,.6);display:flex;flex-direction:column;justify-content:space-between}
+.tarjeta.usada{filter:grayscale(1) brightness(.6)}
+.tarjeta .marca{font:900 22px/1 var(--ff-d);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.tarjeta .monto{font:900 clamp(44px,13vw,64px)/1 var(--ff-d)}
+.tarjeta .pie{display:flex;justify-content:space-between;align-items:flex-end;font:700 13px var(--ff)}
+.tarjeta .brillo{position:absolute;inset:-50%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%);animation:brillo 3.5s ease-in-out infinite}
+@keyframes brillo{from{transform:translateX(-30%)}to{transform:translateX(30%)}}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:18px;text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:12px 20px;font:700 15px var(--ff);cursor:pointer;text-decoration:none}
+.btn.p{background:var(--brass);color:#1a1300;border-color:var(--brass);font-weight:800}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px;text-align:left}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.aviso.ok{background:#14301f;border-color:#2c6b44;color:#c9f7d9}
+.muted{color:var(--mute);font-size:14px}
+.manual{display:flex;gap:8px;margin-top:10px}
+.manual input{flex:1;min-width:0;background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:11px 14px;font:600 15px ui-monospace,Menlo,monospace;letter-spacing:1px}
+.confeti{position:fixed;top:-20px;width:10px;height:14px;border-radius:2px;pointer-events:none;z-index:70;animation:cae linear forwards}
+@keyframes cae{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){.tarjeta .brillo,.confeti{animation:none;display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="index.html"><i class="fa-solid fa-arrow-left"></i> El Mundo de Felipe</a>
+  <p class="kick">Banco de Hipopesos</p>
+  <h1>Gift card</h1>
+
+  <div class="tarjeta" id="tarjeta">
+    <span class="brillo" aria-hidden="true"></span>
+    <div class="marca"><span aria-hidden="true">🪙</span> Hipopesos</div>
+    <div class="monto" id="monto">₣ —</div>
+    <div class="pie"><span id="tipo">Gift card</span><span id="estadoT"></span></div>
+  </div>
+
+  <section class="card" id="panel"><p class="muted">Cargando…</p></section>
+  <div id="aviso"></div>
+
+  <section class="card" id="manualBox" hidden>
+    <p class="muted" style="margin:0">¿No funcionó el QR? Escribe el código impreso en la tarjeta:</p>
+    <div class="manual"><input id="manual" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX-…" aria-label="Código de la gift card"><button class="btn p" id="usarManual">Ver</button></div>
+  </section>
+</div>
+
+<script src="firebase/df.js?v=20261101"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => new Intl.NumberFormat('es-CL').format(Math.round(n || 0)) + ' ₣';
+const ms = t => (t && t.toMillis ? t.toMillis() : 0);
+const CLAVE = 'giftcard-pendiente';
+// El código viaja en el fragmento (#c=…): el navegador no lo envía al servidor.
+// Al escribir a mano: I y L se leen como 1, y O como 0 no existe en los códigos (se ignora la confusión).
+const limpiar = c => String(c || '').toUpperCase().replace(/[IL]/g, '1').replace(/[^A-Z0-9]/g, '').slice(0, 40);
+let codigo = '', huella = '', tarjeta = null, usuario = null, cuentaId = null, cuenta = null, canjeando = false;
+
+function leerCodigo() {
+  const m = location.hash.match(/[#&]c=([A-Za-z0-9-]+)/);
+  if (m) {
+    const c = limpiar(m[1]);
+    try { sessionStorage.setItem(CLAVE, c); } catch (e) {}
+    history.replaceState(null, '', location.pathname);   // que no quede en el historial ni en la barra
+    return c;
+  }
+  try { return sessionStorage.getItem(CLAVE) || ''; } catch (e) { return ''; }
+}
+async function sha256(t) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+function aviso(t, tipo) { $('aviso').innerHTML = t ? `<div class="aviso ${tipo || ''}">${t}</div>` : ''; }
+
+function pintarTarjeta() {
+  const t = tarjeta;
+  $('monto').textContent = t ? fmt(t.monto) : '₣ —';
+  $('tipo').textContent = !t ? 'Gift card' : t.para ? 'Para ' + (t.paraNombre || 'un estudiante') : 'Al portador';
+  const vencida = t && t.vence && ms(t.vence) <= Date.now();
+  $('estadoT').textContent = !t ? '' : t.estado === 'canjeada' ? 'Canjeada' : t.estado === 'anulada' ? 'Anulada' : vencida ? 'Vencida' : t.vence ? 'Vence ' + new Date(ms(t.vence)).toLocaleDateString('es-CL') : '';
+  $('tarjeta').classList.toggle('usada', !!t && (t.estado !== 'activa' || vencida));
+}
+function pintar() {
+  pintarTarjeta();
+  const p = $('panel'), t = tarjeta;
+  $('manualBox').hidden = !!t;
+  if (!codigo) { p.innerHTML = '<p class="muted" style="margin:0">Escanea el QR de tu gift card con la cámara del celular, o escribe el código más abajo.</p>'; return; }
+  if (!t) { p.innerHTML = '<p class="muted" style="margin:0">No encontramos esa gift card. Revisa el código o escanea de nuevo el QR.</p>'; $('manualBox').hidden = false; return; }
+  if (t.estado === 'canjeada') { p.innerHTML = `<p style="margin:0">Esta gift card ya fue canjeada${cuentaId && t.canjeadaPor === cuentaId ? ' <b>por ti</b>' : ''}.</p>`; return; }
+  if (t.estado === 'anulada') { p.innerHTML = '<p style="margin:0">El profe anuló esta gift card.</p>'; return; }
+  if (t.vence && ms(t.vence) <= Date.now()) { p.innerHTML = '<p style="margin:0">Esta gift card venció.</p>'; return; }
+  if (!usuario) { p.innerHTML = `<p style="margin:0 0 12px">Entra con tu cuenta para depositar <b>${fmt(t.monto)}</b> en tu banco.</p><button class="btn p" data-a="entrar"><i class="fa-brands fa-google"></i> Entrar con Google</button>`; return; }
+  if (DF.esProfe(usuario)) { p.innerHTML = '<p style="margin:0">Estás con la cuenta de profe: esta tarjeta debe canjearla un estudiante.</p>'; return; }
+  if (!cuenta) { p.innerHTML = '<p style="margin:0">Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule y vuelve a escanear.</p>'; return; }
+  if (t.para && t.para !== cuentaId) { p.innerHTML = `<p style="margin:0">Esta gift card es nominativa: solo puede canjearla <b>${esc(t.paraNombre || 'otro estudiante')}</b>.</p>`; return; }
+  p.innerHTML = `<p style="margin:0 0 12px">Se depositarán <b>${fmt(t.monto)}</b> en tu cuenta N° ${esc(cuenta.numero || '')}. Tu saldo quedará en <b>${fmt((cuenta.saldo || 0) + t.monto)}</b>.</p>
+    <button class="btn p" data-a="canjear"${canjeando ? ' disabled' : ''}><i class="fa-solid fa-gift"></i> Canjear ${fmt(t.monto)}</button>`;
+}
+
+async function cargarTarjeta() {
+  tarjeta = null;
+  if (!codigo) return pintar();
+  try {
+    huella = await sha256(codigo);
+    const { F, db } = await DF.listo(), s = await F.getDoc(F.doc(db, 'giftcards', huella));
+    tarjeta = s.exists() ? s.data() : null;
+  } catch (e) { aviso('No se pudo leer la gift card: ' + esc(e.message), 'err'); }
+  pintar();
+}
+async function cargarUsuario() {
+  usuario = DF.usuario(); cuentaId = null; cuenta = null;
+  if (usuario && !DF.esProfe(usuario)) {
+    try {
+      const { F, db } = await DF.listo();
+      await DF.asegurarCuentaBanco().catch(() => null);
+      const v = await F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase()));
+      if (v.exists()) { cuentaId = v.data().cuenta; const c = await F.getDoc(F.doc(db, 'banco_cuentas', cuentaId)); cuenta = c.exists() ? c.data() : null; }
+    } catch (e) { aviso('No se pudo cargar tu cuenta: ' + esc(e.message), 'err'); }
+  }
+  pintar();
+}
+
+async function canjear() {
+  if (canjeando) return;
+  canjeando = true; pintar(); aviso('');
+  try {
+    const { F, db } = await DF.listo();
+    const monto = await F.runTransaction(db, async tx => {
+      const rg = F.doc(db, 'giftcards', huella), rc = F.doc(db, 'banco_cuentas', cuentaId);
+      const [sg, sc] = await Promise.all([tx.get(rg), tx.get(rc)]);
+      if (!sg.exists()) throw new Error('la gift card no existe');
+      const g = sg.data(), c = sc.data();
+      if (g.estado !== 'activa') throw new Error('esta gift card ya fue usada o anulada');
+      if (g.para && g.para !== cuentaId) throw new Error('esta gift card es para otro estudiante');
+      const saldo = (c.saldo || 0) + g.monto, ops = (c.ops || 0) + 1, opId = 'op-' + cuentaId + '-' + ops;
+      const nombre = ((c.nombre || '') + ' ' + (c.apellido || '')).trim();
+      tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+      tx.set(F.doc(db, 'banco_movs', opId), { cuenta: cuentaId, numero: String(c.numero || ''), nombre, curso: c.curso || '',
+        monto: g.monto, motivo: ('Gift card' + (g.nota ? ': ' + g.nota : '')).slice(0, 200), tipo: 'giftcard', saldoDespues: saldo, profe: '',
+        fecha: F.serverTimestamp(), giftcard: huella });
+      tx.update(rg, { estado: 'canjeada', canjeadaPor: cuentaId, canjeadaNombre: nombre.slice(0, 160), canjeada: F.serverTimestamp(), mov: opId, codigo });
+      return g.monto;
+    });
+    try { sessionStorage.removeItem(CLAVE); } catch (e) {}
+    cuenta.saldo = (cuenta.saldo || 0) + monto;
+    tarjeta = Object.assign({}, tarjeta, { estado: 'canjeada', canjeadaPor: cuentaId });
+    aviso(`🎉 ¡Listo! Se depositaron <b>${fmt(monto)}</b> en tu cuenta. Tu saldo ahora es <b>${fmt(cuenta.saldo)}</b>. <a href="gatitos.html">Ir al Mercado</a>`, 'ok');
+    confeti();
+  } catch (e) {
+    aviso('No se pudo canjear: ' + esc(/permission/i.test(e.message) ? 'el banco la rechazó (puede que ya se haya usado, que haya vencido o que el profe aún no publique las reglas nuevas)' : e.message), 'err');
+    await cargarTarjeta();
+  }
+  canjeando = false; pintar();
+}
+function confeti() {
+  const col = ['#e9b949', '#ccff00', '#22e3ff', '#ff2e7e', '#fff'];
+  for (let i = 0; i < 90; i++) {
+    const d = document.createElement('i'); d.className = 'confeti';
+    d.style.left = Math.random() * 100 + 'vw'; d.style.background = col[i % col.length];
+    d.style.animationDuration = 1.6 + Math.random() * 1.8 + 's'; d.style.animationDelay = Math.random() * .4 + 's';
+    document.body.appendChild(d); setTimeout(() => d.remove(), 4200);
+  }
+}
+
+document.addEventListener('click', ev => {
+  const t = ev.target.closest('[data-a], #usarManual'); if (!t) return;
+  if (t.dataset.a === 'entrar') DF.entrar().catch(e => { if (!e.cancelado) aviso('No se pudo entrar: ' + esc(e.message), 'err'); });
+  if (t.dataset.a === 'canjear') canjear();
+  if (t.id === 'usarManual') { codigo = limpiar($('manual').value); try { sessionStorage.setItem(CLAVE, codigo); } catch (e) {} aviso(''); cargarTarjeta(); }
+});
+$('manual').addEventListener('keydown', e => { if (e.key === 'Enter') $('usarManual').click(); });
+
+codigo = leerCodigo();
+DF.listo().then(() => { cargarTarjeta(); DF.alCambiarUsuario(() => cargarUsuario()); },
+  e => { $('panel').innerHTML = '<p class="muted">No hay conexión con el banco: ' + esc(e.message) + '</p>'; });
+})();
+</script>
+</body>
+</html>

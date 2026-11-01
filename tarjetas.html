@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08080c">
+<meta name="robots" content="noindex">
+<title>Gift cards · Panel del profe</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 70px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}
+.kick{font:700 12px var(--ff);letter-spacing:4px;text-transform:uppercase;color:var(--brass);margin:26px 0 6px}
+h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(42px,9vw,76px);line-height:.9;text-transform:uppercase;margin:0}
+h1 span{color:var(--brass)}
+h2{font:900 26px/1 var(--ff-d);text-transform:uppercase;margin:0 0 6px;color:var(--brass)}
+.intro{color:var(--mute);max-width:66ch;margin:10px 0 0}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:18px clamp(16px,3vw,24px);margin-top:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:12px}
+.form label{display:flex;flex-direction:column;gap:5px;font:700 12px var(--ff);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+.form .ancho{grid-column:1/-1}
+.form label[hidden]{display:none}
+.form input,.form select{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:9px 11px;font:500 15px var(--ff);letter-spacing:0;text-transform:none}
+.form small{font:500 12px var(--ff);letter-spacing:0;text-transform:none;color:var(--mute)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line2);background:transparent;color:var(--mute);border-radius:999px;padding:8px 14px;font:700 13px var(--ff);cursor:pointer}
+.seg button.on{background:var(--brass);color:#1a1300;border-color:var(--brass)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:9px 16px;font:600 14px var(--ff);cursor:pointer;text-decoration:none}
+.btn.p{background:var(--brass);color:#1a1300;border-color:var(--brass);font-weight:800}
+.btn.sm{padding:5px 11px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.aviso.ok{background:#14301f;border-color:#2c6b44;color:#c9f7d9}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.filtros input{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:7px 12px;font:500 14px var(--ff)}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font:700 11px var(--ff);letter-spacing:1.5px;text-transform:uppercase;color:var(--mute)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip{font:700 11px var(--ff);border-radius:999px;padding:2px 8px;border:1px solid var(--line2);color:var(--mute);white-space:nowrap}
+.chip.ok{border-color:var(--acid);color:var(--acid)}.chip.hot{border-color:var(--pink);color:var(--pink)}.chip.lim{border-color:var(--brass);color:var(--brass)}
+.tabla-scroll{overflow-x:auto}
+/* hoja para imprimir */
+#hoja{display:none}
+.gc{width:85.6mm;height:54mm;border-radius:4mm;padding:4mm 5mm;display:grid;grid-template-columns:1fr 30mm;gap:3mm;
+  background:linear-gradient(135deg,#f3cf6a,#d7a52a 60%,#b8860b);color:#1a1300;font-family:var(--ff);break-inside:avoid;page-break-inside:avoid;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;border:.3mm dashed rgba(0,0,0,.25)}
+.gc .izq{display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+.gc .marca{font:900 5mm/1 var(--ff-d);letter-spacing:.6mm;text-transform:uppercase}
+.gc .marca small{display:block;font:700 2mm var(--ff);letter-spacing:.2mm;opacity:.75;margin-top:.6mm;white-space:nowrap}
+.gc .monto{font:900 9mm/1 var(--ff-d);white-space:nowrap}
+.gc .para{font:700 2.8mm var(--ff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc .inst{font:500 2mm/1.25 var(--ff);opacity:.85;margin-top:.6mm}
+.gc .der{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2mm}
+.gc .qr{background:#fff;padding:1.2mm;border-radius:1.5mm;width:30mm;height:30mm}
+.gc .qr img,.gc .qr canvas{width:100%!important;height:100%!important;display:block}
+.gc .cod{font:700 1.9mm/1.2 ui-monospace,Menlo,monospace;text-align:center;word-break:break-all;letter-spacing:.1mm}
+.gc .vence{font:600 2mm var(--ff);opacity:.8}
+.previa{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.previa .gc{transform-origin:top left}
+@media print{
+  @page{size:A4;margin:10mm}
+  body{background:#fff}
+  .wrap > *:not(#hoja){display:none!important}
+  #hoja{display:grid!important;grid-template-columns:repeat(2,85.6mm);gap:6mm 8mm;justify-content:center}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="panel-profe.html"><i class="fa-solid fa-arrow-left"></i> Panel del profe</a>
+  <p class="kick">Banco de Hipopesos · Solo profe</p>
+  <h1>Gift <span>cards</span></h1>
+  <p class="intro">Crea tarjetas con QR. El estudiante las escanea con su celular, entra con su cuenta y el monto se deposita en su banco. Cada tarjeta sirve una sola vez.</p>
+  <div id="aviso"></div>
+
+  <section class="card" id="crear" hidden>
+    <h2><i class="fa-solid fa-gift"></i> Crear tarjetas</h2>
+    <div class="form">
+      <label class="ancho">Tipo
+        <span class="seg" id="tipoSeg"><button type="button" data-tipo="portador" class="on">Al portador (como un billete)</button><button type="button" data-tipo="nominativa">Nominativa (para un estudiante)</button></span>
+        <small id="tipoAyuda">Sirve para quien la canjee primero: entrégala en mano y que nadie fotografíe el QR.</small>
+      </label>
+      <label>Monto (₣)<input id="fMonto" type="number" min="100" step="1000" value="10000"></label>
+      <label id="lCant">Cantidad<input id="fCant" type="number" min="1" max="40" value="4"><small>Hasta 40 por vez.</small></label>
+      <label id="lPara" hidden class="ancho">Para<input id="fBuscar" list="cuentasLista" placeholder="Busca por nombre o N° de cuenta…" autocomplete="off"><datalist id="cuentasLista"></datalist><small id="paraElegido">Elige un estudiante de la lista.</small></label>
+      <label>Vence (opcional)<input id="fVence" type="date"></label>
+      <label class="ancho">Motivo (aparece en el movimiento del banco)<input id="fNota" maxlength="80" placeholder="Ej.: Premio feria científica"></label>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">
+      <button class="btn p" id="fCrear"><i class="fa-solid fa-plus"></i> Crear e imprimir</button>
+      <span id="fMsg" style="font-size:14px"></span>
+    </div>
+  </section>
+
+  <section class="card" id="listado" hidden>
+    <h2><i class="fa-solid fa-list"></i> Tarjetas</h2>
+    <div class="filtros">
+      <span class="seg" id="filtroSeg"><button type="button" data-f="activa" class="on">Activas</button><button type="button" data-f="canjeada">Canjeadas</button><button type="button" data-f="anulada">Anuladas</button><button type="button" data-f="">Todas</button></span>
+      <button class="btn sm" id="imprimirSel" disabled><i class="fa-solid fa-print"></i> Reimprimir seleccionadas</button>
+      <span id="resumen" style="font-size:13px;color:var(--mute)"></span>
+    </div>
+    <div class="tabla-scroll"><table><thead><tr><th><input type="checkbox" id="todas" aria-label="Seleccionar todas"></th><th>Monto</th><th>Tipo</th><th>Estado</th><th>Motivo</th><th>Creada</th><th></th></tr></thead><tbody id="filas"></tbody></table></div>
+  </section>
+
+  <div id="hoja"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="firebase/df.js?v=20261101"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => new Intl.NumberFormat('es-CL').format(Math.round(n || 0)) + ' ₣';
+const ms = t => (t && t.toMillis ? t.toMillis() : 0);
+// Sin letras que se confunden (sin I, L, O ni 0): 32 símbolos × 26 = 130 bits de azar.
+const ALFA = 'ABCDEFGHJKMNPQRSTUVWXYZ123456789';
+let usuario = null, tipo = 'portador', cuentas = [], paraId = '', tarjetas = [], codigos = {}, filtro = 'activa', sel = new Set(), unsub = null;
+
+function aviso(t, k) { $('aviso').innerHTML = t ? `<div class="aviso ${k || ''}">${t}</div>` : ''; }
+function msg(t, k) { $('fMsg').innerHTML = t ? `<span style="color:${k === 'err' ? 'var(--neg)' : 'var(--acid)'}">${t}</span>` : ''; }
+function nuevoCodigo() {
+  const r = new Uint8Array(26); crypto.getRandomValues(r);
+  return Array.from(r, b => ALFA[b % 32]).join('');
+}
+const agrupado = c => c.match(/.{1,4}/g).join('-');
+async function sha256(t) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+const urlCanje = c => new URL('canjear.html', location.href).href.split('#')[0] + '#c=' + c;
+
+/* ═════════ tipo ═════════ */
+$('tipoSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-tipo]'); if (!b) return;
+  tipo = b.dataset.tipo;
+  [...$('tipoSeg').children].forEach(x => x.classList.toggle('on', x === b));
+  $('lPara').hidden = tipo !== 'nominativa'; $('lCant').hidden = tipo === 'nominativa';
+  $('tipoAyuda').textContent = tipo === 'nominativa' ? 'Solo la cuenta elegida puede canjearla: aunque otro fotografíe el QR, no le sirve.' : 'Sirve para quien la canjee primero: entrégala en mano y que nadie fotografíe el QR.';
+});
+$('fBuscar').addEventListener('input', () => {
+  const v = $('fBuscar').value.trim(), c = cuentas.find(x => etiqueta(x) === v);
+  paraId = c ? c.id : '';
+  $('paraElegido').innerHTML = c ? `✓ ${esc(etiqueta(c))}` : 'Elige un estudiante de la lista.';
+});
+const nombreDe = c => ((c.nombre || '') + ' ' + (c.apellido || '')).trim();
+const etiqueta = c => `N° ${c.numero || '?'} · ${nombreDe(c)}${c.curso ? ' · ' + c.curso : ''}`;
+
+/* ═════════ crear ═════════ */
+async function crear() {
+  const monto = Math.round(+$('fMonto').value || 0), cant = tipo === 'nominativa' ? 1 : Math.round(+$('fCant').value || 0);
+  const nota = $('fNota').value.trim().slice(0, 80), venceTxt = $('fVence').value;
+  if (monto < 100 || monto > 1000000) return msg('El monto debe estar entre 100 y 1.000.000 ₣.', 'err');
+  if (cant < 1 || cant > 40) return msg('Puedes crear entre 1 y 40 tarjetas por vez.', 'err');
+  const para = tipo === 'nominativa' ? cuentas.find(c => c.id === paraId) : null;
+  if (tipo === 'nominativa' && !para) return msg('Elige el estudiante de la lista.', 'err');
+  const vence = venceTxt ? new Date(venceTxt + 'T23:59:59') : null;
+  if (vence && vence.getTime() < Date.now()) return msg('La fecha de vencimiento ya pasó.', 'err');
+  if (!confirm(`¿Crear ${cant} gift card${cant === 1 ? '' : 's'} de ${fmt(monto)}${para ? ' para ' + nombreDe(para) : ' al portador'}?\nTotal: ${fmt(monto * cant)}.`)) return;
+  const { F, db } = await DF.listo(), lote = Date.now().toString(36), nuevas = [];
+  try {
+    const b = F.writeBatch(db);
+    for (let i = 0; i < cant; i++) {
+      const codigo = nuevoCodigo(), h = await sha256(codigo);
+      const d = { monto, estado: 'activa', para: para ? para.id : '', paraNombre: para ? nombreDe(para).slice(0, 80) : '', vence: vence ? F.Timestamp.fromDate(vence) : null,
+        nota, lote, profe: usuario.email, creada: F.serverTimestamp() };
+      b.set(F.doc(db, 'giftcards', h), d);
+      b.set(F.doc(db, 'giftcards_codigos', h), { codigo });
+      nuevas.push(Object.assign({ id: h, codigo }, d, { vence: vence ? { toMillis: () => vence.getTime() } : null }));
+      codigos[h] = codigo;
+    }
+    await b.commit();
+    msg(`✓ ${cant} tarjeta${cant === 1 ? '' : 's'} creada${cant === 1 ? '' : 's'}. Se abre la ventana para imprimir.`);
+    imprimir(nuevas);
+  } catch (e) { msg('No se pudieron crear: ' + esc(/permission/i.test(e.message) ? 'Firebase lo rechazó (¿publicaste las reglas nuevas?)' : e.message), 'err'); }
+}
+
+/* ═════════ imprimir ═════════ */
+function tarjetaHTML(t, i) {
+  return `<div class="gc"><div class="izq">
+      <div class="marca">🪙 Hipopesos<small>El Mundo de Felipe · Gift card</small></div>
+      <div class="monto">${fmt(t.monto)}</div>
+      <div>${t.para ? `<div class="para">Para: ${esc(t.paraNombre)}</div>` : '<div class="para">Al portador</div>'}
+      <div class="inst">Escanea el QR con tu celular y entra con tu cuenta. Válida una sola vez.${t.para ? '' : ' No compartas el QR.'}</div></div>
+    </div><div class="der"><div class="qr" id="qr${i}"></div><div class="cod">${esc(agrupado(t.codigo))}</div>${t.vence ? `<div class="vence">Vence ${new Date(ms(t.vence)).toLocaleDateString('es-CL')}</div>` : ''}</div></div>`;
+}
+function imprimir(lista) {
+  if (typeof QRCode === 'undefined') return aviso('No se pudo cargar el generador de QR. Revisa tu conexión y vuelve a intentar.', 'err');
+  const hoja = $('hoja');
+  hoja.innerHTML = lista.map(tarjetaHTML).join('');
+  lista.forEach((t, i) => new QRCode($('qr' + i), { text: urlCanje(t.codigo), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M }));
+  setTimeout(() => window.print(), 400);
+}
+async function reimprimir() {
+  const { F, db } = await DF.listo(), lista = [];
+  for (const id of sel) {
+    const t = tarjetas.find(x => x.id === id); if (!t || t.estado !== 'activa') continue;
+    if (!codigos[id]) { const s = await F.getDoc(F.doc(db, 'giftcards_codigos', id)); if (s.exists()) codigos[id] = s.data().codigo; }
+    if (codigos[id]) lista.push(Object.assign({ codigo: codigos[id] }, t));
+  }
+  if (!lista.length) return aviso('Selecciona tarjetas activas para reimprimir.', 'err');
+  imprimir(lista);
+}
+
+/* ═════════ listado ═════════ */
+function pintarLista() {
+  const l = tarjetas.filter(t => !filtro || t.estado === filtro).sort((a, b) => ms(b.creada) - ms(a.creada));
+  const act = tarjetas.filter(t => t.estado === 'activa'), can = tarjetas.filter(t => t.estado === 'canjeada');
+  $('resumen').textContent = `${act.length} activas (${fmt(act.reduce((a, t) => a + t.monto, 0))} en circulación) · ${can.length} canjeadas (${fmt(can.reduce((a, t) => a + t.monto, 0))})`;
+  $('filas').innerHTML = l.map(t => {
+    const vencida = t.estado === 'activa' && t.vence && ms(t.vence) < Date.now();
+    const est = t.estado === 'canjeada' ? `<span class="chip ok">Canjeada</span><br><small style="color:var(--mute)">${esc(t.canjeadaNombre || '')} · ${new Date(ms(t.canjeada)).toLocaleDateString('es-CL')}</small>`
+      : t.estado === 'anulada' ? '<span class="chip">Anulada</span>' : vencida ? '<span class="chip hot">Vencida</span>' : `<span class="chip lim">Activa</span>${t.vence ? `<br><small style="color:var(--mute)">vence ${new Date(ms(t.vence)).toLocaleDateString('es-CL')}</small>` : ''}`;
+    return `<tr><td>${t.estado === 'activa' ? `<input type="checkbox" data-sel="${esc(t.id)}"${sel.has(t.id) ? ' checked' : ''}>` : ''}</td>
+      <td class="num"><b>${fmt(t.monto)}</b></td><td>${t.para ? 'Para ' + esc(t.paraNombre) : 'Al portador'}</td><td>${est}</td>
+      <td>${esc(t.nota || '')}</td><td class="num">${t.creada ? new Date(ms(t.creada)).toLocaleDateString('es-CL') : ''}</td>
+      <td>${t.estado === 'activa' ? `<button class="btn sm" data-anular="${esc(t.id)}">Anular</button>` : ''}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:var(--mute)">No hay tarjetas en esta vista.</td></tr>';
+  $('imprimirSel').disabled = !sel.size;
+}
+$('filtroSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-f]'); if (!b) return;
+  filtro = b.dataset.f; [...$('filtroSeg').children].forEach(x => x.classList.toggle('on', x === b)); pintarLista();
+});
+$('filas').addEventListener('change', e => { const id = e.target.dataset.sel; if (!id) return; e.target.checked ? sel.add(id) : sel.delete(id); $('imprimirSel').disabled = !sel.size; });
+$('todas').addEventListener('change', e => {
+  tarjetas.filter(t => t.estado === 'activa' && (!filtro || t.estado === filtro)).forEach(t => e.target.checked ? sel.add(t.id) : sel.delete(t.id)); pintarLista();
+});
+$('filas').addEventListener('click', async e => {
+  const id = e.target.closest('[data-anular]') && e.target.closest('[data-anular]').dataset.anular; if (!id) return;
+  const t = tarjetas.find(x => x.id === id); if (!confirm(`¿Anular la gift card de ${fmt(t.monto)}${t.para ? ' para ' + t.paraNombre : ''}? Ya no se podrá canjear.`)) return;
+  const { F, db } = await DF.listo();
+  try { await F.updateDoc(F.doc(db, 'giftcards', id), { estado: 'anulada', anulada: F.serverTimestamp() }); sel.delete(id); }
+  catch (err) { alert('No se pudo anular: ' + err.message); }
+});
+$('imprimirSel').addEventListener('click', reimprimir);
+$('fCrear').addEventListener('click', crear);
+
+/* ═════════ arranque ═════════ */
+async function cargar() {
+  usuario = DF.usuario();
+  if (unsub) { try { unsub(); } catch (e) {} unsub = null; }
+  const profe = !!(usuario && DF.esProfe(usuario));
+  $('crear').hidden = $('listado').hidden = !profe;
+  if (!usuario) return aviso('Esta página es solo para el profe. <button class="btn sm" id="entrar">Entrar</button>');
+  if (!profe) return aviso('Esta página es solo para el profe. Si tienes una gift card, escanea su QR o ve a <a href="canjear.html">Canjear</a>.');
+  aviso('');
+  const { F, db } = await DF.listo();
+  F.getDocs(F.collection(db, 'banco_cuentas')).then(s => {
+    cuentas = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(c => c.estado !== 'Cerrada').sort((a, b) => nombreDe(a).localeCompare(nombreDe(b), 'es'));
+    $('cuentasLista').innerHTML = cuentas.map(c => `<option value="${esc(etiqueta(c))}"></option>`).join('');
+  }).catch(() => {});
+  unsub = F.onSnapshot(F.collection(db, 'giftcards'), s => { tarjetas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintarLista(); },
+    e => aviso('No se pudieron leer las tarjetas: ' + esc(/permission/i.test(e.message) ? 'publica primero las reglas nuevas en Firebase.' : e.message), 'err'));
+}
+document.addEventListener('click', e => { if (e.target.id === 'entrar') DF.entrar().catch(() => {}); });
+DF.listo().then(() => DF.alCambiarUsuario(() => cargar()), e => aviso('Sin conexión con Firebase: ' + esc(e.message), 'err'));
+})();
+</script>
+</body>
+</html>

@@ -58,3 +58,12 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 - El profe crea cada partido (opciones, cierre, mínimo y tope por apuesta). Una apuesta por estudiante y partido; el monto sale del saldo al apostar.
 - Apuesta mutua: al marcar el ganador, el pozo completo se reparte entre quienes acertaron, en proporción a lo apostado (`floor(apuesta × pozo ÷ total de la opción ganadora)`). Sin comisión. Si nadie acertó o se anula, se devuelve todo.
 - Requiere publicar el `firestore.rules` actualizado (colecciones `apuestas_partidos` y `apuestas`).
+
+## Gift cards de Hipopesos (`tarjetas.html` y `canjear.html`)
+- El profe las crea e imprime en `tarjetas.html` (enlazada en el Panel del profe): monto, cantidad, vencimiento opcional y motivo.
+  - **Al portador**: sirve para quien la canjee primero (como un billete).
+  - **Nominativa**: solo la cuenta elegida puede canjearla.
+- El QR lleva a `canjear.html#c=<código>` (26 caracteres aleatorios, ~130 bits). El código va en el fragmento (#), que el navegador no envía al servidor, y se borra de la barra al abrir.
+- La base guarda la tarjeta con el **sha256 del código** como nombre; los estudiantes no pueden listar tarjetas ni leer los códigos (`giftcards_codigos` es solo del profe, para reimprimir).
+- Canje en una sola escritura: la tarjeta pasa a «canjeada» (las reglas comprueban que el sha256 del código coincide) y el monto entra con un movimiento `giftcard`. Una sola vez; las vencidas y anuladas no se pueden canjear.
+- Requiere publicar el `firestore.rules` actualizado.
