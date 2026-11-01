@@ -28,8 +28,8 @@ window.GATITOS = [
   { id: 'barril',      nombre: 'Gato del Barril',      precio: 250000,  rareza: 'epico',      txt: 'Viajó de polizón en un barril desde Valparaíso.', poderes: ['🎤 Elegir el orden de su disertación'] },
   { id: 'muro',        nombre: 'Explorador del Muro',  precio: 400000,  rareza: 'legendario', txt: 'Ha recorrido todos los techos de Villa Alemana.', poderes: ['🚶 Permiso de paseo por el colegio en cada clase (cuando amerite)'] },
   { id: 'fantasma',    nombre: 'Gato Fantasma',        precio: 500000,  rareza: 'legendario', txt: 'Aparece en los pasillos cuando nadie mira.', poderes: ['📓 Uso del cuaderno 5 minutos en cada evaluación'] },
-  { id: 'ava',         nombre: 'Ava',                  precio: 450000,  rareza: 'legendario', txt: 'Ava ♀. Gatita especial: trae un premio único de 5 décimas formativas y 2 sumativas. Camina, corre, juega y duerme siesta.', premio: { formativas: 5, sumativas: 2 }, anim: true, poderes: ['💎 Premio único: 5 décimas formativas y 2 sumativas', '🚶 Permiso de paseo por el colegio en cada clase (cuando amerite)'] },
-  { id: 'calha',       nombre: 'Calha',                precio: 450000,  rareza: 'legendario', txt: 'Calha ♀. Gatita especial y compañera de Ava: trae un premio único de 5 décimas formativas y 2 sumativas.', premio: { formativas: 5, sumativas: 2 }, anim: true, poderes: ['💎 Premio único: 5 décimas formativas y 2 sumativas', '📓 Uso del cuaderno 5 minutos en cada evaluación'] },
+  { id: 'ava',         nombre: 'Ava',                  precio: 450000,  rareza: 'legendario', txt: 'Ava ♀. Gatita especial: cada mes, 5 décimas formativas y 2 sumativas. Camina, corre, juega y duerme siesta.', anim: true, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes', '🚶 Permiso de paseo por el colegio en cada clase (cuando amerite)'] },
+  { id: 'calha',       nombre: 'Calha',                precio: 450000,  rareza: 'legendario', txt: 'Calha ♀. Gatita especial y compañera de Ava: cada mes, 5 décimas formativas y 2 sumativas.', anim: true, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes', '📓 Uso del cuaderno 5 minutos en cada evaluación'] },
   { id: 'nietzsche',   nombre: 'Gato Nietzsche',       precio: 500000,  rareza: 'legendario', txt: 'Filósofo, explorador y pensador. Cada mes: 5 décimas formativas y 2 sumativas.', anim: true, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes'] },
   // Se disfrazan según la temporada (ver TEMPORADA_GATITOS en gatitos/anim.js): Halloween o Navidad.
   { id: 'masita',      nombre: 'Masita',               precio: 500000,  rareza: 'legendario', txt: 'Masita ♀. Gatita tricolor que se disfraza en cada fiesta: bruja en Halloween y duende navideño en Navidad. Puedes usar el cuaderno 5 minutos en cada prueba.', poderes: ['📓 Uso del cuaderno 5 minutos en cada prueba'] },
@@ -51,8 +51,8 @@ window.GATITOS = [
    Cada gatito que tienes da décimas formativas cada SEMANA (lunes a domingo; se reclaman en el Mercado,
    pestaña Mi colección): común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3. Máximo 3 por semana.
    (Antes eran por día; desde octubre de 2026 son semanales.)
-   Premio único (campo «premio»): Ava y Calha dan, además, 5 décimas formativas y 2 sumativas UNA sola vez
-   por cuenta y por gatita (se reclama en Mi colección).
+   Premio único (campo «premio»): Miauricio da 5 décimas sumativas UNA sola vez por cuenta (se reclama en Mi colección).
+   Ava y Calha (desde nov. 2026): como Nietzsche, sin décimas semanales y con 5 formativas y 2 sumativas cada mes.
    Gato Nietzsche y Gato del tío César (diarias: 0, mensual): no dan décimas diarias; cada uno da 5 formativas
    y 2 sumativas una vez al mes.
    Además, raros, épicos, legendarios y míticos dan un poder permanente (campo «poderes»), que el profe
@@ -80,7 +80,7 @@ window.poderDelDia = function (ids) {
   });
   return { formativas: Math.max(f, Math.min(n, window.PODER_MAX_DIA)), sumativas: s };
 };
-// Poder mensual (Gato Nietzsche, Gato del tío César): CADA gatito con «mensual» se reclama una vez
+// Poder mensual (Nietzsche, César, Gruñona, Ava y Calha): CADA gatito con «mensual» se reclama una vez
 // por mes calendario (si tienes los dos, reclamas los dos). Igual que opPoderMes() en las reglas.
 window.mensualesDe = function (ids) {
   return window.GATITOS.filter(function (g) { return g.mensual && (ids || []).indexOf(g.id) >= 0; });
