@@ -351,7 +351,7 @@ service cloud.firestore {
       return d.cuenta == miCuentaBanco() && d.cuenta != ''
         && opsDespues(d.cuenta) == opsAntes(d.cuenta) + 1
         && id == 'op-' + d.cuenta + '-' + string(opsDespues(d.cuenta))
-        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta'])
+        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta', 'giftcard'])
         && (d.tipo == 'ruleta' || !d.keys().hasAny(['tema', 'escapa', 'pierde']))
         && d.profe == '' && d.fecha == request.time
         && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200)
@@ -368,7 +368,8 @@ service cloud.firestore {
             || (d.tipo == 'devolucion' && opDevolucion(d)) || (d.tipo == 'poder-gatito' && opPoder(d)) || (d.tipo == 'poder-mensual' && opPoderMes(d)) || (d.tipo == 'premio-gatito' && opPremio(d))
             || (d.tipo == 'prestamo-pago' && opPagoPrestamo(d)) || (d.tipo == 'mascota' && opMascota(d)) || (d.tipo in ['ahorro-deposito', 'ahorro-retiro'] && opAhorro(d))
             || (d.tipo == 'subasta-oferta' && opSubasta(id, d))
-            || (d.tipo == 'apuesta' && opApuestaPartido(id, d)));
+            || (d.tipo == 'apuesta' && opApuestaPartido(id, d))
+            || (d.tipo == 'giftcard' && opGiftcard(id, d)));
     }
 
     // ═════ Mascotas (como Pou / Tamagotchi) ═════
@@ -1091,6 +1092,47 @@ service cloud.firestore {
         && opActual(miCuentaBanco()).apuesta == aid
         && getAfter(rutaPartido(request.resource.data.partido)).data.pozos[request.resource.data.opcion]
              == get(rutaPartido(request.resource.data.partido)).data.pozos.get(request.resource.data.opcion, 0) + request.resource.data.monto;
+    }
+
+    // ═════ Gift cards de Hipopesos (QR) ═════
+    // Cada tarjeta tiene un código aleatorio largo (~130 bits) que va en el QR. El documento se llama
+    // con su huella sha256, así que la base no guarda códigos que un estudiante pueda leer
+    // (el código queda aparte, en giftcards_codigos, solo para que el profe reimprima).
+    // Tipos: al portador (para == '') o nominativa (para == cuenta: solo esa cuenta puede canjearla).
+    // Canje, en UNA escritura: la tarjeta pasa a 'canjeada' (prueba de que se tiene el código: su sha256
+    // es el nombre del documento) y el monto entra con el movimiento 'giftcard' op-<cuenta>-<ops>.
+    function rutaGift(h) { return /databases/$(database)/documents/giftcards/$(h); }
+    function opGiftcard(id, d) {
+      let g = get(rutaGift(d.giftcard)).data;
+      let g2 = getAfter(rutaGift(d.giftcard)).data;
+      return d.giftcard is string && g.estado == 'activa' && g2.estado == 'canjeada'
+        && g2.canjeadaPor == d.cuenta && g2.mov == id
+        && d.monto == g.monto && d.monto > 0;
+    }
+    match /giftcards/{h} {
+      // Se puede consultar una tarjeta solo conociendo su huella (o sea, el código); listarlas, solo el profe.
+      allow get: if true;
+      allow list: if esProfe();
+      allow create, delete: if esProfe();
+      allow update: if esProfe();
+      allow update: if esColegio() && miCuentaBanco() != ''
+        && resource.data.estado == 'activa'
+        && (resource.data.vence == null || request.time < resource.data.vence)
+        && (resource.data.para == '' || resource.data.para == miCuentaBanco())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'canjeadaPor', 'canjeadaNombre', 'canjeada', 'mov', 'codigo'])
+        && request.resource.data.estado == 'canjeada'
+        && request.resource.data.codigo is string && request.resource.data.codigo.size() <= 64
+        && hashing.sha256(request.resource.data.codigo).toHexString().lower() == h
+        && request.resource.data.canjeadaPor == miCuentaBanco()
+        && texto(request.resource.data.canjeadaNombre, 160)
+        && request.resource.data.canjeada == request.time
+        && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
+        && request.resource.data.mov == idOpActual(miCuentaBanco())
+        && opActual(miCuentaBanco()).tipo == 'giftcard'
+        && opActual(miCuentaBanco()).giftcard == h;
+    }
+    match /giftcards_codigos/{h} {
+      allow read, write: if esProfe();
     }
 
     // Publicaciones entre estudiantes. Estados: venta → reservado (alguien la pidió) → vendido;
