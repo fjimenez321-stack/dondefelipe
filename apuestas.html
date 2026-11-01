@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08080c">
+<title>Apuestas de los partidos · El Mundo de Felipe</title>
+<meta name="description" content="Apuestas con Hipopesos sobre los partidos del colegio, con sentido lúdico: para entender cómo funcionan los sistemas de apuestas.">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 420px at 85% -120px,rgba(34,227,255,.13),transparent),radial-gradient(700px 380px at 0% 0%,rgba(204,255,0,.07),transparent),var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 70px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}.crumb:hover{color:var(--ink)}
+.cab{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:26px}
+.kick{font:700 12px var(--ff);letter-spacing:4px;text-transform:uppercase;color:var(--cyan);margin:0 0 6px}
+h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(46px,10vw,88px);line-height:.9;letter-spacing:1px;text-transform:uppercase;margin:0}
+h1 span{color:var(--cyan)}
+.balon{font-size:80px;margin-left:auto;line-height:1;animation:bota 2.4s ease-in-out infinite}
+@keyframes bota{50%{transform:translateY(-12px) rotate(20deg)}}
+.intro{color:var(--mute);max-width:64ch;margin:12px 0 0}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:18px clamp(16px,3vw,24px);margin-top:18px}
+.ludico{border-color:rgba(34,227,255,.4);background:linear-gradient(160deg,rgba(34,227,255,.08),var(--slab) 60%)}
+.ludico h2{font:900 28px/1 var(--ff-d);text-transform:uppercase;margin:0 0 8px;color:var(--cyan)}
+.ludico ul{margin:8px 0 0;padding-left:20px;color:var(--ink)}
+.ludico li{margin:6px 0}
+.ludico label{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-weight:600;cursor:pointer}
+.ludico input[type=checkbox]{width:20px;height:20px;accent-color:var(--cyan);flex-shrink:0;margin-top:2px}
+.estado{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.estado .saldo{font:900 40px/1 var(--ff-d);color:var(--acid)}
+.estado .saldo small{display:block;font:600 12px var(--ff);letter-spacing:2px;text-transform:uppercase;color:var(--mute);margin-top:4px}
+.estado .col{flex:1;min-width:200px;color:var(--mute);font-size:14.5px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:9px 16px;font:600 14px var(--ff);text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--cyan)}
+.btn.p{background:var(--cyan);color:#041014;border-color:var(--cyan);font-weight:800}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn.peligro:hover{border-color:var(--neg);color:var(--neg)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.aviso.ok{background:#14301f;border-color:#2c6b44;color:#c9f7d9}
+h2.sec{font:900 30px/1 var(--ff-d);text-transform:uppercase;letter-spacing:.5px;margin:34px 0 0}
+h2.sec small{font:600 14px var(--ff);letter-spacing:0;text-transform:none;color:var(--mute);margin-left:8px}
+.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;margin-top:16px}
+.partido{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.partido.mio{border-color:var(--cyan)}
+.partido .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.partido .torneo{font:700 11px var(--ff);letter-spacing:2px;text-transform:uppercase;color:var(--mute)}
+.partido h3{font:800 26px/1 var(--ff-d);text-transform:uppercase;margin:4px 0 0;letter-spacing:.5px}
+.reloj{text-align:right;font:800 20px/1 var(--ff-d);font-variant-numeric:tabular-nums;white-space:nowrap}
+.reloj small{display:block;font:600 10.5px var(--ff);color:var(--mute);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.reloj.urge{color:var(--pink)}
+.pozo{display:flex;justify-content:space-between;align-items:baseline;padding:8px 12px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+.pozo b{font:900 28px/1 var(--ff-d);color:var(--brass)}
+.pozo span{font:700 11px var(--ff);letter-spacing:2px;text-transform:uppercase;color:var(--mute)}
+.ops{display:flex;flex-direction:column;gap:8px}
+.op{position:relative;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:var(--slab2);overflow:hidden;cursor:pointer;text-align:left;color:inherit;font:inherit}
+.op .barra{position:absolute;inset:0 auto 0 0;background:rgba(34,227,255,.12);pointer-events:none;transition:width .5s}
+.op .nom{position:relative;font-weight:800;font-size:16px}
+.op .cuota{position:relative;font:900 20px/1 var(--ff-d);color:var(--cyan);text-align:right}
+.op .det{position:relative;grid-column:1/-1;font-size:12.5px;color:var(--mute)}
+.op.sel{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset}
+.op.gana{border-color:var(--acid)}
+.op.gana .barra{background:rgba(204,255,0,.15)}
+.op:disabled{cursor:default}
+.apostar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.apostar input{flex:1;min-width:120px;background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:9px 14px;font:700 15px var(--ff)}
+.apostar .nota{flex-basis:100%;font-size:12.5px;color:var(--mute)}
+.apostar .nota b{color:var(--ink)}
+.mia{padding:10px 12px;border-radius:12px;background:rgba(34,227,255,.08);border:1px solid rgba(34,227,255,.35);font-size:14px}
+.mia.ok{background:rgba(204,255,0,.08);border-color:rgba(204,255,0,.45)}
+.mia.mal{background:rgba(255,122,112,.07);border-color:rgba(255,122,112,.35)}
+.res{font-size:14px;color:var(--mute)}
+.res b{color:var(--ink)}
+.vacio{grid-column:1/-1;text-align:center;color:var(--mute);padding:34px 16px;border:1px dashed var(--line2);border-radius:18px}
+.vacio .emo{font-size:46px;display:block;margin-bottom:6px}
+details.como{margin-top:18px}
+details.como summary{cursor:pointer;font-weight:700;color:var(--cyan)}
+details.como p,details.como li{color:var(--mute);font-size:14.5px}
+.ej{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin-top:8px;color:var(--ink)}
+/* profe */
+.profe h2{font:900 26px/1 var(--ff-d);text-transform:uppercase;margin:0 0 4px;color:var(--cyan)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:12px}
+.form label{display:flex;flex-direction:column;gap:5px;font:700 12px var(--ff);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+.form .ancho{grid-column:1/-1}
+.form input{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:9px 11px;font:500 15px var(--ff);letter-spacing:0;text-transform:none}
+.form small{font:500 12px var(--ff);letter-spacing:0;text-transform:none;color:var(--mute)}
+.form .chk{flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
+.adm{display:flex;gap:6px;flex-wrap:wrap;padding-top:8px;border-top:1px dashed var(--line2)}
+.adm .q{flex-basis:100%;font-size:13px;color:var(--mute)}
+@media (max-width:520px){.balon{font-size:56px}.lista{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="index.html"><i class="fa-solid fa-arrow-left"></i> El Mundo de Felipe</a>
+  <header class="cab">
+    <div>
+      <p class="kick">Banco de Hipopesos · Torneos</p>
+      <h1>Apuestas de los <span>partidos</span></h1>
+      <p class="intro">Apuesta tus Hipopesos al resultado de los partidos del colegio. Todo lo apostado forma un pozo, y al final se reparte entre quienes acertaron, en proporción a lo que apostó cada uno.</p>
+    </div>
+    <div class="balon" aria-hidden="true">⚽</div>
+  </header>
+
+  <!-- Advertencia: antes de participar -->
+  <section class="card ludico" id="ludico">
+    <h2><i class="fa-solid fa-triangle-exclamation"></i> Antes de apostar, lee esto</h2>
+    <p style="margin:0">Esta sección es un <b>juego</b> con <b>sentido educativo</b>: sirve para entender <b>cómo funcionan los sistemas de apuestas</b>. Solo se usan Hipopesos, nunca dinero real.</p>
+    <ul>
+      <li><b>Apostar no es una forma de ganar plata.</b> En un pozo, lo que ganan unos es exactamente lo que pierden otros. Si todos apuestan siempre, en promedio nadie gana.</li>
+      <li><b>Las casas de apuestas reales siempre ganan.</b> Se quedan con una parte de cada pozo (la «comisión»), así que en promedio el apostador pierde. Aquí no hay comisión, justamente para que veas el mecanismo limpio.</li>
+      <li><b>Lo que apuestas lo puedes perder entero.</b> Apuesta solo lo que estés dispuesto a perder, y nota qué sientes cuando ganas y cuando pierdes: así funciona el «gancho» de las apuestas.</li>
+      <li>En Chile, las apuestas con dinero real están prohibidas para menores de 18 años. Si alguien cercano tiene problemas con el juego, se puede pedir ayuda.</li>
+    </ul>
+    <label><input type="checkbox" id="acepto"> Entiendo que es un juego con fines educativos, que solo uso Hipopesos y que puedo perder lo que apueste.</label>
+    <div style="margin-top:12px"><button class="btn p" id="entrarLudico" disabled><i class="fa-solid fa-check"></i> Entendido, quiero participar</button></div>
+  </section>
+
+  <div id="contenido" hidden>
+    <section class="card" id="estado"></section>
+    <div id="aviso"></div>
+
+    <details class="card como">
+      <summary><i class="fa-solid fa-calculator"></i> ¿Cómo se calcula lo que gano? (apuesta mutua o «pozo»)</summary>
+      <p>Cada partido tiene un pozo. Cuando el profe anota el resultado, el pozo completo se reparte entre quienes apostaron por la opción ganadora, en proporción a lo que apostó cada uno:</p>
+      <p style="color:var(--ink);font-weight:700;text-align:center">Lo que recibes = tu apuesta × (pozo total ÷ total apostado a la opción ganadora)</p>
+      <p>Ese número entre paréntesis es la <b>cuota</b>. Mientras más gente apueste por una opción, menor es su cuota: ganar es más probable, pero pagan menos. La cuota cambia hasta el cierre, así que lo que ves al apostar es solo una estimación.</p>
+      <div class="ej"><span>Ejemplo:</span><span>Pozo de 100.000 ₣. A «Gaspi» le apostaron 25.000 ₣ y a «Isaí» 75.000 ₣.</span>
+        <span></span><span>Cuota de Gaspi: 100.000 ÷ 25.000 = <b>×4</b>. Cuota de Isaí: 100.000 ÷ 75.000 = <b>×1,33</b>.</span>
+        <span></span><span>Si ganó Gaspi y tú le apostaste 5.000 ₣, recibes 5.000 × 4 = <b>20.000 ₣</b> (ganas 15.000 ₣). Quienes apostaron por Isaí pierden lo apostado.</span></div>
+      <p>Si nadie acertó, o el partido se suspende, se devuelve todo lo apostado.</p>
+    </details>
+
+    <section class="card profe" id="profe" hidden>
+      <h2><i class="fa-solid fa-futbol"></i> Nuevo partido</h2>
+      <p class="intro" style="margin:0">Solo tú ves este panel. Escribe las opciones separadas por coma (por ejemplo, los dos equipos).</p>
+      <div class="form">
+        <label class="ancho">Partido<input id="fTitulo" maxlength="80" placeholder="Ej.: Final ping pong: Gaspi vs Isaí"></label>
+        <label>Torneo<input id="fTorneo" maxlength="60" placeholder="Ej.: Torneo PingPong 26"></label>
+        <label class="ancho">Opciones<input id="fOpciones" maxlength="200" placeholder="Gaspi, Isaí"><small>De 2 a 6 opciones.</small></label>
+        <label class="chk"><input type="checkbox" id="fEmpate"> Agregar «Empate» como opción</label>
+        <label>Cierre de apuestas<input id="fCierre" type="datetime-local"><small>Normalmente, al inicio del partido.</small></label>
+        <label>Mínimo por apuesta (₣)<input id="fMin" type="number" min="100" step="100" value="1000"></label>
+        <label>Tope por apuesta (₣)<input id="fTope" type="number" min="100" step="1000" value="20000"><small>Limita cuánto arriesga cada estudiante.</small></label>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">
+        <button class="btn p" id="fPublicar"><i class="fa-solid fa-plus"></i> Publicar partido</button>
+        <span id="fMsg" style="font-size:14px"></span>
+      </div>
+    </section>
+
+    <h2 class="sec">Abiertos <small id="nAbiertos"></small></h2>
+    <div class="lista" id="abiertos"><div class="vacio">Cargando partidos…</div></div>
+
+    <h2 class="sec">Resultados</h2>
+    <div class="lista" id="cerrados"></div>
+  </div>
+</div>
+
+<script src="firebase/df.js?v=20261031"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => new Intl.NumberFormat('es-CL').format(Math.round(n || 0)) + ' ₣';
+const ms = t => (t && t.toMillis ? t.toMillis() : (t && t.toDate ? t.toDate().getTime() : (typeof t === 'number' ? t : 0)));
+const ahora = () => (window.DF && DF.ahora ? DF.ahora() : Date.now());
+const CLAVE_LUDICO = 'apuestas-ludico-v1';
+
+let usuario = null, esProfe = false, cuentaId = null, cuenta = null, partidos = [], misApuestas = {}, unsubs = [], ocupado = false, eleccion = {};
+
+/* ═════════ advertencia ═════════ */
+function aceptado() { try { return localStorage.getItem(CLAVE_LUDICO) === '1'; } catch (e) { return false; } }
+let aceptoSesion = false;
+function mostrar() {
+  const ok = aceptoSesion || aceptado();
+  $('ludico').hidden = ok; $('contenido').hidden = !ok;
+}
+$('acepto').addEventListener('change', () => { $('entrarLudico').disabled = !$('acepto').checked; });
+$('entrarLudico').addEventListener('click', () => {
+  aceptoSesion = true; try { localStorage.setItem(CLAVE_LUDICO, '1'); } catch (e) {}
+  mostrar(); pintar();
+});
+mostrar();
+
+function aviso(t, tipo) { $('aviso').innerHTML = t ? `<div class="aviso ${tipo || ''}">${t}</div>` : ''; }
+const abierto = p => p.estado === 'abierta' && ms(p.cierre) > ahora();
+const total = p => Object.values(p.pozos || {}).reduce((a, b) => a + (b || 0), 0);
+const cuota = (p, op, extra) => { const t = total(p) + (extra || 0), o = (p.pozos[op] || 0) + (extra || 0); return o ? t / o : null; };
+const cuotaTxt = c => c ? '×' + (Math.round(c * 100) / 100).toLocaleString('es-CL') : '—';
+const opcionesDe = p => Object.keys(p.opciones || {}).sort((a, b) => (p.orden || []).indexOf(a) - (p.orden || []).indexOf(b));
+function restante(t) {
+  let d = Math.max(0, Math.floor((t - ahora()) / 1000));
+  const dd = Math.floor(d / 86400); d %= 86400;
+  const h = Math.floor(d / 3600), m = Math.floor((d % 3600) / 60), s = d % 60, p = n => String(n).padStart(2, '0');
+  return dd ? `${dd}d ${p(h)}h ${p(m)}m` : `${p(h)}:${p(m)}:${p(s)}`;
+}
+const fechaTxt = t => new Date(t).toLocaleString('es-CL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+/* ═════════ pintar ═════════ */
+function pintarEstado() {
+  const e = $('estado');
+  if (!usuario) { e.innerHTML = `<div class="estado"><div class="col">Para apostar, entra con tu cuenta. Puedes mirar los partidos sin entrar.</div><button class="btn p" data-a="entrar"><i class="fa-brands fa-google"></i> Entrar</button></div>`; return; }
+  if (esProfe) { e.innerHTML = `<div class="estado"><div class="col"><b style="color:var(--ink)">Hola, profe.</b> Crea partidos más abajo. Cuando termine uno, elige quién ganó: el pozo se reparte solo entre quienes acertaron.</div></div>`; return; }
+  if (!cuenta) { e.innerHTML = `<div class="estado"><div class="col">Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule para poder apostar.</div></div>`; return; }
+  const activas = Object.values(misApuestas).filter(a => a.estado === 'activa');
+  e.innerHTML = `<div class="estado"><div class="saldo">${fmt(cuenta.saldo)}<small>Tu saldo disponible</small></div>
+    <div class="col">${activas.length ? `Tienes <b style="color:var(--cyan)">${activas.length}</b> apuesta${activas.length === 1 ? '' : 's'} en juego por <b style="color:var(--ink)">${fmt(activas.reduce((a, x) => a + x.monto, 0))}</b>.` : 'No tienes apuestas en juego.'}
+    ${resumenHistorial()}</div></div>`;
+}
+// Balance educativo: cuánto has apostado y cuánto has recuperado en total.
+function resumenHistorial() {
+  const cerradas = Object.values(misApuestas).filter(a => a.estado !== 'activa');
+  if (!cerradas.length) return '';
+  const apostado = cerradas.reduce((a, x) => a + (x.estado === 'devuelta' ? 0 : x.monto), 0);
+  const recibido = cerradas.reduce((a, x) => a + (x.estado === 'pagada' ? (x.pago || 0) : 0), 0), neto = recibido - apostado;
+  return `<br>Tu balance histórico: apostaste ${fmt(apostado)} y recibiste ${fmt(recibido)} → <b style="color:${neto >= 0 ? 'var(--acid)' : 'var(--neg)'}">${neto >= 0 ? '+' : '−'}${fmt(Math.abs(neto))}</b>.`;
+}
+function filaOpcion(p, op, modo) {
+  const t = total(p), o = p.pozos[op] || 0, pct = t ? Math.round(o / t * 100) : 0;
+  const mia = misApuestas[p.id], sel = modo === 'abierto' && (mia ? mia.opcion === op : eleccion[p.id] === op);
+  const gana = modo === 'cerrado' && p.estado === 'resuelta' && p.ganador === op;
+  return `<button class="op${sel ? ' sel' : ''}${gana ? ' gana' : ''}" type="button" data-elegir="${esc(p.id)}" data-op="${esc(op)}"${modo !== 'abierto' || mia || esProfe || !cuenta ? ' disabled' : ''}>
+    <span class="barra" style="width:${pct}%"></span>
+    <span class="nom">${gana ? '🏆 ' : ''}${esc(p.opciones[op])}</span><span class="cuota">${cuotaTxt(cuota(p, op))}</span>
+    <span class="det">${fmt(o)} apostados · ${pct}% del pozo</span></button>`;
+}
+function bloqueApostar(p) {
+  const mia = misApuestas[p.id];
+  if (mia) {
+    const c = cuota(p, mia.opcion);
+    return `<div class="mia"><i class="fa-solid fa-ticket"></i> Apostaste <b>${fmt(mia.monto)}</b> a <b>${esc(p.opciones[mia.opcion])}</b>. Si gana, hoy recibirías ≈ <b>${fmt(mia.monto * (c || 1))}</b> (cambia hasta el cierre).</div>`;
+  }
+  if (esProfe) return '';
+  if (!usuario) return `<button class="btn p" data-a="entrar">Entrar para apostar</button>`;
+  if (!cuenta) return `<span class="res">Sin cuenta del banco vinculada.</span>`;
+  const op = eleccion[p.id];
+  if (!op) return `<span class="res">Elige una opción para apostar.</span>`;
+  const max = Math.min(p.tope, cuenta.saldo || 0), alcanza = max >= p.minimo;
+  const monto = Math.max(p.minimo, Math.min(max, +(eleccion[p.id + ':m'] || p.minimo)));
+  const c = cuota(p, op, monto);
+  return `<div class="apostar"><input type="number" inputmode="numeric" min="${p.minimo}" max="${max}" step="500" value="${monto}" data-monto="${esc(p.id)}" aria-label="Monto de tu apuesta">
+    <button class="btn p" data-apostar="${esc(p.id)}"${alcanza ? '' : ' disabled'}><i class="fa-solid fa-coins"></i> Apostar</button>
+    <span class="nota" data-estima="${esc(p.id)}">${alcanza ? `A <b>${esc(p.opciones[op])}</b>: si gana, recibirías ≈ <b>${fmt(monto * c)}</b> (cuota ${cuotaTxt(c)} contando tu apuesta). Mínimo ${fmt(p.minimo)}, tope ${fmt(p.tope)}.` : `Necesitas al menos ${fmt(p.minimo)}.`}</span></div>`;
+}
+function tarjetaAbierta(p) {
+  const t = ms(p.cierre), urge = t - ahora() < 3600e3;
+  return `<article class="partido${misApuestas[p.id] ? ' mio' : ''}">
+    <div class="top"><div>${p.torneo ? `<div class="torneo">${esc(p.torneo)}</div>` : ''}<h3>${esc(p.titulo)}</h3></div>
+      <div class="reloj${urge ? ' urge' : ''}" data-cierre="${t}"><small>Cierra en</small><span>${restante(t)}</span></div></div>
+    <div class="pozo"><span>Pozo</span><b>${fmt(total(p))}</b><span>${p.n || 0} apuesta${p.n === 1 ? '' : 's'}</span></div>
+    <div class="ops">${opcionesDe(p).map(op => filaOpcion(p, op, 'abierto')).join('')}</div>
+    ${bloqueApostar(p)}
+    <div class="res" style="font-size:12.5px">Cierre de apuestas: ${esc(fechaTxt(t))}</div>
+    ${esProfe ? adminBotones(p) : ''}</article>`;
+}
+function tarjetaCerrada(p) {
+  const mia = misApuestas[p.id];
+  let res;
+  if (p.estado === 'anulada') res = 'Partido anulado: se devolvió todo lo apostado.';
+  else if (p.estado === 'resuelta') res = p.devuelto ? `Ganó <b>${esc(p.opciones[p.ganador])}</b>, pero nadie le apostó: se devolvió todo.` : `Ganó <b>${esc(p.opciones[p.ganador])}</b>. Cuota final ${cuotaTxt(cuota(p, p.ganador))}.`;
+  else res = 'Apuestas cerradas: esperando el resultado.';
+  let mio = '';
+  if (mia) {
+    if (mia.estado === 'pagada') mio = `<div class="mia ok">🎉 Acertaste: apostaste ${fmt(mia.monto)} y recibiste <b>${fmt(mia.pago)}</b> (ganancia ${fmt(mia.pago - mia.monto)}).</div>`;
+    else if (mia.estado === 'perdida') mio = `<div class="mia mal">Apostaste ${fmt(mia.monto)} a ${esc(p.opciones[mia.opcion])} y lo perdiste. Esa plata pasó a quienes acertaron.</div>`;
+    else if (mia.estado === 'devuelta') mio = `<div class="mia">Te devolvieron tus ${fmt(mia.monto)}.</div>`;
+    else mio = `<div class="mia">Apostaste ${fmt(mia.monto)} a <b>${esc(p.opciones[mia.opcion])}</b>. Esperando el resultado.</div>`;
+  }
+  return `<article class="partido${mia ? ' mio' : ''}">
+    <div class="top"><div>${p.torneo ? `<div class="torneo">${esc(p.torneo)}</div>` : ''}<h3>${esc(p.titulo)}</h3></div></div>
+    <div class="pozo"><span>Pozo</span><b>${fmt(total(p))}</b><span>${p.n || 0} apuesta${p.n === 1 ? '' : 's'}</span></div>
+    <div class="ops">${opcionesDe(p).map(op => filaOpcion(p, op, 'cerrado')).join('')}</div>
+    <p class="res" style="margin:0">${res}</p>${mio}
+    ${esProfe ? adminBotones(p) : ''}</article>`;
+}
+function adminBotones(p) {
+  const id = esc(p.id), ab = abierto(p), b = [];
+  if (ab) { b.push(`<button class="btn sm" data-adm="cierre" data-id="${id}">Cambiar cierre</button>`); b.push(`<button class="btn sm" data-adm="cerrarYa" data-id="${id}">Cerrar apuestas ya</button>`); }
+  if (p.estado === 'abierta') {
+    opcionesDe(p).forEach(op => b.push(`<button class="btn sm p" data-adm="ganador" data-op="${esc(op)}" data-id="${id}">Ganó ${esc(p.opciones[op])}</button>`));
+    b.push(`<button class="btn sm peligro" data-adm="anular" data-id="${id}">Anular y devolver</button>`);
+  }
+  if (p.estado !== 'abierta' && p.pendientes) b.push(`<button class="btn sm p" data-adm="continuar" data-id="${id}">Terminar pagos pendientes</button>`);
+  if (p.estado !== 'abierta' && !p.pendientes) b.push(`<button class="btn sm peligro" data-adm="borrar" data-id="${id}">Borrar de la lista</button>`);
+  return `<div class="adm"><span class="q">${p.estado === 'abierta' ? (ab ? 'Al terminar el partido, marca quién ganó (puedes hacerlo aunque el cierre no haya llegado).' : 'Apuestas cerradas. Marca quién ganó para repartir el pozo.') : (p.pendientes ? `Quedan ${p.pendientes} apuesta(s) por procesar.` : 'Pagos listos.')}</span>${b.join('')}</div>`;
+}
+function pintar() {
+  if ($('contenido').hidden) return;
+  pintarEstado();
+  const ab = partidos.filter(abierto).sort((a, b) => ms(a.cierre) - ms(b.cierre));
+  const ce = partidos.filter(p => !abierto(p)).sort((a, b) => ms(b.cierre) - ms(a.cierre)).slice(0, esProfe ? 60 : 15);
+  $('nAbiertos').textContent = ab.length ? `${ab.length} con apuestas abiertas` : '';
+  const foco = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.monto;
+  const valor = foco ? document.activeElement.value : null;
+  $('abiertos').innerHTML = ab.map(tarjetaAbierta).join('') || `<div class="vacio"><span class="emo">⚽</span>No hay partidos con apuestas abiertas. El profe los publicará aquí antes de cada partido.</div>`;
+  $('cerrados').innerHTML = ce.map(tarjetaCerrada).join('') || `<div class="vacio">Todavía no hay resultados.</div>`;
+  if (foco) { const i = document.querySelector(`[data-monto="${CSS.escape(foco)}"]`); if (i) { i.value = valor; i.focus(); } }
+  $('profe').hidden = !esProfe;
+}
+setInterval(() => {
+  if ($('contenido').hidden) return;
+  let fin = false;
+  document.querySelectorAll('.reloj[data-cierre]').forEach(r => {
+    const t = +r.dataset.cierre; r.querySelector('span').textContent = restante(t);
+    r.classList.toggle('urge', t - ahora() < 3600e3); if (t <= ahora()) fin = true;
+  });
+  if (fin) pintar();
+}, 1000);
+
+/* ═════════ datos ═════════ */
+function quitarSubs() { unsubs.forEach(u => { try { u(); } catch (e) {} }); unsubs = []; }
+async function cargar() {
+  const { F, db } = await DF.listo();
+  quitarSubs();
+  usuario = DF.usuario(); esProfe = !!(usuario && DF.esProfe(usuario)); cuentaId = null; cuenta = null; misApuestas = {};
+  if (esProfe) { aceptoSesion = true; mostrar(); }
+  aviso('');
+  unsubs.push(F.onSnapshot(F.collection(db, 'apuestas_partidos'), s => {
+    partidos = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar();
+  }, e => aviso('No se pudieron leer los partidos: ' + esc(e.message), 'err')));
+  if (usuario && !esProfe) {
+    try {
+      await DF.asegurarCuentaBanco().catch(() => null);
+      const v = await F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase()));
+      if (v.exists()) {
+        cuentaId = v.data().cuenta;
+        unsubs.push(F.onSnapshot(F.doc(db, 'banco_cuentas', cuentaId), c => { cuenta = c.exists() ? c.data() : null; pintar(); }, () => {}));
+        unsubs.push(F.onSnapshot(F.query(F.collection(db, 'apuestas'), F.where('cuenta', '==', cuentaId)), s => {
+          misApuestas = {}; s.docs.forEach(d => { const a = d.data(); misApuestas[a.partido] = a; }); pintar();
+        }, () => {}));
+      }
+    } catch (e) { aviso('No se pudo cargar tu cuenta: ' + esc(e.message), 'err'); }
+  }
+  pintar();
+}
+
+/* ═════════ apostar ═════════
+   Una sola transacción: descuenta la apuesta, la registra y suma lo apostado al pozo de esa opción. */
+async function apostar(pid, op, monto) {
+  const { F, db } = await DF.listo(), aid = pid + '__' + cuentaId;
+  return F.runTransaction(db, async tx => {
+    const rp = F.doc(db, 'apuestas_partidos', pid), rc = F.doc(db, 'banco_cuentas', cuentaId), ra = F.doc(db, 'apuestas', aid);
+    const [sp, sc, sa] = await Promise.all([tx.get(rp), tx.get(rc), tx.get(ra)]);
+    if (!sp.exists()) throw new Error('el partido ya no existe');
+    if (sa.exists()) throw new Error('ya apostaste en este partido');
+    const p = sp.data(), cu = sc.data();
+    if (p.estado !== 'abierta' || ms(p.cierre) <= ahora()) throw new Error('las apuestas de este partido ya cerraron');
+    if (!(op in (p.opciones || {}))) throw new Error('opción inválida');
+    if (monto < p.minimo || monto > p.tope) throw new Error(`la apuesta debe estar entre ${fmt(p.minimo)} y ${fmt(p.tope)}`);
+    const saldo = (cu.saldo || 0) - monto, ops = (cu.ops || 0) + 1, opId = 'op-' + cuentaId + '-' + ops;
+    if (saldo < 0) throw new Error('no te alcanza: tienes ' + fmt(cu.saldo));
+    const nombre = ((cu.nombre || '') + ' ' + (cu.apellido || '')).trim();
+    tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+    tx.set(F.doc(db, 'banco_movs', opId), { cuenta: cuentaId, numero: String(cu.numero || ''), nombre, curso: cu.curso || '',
+      monto: -monto, motivo: `Apuesta: ${p.opciones[op]} en «${String(p.titulo).slice(0, 100)}»`.slice(0, 200), tipo: 'apuesta', saldoDespues: saldo, profe: '',
+      fecha: F.serverTimestamp(), apuesta: aid });
+    tx.set(ra, { partido: pid, cuenta: cuentaId, uid: usuario.uid, nombre: nombre.slice(0, 160), opcion: op, monto, estado: 'activa', fecha: F.serverTimestamp(), mov: opId });
+    const pozos = Object.assign({}, p.pozos); pozos[op] = (pozos[op] || 0) + monto;
+    tx.update(rp, { pozos, n: (p.n || 0) + 1, actualizado: F.serverTimestamp() });
+  });
+}
+async function confirmarApuesta(pid) {
+  if (ocupado) return;
+  const p = partidos.find(x => x.id === pid), op = eleccion[pid]; if (!p || !op) return;
+  const i = document.querySelector(`[data-monto="${CSS.escape(pid)}"]`), monto = Math.round(+(i && i.value) || 0);
+  if (monto < p.minimo) return aviso(`La apuesta mínima es ${fmt(p.minimo)}.`, 'err');
+  if (monto > p.tope) return aviso(`El tope por apuesta es ${fmt(p.tope)}.`, 'err');
+  if (monto > (cuenta.saldo || 0)) return aviso(`No te alcanza: tienes ${fmt(cuenta.saldo)}.`, 'err');
+  if (!confirm(`¿Apostar ${fmt(monto)} a «${p.opciones[op]}» en «${p.titulo}»?\n\nEl monto sale ahora de tu saldo y no se puede cambiar. Si ${p.opciones[op]} no gana, lo pierdes.`)) return;
+  ocupado = true;
+  try { await apostar(pid, op, monto); aviso(`✓ Apostaste ${fmt(monto)} a ${esc(p.opciones[op])}. ¡Suerte! Recuerda: es un juego.`, 'ok'); delete eleccion[pid]; }
+  catch (e) { aviso('No se pudo apostar: ' + esc(/permission/i.test(e.message) ? 'el banco la rechazó (¿cerró el partido, o el profe aún no publica las reglas nuevas?)' : e.message), 'err'); }
+  ocupado = false; pintar();
+}
+
+/* ═════════ profe ═════════ */
+function cierrePorDefecto() {
+  const d = new Date(Date.now() + 86400e3); d.setHours(13, 0, 0, 0);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+$('fCierre').value = cierrePorDefecto();
+function msgProfe(t, tipo) { $('fMsg').innerHTML = t ? `<span style="color:${tipo === 'err' ? 'var(--neg)' : 'var(--acid)'}">${t}</span>` : ''; }
+async function publicar() {
+  const titulo = $('fTitulo').value.trim().slice(0, 80), torneo = $('fTorneo').value.trim().slice(0, 60);
+  let nombres = $('fOpciones').value.split(',').map(s => s.trim().slice(0, 40)).filter(Boolean);
+  if ($('fEmpate').checked) nombres.push('Empate');
+  nombres = [...new Set(nombres)];
+  const minimo = Math.round(+$('fMin').value || 0), tope = Math.round(+$('fTope').value || 0);
+  const cierre = $('fCierre').value ? new Date($('fCierre').value) : null;
+  if (titulo.length < 3) return msgProfe('Escribe el nombre del partido.', 'err');
+  if (nombres.length < 2 || nombres.length > 6) return msgProfe('Escribe entre 2 y 6 opciones, separadas por coma.', 'err');
+  if (minimo < 100 || tope < minimo) return msgProfe('Revisa el mínimo (desde 100 ₣) y el tope (mayor o igual al mínimo).', 'err');
+  if (!cierre || isNaN(cierre) || cierre.getTime() <= Date.now() + 60e3) return msgProfe('Elige un cierre en el futuro.', 'err');
+  const opciones = {}, pozos = {}, orden = [];
+  nombres.forEach((n, i) => { const k = 'o' + (i + 1); opciones[k] = n; pozos[k] = 0; orden.push(k); });
+  const { F, db } = await DF.listo();
+  try {
+    await F.addDoc(F.collection(db, 'apuestas_partidos'), { titulo, torneo, opciones, orden, pozos, n: 0, minimo, tope,
+      cierre: F.Timestamp.fromDate(cierre), estado: 'abierta', ganador: '', pendientes: 0, devuelto: false,
+      profe: usuario.email, creada: F.serverTimestamp(), actualizado: F.serverTimestamp() });
+    msgProfe(`✓ «${esc(titulo)}» publicado. Las apuestas cierran el ${esc(fechaTxt(cierre.getTime()))}.`, 'ok');
+    $('fTitulo').value = ''; $('fOpciones').value = ''; $('fEmpate').checked = false;
+  } catch (e) { msgProfe('No se pudo publicar: ' + esc(e.message), 'err'); }
+}
+// Pago: cada apuesta ganadora recibe floor(monto × pozo total ÷ total de la opción ganadora).
+// Se procesa en tandas; cada apuesta pasa de «activa» a «pagada», «perdida» o «devuelta», así que si algo
+// se corta, «Terminar pagos pendientes» sigue donde quedó sin pagar dos veces.
+async function liquidar(pid) {
+  const { F, db } = await DF.listo(), profe = usuario.email;
+  const p = (await F.getDoc(F.doc(db, 'apuestas_partidos', pid))).data();
+  const tot = Object.values(p.pozos || {}).reduce((a, b) => a + (b || 0), 0);
+  const pozoGan = p.estado === 'resuelta' ? (p.pozos[p.ganador] || 0) : 0;
+  const devolver = p.estado === 'anulada' || pozoGan === 0;
+  const snap = await F.getDocs(F.query(F.collection(db, 'apuestas'), F.where('partido', '==', pid)));
+  const activas = snap.docs.map(d => Object.assign({ _id: d.id }, d.data())).filter(a => a.estado === 'activa');
+  let hechos = 0;
+  for (let i = 0; i < activas.length; i += 100) {
+    const tanda = activas.slice(i, i + 100);
+    await F.runTransaction(db, async tx => {
+      const lecturas = await Promise.all(tanda.map(a => Promise.all([tx.get(F.doc(db, 'apuestas', a._id)), tx.get(F.doc(db, 'banco_cuentas', a.cuenta))])));
+      lecturas.forEach(([sa, sc], j) => {
+        const a = sa.data(); if (!a || a.estado !== 'activa') return;
+        const ra = sa.ref;
+        let pago = 0, estado;
+        if (devolver) { pago = a.monto; estado = 'devuelta'; }
+        else if (a.opcion === p.ganador) { pago = Math.floor(a.monto * tot / pozoGan); estado = 'pagada'; }
+        else estado = 'perdida';
+        if (pago > 0 && sc.exists()) {
+          const c = sc.data(), saldo = (c.saldo || 0) + pago;
+          tx.update(sc.ref, { saldo, actualizado: F.serverTimestamp() });
+          tx.set(F.doc(F.collection(db, 'banco_movs')), { cuenta: a.cuenta, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
+            monto: pago, motivo: (estado === 'devuelta' ? `Apuesta devuelta: «${p.titulo}»` : `Apuesta ganada: ${p.opciones[a.opcion]} en «${p.titulo}»`).slice(0, 200),
+            tipo: estado === 'devuelta' ? 'apuesta-devuelta' : 'apuesta-ganada', saldoDespues: saldo, profe, fecha: F.serverTimestamp(), apuesta: a._id });
+        }
+        tx.update(ra, { estado, pago, resuelta: F.serverTimestamp() });
+      });
+    });
+    hechos += tanda.length;
+    await F.updateDoc(F.doc(db, 'apuestas_partidos', pid), { pendientes: Math.max(0, activas.length - hechos), actualizado: F.serverTimestamp() });
+  }
+  await F.updateDoc(F.doc(db, 'apuestas_partidos', pid), { pendientes: 0, devuelto: devolver, actualizado: F.serverTimestamp() });
+  return { n: activas.length, devolver };
+}
+async function adm(a, pid, op) {
+  const p = partidos.find(x => x.id === pid); if (!p) return;
+  const { F, db } = await DF.listo(), rp = F.doc(db, 'apuestas_partidos', pid);
+  try {
+    if (a === 'cierre') {
+      const t = new Date(ms(p.cierre)), z = n => String(n).padStart(2, '0');
+      const v = prompt('Nuevo cierre de apuestas (AAAA-MM-DD HH:MM):', `${t.getFullYear()}-${z(t.getMonth() + 1)}-${z(t.getDate())} ${z(t.getHours())}:${z(t.getMinutes())}`);
+      if (v === null) return; const d = new Date(v.trim().replace(' ', 'T'));
+      if (isNaN(d) || d.getTime() <= Date.now()) return alert('Fecha inválida o en el pasado.');
+      await F.updateDoc(rp, { cierre: F.Timestamp.fromDate(d), actualizado: F.serverTimestamp() });
+    }
+    if (a === 'cerrarYa') { if (!confirm('¿Cerrar las apuestas de este partido ahora?')) return; await F.updateDoc(rp, { cierre: F.Timestamp.now(), actualizado: F.serverTimestamp() }); }
+    if (a === 'ganador' || a === 'anular') {
+      const tot = total(p), og = a === 'ganador' ? (p.pozos[op] || 0) : 0;
+      const msg = a === 'anular' ? `¿Anular «${p.titulo}» y devolver ${fmt(tot)} a ${p.n || 0} apuesta(s)?`
+        : og ? `¿Ganó «${p.opciones[op]}»?\n\nPozo ${fmt(tot)} → se reparte entre quienes le apostaron (${fmt(og)}). Cuota ×${(tot / og).toFixed(2)}.\nNo se puede deshacer.`
+        : `¿Ganó «${p.opciones[op]}»?\n\nNadie le apostó: se devolverá todo lo apostado (${fmt(tot)}).`;
+      if (!confirm(msg)) return;
+      await F.runTransaction(db, async tx => {
+        const s = await tx.get(rp); if (s.data().estado !== 'abierta') throw new Error('este partido ya se resolvió');
+        tx.update(rp, a === 'anular' ? { estado: 'anulada', cierre: F.Timestamp.now(), pendientes: p.n || 0, actualizado: F.serverTimestamp() }
+          : { estado: 'resuelta', ganador: op, cierre: F.Timestamp.now(), pendientes: p.n || 0, actualizado: F.serverTimestamp() });
+      });
+      const r = await liquidar(pid);
+      alert(r.devolver ? `Listo: se devolvieron ${r.n} apuesta(s).` : `Listo: ${r.n} apuesta(s) procesadas y el pozo repartido.`);
+    }
+    if (a === 'continuar') { const r = await liquidar(pid); alert(`Listo: ${r.n} apuesta(s) procesadas.`); }
+    if (a === 'borrar') { if (!confirm(`¿Borrar «${p.titulo}» de la lista? (No cambia ningún saldo.)`)) return; await F.deleteDoc(rp); }
+  } catch (e) { alert('No se pudo: ' + e.message); }
+}
+
+/* ═════════ eventos ═════════ */
+document.addEventListener('click', ev => {
+  const t = ev.target.closest('button, [data-a]'); if (!t) return;
+  if (t.dataset.a === 'entrar') { DF.entrar().catch(e => aviso('No se pudo entrar: ' + esc(e.message), 'err')); return; }
+  if (t.dataset.elegir) { eleccion[t.dataset.elegir] = t.dataset.op; pintar(); return; }
+  if (t.dataset.apostar) { confirmarApuesta(t.dataset.apostar); return; }
+  if (t.dataset.adm) { adm(t.dataset.adm, t.dataset.id, t.dataset.op); return; }
+  if (t.id === 'fPublicar') publicar();
+});
+// Al escribir el monto, actualiza la estimación sin repintar todo.
+document.addEventListener('input', ev => {
+  const pid = ev.target.dataset && ev.target.dataset.monto; if (!pid) return;
+  const p = partidos.find(x => x.id === pid), op = eleccion[pid]; if (!p || !op) return;
+  const m = Math.round(+ev.target.value || 0); eleccion[pid + ':m'] = m;
+  const n = document.querySelector(`[data-estima="${CSS.escape(pid)}"]`); if (!n || m <= 0) return;
+  const c = cuota(p, op, m);
+  n.innerHTML = `A <b>${esc(p.opciones[op])}</b>: si gana, recibirías ≈ <b>${fmt(m * c)}</b> (cuota ${cuotaTxt(c)} contando tu apuesta). Mínimo ${fmt(p.minimo)}, tope ${fmt(p.tope)}.`;
+});
+
+DF.listo().then(() => DF.alCambiarUsuario(() => cargar()), e => {
+  aviso('Las apuestas necesitan conexión con el banco: ' + esc(e.message), 'err');
+  $('abiertos').innerHTML = '';
+});
+})();
+</script>
+<script src="adornos/adornos.js" defer></script>
+</body>
+</html>

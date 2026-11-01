@@ -351,7 +351,7 @@ service cloud.firestore {
       return d.cuenta == miCuentaBanco() && d.cuenta != ''
         && opsDespues(d.cuenta) == opsAntes(d.cuenta) + 1
         && id == 'op-' + d.cuenta + '-' + string(opsDespues(d.cuenta))
-        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta'])
+        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta'])
         && (d.tipo == 'ruleta' || !d.keys().hasAny(['tema', 'escapa', 'pierde']))
         && d.profe == '' && d.fecha == request.time
         && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200)
@@ -367,7 +367,8 @@ service cloud.firestore {
             || (d.tipo == 'transferencia-envio' && opEnvio(id, d)) || (d.tipo == 'compra' && opPedido(id, d))
             || (d.tipo == 'devolucion' && opDevolucion(d)) || (d.tipo == 'poder-gatito' && opPoder(d)) || (d.tipo == 'poder-mensual' && opPoderMes(d)) || (d.tipo == 'premio-gatito' && opPremio(d))
             || (d.tipo == 'prestamo-pago' && opPagoPrestamo(d)) || (d.tipo == 'mascota' && opMascota(d)) || (d.tipo in ['ahorro-deposito', 'ahorro-retiro'] && opAhorro(d))
-            || (d.tipo == 'subasta-oferta' && opSubasta(id, d)));
+            || (d.tipo == 'subasta-oferta' && opSubasta(id, d))
+            || (d.tipo == 'apuesta' && opApuestaPartido(id, d)));
     }
 
     // ═════ Mascotas (como Pou / Tamagotchi) ═════
@@ -1031,6 +1032,65 @@ service cloud.firestore {
         && (resource.data.mejorCuenta == ''
             || (getAfter(rutaCuenta(resource.data.mejorCuenta)).data.saldo == get(rutaCuenta(resource.data.mejorCuenta)).data.saldo + resource.data.mejor
                 && existsAfter(rutaMov('sb-' + sid + '-' + string(resource.data.ofertas)))));
+    }
+
+    // ═════ Apuestas de los partidos (sentido lúdico y educativo) ═════
+    // Apuesta mutua (como el «pozo» de las carreras): todo lo apostado en un partido forma un pozo y,
+    // al terminar, se reparte entre quienes acertaron en proporción a lo que apostó cada uno. No hay comisión.
+    // El profe crea los partidos (opciones, cierre, mínimo y tope por apuesta), los resuelve y paga desde su panel.
+    // Una apuesta por estudiante y partido. Al apostar, en UNA escritura:
+    //   banco_movs/op-<cuenta>-<ops>      tipo 'apuesta', monto −m
+    //   banco_cuentas/<cuenta>            saldo − m, ops + 1
+    //   apuestas/<partido>__<cuenta>      opción y monto
+    //   apuestas_partidos/<partido>       pozos.<opción> + m, n + 1
+    function rutaPartido(p) { return /databases/$(database)/documents/apuestas_partidos/$(p); }
+    function rutaApuesta(a) { return /databases/$(database)/documents/apuestas/$(a); }
+    function opApuestaPartido(id, d) {
+      let a = getAfter(rutaApuesta(d.apuesta)).data;
+      return d.apuesta is string && !exists(rutaApuesta(d.apuesta))
+        && a.cuenta == d.cuenta && a.mov == id && d.monto == 0 - a.monto;
+    }
+    match /apuestas_partidos/{pid} {
+      allow read: if true;
+      allow write: if esProfe();
+      allow update: if esColegio() && miCuentaBanco() != ''
+        && resource.data.estado == 'abierta' && request.time < resource.data.cierre
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pozos', 'n', 'actualizado'])
+        && request.resource.data.actualizado == request.time
+        && request.resource.data.n == resource.data.n + 1
+        && existsAfter(rutaApuesta(pid + '__' + miCuentaBanco()))
+        && !exists(rutaApuesta(pid + '__' + miCuentaBanco()))
+        && request.resource.data.pozos.diff(resource.data.pozos).affectedKeys()
+             .hasOnly([getAfter(rutaApuesta(pid + '__' + miCuentaBanco())).data.opcion])
+        && request.resource.data.pozos[getAfter(rutaApuesta(pid + '__' + miCuentaBanco())).data.opcion]
+             == resource.data.pozos.get(getAfter(rutaApuesta(pid + '__' + miCuentaBanco())).data.opcion, 0)
+                + getAfter(rutaApuesta(pid + '__' + miCuentaBanco())).data.monto;
+    }
+    match /apuestas/{aid} {
+      allow read: if esProfe() || (miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco());
+      allow write: if esProfe();
+      allow create: if esColegio() && miCuentaBanco() != ''
+        && request.resource.data.keys().hasOnly(['partido', 'cuenta', 'uid', 'nombre', 'opcion', 'monto', 'estado', 'fecha', 'mov'])
+        && request.resource.data.cuenta == miCuentaBanco()
+        && request.resource.data.uid == request.auth.uid
+        && aid == request.resource.data.partido + '__' + miCuentaBanco()
+        && texto(request.resource.data.nombre, 160)
+        && request.resource.data.estado == 'activa'
+        && request.resource.data.fecha == request.time
+        && get(rutaPartido(request.resource.data.partido)).data.estado == 'abierta'
+        && request.time < get(rutaPartido(request.resource.data.partido)).data.cierre
+        && request.resource.data.opcion is string
+        && request.resource.data.opcion in get(rutaPartido(request.resource.data.partido)).data.opciones.keys()
+        && request.resource.data.monto is int
+        && request.resource.data.monto >= get(rutaPartido(request.resource.data.partido)).data.minimo
+        && request.resource.data.monto <= get(rutaPartido(request.resource.data.partido)).data.tope
+        // el dinero sale en la misma escritura y el pozo de esa opción sube exactamente lo apostado
+        && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
+        && request.resource.data.mov == idOpActual(miCuentaBanco())
+        && opActual(miCuentaBanco()).tipo == 'apuesta'
+        && opActual(miCuentaBanco()).apuesta == aid
+        && getAfter(rutaPartido(request.resource.data.partido)).data.pozos[request.resource.data.opcion]
+             == get(rutaPartido(request.resource.data.partido)).data.pozos.get(request.resource.data.opcion, 0) + request.resource.data.monto;
     }
 
     // Publicaciones entre estudiantes. Estados: venta → reservado (alguien la pidió) → vendido;

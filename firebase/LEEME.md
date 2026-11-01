@@ -52,3 +52,9 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 - Al cierre ya no se aceptan ofertas (lo impide `firestore.rules`). El profe presiona **Adjudicar** y entrega el objeto; el dinero de quien ganó ya está cobrado. **Anular** devuelve la oferta vigente.
 - La portada muestra las subastas abiertas con su oferta actual y cuenta regresiva.
 - Requiere publicar el `firestore.rules` actualizado (colección `subastas`).
+
+## Apuestas de los partidos (`apuestas.html`)
+- Sentido lúdico y educativo: antes de participar, cada estudiante lee una advertencia y la acepta.
+- El profe crea cada partido (opciones, cierre, mínimo y tope por apuesta). Una apuesta por estudiante y partido; el monto sale del saldo al apostar.
+- Apuesta mutua: al marcar el ganador, el pozo completo se reparte entre quienes acertaron, en proporción a lo apostado (`floor(apuesta × pozo ÷ total de la opción ganadora)`). Sin comisión. Si nadie acertó o se anula, se devuelve todo.
+- Requiere publicar el `firestore.rules` actualizado (colecciones `apuestas_partidos` y `apuestas`).
