@@ -284,7 +284,7 @@ h1 span{color:var(--acid)}
 
 <div class="velo" id="velo" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 
-<script src="gatitos/catalogo.js?v=20261031"></script>
+<script src="gatitos/catalogo.js?v=20261101"></script>
 <script src="gatitos/anim.js?v=20261031"></script>
 <script src="gatitos/mascota.js?v=20261030"></script>
 <script src="banco-felipeso/catalogo.js"></script>
@@ -381,7 +381,7 @@ function poderHtml(g) {
 }
 function pintarPoderes() {
   const el = $('poderes'); if (!el) return;
-  if (!usuario || esProfe || !cuenta) { el.innerHTML = `<div style="grid-column:1/-1"><h2 class="h2s">⚡ Poderes de tus gatitos</h2><p class="intro" style="margin:0">Cada gatito da décimas formativas cada semana (común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3; máximo ${PODER_MAX_DIA} por semana). Ava y Calha traen un premio único de 5 formativas y 2 sumativas; el Gato Nietzsche, el Gato del tío César y Gruñona dan, cada uno, 5 formativas y 2 sumativas cada mes; los héroes (Rayo, Sombra y Luna) dan 30% de descuento en compras académicas. Los más valiosos dan además poderes especiales en clases.</p></div>`; return; }
+  if (!usuario || esProfe || !cuenta) { el.innerHTML = `<div style="grid-column:1/-1"><h2 class="h2s">⚡ Poderes de tus gatitos</h2><p class="intro" style="margin:0">Cada gatito da décimas formativas cada semana (común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3; máximo ${PODER_MAX_DIA} por semana). Miauricio trae un premio único de 5 sumativas; Ava, Calha, el Gato Nietzsche, el Gato del tío César y Gruñona dan, cada uno, 5 formativas y 2 sumativas cada mes; los héroes (Rayo, Sombra y Luna) dan 30% de descuento en compras académicas. Los más valiosos dan además poderes especiales en clases.</p></div>`; return; }
   const ids = coleccion.ids || [], pd = poderDelDia(ids), n = pd.formativas, txt = textoPoderDia(pd);
   const especiales = []; ids.forEach(id => { const g = gato(id); (g && g.poderes || []).forEach(p => especiales.push([p, g.nombre])); });
   const yaHoy = poderHoy && poderHoy.semana === semanaHoy();
@@ -397,7 +397,7 @@ function pintarPoderes() {
     ${boton}`;
 }
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-// Premio único de Ava y Calha: una sola vez por cuenta y por gatita.
+// Premio único (Miauricio): una sola vez por cuenta y por gatito.
 function bloquePremios() {
   return (coleccion.ids || []).map(gato).filter(g => g && g.premio).map(g => {
     const ya = premios[g.id] === true, sabe = g.id in premios;

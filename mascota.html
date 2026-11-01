@@ -93,7 +93,7 @@ ul.reglas{margin:8px 0 0;padding-left:18px;color:var(--mute);font-size:14px}
   </section>
 </div>
 
-<script src="gatitos/catalogo.js?v=20261031"></script>
+<script src="gatitos/catalogo.js?v=20261101"></script>
 <script src="gatitos/anim.js?v=20261031"></script>
 <script src="gatitos/mascota.js?v=20261030"></script>
 <script src="firebase/df.js?v=20261029"></script>
@@ -159,7 +159,7 @@ function pintar() {
         return `<button class="acc" type="button" data-acc="${k}" ${ocupado || sinPlata || sinEnergia || !tieneLo ? 'disabled' : ''}><b>${a.emoji} ${a.nombre}</b><small>${a.txt}</small><span class="pr">${a.costo ? fmt(a.costo) : 'Gratis'}</span></button>`;
       }).join('')}</div>`).join('')}
       ${!cuenta ? '<p class="nota">Para comprar comida, juguetes, baños o veterinario necesitas tu cuenta del banco vinculada.</p>' : ''}
-      <p class="nota">${g.mensual ? (feliz ? '✨ Bien cuidada: al reclamar su poder mensual en el Mercado recibes el doble.' : `Si la mantienes bien cuidada, el poder mensual de ${esc(g.nombre)} vale ×2.`) : 'El ×2 solo aplica a gatitos con poder mensual (Nietzsche, César y Gruñona).'}</p>
+      <p class="nota">${g.mensual ? (feliz ? '✨ Bien cuidada: al reclamar su poder mensual en el Mercado recibes el doble.' : `Si la mantienes bien cuidada, el poder mensual de ${esc(g.nombre)} vale ×2.`) : 'El ×2 solo aplica a gatitos con poder mensual (Nietzsche, César, Gruñona, Ava y Calha).'}</p>
       <div style="margin-top:12px"><button class="btn" type="button" data-a="cambiar" ${puedeCambiar ? '' : 'disabled'}>🔄 Cambiar de mascota</button>
         ${puedeCambiar ? '' : `<span class="nota">Podrás cambiarla desde el ${new Date(msDe(masc.cambio) + M.cambioDias * 86400000).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}.</span>`}</div>
     </section></div>`;

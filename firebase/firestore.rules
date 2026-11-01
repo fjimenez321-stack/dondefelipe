@@ -755,7 +755,7 @@ service cloud.firestore {
       let s = gatitosAntes(uid).toSet();
       let n = s.intersection(['naranjo', 'gris', 'dormilon', 'patitas', 'aseo', 'blanconegro', 'tricolor', 'comelon'].toSet()).size()
         + 2 * s.intersection(['siames', 'negro', 'estirado', 'jugueton', 'caja', 'tronco', 'barril'].toSet()).size()
-        + 3 * s.intersection(['muro', 'fantasma', 'ava', 'calha', 'cosmico', 'dorado', 'masita', 'miauricio'].toSet()).size();
+        + 3 * s.intersection(['muro', 'fantasma', 'cosmico', 'dorado', 'masita', 'miauricio'].toSet()).size();
       return n > 3 ? 3 : n;
     }
     function sumativasPoder(uid) { return 0; }   // (ningún gatito da sumativas diarias por ahora)
@@ -780,7 +780,7 @@ service cloud.firestore {
               'miauricio': 'Miauricio: premio único de 5 décimas sumativas'}.get(g, '');
     }
     function opPremio(d) {
-      return d.gatito is string && d.gatito in ['ava', 'calha', 'miauricio'] && d.gatito in gatitosAntes(request.auth.uid)
+      return d.gatito is string && d.gatito in ['miauricio'] && d.gatito in gatitosAntes(request.auth.uid)
         && d.monto == 0 && d.canje == 'pendiente' && d.item == textoPremio(d.gatito)
         && !d.keys().hasAny(['oferta', 'precio', 'pedido', 'transferencia'])
         && !exists(rutaPremio(d.cuenta, d.gatito)) && existsAfter(rutaPremio(d.cuenta, d.gatito));
@@ -792,7 +792,7 @@ service cloud.firestore {
         && request.resource.data.cuenta == miCuentaBanco() && miCuentaBanco() != ''
         && request.resource.data.keys().hasOnly(['cuenta', 'uid', 'gatito', 'fecha'])
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.gatito in ['ava', 'calha', 'miauricio']
+        && request.resource.data.gatito in ['miauricio']
         && request.resource.data.gatito in gatitosAntes(request.auth.uid)
         && pid == request.resource.data.cuenta + '__' + request.resource.data.gatito
         && request.resource.data.fecha == request.time
@@ -802,13 +802,13 @@ service cloud.firestore {
     // ── Poder mensual: Gato Nietzsche y Gato del tío César dan, CADA UNO, 5 formativas y 2 sumativas
     //    una vez por mes (debe coincidir con gatitos/catalogo.js: mensualesDe, idPoderMes, textoMensual) ──
     function mesHoy() { let t = request.time - duration.value(4, 'h'); return t.year() * 12 + t.month() - 1; }
-    function nombreMensual(g) { return g == 'cesar' ? 'Gato del tío César' : (g == 'grunona' ? 'Gruñona' : 'Gato Nietzsche'); }
+    function nombreMensual(g) { return {'cesar': 'Gato del tío César', 'grunona': 'Gruñona', 'ava': 'Ava', 'calha': 'Calha'}.get(g, 'Gato Nietzsche'); }
     // El de Nietzsche conserva el formato antiguo (<cuenta>__<mes>); los demás llevan el gatito al final.
     function idPoderMes(c, m, g) { return g == 'nietzsche' ? c + '__' + string(m) : c + '__' + string(m) + '__' + g; }
     function rutaPoderMes(c, m, g) { return /databases/$(database)/documents/gatitos_poderes_mes/$(idPoderMes(c, m, g)); }
     function opPoderMes(d) {
       let g = d.get('gatito', 'nietzsche');
-      return g in ['nietzsche', 'cesar', 'grunona'] && g in gatitosAntes(request.auth.uid)
+      return g in ['nietzsche', 'cesar', 'grunona', 'ava', 'calha'] && g in gatitosAntes(request.auth.uid)
         && d.monto == 0 && d.canje == 'pendiente'
         && (d.item == nombreMensual(g) + ': 5 décimas formativas y 2 décimas sumativas del mes'
             // ×2 si ESE gatito es tu mascota y está bien cuidada
@@ -825,7 +825,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['cuenta', 'uid', 'mes', 'fecha', 'gatito'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.mes == mesHoy()
-        && request.resource.data.get('gatito', 'nietzsche') in ['nietzsche', 'cesar', 'grunona']
+        && request.resource.data.get('gatito', 'nietzsche') in ['nietzsche', 'cesar', 'grunona', 'ava', 'calha']
         && pid == idPoderMes(request.resource.data.cuenta, mesHoy(), request.resource.data.get('gatito', 'nietzsche'))
         && request.resource.data.fecha == request.time
         && opsDespues(request.resource.data.cuenta) == opsAntes(request.resource.data.cuenta) + 1
