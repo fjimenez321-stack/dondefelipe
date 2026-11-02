@@ -329,7 +329,7 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
 <script src="gatitos/anim.js?v=20261031"></script>
 <script src="gatitos/mascota.js?v=20261030"></script>
 <script src="firebase/perfil-publico.js"></script>
-<script src="firebase/df.js?v=20261029" data-sin-visita data-sin-aviso></script>
+<script src="firebase/df.js?v=20261102" data-sin-visita data-sin-aviso></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -484,7 +484,12 @@ async function cargarGatitos(u, banco) {
     ]).then(r => { podMes = {}; (r[4] || []).forEach(([k, v]) => { podMes[k] = v; }); return r; });
     // Fecha de adquisición: compra en el mercado o premio de la ruleta, y compras a un compañero autorizadas
     const adq = {}, msF = t => t && t.toMillis ? t.toMillis() : 0;
-    (banco ? banco.movs : []).forEach(m => { if (m.gatito && (m.tipo === 'gatito-compra' || m.tipo === 'ruleta')) adq[m.gatito] = Math.max(adq[m.gatito] || 0, msF(m.fecha)); });
+    // fechas de adquisición: solo los movimientos de los gatitos que tiene (no todos los movimientos)
+    const idsCol = s.exists() ? s.data().ids || [] : [];
+    for (let i = 0; cid && i < idsCol.length; i += 30) {
+      const q = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cid), F.where('gatito', 'in', idsCol.slice(i, i + 30)))).catch(() => null);
+      if (q) q.docs.forEach(d => { const m = d.data(); if (m.tipo === 'gatito-compra' || m.tipo === 'ruleta') adq[m.gatito] = Math.max(adq[m.gatito] || 0, msF(m.fecha)); });
+    }
     if (peds) peds.docs.forEach(d => { const p = d.data(); if (p.gatito && p.estado === 'aprobada') adq[p.gatito] = Math.max(adq[p.gatito] || 0, msF(p.resuelta) || msF(p.creada)); });
     const fechaAdq = id => adq[id] ? new Date(adq[id]).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
     const col = s.exists() ? s.data() : { ids: [] }, ids = col.ids || [];
@@ -569,13 +574,25 @@ const TR_AUTO = 50000, TR_DIA = 3;
 const TR_ESTADO = { pendiente: '<span class="can pend">Retenida · por autorizar</span>', aprobada: '<span class="can ok">Autorizada</span>', automatica: '<span class="can ok">Enviada al instante</span>',
   rechazada: '<span class="can no">Rechazada</span>', cancelada: '<span class="can anul">Cancelada</span>' };
 let trMia = null, trCuentas = [];
+// Lista de destinatarios: se lee una sola vez, cuando la persona va a elegir (1 lectura por cuenta del colegio).
+async function cargarDestinos() {
+  if (trCuentas.length || !trMia) return;
+  const { F, db } = await DF.listo(), cs = await F.getDocs(F.collection(db, 'banco_cuentas'));
+  trCuentas = cs.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(x => x.id !== trMia.id && x.estado !== 'Cerrada')
+    .sort((a, b) => String(a.curso || '').localeCompare(String(b.curso || ''), 'es') || String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es'));
+  const cursos = [...new Set(trCuentas.map(x => x.curso || 'Sin curso'))], sel = $('trA'); if (!sel) return;
+  sel.innerHTML = '<option value="">¿A quién le transfieres?</option>' + cursos.map(cu => `<optgroup label="${esc(cu)}">${trCuentas.filter(x => (x.curso || 'Sin curso') === cu)
+    .map(x => `<option value="${esc(x.id)}">${esc(((x.nombre || '') + ' ' + (x.apellido || '')).trim())} · N° ${esc(x.numero || '')}</option>`).join('')}</optgroup>`).join('');
+}
+document.addEventListener('focusin', e => { if (e.target.id === 'trA') cargarDestinos(); });
+document.addEventListener('pointerdown', e => { if (e.target.id === 'trA') cargarDestinos(); });
 async function cargarTransferencias(c) {
   trMia = c;
   const box = $('tCont');
   try {
     const { F, db } = await DF.listo();
     const [cs, env, rec] = await Promise.all([
-      trCuentas.length ? null : F.getDocs(F.collection(db, 'banco_cuentas')),
+      null,   // la lista de cuentas se carga solo al elegir destinatario (antes: todas las cuentas en cada visita)
       F.getDocs(F.query(F.collection(db, 'banco_transferencias'), F.where('de', '==', c.id))),
       F.getDocs(F.query(F.collection(db, 'banco_transferencias'), F.where('a', '==', c.id)))
     ]);
@@ -591,7 +608,7 @@ async function cargarTransferencias(c) {
     box.innerHTML = `<p class="sub">Transferir Hipopesos</p>
       <p class="muted" style="font-size:14px;margin:0">Elige a quién y cuánto. <b>Hasta ${fmt(TR_AUTO)} ₣ llega al instante.</b> Más que eso sale de tu cuenta y queda retenido hasta que el profe la autorice (si la rechaza o la cancelas, te vuelve). Máximo <b>${TR_DIA} transferencias por día</b>${hoyTr ? ` (hoy llevas ${hoyTr})` : ''}.</p>
       <form class="tr-form" id="trForm" autocomplete="off">
-        <select id="trA" class="ancho" required><option value="">¿A quién le transfieres?</option>${cursos.map(cu => `<optgroup label="${esc(cu)}">${trCuentas.filter(x => (x.curso || 'Sin curso') === cu)
+        <select id="trA" class="ancho" required><option value="">${trCuentas.length ? '¿A quién le transfieres?' : 'Toca aquí para elegir a quién le transfieres…'}</option>${cursos.map(cu => `<optgroup label="${esc(cu)}">${trCuentas.filter(x => (x.curso || 'Sin curso') === cu)
           .map(x => `<option value="${esc(x.id)}">${esc(((x.nombre || '') + ' ' + (x.apellido || '')).trim())} · N° ${esc(x.numero || '')}</option>`).join('')}</optgroup>`).join('')}</select>
         <input id="trMotivo" maxlength="120" placeholder="Motivo (ej.: te devuelvo lo de la formativa)">
         <input id="trMonto" type="number" min="100" step="100" placeholder="Monto ₣" required>

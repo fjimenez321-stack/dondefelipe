@@ -375,19 +375,32 @@
   }
 
   /* ---------- mi banco de Hipopesos (si el profe vinculó mi correo) ---------- */
-  function miBanco() {
+  // Movimientos del banco de quien está conectado. Para no leer cientos de documentos cada vez
+  // (la ruleta deja 2 por tiro), solo trae: los 60 más recientes + lo que tiene estado de canje
+  // («por usar» e historial de compras). opciones.completo = todos (para descargar mis datos).
+  // Los 60 recientes necesitan un índice compuesto en Firestore (banco_movs: cuenta ↑, fecha ↓);
+  // si aún no existe, se leen todos como antes y la consola muestra el enlace para crearlo.
+  var CANJES = ['pendiente', 'usada', 'anulada', 'retenida', 'en-venta', 'entregada', 'traspasada', 'perdida', 'embargada'];
+  function miBanco(opciones) {
+    var completo = !!(opciones && opciones.completo);
     return listo().then(function (fb) {
       if (!usuario || !usuario.email) return null;
       var F = fb.F, db = fb.db;
       return F.getDoc(F.doc(db, 'banco_vinculos', usuario.email.toLowerCase())).then(function (v) {
         if (!v.exists()) return null;
-        var id = v.data().cuenta;
-        return Promise.all([
-          F.getDoc(F.doc(db, 'banco_cuentas', id)),
-          F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', id)))
-        ]).then(function (r) {
+        var id = v.data().cuenta, col = F.collection(db, 'banco_movs');
+        var todos = function () { return F.getDocs(F.query(col, F.where('cuenta', '==', id))).then(function (s) { return s.docs; }); };
+        var movsP = completo ? todos() : Promise.all([
+          F.getDocs(F.query(col, F.where('cuenta', '==', id), F.orderBy('fecha', 'desc'), F.limit(60))),
+          F.getDocs(F.query(col, F.where('cuenta', '==', id), F.where('canje', 'in', CANJES)))
+        ]).then(function (r) { return r[0].docs.concat(r[1].docs); }, function (e) {
+          console.info('[DF] Falta un índice para leer menos movimientos (se leen todos): ' + e.message);
+          return todos();
+        });
+        return Promise.all([F.getDoc(F.doc(db, 'banco_cuentas', id)), movsP]).then(function (r) {
           if (!r[0].exists()) return null;
-          var movs = r[1].docs.map(function (d) { return Object.assign({ _id: d.id }, d.data()); });
+          var vistos = {}, movs = [];
+          r[1].forEach(function (d) { if (!vistos[d.id]) { vistos[d.id] = 1; movs.push(Object.assign({ _id: d.id }, d.data())); } });
           movs.sort(function (a, b) { return (b.fecha && b.fecha.toDate ? b.fecha.toDate() : 0) - (a.fecha && a.fecha.toDate ? a.fecha.toDate() : 0); });
           return { cuenta: Object.assign({ id: id }, r[0].data()), movs: movs };
         });
@@ -446,7 +459,7 @@
         leerPerfil(),
         mios('puntajes'), mios('resultados'),
         F.getDocs(F.collection(fb.db, 'progreso', uid, 'items')),
-        opciones && opciones.sinBanco ? null : miBanco().catch(function () { return null; }),
+        opciones && opciones.sinBanco ? null : miBanco({ completo: true }).catch(function () { return null; }),
         F.getDoc(F.doc(fb.db, 'perfiles_publicos', uid)).catch(function () { return null; })
       ]).then(function (r) {
         var lista = function (s) { return s.docs.map(function (d) { return Object.assign({ _id: d.id }, d.data()); }); };
@@ -489,16 +502,21 @@
     if (cfg().contarVisitas === false) return Promise.resolve();
     pagina = String(pagina || paginaActual());
     var id = pagina.replace(/\//g, '~').slice(0, 120) || 'index.html';
+    // Una sola vez por navegador, por página y por día (antes: una vez por pestaña), y el total del
+    // día una sola vez por navegador: cuenta visitantes, no recargas. Ahorra muchas escrituras.
+    var hoy = hoyChile(), contarPagina = true, contarDia = pagina.indexOf('#') < 0;
     try {
-      var k = 'df_v_' + id;
-      if (sessionStorage.getItem(k)) return Promise.resolve();
-      sessionStorage.setItem(k, '1');
-    } catch (e) {}
+      var k = 'df_v_' + id, kd = 'df_vd';
+      if (localStorage.getItem(k) === hoy) contarPagina = false; else localStorage.setItem(k, hoy);
+      if (localStorage.getItem(kd) === hoy) contarDia = false; else if (contarDia) localStorage.setItem(kd, hoy);
+    } catch (e) { contarPagina = false; contarDia = false; }   // sin almacenamiento: no cuenta
+    if (!contarPagina && !contarDia) return Promise.resolve();
     return listo().then(function (fb) {
       var F = fb.F, inc = function () { return { n: F.increment(1), ultima: F.serverTimestamp() }; };
-      var w = [F.setDoc(F.doc(fb.db, 'visitas', id), inc(), { merge: true })];
+      var w = [];
+      if (contarPagina) w.push(F.setDoc(F.doc(fb.db, 'visitas', id), inc(), { merge: true }));
       // Las secciones internas del inicio (index.html#cursos) no suman al total del día.
-      if (pagina.indexOf('#') < 0) w.push(F.setDoc(F.doc(fb.db, 'visitas_dias', hoyChile()), inc(), { merge: true }));
+      if (contarDia) w.push(F.setDoc(F.doc(fb.db, 'visitas_dias', hoy), inc(), { merge: true }));
       return Promise.all(w);
     }).catch(function (e) { console.info('[DF] visita no registrada: ' + e.message); });
   }
