@@ -1135,6 +1135,39 @@ service cloud.firestore {
       allow read, write: if esProfe();
     }
 
+    // ═════ Tienda: artículos físicos (cartas, juegos, etc.) ═════
+    // Solo el profe publica (nombre, descripción, foto o emoji, precio, unidades). Al comprar se crea un
+    // pedido 'articulo' en mercado_pedidos con el pago retenido (igual que los beneficios) y el artículo
+    // descuenta una unidad en la misma escritura. El profe lo entrega en persona y lo marca en el panel;
+    // si lo rechaza o el estudiante cancela, el pago vuelve y la unidad se repone.
+    function rutaArticulo(a) { return /databases/$(database)/documents/tienda_articulos/$(a); }
+    match /tienda_articulos/{aid} {
+      allow read: if true;
+      allow write: if esProfe();
+      // Comprar: una unidad menos (si es limitado) y una venta más, junto con el pedido nuevo.
+      allow update: if esColegio() && miCuentaBanco() != ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'vendidos', 'ultimoPedido'])
+        && resource.data.activa == true
+        && (resource.data.stock == -1 || resource.data.stock > 0)
+        && request.resource.data.stock == (resource.data.stock == -1 ? -1 : resource.data.stock - 1)
+        && request.resource.data.vendidos == resource.data.get('vendidos', 0) + 1
+        && request.resource.data.ultimoPedido is string
+        && !exists(rutaPedido(request.resource.data.ultimoPedido))
+        && getAfter(rutaPedido(request.resource.data.ultimoPedido)).data.articulo == aid
+        && getAfter(rutaPedido(request.resource.data.ultimoPedido)).data.comprador == miCuentaBanco()
+        && getAfter(rutaPedido(request.resource.data.ultimoPedido)).data.estado == 'pendiente';
+      // Cancelar un pedido pendiente: la unidad vuelve, en la misma escritura en que el pedido pasa a «cancelada».
+      allow update: if esColegio()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'vendidos', 'ultimoCancel'])
+        && request.resource.data.ultimoCancel is string
+        && get(rutaPedido(request.resource.data.ultimoCancel)).data.articulo == aid
+        && get(rutaPedido(request.resource.data.ultimoCancel)).data.uid == request.auth.uid
+        && get(rutaPedido(request.resource.data.ultimoCancel)).data.estado == 'pendiente'
+        && getAfter(rutaPedido(request.resource.data.ultimoCancel)).data.estado == 'cancelada'
+        && request.resource.data.stock == (resource.data.stock == -1 ? -1 : resource.data.stock + 1)
+        && request.resource.data.vendidos == resource.data.get('vendidos', 0) - 1;
+    }
+
     // Publicaciones entre estudiantes. Estados: venta → reservado (alguien la pidió) → vendido;
     // o venta → retirado. El objeto está congelado mientras la publicación está en venta o reservada.
     function datosPublicacion(d, iid) {
@@ -1197,7 +1230,7 @@ service cloud.firestore {
         || (miCuentaBanco() != '' && (resource.data.comprador == miCuentaBanco() || resource.data.get('vendedor', '') == miCuentaBanco()));
       allow create: if esColegio() && miCuentaBanco() != ''
         && request.resource.data.keys().hasOnly(['tipo', 'comprador', 'compradorNombre', 'compradorNumero', 'uid', 'item', 'ico', 'precio',
-             'publicacion', 'vendedor', 'vendedorNombre', 'gatito', 'estado', 'creada', 'mov'])
+             'publicacion', 'vendedor', 'vendedorNombre', 'gatito', 'estado', 'creada', 'mov', 'articulo'])
         && request.resource.data.comprador == miCuentaBanco()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.precio is int && request.resource.data.precio >= 100
@@ -1209,6 +1242,12 @@ service cloud.firestore {
         && request.resource.data.mov == idOpActual(miCuentaBanco())
         && opActual(miCuentaBanco()).tipo == 'compra' && opActual(miCuentaBanco()).pedido == pid
         && (request.resource.data.tipo == 'beneficio'
+            // artículo físico de la Tienda: precio y nombre del artículo, y una unidad menos en la misma escritura
+            || (request.resource.data.tipo == 'articulo' && request.resource.data.articulo is string
+                && get(rutaArticulo(request.resource.data.articulo)).data.activa == true
+                && get(rutaArticulo(request.resource.data.articulo)).data.precio == request.resource.data.precio
+                && get(rutaArticulo(request.resource.data.articulo)).data.nombre == request.resource.data.item
+                && getAfter(rutaArticulo(request.resource.data.articulo)).data.ultimoPedido == pid)
             || (request.resource.data.tipo == 'reventa'
                 && request.resource.data.vendedor != miCuentaBanco()
                 && get(rutaItem(request.resource.data.publicacion)).data.estado == 'venta'
@@ -1222,7 +1261,9 @@ service cloud.firestore {
         && request.resource.data.estado == 'cancelada' && request.resource.data.resuelta == request.time
         && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
         && opActual(miCuentaBanco()).tipo == 'devolucion' && opActual(miCuentaBanco()).pedido == pid
-        && (resource.data.tipo == 'beneficio' || getAfter(rutaItem(resource.data.publicacion)).data.estado == 'venta');
+        && (resource.data.tipo == 'beneficio'
+            || (resource.data.tipo == 'articulo' && getAfter(rutaArticulo(resource.data.articulo)).data.get('ultimoCancel', '') == pid)
+            || getAfter(rutaItem(resource.data.publicacion)).data.estado == 'venta');
       allow update, delete: if esProfe();
     }
 

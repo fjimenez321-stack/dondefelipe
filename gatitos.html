@@ -59,6 +59,15 @@ h1 span{color:var(--acid)}
 .gato.mitico .img img{animation:brillo 2.4s ease-in-out infinite}
 @keyframes brillo{50%{filter:drop-shadow(0 0 16px color-mix(in srgb,var(--rc) 80%,transparent)) drop-shadow(0 10px 14px rgba(0,0,0,.45))}}
 .aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px}
+.form-art{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.form-art label{display:flex;flex-direction:column;gap:5px;font:700 12px var(--ff);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+.form-art label.chk{flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
+.form-art input{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:9px 11px;font:500 15px var(--ff);letter-spacing:0;text-transform:none}
+.item .foto{height:140px;display:grid;place-items:center;border-radius:12px;background:var(--slab2);overflow:hidden;margin-bottom:6px}
+.item .foto img{max-width:100%;max-height:140px;object-fit:contain}
+.item .foto .emo{font-size:64px;line-height:1}
+.item.agotado{opacity:.55}
+.adm-art{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line2)}
 .aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
 .aviso.ok{background:#14301f;border-color:#2c6b44;color:#c9f7d9}
 .velo{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px;z-index:50}
@@ -225,6 +234,26 @@ h1 span{color:var(--acid)}
     <div class="card"><h2 class="h2s">Mis pedidos</h2><div class="lista-p" id="pedidos1"></div></div>
   </section>
 
+  <section id="vTienda" class="oculto">
+    <p class="intro" style="margin-top:16px">Cosas de verdad: cartas, juegos, útiles y más. Al comprar, el pago sale de tu cuenta y queda retenido; el profe te entrega el artículo en persona y lo marca como entregado. Si lo rechaza o cancelas antes, el pago vuelve.</p>
+    <div class="card" id="tProfe" hidden>
+      <h2 style="font:900 28px var(--ff-d);text-transform:uppercase;margin:0 0 4px">Publicar un artículo</h2>
+      <p class="intro" style="margin:0 0 12px">Solo tú ves esto. Las compras llegan al Panel del profe → Solicitudes, donde marcas «Entregado» al darlo.</p>
+      <div class="form-art">
+        <label style="grid-column:1/-1">Artículo<input id="aNombre" maxlength="80" placeholder="Ej.: Sobre de cartas Pokémon"></label>
+        <label style="grid-column:1/-1">Descripción (opcional)<input id="aDesc" maxlength="200" placeholder="Qué trae, estado, cuándo se entrega…"></label>
+        <label>Emoji<input id="aIco" maxlength="8" value="🎁"></label>
+        <label>Foto (opcional)<input id="aImg" maxlength="300" placeholder="https://… o ruta del sitio"></label>
+        <label>Precio (₣)<input id="aPrecio" type="number" min="100" step="1000" value="50000"></label>
+        <label>Unidades<input id="aStock" type="number" min="1" step="1" value="3"></label>
+        <label class="chk"><input type="checkbox" id="aIlim"> Sin límite de unidades</label>
+        <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn p" id="aPublicar"><i class="fa-solid fa-box"></i> Publicar artículo</button><span id="aMsg"></span></div>
+      </div>
+    </div>
+    <div class="grid" id="gTienda"></div>
+    <div class="card" id="tMisPedidos"><h2 class="h2s">Mis pedidos</h2><div class="lista-p" id="pedidos3"></div></div>
+  </section>
+
   <section id="vEstudiantes" class="oculto">
     <p class="intro" style="margin-top:16px">Lo que tus compañeros ponen a la venta: beneficios sin usar y gatitos. Al comprar, tu pago y el objeto quedan congelados; cuando el profe autoriza, el objeto llega a tu cuenta y el vendedor recibe el pago.</p>
     <div class="grid" id="gEst"></div>
@@ -322,7 +351,8 @@ const diaHoy = () => Math.floor(((window.DF && DF.ahora ? DF.ahora() : Date.now(
 const BENEF = window.CATALOGO_BENEFICIOS || [];
 // gatitos.html#coleccion (o #beneficios, #estudiantes, #mio) abre esa pestaña.
 const VISTA_INICIAL = (location.hash || '').slice(1);
-let ofertas = [], ventas = [], vista = ['beneficios', 'estudiantes', 'coleccion', 'mio'].includes(VISTA_INICIAL) ? VISTA_INICIAL : 'mercado', filtro = 'todos', comprando = false, unsubs = [];
+let articulos = [];
+let ofertas = [], ventas = [], vista = ['beneficios', 'tienda', 'estudiantes', 'coleccion', 'mio'].includes(VISTA_INICIAL) ? VISTA_INICIAL : 'mercado', filtro = 'todos', comprando = false, unsubs = [];
 
 function aviso(html, tipo) {
   $('avisos').innerHTML = html ? `<div class="aviso ${tipo || ''}">${html}</div>` : '';
@@ -341,12 +371,13 @@ const vigente = o => o.activa && (o.stock === -1 || o.stock > 0) && (!ms(o.hasta
 /* ═════════ pintar ═════════ */
 function pintarTabs() {
   const t = [['mercado', '🐱 Gatitos', ofertas.filter(vigente).length], ['beneficios', '🎟️ Beneficios', BENEF.length],
+    ['tienda', '🛍️ Tienda', articulos.filter(artVigente).length],
     ['estudiantes', '🤝 Entre estudiantes', publicaciones.filter(x => x.estado === 'venta').length],
     ['coleccion', '🐾 Mi colección', (coleccion.ids || []).length]];
   if (usuario && !esProfe) t.push(['mio', '📦 Vender lo mío', publicaciones.filter(x => x.estado === 'venta' && x.uid === usuario.uid).length]);
   if (esProfe) t.push(['profe', '🧑‍🏫 Vender', ofertas.length]);
   $('tabs').innerHTML = t.map(([k, n, c]) => `<button data-v="${k}" class="${k === vista ? 'on' : ''}">${n}<span class="cuenta-n">${c}</span></button>`).join('');
-  ['mercado', 'beneficios', 'estudiantes', 'mio', 'coleccion', 'profe'].forEach(k => $('v' + k[0].toUpperCase() + k.slice(1)).classList.toggle('oculto', k !== vista));
+  ['mercado', 'beneficios', 'tienda', 'estudiantes', 'mio', 'coleccion', 'profe'].forEach(k => $('v' + k[0].toUpperCase() + k.slice(1)).classList.toggle('oculto', k !== vista));
   pintarCalle(t.map(x => x[0]));
 }
 function pintarEstado() {
@@ -566,9 +597,9 @@ function pintarProfe() {
 }
 /* ═════════ sprites: calle, paseante y mascota ═════════ */
 const SP = n => 'mercado/sprites/' + n + '.webp';
-const PUESTOS = { mercado: ['tienda', 'Gatitos'], beneficios: ['puesto-frutas', 'Beneficios'], estudiantes: ['puesto-pescado', 'Compañeros'],
+const PUESTOS = { mercado: ['tienda', 'Gatitos'], beneficios: ['puesto-frutas', 'Beneficios'], tienda: ['puesto-pan', 'Tienda'], estudiantes: ['puesto-pescado', 'Compañeros'],
   coleccion: ['puesto-pan', 'Colección'], mio: ['puesto-verduras', 'Vender'], profe: ['puesto-verduras', 'Vender'] };
-const CARGA = { mercado: 'moneda', beneficios: 'canasta', estudiantes: 'caja', coleccion: 'manzana', mio: 'bolsa', profe: 'bolsa' };
+const CARGA = { mercado: 'moneda', beneficios: 'canasta', tienda: 'caja', estudiantes: 'caja', coleccion: 'manzana', mio: 'bolsa', profe: 'bolsa' };
 const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let clavesCalle = '', paseo = { x: null, timer: null, fin: null };
 function pintarCalle(claves) {
@@ -630,7 +661,7 @@ function ponerMascota(e, saltar) {
 }
 function pintarMascota() { if (animoTemp && Date.now() < animoHasta) return; ponerMascota(estadoBase()); }
 
-function pintar() { pintarTabs(); pintarMascota(); pintarPoderes(); pintarEstado(); pintarVentas(); pintarMercado(); pintarAlbum(); pintarProfe(); pintarBeneficios(); pintarEstudiantes(); pintarMio(); pintarPedidos(); }
+function pintar() { pintarTabs(); pintarMascota(); pintarPoderes(); pintarEstado(); pintarVentas(); pintarMercado(); pintarAlbum(); pintarProfe(); pintarBeneficios(); pintarTienda(); pintarEstudiantes(); pintarMio(); pintarPedidos(); }
 
 /* ═════════ datos ═════════ */
 function quitarSubs() { unsubs.forEach(u => { try { u(); } catch (e) {} }); unsubs = []; }
@@ -640,6 +671,7 @@ async function cargar() {
   usuario = DF.usuario(); esProfe = !!(usuario && DF.esProfe(usuario)); cuentaId = null; cuenta = null; coleccion = { ids: [], favorito: null };
   if ((!esProfe && vista === 'profe') || ((!usuario || esProfe) && vista === 'mio')) vista = 'mercado';
   aviso('');
+  unsubs.push(F.onSnapshot(F.collection(db, 'tienda_articulos'), s => { articulos = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); }, () => {}));
   unsubs.push(F.onSnapshot(F.collection(db, 'gatitos_ofertas'), s => { ofertas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); },
     e => aviso('No se pudieron leer las ofertas: ' + esc(e.message), 'err')));
   misPedidos = []; misVentas = []; misBenef = []; publicaciones = []; poderHoy = null; poderMes = {}; premios = {}; adquiridos = {}; fechasPedidas = new Set();
@@ -654,7 +686,7 @@ async function cargar() {
       if (v.exists()) {
         cuentaId = v.data().cuenta;
         unsubs.push(F.onSnapshot(F.doc(db, 'banco_cuentas', cuentaId), c => { cuenta = c.exists() ? c.data() : null; pintar(); }, () => {}));
-        const conClave = p => Object.assign(p, { _clave: p.tipo === 'beneficio' ? 'b:' + p.item : 'r:' + p.publicacion });
+        const conClave = p => Object.assign(p, { _clave: p.tipo === 'beneficio' ? 'b:' + p.item : p.tipo === 'articulo' ? 'a:' + p.articulo : 'r:' + p.publicacion });
         unsubs.push(F.onSnapshot(F.query(F.collection(db, 'mercado_pedidos'), F.where('comprador', '==', cuentaId)), s => {
           misPedidos = s.docs.map(d => conClave(Object.assign({ id: d.id }, d.data()))).sort((a, b) => ms(b.creada) - ms(a.creada));
           // gatitos comprados a un compañero: llegan cuando el profe autoriza
@@ -791,6 +823,53 @@ async function accionProfe(oid, a) {
 }
 
 
+/* ═════════ tienda: artículos físicos ═════════ */
+const artVigente = a => a.activa && (a.stock === -1 || a.stock > 0);
+const imgOkArt = u => /^(https:\/\/|[a-z0-9_\-\/]+\.(webp|png|jpe?g|gif|svg)$)/i.test(String(u || ''));
+function pintarTienda() {
+  $('tProfe').hidden = !esProfe; $('tMisPedidos').hidden = !usuario || esProfe;
+  const l = articulos.filter(a => esProfe || a.activa).sort((a, b) => (artVigente(b) - artVigente(a)) || (a.precio - b.precio));
+  $('gTienda').innerHTML = l.map(a => {
+    const agot = !artVigente(a);
+    const acc = esProfe ? '' : agot ? '<span class="mio-tag">Agotado</span>' : botonPedir('a:' + a.id, a.precio, `data-pedir-a="${esc(a.id)}"`);
+    const quedan = a.stock === -1 ? '' : `<span class="chip ${a.stock <= 2 ? 'hot' : 'lim'}">${a.stock > 0 ? 'Quedan ' + a.stock : 'Agotado'}</span>`;
+    return `<article class="item${agot ? ' agotado' : ''}"><div class="foto">${a.imagen && imgOkArt(a.imagen) ? `<img src="${esc(a.imagen)}" alt="" loading="lazy">` : `<span class="emo">${esc(a.ico || '🎁')}</span>`}</div>
+      <div class="chips"><span class="chip">📦 Artículo físico</span>${quedan}${esProfe && !a.activa ? '<span class="chip hot">Oculto</span>' : ''}</div>
+      <h3>${esc(a.nombre)}</h3><p>${esc(a.desc || 'Se entrega en persona.')}</p>
+      <div class="pie"><span class="precio">${fmt(a.precio)}</span>${acc}</div>
+      ${esProfe ? `<div class="adm-art"><span style="font-size:12.5px;color:var(--mute);flex-basis:100%">${a.vendidos || 0} vendido(s)</span>
+        <button class="btn sm" data-art="precio" data-id="${esc(a.id)}">Precio</button><button class="btn sm" data-art="stock" data-id="${esc(a.id)}">Unidades</button>
+        <button class="btn sm" data-art="activa" data-id="${esc(a.id)}">${a.activa ? 'Ocultar' : 'Mostrar'}</button><button class="btn sm" data-art="borrar" data-id="${esc(a.id)}">Borrar</button></div>` : ''}</article>`;
+  }).join('') || `<div class="vacio-merc" style="grid-column:1/-1"><img src="mercado/sprites/gato-duerme.webp" alt=""><p>${esProfe ? 'Aún no publicas artículos. Usa el formulario de arriba.' : 'El profe todavía no publica artículos. ¡Vuelve pronto!'}</p></div>`;
+}
+async function publicarArticulo() {
+  const m = (t, k) => { $('aMsg').innerHTML = `<span style="color:${k === 'err' ? 'var(--neg)' : 'var(--acid)'};font-size:14px">${t}</span>`; };
+  const nombre = $('aNombre').value.trim().slice(0, 80), desc = $('aDesc').value.trim().slice(0, 200), ico = $('aIco').value.trim().slice(0, 8) || '🎁';
+  const imagen = $('aImg').value.trim().slice(0, 300), precio = Math.round(+$('aPrecio').value || 0), ilim = $('aIlim').checked, stock = Math.round(+$('aStock').value || 0);
+  if (nombre.length < 3) return m('Escribe el nombre del artículo.', 'err');
+  if (precio < 100) return m('El precio debe ser al menos 100 ₣.', 'err');
+  if (!ilim && stock < 1) return m('Indica cuántas unidades tienes (o marca «Sin límite»).', 'err');
+  if (imagen && !imgOkArt(imagen)) return m('La foto debe ser un enlace https:// o una ruta del sitio (…webp/png/jpg).', 'err');
+  const { F, db } = await DF.listo();
+  try {
+    await F.addDoc(F.collection(db, 'tienda_articulos'), { nombre, desc, ico, imagen, precio, stock: ilim ? -1 : stock, vendidos: 0, activa: true,
+      ultimoPedido: '', ultimoCancel: '', profe: usuario.email, creada: F.serverTimestamp() });
+    m(`✓ «${esc(nombre)}» publicado a ${fmt(precio)}.`); $('aNombre').value = ''; $('aDesc').value = ''; $('aImg').value = '';
+  } catch (e) { m('No se pudo publicar: ' + esc(/permission/i.test(e.message) ? 'Firebase lo rechazó (¿publicaste las reglas nuevas?)' : e.message), 'err'); }
+}
+async function accionArticulo(a, id) {
+  const art = articulos.find(x => x.id === id); if (!art) return;
+  const { F, db } = await DF.listo(), ref = F.doc(db, 'tienda_articulos', id);
+  let cambio = null;
+  if (a === 'precio') { const v = prompt(`Nuevo precio para «${art.nombre}» (₣):`, art.precio); if (v === null) return; const p = Math.round(+String(v).replace(/\D/g, '')); if (p < 100) return alert('Precio inválido'); cambio = { precio: p }; }
+  if (a === 'stock') { const v = prompt(`Unidades disponibles de «${art.nombre}» (escribe «sin límite» para no limitar):`, art.stock === -1 ? 'sin límite' : art.stock); if (v === null) return; cambio = { stock: /sin|∞|ilim/i.test(v) ? -1 : Math.max(0, Math.round(+v || 0)) }; }
+  if (a === 'activa') cambio = { activa: !art.activa };
+  try {
+    if (a === 'borrar') { if (!confirm(`¿Borrar «${art.nombre}»? (Los pedidos ya hechos siguen en el panel.)`)) return; await F.deleteDoc(ref); return; }
+    if (cambio) await F.updateDoc(ref, cambio);
+  } catch (e) { alert('No se pudo: ' + e.message); }
+}
+
 /* ═════════ beneficios, entre estudiantes y vender lo mío ═════════ */
 const EST_P = { pendiente: '<span class="chip lim">Retenido · esperando al profe</span>', aprobada: '<span class="chip ok">Autorizada</span>', rechazada: '<span class="chip hot">Rechazada</span>', cancelada: '<span class="chip">Cancelada</span>' };
 const nombreCorto = () => DF.nombreCorto(usuario.displayName, usuario.email).slice(0, 40);
@@ -854,10 +933,10 @@ function pintarMio() {
 }
 function pintarPedidos() {
   const h = misPedidos.length ? misPedidos.slice(0, 20).map(p => `<div class="it"><span class="ico-m">${icoHtml(p)}</span><div class="t"><b>${esc(p.item)}</b>
-    <small>${p.tipo === 'reventa' ? 'a ' + esc(p.vendedorNombre) + ' · ' : 'catálogo · '}${fmt(p.precio)}${p.estado === 'pendiente' ? ' · 🔒 pagado y retenido' : ''}${p.nota ? ' · Profe: ' + esc(p.nota) : ''}</small></div>${EST_P[p.estado] || ''}
+    <small>${p.tipo === 'reventa' ? 'a ' + esc(p.vendedorNombre) + ' · ' : p.tipo === 'articulo' ? 'tienda · ' : 'catálogo · '}${fmt(p.precio)}${p.estado === 'pendiente' ? ' · 🔒 pagado y retenido' : ''}${p.nota ? ' · Profe: ' + esc(p.nota) : ''}</small></div>${p.tipo === 'articulo' && p.estado === 'aprobada' ? '<span class="chip ok">Entregado</span>' : p.tipo === 'articulo' && p.estado === 'pendiente' ? '<span class="chip lim">Pagado · retira con el profe</span>' : EST_P[p.estado] || ''}
     ${p.estado === 'pendiente' ? `<button class="btn sm" data-cancelar-p="${esc(p.id)}">Cancelar y recuperar</button>` : ''}</div>`).join('')
     : `<p class="intro">${usuario ? 'Aún no pides nada.' : 'Entra para ver tus pedidos.'}</p>`;
-  $('pedidos1').innerHTML = h; $('pedidos2').innerHTML = h;
+  $('pedidos1').innerHTML = h; $('pedidos2').innerHTML = h; $('pedidos3').innerHTML = h;
 }
 // Movimiento propio del estudiante (mismo esquema que la bolsa: ops + 1 y op-<cuenta>-<ops>)
 function movPropio(F, db, tx, cu, monto, motivo, tipo, extra) {
@@ -878,7 +957,14 @@ async function pedir(datos) {
     await F.runTransaction(db, async tx => {
       const rc = F.doc(db, 'banco_cuentas', cuentaId), lect = [tx.get(rc)];
       if (datos.tipo === 'reventa') lect.push(tx.get(F.doc(db, 'mercado_items', datos.publicacion)));
-      const [sc, spub] = await Promise.all(lect);
+      if (datos.tipo === 'articulo') lect.push(tx.get(F.doc(db, 'tienda_articulos', datos.articulo)));
+      const [sc, sx] = await Promise.all(lect), spub = datos.tipo === 'reventa' ? sx : null, sart = datos.tipo === 'articulo' ? sx : null;
+      if (sart) {
+        const a = sart.exists() ? sart.data() : null;
+        if (!a || !artVigente(a)) throw new Error('se agotó o ya no está a la venta');
+        if (a.precio !== datos.precio) throw new Error('el profe cambió el precio; revisa y vuelve a comprar');
+        tx.update(sart.ref || F.doc(db, 'tienda_articulos', datos.articulo), { stock: a.stock === -1 ? -1 : a.stock - 1, vendidos: (a.vendidos || 0) + 1, ultimoPedido: pid });
+      }
       if (spub && (!spub.exists() || spub.data().estado !== 'venta')) throw new Error('alguien lo pidió antes que tú');
       if (spub && spub.data().precio !== datos.precio) throw new Error('el vendedor cambió el precio; revisa y vuelve a pedirlo');
       const extra = { item: datos.item, canje: 'retenida', pedido: pid }; if (datos.gatito) extra.gatito = datos.gatito;
@@ -900,6 +986,8 @@ async function cancelarPedido(pid) {
       if (!sp.exists() || sp.data().estado !== 'pendiente') throw new Error('ya no está pendiente');
       const p = sp.data(), rm = F.doc(db, 'banco_movs', p.mov);
       const rpub = p.tipo === 'reventa' ? F.doc(db, 'mercado_items', p.publicacion) : null, spub = rpub ? await tx.get(rpub) : null;
+      const rart = p.tipo === 'articulo' ? F.doc(db, 'tienda_articulos', p.articulo) : null, sart = rart ? await tx.get(rart) : null;
+      if (sart && sart.exists()) { const a = sart.data(); tx.update(rart, { stock: a.stock === -1 ? -1 : (a.stock || 0) + 1, vendidos: Math.max(0, (a.vendidos || 0) - 1), ultimoCancel: pid }); }
       tx.update(rp, { estado: 'cancelada', resuelta: F.serverTimestamp() });
       movPropio(F, db, tx, sc.data(), p.precio, `Devolución: cancelaste la compra de ${p.item}`, 'devolucion', { pedido: pid });
       tx.update(rm, { canje: 'anulada' });
@@ -962,7 +1050,9 @@ async function retirarMio(fila) {
   catch (e) { aviso('No se pudo retirar: ' + esc(e.message), 'err'); }
 }
 document.addEventListener('click', ev => {
-  const b = ev.target.closest('[data-pedir-b],[data-pedir-r],[data-publicar],[data-retirar],[data-cancelar-p]'); if (!b || b.disabled) return;
+  const b = ev.target.closest('[data-pedir-b],[data-pedir-a],[data-art],[data-pedir-r],[data-publicar],[data-retirar],[data-cancelar-p]'); if (!b || b.disabled) return;
+  if (b.dataset.pedirA) { const x = articulos.find(a => a.id === b.dataset.pedirA); if (x) pedir({ tipo: 'articulo', articulo: x.id, item: x.nombre, ico: x.ico || '📦', precio: x.precio }); return; }
+  if (b.dataset.art) { accionArticulo(b.dataset.art, b.dataset.id); return; }
   if (b.dataset.pedirB) { const x = BENEF[+b.dataset.pedirB]; pedir({ tipo: 'beneficio', item: x.nombre, ico: x.ico, precio: precioBenef(x) }); }
   else if (b.dataset.pedirR) { const x = publicaciones.find(p => p.id === b.dataset.pedirR); if (!x) return;
     if (x.gatito && estadoGato(x.gatito)) return aviso(estadoGato(x.gatito) === 'tengo' ? 'Ya tienes ese gatito.' : TXT_ESTADO[estadoGato(x.gatito)] + '.', 'err');
@@ -996,6 +1086,7 @@ $('orden').onchange = pintarMercado;
 $('pGato').onchange = elegirGatoForm;
 $('pIlim').onchange = () => { $('pStock').disabled = $('pIlim').checked; };
 $('pPublicar').onclick = () => publicar();
+$('aPublicar').onclick = () => publicarArticulo();
 $('pCatalogo').onclick = () => publicarCatalogo();
 setInterval(() => { if (ofertas.some(o => ms(o.hasta))) { pintarMercado(); if (esProfe) pintarProfe(); } }, 30000);
 

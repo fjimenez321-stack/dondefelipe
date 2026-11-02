@@ -552,9 +552,9 @@ $('listaPend').onclick = ev => {
 
 /* ── transferencias entre cuentas (las pide el estudiante, las autoriza el profe) ── */
 let transPend = [], transHist = [];
-const ESTADO_TR = { automatica: 'Automática (hasta $50.000, sin autorización)', aprobada: 'Autorizada', rechazada: 'Rechazada', cancelada: 'Cancelada por el estudiante' };
+const ESTADO_TR = { automatica: 'Automática (hasta $50.000, sin autorización)', aprobada: 'Autorizada / entregada', rechazada: 'Rechazada', cancelada: 'Cancelada por el estudiante' };
 let pedPend = [], pedHist = [];
-const ICO_SOL = { transferencia: '💸', beneficio: '🛍️', reventa: '🤝' };
+const ICO_SOL = { transferencia: '💸', beneficio: '🛍️', reventa: '🤝', articulo: '📦' };
 function solicitudes(pend) {
   const tr = (pend ? transPend : transHist).map(t => Object.assign({ clase: 'transferencia' }, t));
   const pe = (pend ? pedPend : pedHist).map(p => Object.assign({ clase: p.tipo }, p));
@@ -572,6 +572,7 @@ function notaPrecio(t) {
 function descSol(t) {
   if (t.clase === 'transferencia') return `<b>$${fmt(t.monto)}</b> · N° ${esc(t.deNumero)} ${esc(t.deNombre)} → N° ${esc(t.aNumero)} ${esc(t.aNombre)}`;
   if (t.clase === 'beneficio') return `<b>${esc(t.ico || '')} ${esc(t.item)}</b> · $${fmt(t.precio)}${notaPrecio(t)} · lo compra N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}`;
+  if (t.clase === 'articulo') return `<b>${esc(t.ico || '📦')} ${esc(t.item)}</b> (artículo físico) · $${fmt(t.precio)} · para N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}${t.curso ? ' · ' + esc(t.curso) : ''}`;
   return `<b>${esc(t.ico || '')} ${esc(t.item)}</b> · $${fmt(t.precio)} · ${esc(t.vendedorNombre)} se lo vende a N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}`;
 }
 function pintarTransferencias() {
@@ -585,7 +586,7 @@ function pintarTransferencias() {
     const raro = t.clase === 'beneficio' && (!cat || cat.precio !== t.precio) ? ` ⚠ el catálogo dice ${cat ? '$' + fmt(cat.precio) : 'que no existe'}` : '';
     return `<div class="m"><div class="t">${ICO_SOL[t.clase]} ${descSol(t)}
       <small>${t.motivo ? esc(t.motivo) + ' · ' : ''}pedida el ${fecha(t.creada)} · 🔒 ${t.clase === 'reventa' ? 'pago y objeto congelados' : 'dinero retenido'}${raro}</small></div>
-      <button class="btn sm p" data-sol-ok="${esc(t.clase)}:${esc(t.id)}"${corto ? ' disabled title="No le alcanza el saldo"' : ''}>Autorizar</button><button class="btn sm" data-sol-no="${esc(t.clase)}:${esc(t.id)}">Rechazar</button></div>`;
+      <button class="btn sm p" data-sol-ok="${esc(t.clase)}:${esc(t.id)}"${corto ? ' disabled title="No le alcanza el saldo"' : ''}>${t.clase === 'articulo' ? '📦 Entregado' : 'Autorizar'}</button><button class="btn sm" data-sol-no="${esc(t.clase)}:${esc(t.id)}">Rechazar</button></div>`;
   }).join('') : '<div class="muted">No hay solicitudes pendientes.</div>';
   const hist = solicitudes(false).slice(0, 30);
   $('listaTrHist').innerHTML = hist.length ? hist.map(t => `<div class="m"><div class="t">${ICO_SOL[t.clase]} ${descSol(t)}
@@ -848,7 +849,8 @@ async function rechazarTransferencia(t) {
 }
 async function autorizarPedido(p) {
   const { F, db } = FB, profe = (DF.usuario() || {}).email || '';
-  if (!confirm(p.tipo === 'beneficio' ? `Autorizar compra de "${p.item}" por $${fmt(p.precio)} para ${p.compradorNombre}?\n(Ya está pagada: queda «por usar».)`
+  if (!confirm(p.tipo === 'articulo' ? `¿Entregaste "${p.item}" a ${p.compradorNombre} (N° ${p.compradorNumero})?\n(Ya está pagado: el pedido queda como entregado.)`
+    : p.tipo === 'beneficio' ? `Autorizar compra de "${p.item}" por $${fmt(p.precio)} para ${p.compradorNombre}?\n(Ya está pagada: queda «por usar».)`
     : `Autorizar que ${p.vendedorNombre} venda "${p.item}" a ${p.compradorNombre} por $${fmt(p.precio)}?\n(El pago y el objeto ya están congelados: se entregan.)`)) return;
   try {
     await F.runTransaction(db, async tx => {
@@ -857,6 +859,11 @@ async function autorizarPedido(p) {
       const [sp, smc] = await Promise.all([tx.get(rp), tx.get(rmc)]);
       if (!sp.exists() || sp.data().estado !== 'pendiente') throw new Error('la solicitud ya no está pendiente');
       if (!smc.exists() || smc.data().canje !== 'retenida') throw new Error('no se encontró el pago retenido');
+      if (p.tipo === 'articulo') {
+        tx.update(rmc, { canje: 'entregada', canjeNota: 'Artículo entregado', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
+        tx.update(rp, { estado: 'aprobada', resuelta: F.serverTimestamp(), profe });
+        return;
+      }
       if (p.tipo === 'beneficio') {
         tx.update(rmc, { canje: 'pendiente', canjeNota: 'Autorizada', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
         tx.update(rp, { estado: 'aprobada', resuelta: F.serverTimestamp(), profe });
@@ -891,7 +898,7 @@ async function autorizarPedido(p) {
       tx.update(rpub, { estado: 'vendido', actualizado: F.serverTimestamp() });
       tx.update(rp, { estado: 'aprobada', resuelta: F.serverTimestamp(), profe });
     });
-    toast('✓ Compra autorizada y entregada');
+    toast(p.tipo === 'articulo' ? '✓ Pedido marcado como entregado' : '✓ Compra autorizada y entregada');
   } catch (e) { toast('No se pudo autorizar: ' + e.message); }
 }
 async function rechazarPedido(p) {
@@ -905,9 +912,12 @@ async function rechazarPedido(p) {
       if (!sp.exists() || sp.data().estado !== 'pendiente') throw new Error('ya no está pendiente');
       let rpub = null, spub = null;
       if (p.tipo === 'reventa') { rpub = F.doc(db, 'mercado_items', p.publicacion); spub = await tx.get(rpub); }
+      // artículo físico: la unidad vuelve a la tienda
+      const rart = p.tipo === 'articulo' && p.articulo ? F.doc(db, 'tienda_articulos', p.articulo) : null, sart = rart ? await tx.get(rart) : null;
       if (p.mov) { const escribir = await devolver(F, db, tx, p.comprador, sp.data().precio, `Devolución: el profe rechazó la compra de ${p.item}`, { pedido: p.id }); escribir(); }
       if (smc.exists()) tx.update(rmc, { canje: 'anulada', canjeNota: 'Rechazada por el profe', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
       if (spub && spub.exists() && spub.data().estado === 'reservado' && spub.data().reservadoPor === p.id) tx.update(rpub, { estado: 'venta', actualizado: F.serverTimestamp() });
+      if (sart && sart.exists()) { const a = sart.data(); tx.update(rart, { stock: a.stock === -1 ? -1 : (a.stock || 0) + 1, vendidos: Math.max(0, (a.vendidos || 0) - 1) }); }
       tx.update(rp, { estado: 'rechazada', nota: nota.trim().slice(0, 160), resuelta: F.serverTimestamp(), profe });
     });
     toast('Solicitud rechazada: el pago volvió');
