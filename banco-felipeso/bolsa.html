@@ -297,7 +297,7 @@ footer a { color:var(--ink-2); }
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="../firebase/df.js?v=20261029"></script>
+<script src="../firebase/df.js?v=20261102"></script>
 <script>
 (function () {
   'use strict';
@@ -477,6 +477,15 @@ footer a { color:var(--ink-2); }
   function pintar() { pintarTicker(); pintarWho(); pintarYo(); pintarTabs(); pintarEmpresas(); pintarRanking(); pintarProfe(); }
 
   /* ═════════ operaciones del estudiante (una transacción: cuenta + movimiento + posición) ═════════ */
+  // Después de operar se relee solo tu posición en esa empresa (1 documento).
+  function refrescarMiPos(tk) {
+    var F = FB.F;
+    return F.getDoc(F.doc(FB.db, 'bolsa_pos', cuentaId + '__' + tk)).then(function (s) {
+      posiciones = posiciones.filter(function (p) { return !(p.cuenta === cuentaId && p.ticker === tk); });
+      if (s.exists()) posiciones.push(s.data());
+      pintar();
+    }, function () {});
+  }
   function operar(ticker, n) {
     var F = FB.F, db = FB.db;
     var rc = F.doc(db, 'banco_cuentas', cuentaId), re = F.doc(db, 'bolsa_empresas', ticker), rp = F.doc(db, 'bolsa_pos', cuentaId + '__' + ticker);
@@ -623,7 +632,7 @@ footer a { color:var(--ink-2); }
       var n = op.dataset.op === 'comprar' ? q : -q;
       if (!confirm((n > 0 ? 'Comprar ' : 'Vender ') + q + (q > 1 ? ' acciones' : ' acción') + ' de ' + tk + ' a ' + fmt(e.precio) + ' c/u\nTotal: ' + fmt(q * e.precio))) return;
       op.disabled = true;
-      operar(tk, n).then(function (r) { toast((n > 0 ? '✓ Compraste ' : '✓ Vendiste ') + q + ' × ' + tk + ' · ' + (n > 0 ? '−' : '+') + fmt(Math.abs(r.monto))); })
+      operar(tk, n).then(function (r) { refrescarMiPos(tk); return r; }).then(function (r) { toast((n > 0 ? '✓ Compraste ' : '✓ Vendiste ') + q + ' × ' + tk + ' · ' + (n > 0 ? '−' : '+') + fmt(Math.abs(r.monto))); })
         .catch(function (x) { toast('No se pudo: ' + x.message); op.disabled = false; });
       return;
     }
@@ -686,7 +695,10 @@ footer a { color:var(--ink-2); }
           return (b.activa ? 1 : 0) - (a.activa ? 1 : 0) || ca - cb || String(a.nombre).localeCompare(String(b.nombre), 'es'); });
       pintar();
     }, function (e) { $('empresas').innerHTML = '<div class="vacio">No se pudieron leer las empresas: ' + esc(e.message) + '</div>'; });
-    F.onSnapshot(F.collection(db, 'bolsa_pos'), function (s) {
+    // Posiciones de todos (para el ranking y las acciones en circulación): se leen UNA vez al abrir.
+    // Antes era un listener: cada compra o venta de cualquier estudiante se volvía a leer en todas
+    // las pantallas abiertas. Tus propias operaciones se actualizan solas (ver refrescarMiPos).
+    F.getDocs(F.collection(db, 'bolsa_pos')).then(function (s) {
       posiciones = s.docs.map(function (d) { return d.data(); }); pintar();
     }, function () {});
     DF.alCambiarUsuario(conUsuario);

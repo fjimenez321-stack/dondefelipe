@@ -545,7 +545,7 @@ service cloud.firestore {
     function ruletaActiva() { return true; }
     function costoRuleta() { return 30000; }
     function maxRetener() { return 330000; }   // costo + el peor castigo
-    function tirosPorDia() { return 10; }
+    function tirosPorDia() { return 3; }
     // Horario: abierta de 08:00 a 16:00 (hora de Chile). Las reglas no conocen husos horarios, así que
     // aceptan 11:00–20:00 UTC, que cubre las 08–16 tanto en horario de verano (UTC−3) como de invierno
     // (UTC−4); la página aplica el horario exacto con la hora de Chile. Resolver un tiro pendiente se
