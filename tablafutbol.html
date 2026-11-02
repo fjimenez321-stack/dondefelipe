@@ -95,6 +95,23 @@
             min-width: 22px;
         }
         /* Medal icons for top 3 */
+        .playoffs { margin-bottom: 24px; }
+        .playoffs h3 { text-align:center; color:var(--gold); font-size:1.15rem; margin:0 0 14px; letter-spacing:.5px; }
+        .m-label { text-align:center; color:#cbb76a; font-size:.75rem; margin:0 0 4px; letter-spacing:1.2px; text-transform:uppercase; }
+        .m-label.fin { color:var(--gold); font-weight:700; }
+        .m { display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,215,0,.05); border:1px solid var(--border); border-radius:12px; padding:12px 10px; margin-bottom:12px; }
+        .m .t { flex:1; font-weight:700; font-size:1.02rem; color:#fff; }
+        .m .t.l { text-align:right; } .m .t.r { text-align:left; }
+        .m .win { color:var(--gold); }
+        .m .out { text-decoration:line-through; opacity:.5; }
+        .m .tbd { color:#cbb76a; font-style:italic; font-weight:400; }
+        .m .pill { color:#ffe680; font-weight:700; font-size:.8rem; border:1px solid var(--gold); border-radius:20px; padding:4px 12px; white-space:nowrap; }
+        .m.prox { border-style:dashed; }
+        .m.final { border:2px solid var(--gold); background:rgba(255,215,0,.1); }
+        .m-fecha { text-align:center; color:#ddd; font-size:.82rem; margin:-6px 0 14px; }
+        .m-fecha b { color:var(--gold); }
+        .sep { border:0; border-top:1px solid rgba(255,215,0,.2); margin:4px 0 18px; }
+        @media (max-width:520px){ .m .t{font-size:.88rem} .m .pill{font-size:.7rem;padding:3px 8px} }
         .pos-1::before { content: "🥇"; font-size: 0.9rem; }
         .pos-2::before { content: "🥈"; font-size: 0.9rem; }
         .pos-3::before { content: "🥉"; font-size: 0.9rem; }
@@ -168,6 +185,18 @@
 <body>
 
 <div class="container" id="captureZone">
+    <section class="playoffs">
+        <h3>⚔️ Fase final</h3>
+        <div class="m-label">Semifinal 1 · 1° vs 4°</div>
+        <div class="m"><span class="t l win">4to Medio 🏅</span><span class="pill">Ganó 4° M</span><span class="t r out">8vo Básico</span></div>
+        <div class="m-label">Semifinal 2 · 2° vs 3°</div>
+        <div class="m prox"><span class="t l">1ro Medio</span><span class="pill">VS</span><span class="t r">3ro Medio</span></div>
+        <div class="m-fecha">📅 <b>Mañana, martes 3 de noviembre</b></div>
+        <div class="m-label fin">🏆 Final</div>
+        <div class="m final"><span class="t l">4to Medio</span><span class="pill">VS</span><span class="t r tbd">Ganador SF2</span></div>
+        <div class="m-fecha">📅 <b>Martes 17 de noviembre</b></div>
+    </section>
+    <hr class="sep">
     <h2>🏆 Posiciones San Agustín 2026</h2>
     <table>
         <thead>
@@ -220,10 +249,10 @@
                 <td>0</td>
                 <td class="pts-box">6</td>
             </tr>
-            <!-- 4 -->
-            <tr>
+            <!-- 4 (eliminado en semifinal) -->
+            <tr style="opacity:0.55;">
                 <td class="pos" style="color:#888">4</td>
-                <td class="team-name">8vo Básico</td>
+                <td class="team-name" style="text-decoration:line-through;">8vo Básico</td>
                 <td>4</td>
                 <td>9</td>
                 <td>8</td>
