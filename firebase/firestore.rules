@@ -1068,7 +1068,9 @@ service cloud.firestore {
                 + getAfter(rutaApuesta(pid + '__' + miCuentaBanco())).data.monto;
     }
     match /apuestas/{aid} {
-      allow read: if esProfe() || (miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco());
+      // La propia apuesta se puede leer aunque todavía no exista (la página revisa si ya apostaste en ese partido).
+      allow read: if esProfe() || (miCuentaBanco() != ''
+        && (resource == null ? aid.split('__')[1] == miCuentaBanco() : resource.data.cuenta == miCuentaBanco()));
       allow write: if esProfe();
       allow create: if esColegio() && miCuentaBanco() != ''
         && request.resource.data.keys().hasOnly(['partido', 'cuenta', 'uid', 'nombre', 'opcion', 'monto', 'estado', 'fecha', 'mov'])
