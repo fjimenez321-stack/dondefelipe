@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U4 · Sesión 1 · Materia</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a1730; --panel:#11264a; --panel2:#173262; --line:#24427a;
+  --gold:#f2c14e; --gold2:#ffd97a; --teal:#3dd6c3; --coral:#ff7a6b; --violet:#a98bff;
+  --txt:#eef3fb; --muted:#a9b8d6; --ok:#46d38a; --bad:#ff6b6b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:'Nunito',system-ui,sans-serif;overflow:hidden;
+  background-image:radial-gradient(circle at 15% 10%,#16305e 0,transparent 40%),radial-gradient(circle at 90% 90%,#1a2f55 0,transparent 45%);}
+h1,h2,h3{font-family:'Baloo 2','Nunito',sans-serif;line-height:1.1}
+button{font-family:inherit;cursor:pointer}
+
+/* topbar */
+.topbar{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;background:rgba(10,23,48,.92);border-bottom:1px solid var(--line);z-index:20;gap:10px}
+.topbar .t{font-weight:800;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .t b{color:var(--gold)}
+.tb-right{display:flex;gap:8px;align-items:center}
+.badge{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#3b2c06,#5a4510);border:1px solid var(--gold);
+  color:var(--gold2);padding:5px 12px;border-radius:999px;font-weight:800;font-size:14px;transition:transform .2s}
+.badge.pop{transform:scale(1.25)}
+.coin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b8,#f2c14e 55%,#b8860b);
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#5a3d00;font-weight:900}
+.iconbtn{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700}
+
+/* slides */
+.deck{position:absolute;top:52px;bottom:64px;left:0;right:0}
+.slide{position:absolute;inset:0;padding:22px 28px;overflow-y:auto;display:none;animation:fade .35s ease}
+.slide.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.wrap{max-width:1100px;margin:0 auto}
+.kicker{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);
+  background:rgba(61,214,195,.1);border:1px solid rgba(61,214,195,.35);padding:4px 10px;border-radius:999px;margin-bottom:10px}
+.slide h2{font-size:clamp(26px,3.4vw,40px);color:var(--gold);margin-bottom:6px}
+.lead{color:var(--muted);font-size:clamp(15px,1.6vw,19px);margin-bottom:16px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;position:relative}
+.card h3{font-size:20px;margin-bottom:6px}
+.card p,.card li{font-size:15.5px;line-height:1.45}
+.card ul,.card ol{padding-left:20px}
+.card li{margin:4px 0}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:6px;background:var(--panel2);color:var(--gold2);margin:2px 4px 2px 0}
+.local{border-left:4px solid var(--teal);background:rgba(61,214,195,.07);padding:10px 14px;border-radius:10px;font-size:15px;margin-top:12px}
+.local b{color:var(--teal)}
+.esquema{border:2px dashed var(--muted);border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-weight:800;letter-spacing:.08em;margin-top:12px;font-size:13px}
+.ripple{position:relative;overflow:hidden}
+.ripple span.rp{position:absolute;border-radius:50%;transform:scale(0);background:rgba(255,255,255,.35);animation:rp .6s linear;pointer-events:none}
+@keyframes rp{to{transform:scale(4);opacity:0}}
+.btn{background:linear-gradient(135deg,var(--gold),#e0a92a);color:#2a1d00;border:none;border-radius:12px;padding:10px 16px;font-weight:800;font-size:15px}
+.btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+.btn.teal{background:linear-gradient(135deg,var(--teal),#21a897);color:#03241f}
+textarea{width:100%;min-height:70px;background:#0c1d3c;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px;font-family:inherit;font-size:15px;resize:vertical}
+.ans{display:none;margin-top:8px;background:rgba(70,211,138,.1);border:1px solid rgba(70,211,138,.4);border-radius:10px;padding:8px 12px;font-size:14.5px}
+.ans.show{display:block}
+
+/* cover */
+.cover{display:flex;flex-direction:column;justify-content:center;min-height:100%;text-align:center}
+.cover h1{font-size:clamp(38px,6.5vw,76px);color:var(--gold);margin:10px 0}
+.cover .sub{font-size:clamp(17px,2vw,24px);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:20px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+.floaters{position:relative;height:110px;margin:10px auto 0;width:min(520px,90%)}
+.floaters i{position:absolute;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,var(--teal) 60%,#127a6e)}
+
+/* agenda */
+.agenda{display:grid;gap:10px}
+.ag{display:grid;grid-template-columns:78px 1fr;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.ag .min{font-family:'Baloo 2';font-size:24px;color:var(--gold);text-align:center;font-weight:800}
+.ag .min small{display:block;font-size:11px;color:var(--muted);font-family:Nunito}
+.ag h3{font-size:18px}.ag p{color:var(--muted);font-size:14.5px}
+
+/* question */
+.bigq{font-family:'Baloo 2';font-size:clamp(26px,4vw,48px);text-align:center;color:var(--txt);background:linear-gradient(135deg,#1a3570,#11264a);
+  border:2px solid var(--gold);border-radius:20px;padding:22px;margin:6px 0 16px}
+.bigq em{color:var(--gold);font-style:normal}
+.vote{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.vbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px;text-align:center;min-width:140px}
+.vbox .n{font-family:'Baloo 2';font-size:36px;color:var(--gold)}
+.vbox .ctr{display:flex;gap:6px;justify-content:center;margin-top:4px}
+.vbox .ctr button{width:34px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-weight:900}
+
+/* concept flip */
+.flip{perspective:1000px;min-height:230px;cursor:pointer}
+.flip .in{position:relative;width:100%;height:100%;min-height:230px;transition:transform .6s;transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip .f,.flip .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;padding:18px;border:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+.flip .f{background:linear-gradient(160deg,var(--panel2),var(--panel));text-align:center}
+.flip .f .ico{font-size:48px}
+.flip .f h3{font-size:30px;color:var(--gold);margin-top:6px}
+.flip .f p{color:var(--muted);font-size:13px;margin-top:6px}
+.flip .b{background:#0f2246;transform:rotateY(180deg)}
+.flip .b p{font-size:15px;line-height:1.45;margin-bottom:6px}
+.flip .b .u{color:var(--teal);font-weight:800;font-size:14px}
+
+/* classification */
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;transition:.25s}
+.item .nm{font-weight:800;font-size:16px;margin-bottom:8px}
+.item .row{display:flex;gap:6px}
+.item .row button{flex:1;padding:7px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-weight:800;font-size:13px}
+.item.good{border-color:var(--ok);background:rgba(70,211,138,.1)}
+.item.wrong{border-color:var(--bad);background:rgba(255,107,107,.08)}
+.item .fb{font-size:13px;color:var(--muted);margin-top:6px;display:none}
+.item.done .fb{display:block}
+.item.done .row{display:none}
+
+/* simulator */
+.sim{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,1fr);gap:14px}
+@media(max-width:820px){.sim{grid-template-columns:1fr}}
+.canvasbox{background:#071026;border:1px solid var(--line);border-radius:16px;padding:10px;position:relative}
+#simc{width:100%;height:340px;display:block;border-radius:10px}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.stbtn{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-weight:800}
+.stbtn.on{background:var(--gold);color:#2a1d00;border-color:var(--gold)}
+.slider{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;font-size:14px;font-weight:700}
+.slider input{flex:1;accent-color:var(--gold)}
+.thermo{font-family:'Baloo 2';font-size:26px;color:var(--coral);min-width:88px;text-align:right}
+.props{display:grid;gap:6px}
+.prop{display:flex;justify-content:space-between;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:14px}
+.prop span:first-child{color:var(--muted)}
+.prop span:last-child{font-weight:800;text-align:right}
+.stname{font-family:'Baloo 2';font-size:30px;color:var(--gold)}
+.simq{margin-top:10px}
+.simq .q{font-weight:800;font-size:15px;margin:8px 0 6px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts button{padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-weight:700;font-size:13.5px}
+.opts button.ok{background:var(--ok);color:#04230f;border-color:var(--ok)}
+.opts button.no{background:var(--bad);color:#2a0505;border-color:var(--bad)}
+
+/* table */
+.ctab{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line)}
+.ctab th,.ctab td{padding:9px;border-bottom:1px solid var(--line);font-size:14px;text-align:left;vertical-align:middle}
+.ctab th{background:var(--panel2);color:var(--gold2);font-size:13px}
+.ctab td:first-child{font-weight:800;color:var(--gold)}
+.ctab select{width:100%;background:#0c1d3c;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px;font-family:inherit;font-size:13.5px}
+.ctab select.ok{border-color:var(--ok);background:rgba(70,211,138,.15)}
+.ctab select.no{border-color:var(--bad);background:rgba(255,107,107,.12)}
+.tscroll{overflow-x:auto}
+
+/* quiz */
+.quiz{max-width:760px;margin:0 auto}
+.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:800}
+.timer{height:10px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-bottom:14px}
+.timer div{height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));width:100%;transition:width .1s linear}
+.qtext{font-family:'Baloo 2';font-size:clamp(20px,2.6vw,28px);margin-bottom:12px}
+.qopts{display:grid;gap:8px}
+.qopts button{text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-size:16px;font-weight:700}
+.qopts button.ok{background:rgba(70,211,138,.25);border-color:var(--ok)}
+.qopts button.no{background:rgba(255,107,107,.2);border-color:var(--bad)}
+
+/* bloom */
+.acc{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:8px;background:var(--panel)}
+.acc .h{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;font-weight:800}
+.acc .lv{min-width:42px;text-align:center;border-radius:8px;padding:3px 6px;font-size:13px;background:var(--panel2);color:var(--gold2)}
+.acc.boss{border-color:var(--coral)}
+.acc.boss .lv{background:var(--coral);color:#2a0505}
+.acc .body{display:none;padding:0 14px 14px}
+.acc.open .body{display:block}
+.acc .qq{margin:8px 0;font-size:15px}
+.acc .seeans{font-size:12.5px;padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--teal);font-weight:800}
+
+/* rubric */
+.rub{width:100%;border-collapse:collapse}
+.rub th,.rub td{border:1px solid var(--line);padding:9px;font-size:13.5px;vertical-align:top}
+.rub th{background:var(--panel2);color:var(--gold2)}
+.rub td:first-child{font-weight:800;color:var(--gold);width:18%}
+
+/* nav */
+.nav{position:fixed;bottom:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:center;gap:14px;background:rgba(10,23,48,.94);border-top:1px solid var(--line);z-index:20}
+.arrow{width:46px;height:46px;border-radius:50%;border:1px solid var(--gold);background:var(--panel);color:var(--gold);font-size:22px;font-weight:900}
+.arrow:disabled{opacity:.3}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);border:none;padding:0}
+.dot.on{background:var(--gold);transform:scale(1.3)}
+
+/* toast */
+.toast{position:fixed;top:64px;right:16px;background:var(--gold);color:#2a1d00;font-weight:900;padding:8px 14px;border-radius:12px;z-index:30;opacity:0;transform:translateY(-10px);transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+
+/* print guide */
+.print-only{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff!important;color:#000;overflow:visible;font-size:11pt}
+  .topbar,.nav,.toast,.noprint,.floaters,.canvasbox,.ctrls{display:none!important}
+  .deck{position:static}
+  .slide{display:block!important;position:static;padding:0 0 10px;overflow:visible;page-break-inside:auto;border-bottom:1px solid #999;margin-bottom:12px;animation:none}
+  .slide h2,.cover h1,.stname{color:#000!important}
+  .card,.ag,.acc,.item,.vbox,.bigq,.prop,.flip .f,.flip .b,.local{background:#fff!important;border:1px solid #777!important;color:#000!important;box-shadow:none}
+  .lead,.ag p,.flip .f p,.item .fb,.prop span:first-child,.kicker{color:#333!important;background:none}
+  .flip{min-height:0}.flip .in{transform:none!important;min-height:0}
+  .flip .f,.flip .b{position:static;transform:none;backface-visibility:visible;margin-bottom:4px}
+  .ans,.item .fb,.acc .body{display:block!important;background:#fff;border:1px solid #999;color:#000}
+  .acc .seeans,.item .row,.opts,.qopts,.vote .ctr{display:none!important}
+  .print-only{display:block}
+  textarea{border:1px solid #777;background:#fff;color:#000;min-height:50px}
+  .ctab th,.rub th{background:#eee!important;color:#000!important}
+  .ctab td,.rub td{color:#000!important}
+  .ctab select{display:none}
+  .tag{background:#eee;color:#000}
+  .esquema{color:#555}
+  .cover{min-height:0;text-align:left}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="t"><b>Ciencias Naturales 6°</b> · Unidad 4 · Sesión 1 · Materia y partículas</div>
+  <div class="tb-right">
+    <button class="iconbtn noprint" onclick="printGuide()" title="Guía PDF">🖨️ Guía</button>
+    <div class="badge" id="badge"><span class="coin">F</span><span id="fp">0</span> Felipesos</div>
+  </div>
+</div>
+<div class="toast" id="toast">+5 Felipesos</div>
+
+<div class="deck" id="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide active">
+  <div class="wrap cover">
+    <div><span class="kicker">Unidad 4 · Materia y sus cambios · Sesión 1 de 8 · 90 min</span></div>
+    <h1>¿De qué está hecho todo?</h1>
+    <p class="sub">Materia, masa, volumen y el mundo invisible de las partículas</p>
+    <div class="floaters" id="floaters"></div>
+    <div class="chips">
+      <span class="chip">🎯 OA12 · Modelo de partículas</span>
+      <span class="chip">🔬 OA a · Preguntas de investigación</span>
+      <span class="chip">⚖️ OA b · Investigación experimental</span>
+      <span class="chip">📘 Texto del Estudiante pp. 108–109</span>
+    </div>
+    <p class="print-only" style="margin-top:8px">Nombre: ______________________________ Curso: 6° ___ Fecha: ___/___/2026</p>
+  </div>
+</section>
+
+<!-- 2 AGENDA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Ruta de la clase</span>
+    <h2>Hoy seremos científicos de la materia</h2>
+    <p class="lead"><b>Objetivo:</b> explicar qué es la materia usando los conceptos de masa y volumen, y describir cómo se comportan sus partículas en los estados sólido, líquido y gaseoso.</p>
+    <div class="agenda">
+      <div class="ag"><div class="min">15<small>min</small></div><div><h3>🔍 Pregunta científica + experimento</h3><p>¿El aire es materia? Predicción, hipótesis y demostración con globos y jeringa (OA a, OA b).</p></div></div>
+      <div class="ag"><div class="min">15<small>min</small></div><div><h3>⚖️ Conceptos clave</h3><p>Materia, masa y volumen · Juego: ¿es materia o no?</p></div></div>
+      <div class="ag"><div class="min">20<small>min</small></div><div><h3>🧪 Simulador de partículas</h3><p>Exploramos sólido, líquido y gas cambiando la temperatura y el recipiente.</p></div></div>
+      <div class="ag"><div class="min">25<small>min</small></div><div><h3>📘 Desarrollo con el texto escolar</h3><p>Lectura guiada pp. 108–109 · Tabla comparativa · Modelo con plastilina · Quiz.</p></div></div>
+      <div class="ag"><div class="min">15<small>min</small></div><div><h3>🎟️ Cierre</h3><p>Banco Bloom, Desafío Boss y ticket de salida.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 PREGUNTA CIENTIFICA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Inicio · Observar y preguntar (OA a)</span>
+    <h2>La pregunta de hoy</h2>
+    <div class="bigq">¿El <em>aire</em> que respiramos en Villa Alemana es <em>materia</em>?<br><span style="font-size:.5em;color:var(--muted)">¿Cómo podríamos demostrarlo?</span></div>
+    <div class="grid g2">
+      <div class="card">
+        <h3>🗳️ Predicción del curso</h3>
+        <p style="color:var(--muted);margin-bottom:10px">Levanten la mano y registren los votos.</p>
+        <div class="vote">
+          <div class="vbox"><div>✅ Sí es materia</div><div class="n" id="v0">0</div><div class="ctr"><button onclick="vote(0,-1)">−</button><button onclick="vote(0,1)">+</button></div></div>
+          <div class="vbox"><div>❌ No es materia</div><div class="n" id="v1">0</div><div class="ctr"><button onclick="vote(1,-1)">−</button><button onclick="vote(1,1)">+</button></div></div>
+          <div class="vbox"><div>🤔 No estoy seguro</div><div class="n" id="v2">0</div><div class="ctr"><button onclick="vote(2,-1)">−</button><button onclick="vote(2,1)">+</button></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>✍️ Mi hipótesis</h3>
+        <p style="color:var(--muted);margin-bottom:8px">Completa en tu cuaderno: <b>"Creo que el aire ___ es materia, porque ___."</b></p>
+        <textarea placeholder="Creo que el aire... porque..."></textarea>
+        <p style="margin-top:8px;font-size:14px;color:var(--muted)">💡 Pista: piensa en lo que pasa cuando inflas un globo o una pelota de fútbol.</p>
+      </div>
+    </div>
+    <div class="local"><b>📍 Contexto local:</b> en las mañanas de Villa Alemana no vemos el aire, pero sí sentimos el viento que baja del valle. ¿Se puede sentir algo que no existe?</div>
+  </div>
+</section>
+
+<!-- 4 EXPERIMENTO -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Inicio · Planificar y conducir (OA b)</span>
+    <h2>Pongamos a prueba la hipótesis</h2>
+    <p class="lead">Dos demostraciones rápidas. Primero predice, luego observa y registra.</p>
+    <div class="grid g2">
+      <div class="card">
+        <h3>⚖️ Demo 1 · ¿El aire tiene masa?</h3>
+        <p class="tag">Materiales: colgador, hilo, 2 globos iguales, alfiler</p>
+        <ol>
+          <li>Infla dos globos del mismo tamaño y cuélgalos en cada extremo del colgador.</li>
+          <li>Equilibra el colgador como una balanza.</li>
+          <li><b>Predice:</b> ¿qué pasará si revientas un globo?</li>
+          <li>Revienta un globo con el alfiler y observa.</li>
+        </ol>
+        <button class="btn ghost ripple" style="margin-top:8px" onclick="showAns(this)">Ver resultado</button>
+        <div class="ans">El colgador se inclina hacia el globo inflado: el aire que contiene tiene <b>masa</b>.</div>
+      </div>
+      <div class="card">
+        <h3>💉 Demo 2 · ¿El aire ocupa espacio?</h3>
+        <p class="tag">Materiales: jeringa sin aguja</p>
+        <ol>
+          <li>Tira del émbolo para llenar la jeringa con aire.</li>
+          <li>Tapa la punta con tu dedo.</li>
+          <li><b>Predice:</b> ¿podrás empujar el émbolo hasta el fondo?</li>
+          <li>Empuja y describe lo que sientes.</li>
+        </ol>
+        <button class="btn ghost ripple" style="margin-top:8px" onclick="showAns(this)">Ver resultado</button>
+        <div class="ans">El émbolo no llega al fondo: el aire <b>ocupa un lugar en el espacio</b> (tiene volumen). Se comprime un poco, pero no desaparece.</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>📋 Registro de evidencias</h3>
+      <div class="tscroll"><table class="ctab">
+        <tr><th>Demostración</th><th>Mi predicción</th><th>Lo que observé</th><th>¿Qué demuestra?</th></tr>
+        <tr><td>Globos</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td>Jeringa</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+      </table></div>
+      <button class="btn ripple" style="margin-top:10px" onclick="award(5,'exp',this)">✅ Registro completo · +5</button>
+    </div>
+  </div>
+</section>
+
+<!-- 5 CONCEPTOS -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Conceptos clave · toca cada tarjeta</span>
+    <h2>Materia, masa y volumen</h2>
+    <p class="lead">El aire pasó las dos pruebas. Ahora pongámosle nombre a lo que descubrimos.</p>
+    <div class="grid g3">
+      <div class="flip" onclick="this.classList.toggle('on');sfx('tap')"><div class="in">
+        <div class="f"><div class="ico">🌎</div><h3>Materia</h3><p>toca para ver</p></div>
+        <div class="b"><p><b>Todo lo que tiene masa y ocupa un lugar en el espacio.</b></p><p>Rocas, agua, aire y tu propio cuerpo son materia.</p><p class="u">Necesita cumplir las DOS condiciones.</p></div>
+      </div></div>
+      <div class="flip" onclick="this.classList.toggle('on');sfx('tap')"><div class="in">
+        <div class="f"><div class="ico">⚖️</div><h3>Masa</h3><p>toca para ver</p></div>
+        <div class="b"><p><b>Cantidad de materia que tiene un cuerpo.</b></p><p>Se mide con una <b>balanza</b>.</p><p class="u">Unidades: gramo (g) y kilogramo (kg).</p></div>
+      </div></div>
+      <div class="flip" onclick="this.classList.toggle('on');sfx('tap')"><div class="in">
+        <div class="f"><div class="ico">🧊</div><h3>Volumen</h3><p>toca para ver</p></div>
+        <div class="b"><p><b>Espacio que ocupa un cuerpo.</b></p><p>Se mide con <b>probeta</b> o vaso graduado (líquidos) o calculando largo × ancho × alto (sólidos regulares).</p><p class="u">Unidades: mililitro (mL), litro (L), cm³.</p></div>
+      </div></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h3>⚠️ Ojo: masa no es lo mismo que peso</h3><p>La masa es la cantidad de materia y no cambia si viajas a la Luna. El peso es la fuerza con que la Tierra te atrae. En la vida diaria decimos "pesar", pero en ciencias medimos <b>masa</b> en kg.</p></div>
+      <div class="card"><h3>❌ ¿Y lo que NO es materia?</h3><p>La luz, el sonido y el calor no tienen masa ni ocupan espacio: son formas de <b>energía</b>, como vimos en la Unidad 3.</p></div>
+    </div>
+    <div class="local"><b>📍 Contexto local:</b> una botella de 1,5 L con agua de la llave de Villa Alemana tiene un volumen de 1,5 L y una masa cercana a 1,5 kg.</div>
+  </div>
+</section>
+
+<!-- 6 JUEGO CLASIFICACION -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Juego · +2 Felipesos por acierto</span>
+    <h2>¿Es materia o no es materia?</h2>
+    <p class="lead">Decide para cada caso. Recuerda: debe tener masa <b>y</b> ocupar espacio.</p>
+    <div class="items" id="items"></div>
+    <p style="margin-top:12px;font-weight:800" id="clsScore"></p>
+  </div>
+</section>
+
+<!-- 7 SIMULADOR -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Simulador · Modelo de partículas (OA12)</span>
+    <h2>Mira dentro de la materia</h2>
+    <p class="lead">Las partículas son tan pequeñas que no se ven ni con microscopio. Este modelo nos ayuda a imaginarlas. Cambia la temperatura y el ancho del recipiente.</p>
+    <div class="sim">
+      <div class="canvasbox">
+        <canvas id="simc"></canvas>
+        <div class="ctrls">
+          <button class="stbtn" data-t="-15" onclick="setT(-15)">🧊 Sólido</button>
+          <button class="stbtn" data-t="25" onclick="setT(25)">💧 Líquido</button>
+          <button class="stbtn" data-t="115" onclick="setT(115)">♨️ Gas</button>
+          <button class="stbtn" onclick="togglePause()" id="pauseBtn">⏸ Pausa</button>
+        </div>
+        <div class="slider">🌡️<input type="range" id="tSlider" min="-30" max="130" value="25" oninput="setT(+this.value,true)"><div class="thermo" id="tRead">25 °C</div></div>
+        <div class="slider">↔️ Recipiente<input type="range" id="wSlider" min="45" max="100" value="80" oninput="setW(+this.value)"></div>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px">Modelo simplificado del agua a nivel del mar: sólida bajo 0 °C, gaseosa sobre 100 °C.</p>
+      </div>
+      <div>
+        <div class="stname" id="stName">Líquido</div>
+        <div class="props">
+          <div class="prop"><span>Distancia entre partículas</span><span id="pDist">–</span></div>
+          <div class="prop"><span>Movimiento</span><span id="pMov">–</span></div>
+          <div class="prop"><span>Fuerza de atracción</span><span id="pAtr">–</span></div>
+          <div class="prop"><span>Forma</span><span id="pForma">–</span></div>
+          <div class="prop"><span>Volumen</span><span id="pVol">–</span></div>
+        </div>
+        <div class="local" id="pLocal"></div>
+        <div class="card simq">
+          <h3 style="font-size:17px">🎮 Desafíos del simulador · +5 c/u</h3>
+          <div id="simQs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 TEXTO ESCOLAR -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Desarrollo · Texto del Estudiante</span>
+    <h2>📘 Lectura guiada · pp. 108–109</h2>
+    <p class="lead">Texto del Estudiante Ciencias Naturales 6° básico (Santillana). Lean en parejas y respondan en el cuaderno.</p>
+    <div class="grid g2">
+      <div class="card">
+        <h3>Paso 1 · Lectura en parejas (8 min)</h3>
+        <ul>
+          <li>Un estudiante lee en voz alta y el otro subraya las palabras clave: <span class="tag">materia</span><span class="tag">partícula</span><span class="tag">sólido</span><span class="tag">líquido</span><span class="tag">gaseoso</span></li>
+          <li>Observen los esquemas de partículas del texto y comparen con lo que vieron en el simulador.</li>
+          <li>Anoten una palabra que no conocían y su significado.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Paso 2 · Preguntas de la lectura (7 min)</h3>
+        <ol>
+          <li>Según el texto, ¿de qué está formada toda la materia?</li>
+          <li>¿En qué estado las partículas están más ordenadas? ¿Y en cuál más separadas?</li>
+          <li>¿Por qué un líquido toma la forma del recipiente, pero un sólido no?</li>
+          <li>¿Qué semejanzas encuentras entre el esquema del texto y el simulador?</li>
+        </ol>
+        <button class="btn ghost ripple" style="margin-top:8px" onclick="showAns(this)">Ver respuestas guía</button>
+        <div class="ans">1) De partículas muy pequeñas en constante movimiento. 2) Más ordenadas en el sólido; más separadas en el gas. 3) En el líquido las partículas se deslizan unas sobre otras; en el sólido solo vibran en posiciones fijas. 4) Respuesta abierta: ambos representan partículas como esferas y muestran sus diferencias de distancia y movimiento.</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>💬 Historia de la ciencia</h3>
+      <p>Hace unos 2.400 años, el griego <b>Demócrito</b> propuso que todo estaba formado por partículas diminutas e indivisibles. Mucho después, <b>John Dalton</b> (1808) reunió evidencias experimentales para esa idea. Las partículas no se ven, por eso usamos <b>modelos</b> para explicarlas.</p>
+    </div>
+    <button class="btn ripple" style="margin-top:12px" onclick="award(5,'lectura',this)">✅ Pareja terminó la lectura · +5</button>
+  </div>
+</section>
+
+<!-- 9 TABLA COMPARATIVA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Desarrollo · Analizar evidencias (OA e)</span>
+    <h2>Tabla comparativa de los estados</h2>
+    <p class="lead">Completa usando el texto escolar y el simulador. Luego revisa.</p>
+    <div class="tscroll">
+      <table class="ctab" id="ctab">
+        <tr><th>Estado</th><th>Forma</th><th>Volumen</th><th>Partículas</th><th>¿Se puede comprimir?</th></tr>
+      </table>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn ripple" onclick="checkTable()">Revisar tabla</button>
+      <span id="tabScore" style="font-weight:800;align-self:center"></span>
+    </div>
+    <div class="esquema">ESQUEMA AQUÍ · Tres recipientes con modelo de partículas: sólido (ordenado), líquido (juntas y desordenadas), gas (separadas)</div>
+  </div>
+</section>
+
+<!-- 10 CONTEXTO LOCAL -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Desarrollo · Aplicar al entorno</span>
+    <h2>Los tres estados en el Valle del Aconcagua</h2>
+    <p class="lead">La misma sustancia, el agua, aparece en los tres estados en nuestra región.</p>
+    <div class="grid g3">
+      <div class="card"><h3>🧊 Sólido</h3><p>El hielo del <b>Glaciar Juncal</b>, en la cordillera. Sus partículas están muy juntas y solo vibran en su lugar: por eso el glaciar mantiene su forma.</p></div>
+      <div class="card"><h3>💧 Líquido</h3><p>El agua del <b>Río Aconcagua</b> y del <b>Lago Peñuelas</b>. Sus partículas se deslizan unas sobre otras: el agua fluye y toma la forma del cauce.</p></div>
+      <div class="card"><h3>♨️ Gaseoso</h3><p>El <b>vapor de agua</b> del aire. Es invisible: sus partículas están muy separadas y se mueven libremente por toda la atmósfera.</p></div>
+    </div>
+    <div class="card" style="margin-top:14px;border-color:var(--coral)">
+      <h3>🤯 ¿La neblina de la mañana es un gas?</h3>
+      <p>Discutan en parejas antes de ver la respuesta.</p>
+      <button class="btn ghost ripple" style="margin-top:8px" onclick="showAns(this)">Ver respuesta</button>
+      <div class="ans"><b>No.</b> La neblina y las nubes son gotitas de agua <b>líquida</b> suspendidas en el aire. El vapor de agua (gas) es invisible. Lo que "vemos" salir de la tetera también son gotitas que se formaron al enfriarse el vapor.</div>
+    </div>
+    <div class="esquema">ESQUEMA AQUÍ · Corte del valle: Glaciar Juncal (sólido) → Río Aconcagua (líquido) → vapor en la atmósfera (gas), con lupa de partículas en cada punto</div>
+  </div>
+</section>
+
+<!-- 11 PLASTILINA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">STEAM · Comunicar con modelos (OA f)</span>
+    <h2>Modelemos las partículas con plastilina</h2>
+    <p class="lead">En grupos de 3–4. Tiempo: 10 minutos.</p>
+    <div class="grid g2">
+      <div class="card">
+        <h3>🛠️ Instrucciones</h3>
+        <ol>
+          <li>Hagan unas 30 bolitas de plastilina del mismo tamaño (cada una es una partícula).</li>
+          <li>En tres platos o tapas, representen un <b>sólido</b>, un <b>líquido</b> y un <b>gas</b>.</li>
+          <li>Usen flechas de papel para mostrar el tipo de movimiento de las partículas.</li>
+          <li>Rotulen cada plato con un ejemplo del Valle del Aconcagua.</li>
+          <li>Prepárense para explicar su modelo en 30 segundos.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>🔎 Para discutir en el grupo</h3>
+        <ul>
+          <li>¿Qué cosas muestra bien su modelo?</li>
+          <li>¿Qué cosas NO puede mostrar? (pista: ¿las bolitas se mueven solas?)</li>
+          <li>¿Cómo representarían el aire del globo de la demostración?</li>
+        </ul>
+        <p class="tag" style="margin-top:8px">Limitación clave: las partículas reales están siempre en movimiento</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn ripple" onclick="award(5,'plast',this)">✅ Modelo terminado · +5</button>
+      <button class="btn teal ripple" onclick="award(5,'plastexp',this)">🎤 Explicación al curso · +5</button>
+    </div>
+  </div>
+</section>
+
+<!-- 12 QUIZ -->
+<section class="slide">
+  <div class="wrap quiz" id="quiz">
+    <span class="kicker">Quiz rápido · 15 s por pregunta · +2 por acierto</span>
+    <h2>Desafío relámpago</h2>
+    <div id="quizBody"><p class="lead">6 preguntas sobre materia, masa, volumen y partículas.</p><button class="btn ripple" onclick="startQuiz()">▶ Comenzar</button></div>
+  </div>
+</section>
+
+<!-- 13 BLOOM -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Banco de preguntas · Taxonomía de Bloom</span>
+    <h2>Sube de nivel</h2>
+    <p class="lead">De recordar a crear. Los niveles 5 y 6 son el <b style="color:var(--coral)">Desafío Boss</b>: valen 10 Felipesos.</p>
+    <div id="bloom"></div>
+  </div>
+</section>
+
+<!-- 14 TICKET -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Cierre · Ticket de salida</span>
+    <h2>🎟️ Ticket de salida</h2>
+    <p class="lead">Responde individualmente. Vuelve a la pregunta del inicio y a lo que leíste en el texto.</p>
+    <div class="grid" style="gap:12px">
+      <div class="card">
+        <p><span class="tag">Pregunta inicial</span> <b>1.</b> Al comenzar la clase nos preguntamos: <i>¿el aire es materia?</i> Responde usando como evidencia una de las demostraciones (globos o jeringa).</p>
+        <textarea placeholder="El aire sí/no es materia porque en la demostración de..."></textarea>
+        <button class="btn ghost ripple" style="margin-top:6px" onclick="showAns(this)">Respuesta modelo</button>
+        <div class="ans">El aire sí es materia: en la demo de los globos el colgador se inclinó hacia el globo inflado (el aire tiene masa) y en la jeringa el émbolo no llegó al fondo (el aire ocupa espacio).</div>
+      </div>
+      <div class="card">
+        <p><span class="tag">Conceptos</span> <b>2.</b> Una botella contiene agua del Lago Peñuelas. ¿Qué par de datos describe correctamente su masa y su volumen, en ese orden?</p>
+        <div class="opts" data-q="t2" style="margin-top:8px">
+          <button data-ok="0">500 mL y 500 g</button>
+          <button data-ok="1">500 g y 500 mL</button>
+          <button data-ok="0">500 °C y 500 L</button>
+          <button data-ok="0">500 cm y 500 kg</button>
+        </div>
+      </div>
+      <div class="card">
+        <p><span class="tag">Desarrollo · texto</span> <b>3.</b> ¿Cómo están las partículas del hielo del Glaciar Juncal?</p>
+        <div class="opts" data-q="t3" style="margin-top:8px">
+          <button data-ok="0">Separadas y moviéndose en todas direcciones</button>
+          <button data-ok="0">Juntas y deslizándose unas sobre otras</button>
+          <button data-ok="1">Muy juntas y vibrando en posiciones fijas</button>
+          <button data-ok="0">Quietas, sin ningún tipo de movimiento</button>
+        </div>
+      </div>
+      <div class="card">
+        <p><span class="tag">Desarrollo · modelo</span> <b>4.</b> Usando el modelo de partículas, explica por qué el aire toma la forma del globo y en cambio una piedra mantiene su forma.</p>
+        <textarea placeholder="En el aire las partículas... mientras que en la piedra..."></textarea>
+        <button class="btn ghost ripple" style="margin-top:6px" onclick="showAns(this)">Respuesta modelo</button>
+        <div class="ans">En el aire (gas) las partículas están muy separadas, con poca atracción, y se mueven libremente ocupando todo el espacio disponible. En la piedra (sólido) las partículas están muy juntas, con gran atracción, y solo vibran en posiciones fijas, por eso conserva su forma.</div>
+      </div>
+      <div class="card">
+        <p><span class="tag">Autoevaluación</span> <b>5.</b> ¿Qué tan seguro te sientes explicando qué es la materia?</p>
+        <div class="opts" style="margin-top:8px">
+          <button onclick="selfEval(this)">🟢 Puedo explicarlo a otro</button>
+          <button onclick="selfEval(this)">🟡 Lo entiendo con ayuda</button>
+          <button onclick="selfEval(this)">🔴 Aún tengo dudas</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 RUBRICA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Evaluación formativa</span>
+    <h2>Rúbrica de la sesión</h2>
+    <div class="tscroll">
+    <table class="rub">
+      <tr><th>Criterio</th><th>Logrado (3)</th><th>En desarrollo (2)</th><th>Por lograr (1)</th></tr>
+      <tr><td>Hipótesis (OA a)</td><td>Formula una hipótesis con predicción y razón ("creo que… porque…").</td><td>Formula una predicción sin justificarla.</td><td>No formula predicción o es incompleta.</td></tr>
+      <tr><td>Conceptos de materia, masa y volumen</td><td>Define los tres conceptos y los usa correctamente con instrumentos y unidades.</td><td>Define los conceptos, pero confunde unidades o instrumentos.</td><td>Confunde masa con volumen o no los define.</td></tr>
+      <tr><td>Modelo de partículas (OA12)</td><td>Describe distancia, movimiento y atracción en los tres estados y los relaciona con forma y volumen.</td><td>Describe las partículas en dos estados o sin relacionarlas con sus propiedades.</td><td>Describe los estados solo por lo que se ve, sin partículas.</td></tr>
+      <tr><td>Comunicación con modelos (OA f)</td><td>Representa los tres estados con plastilina y explica una limitación del modelo.</td><td>Representa los tres estados, pero no reconoce limitaciones.</td><td>Su representación no diferencia los estados.</td></tr>
+      <tr><td>Ticket de salida</td><td>Responde 4/4 preguntas correctamente, con evidencia.</td><td>Responde 2–3 preguntas correctamente.</td><td>Responde 0–1 pregunta correctamente.</td></tr>
+    </table>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>🔭 Próxima sesión</h3>
+      <p>Refuerzo de 30 minutos: profundizaremos en el modelo de partículas y en cómo el calor cambia su movimiento. Traer plastilina.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button class="arrow" id="prev" onclick="go(-1)" aria-label="Anterior">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="arrow" id="next" onclick="go(1)" aria-label="Siguiente">›</button>
+</div>
+
+<script>
+/* ---------- audio ---------- */
+let AC=null;
+function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){} } return AC; }
+function tone(f,d,type,vol,delay){ const a=ac(); if(!a) return; const o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=f;
+  const t=a.currentTime+(delay||0); g.gain.setValueAtTime(vol||0.12,t); g.gain.exponentialRampToValueAtTime(0.001,t+d); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d); }
+function sfx(k){ if(k==='ok'){tone(660,.12,'triangle');tone(990,.18,'triangle',.12,.1)} else if(k==='bad'){tone(220,.25,'sawtooth',.06)} else if(k==='coin'){tone(988,.08,'square',.06);tone(1319,.25,'square',.06,.08)} else {tone(520,.05,'sine',.05)} }
+
+/* ---------- ripple ---------- */
+document.addEventListener('click',e=>{ const b=e.target.closest('.ripple'); if(!b) return; const r=b.getBoundingClientRect(),s=document.createElement('span');
+  const d=Math.max(r.width,r.height); s.className='rp'; s.style.width=s.style.height=d+'px'; s.style.left=(e.clientX-r.left-d/2)+'px'; s.style.top=(e.clientY-r.top-d/2)+'px'; b.appendChild(s); setTimeout(()=>s.remove(),600); });
+
+/* ---------- felipesos ---------- */
+let FP=0; const got=new Set();
+function award(n,key,el){ if(key){ if(got.has(key)) return; got.add(key);} FP+=n; document.getElementById('fp').textContent=FP;
+  const b=document.getElementById('badge'); b.classList.add('pop'); setTimeout(()=>b.classList.remove('pop'),250);
+  const t=document.getElementById('toast'); t.textContent='+'+n+' Felipesos'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1100);
+  sfx('coin'); if(el&&el.tagName==='BUTTON'){ el.disabled=true; el.style.opacity=.6; } }
+
+/* ---------- navigation (arrows + dots only) ---------- */
+const slides=[...document.querySelectorAll('.slide')]; let cur=0;
+const dots=document.getElementById('dots');
+slides.forEach((s,i)=>{ const d=document.createElement('button'); d.className='dot'; d.setAttribute('aria-label','Diapositiva '+(i+1)); d.onclick=()=>show(i); dots.appendChild(d); });
+function show(i){ slides[cur].classList.remove('active'); cur=Math.max(0,Math.min(slides.length-1,i)); slides[cur].classList.add('active'); slides[cur].scrollTop=0;
+  [...dots.children].forEach((d,j)=>d.classList.toggle('on',j===cur)); document.getElementById('prev').disabled=cur===0; document.getElementById('next').disabled=cur===slides.length-1;
+  sfx('tap'); if(slides[cur].contains(document.getElementById('simc'))) resizeSim(); }
+function go(d){ show(cur+d); }
+show(0);
+
+/* ---------- cover floaters ---------- */
+(function(){ const box=document.getElementById('floaters'); const ps=[]; for(let i=0;i<14;i++){ const e=document.createElement('i'); box.appendChild(e);
+  ps.push({e,x:Math.random()*90,y:Math.random()*80,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25}); }
+  (function loop(){ ps.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>94) p.vx*=-1; if(p.y<0||p.y>82) p.vy*=-1; p.e.style.left=p.x+'%'; p.e.style.top=p.y+'%'; }); requestAnimationFrame(loop); })(); })();
+
+/* ---------- votes / answers ---------- */
+const votes=[0,0,0];
+function vote(i,d){ votes[i]=Math.max(0,votes[i]+d); document.getElementById('v'+i).textContent=votes[i]; sfx('tap'); }
+function showAns(btn){ const a=btn.nextElementSibling; a.classList.toggle('show'); sfx('tap'); }
+function selfEval(b){ [...b.parentNode.children].forEach(x=>x.classList.remove('ok')); b.classList.add('ok'); award(2,'self'); }
+
+/* ---------- classification ---------- */
+const ITEMS=[
+ ['🎈 El aire dentro de un globo',1,'Tiene masa (inclinó el colgador) y ocupa espacio.'],
+ ['🧊 El hielo del Glaciar Juncal',1,'Es agua en estado sólido: tiene masa y volumen.'],
+ ['☀️ La luz del sol',0,'Es energía: no tiene masa ni ocupa espacio.'],
+ ['💧 El agua del Río Aconcagua',1,'Agua líquida: tiene masa y volumen.'],
+ ['🔔 El sonido de la campana del colegio',0,'Es energía que viaja por el aire; el sonido no es materia.'],
+ ['🌫️ La neblina de la mañana',1,'Son gotitas de agua líquida: sí es materia.'],
+ ['🔥 El calor de una estufa',0,'Es energía que se transfiere (Unidad 3), no materia.'],
+ ['⛰️ Una roca del cerro',1,'Sólido con masa y volumen.'],
+ ['🌑 Una sombra',0,'Es ausencia de luz: no tiene masa.'],
+ ['♨️ El vapor de agua del aire',1,'Agua en estado gaseoso: tiene masa y ocupa espacio.']
+];
+let clsOk=0,clsDone=0;
+(function(){ const box=document.getElementById('items'); ITEMS.forEach((it,i)=>{ const d=document.createElement('div'); d.className='item';
+  d.innerHTML=`<div class="nm">${it[0]}</div><div class="row"><button>✅ Es materia</button><button>❌ No es materia</button></div><div class="fb">${it[2]}</div>`;
+  const [b1,b2]=d.querySelectorAll('button'); const pick=v=>{ d.classList.add('done'); clsDone++; if(v===it[1]){ d.classList.add('good'); clsOk++; sfx('ok'); award(2,'cls'+i);} else { d.classList.add('wrong'); sfx('bad'); }
+    document.getElementById('clsScore').textContent=`Aciertos: ${clsOk} / ${clsDone}`+(clsDone===ITEMS.length?' · ¡Juego terminado!':''); };
+  b1.onclick=()=>pick(1); b2.onclick=()=>pick(0); box.appendChild(d); }); })();
+
+/* ---------- simulator ---------- */
+const cv=document.getElementById('simc'), cx=cv.getContext('2d');
+let CW=600,CH=340,T=25,Wpct=80,paused=false; const N=48,R=8; let P=[];
+const INFO={
+ solid:{n:'Sólido',d:'Muy pequeña',m:'Solo vibran en su lugar',a:'Muy fuerte',f:'Propia',v:'Propio',l:'<b>📍 Ejemplo local:</b> el hielo del Glaciar Juncal.'},
+ liquid:{n:'Líquido',d:'Pequeña',m:'Se deslizan unas sobre otras',a:'Intermedia',f:'La del recipiente',v:'Propio',l:'<b>📍 Ejemplo local:</b> el agua del Río Aconcagua y del Lago Peñuelas.'},
+ gas:{n:'Gaseoso',d:'Muy grande',m:'Libre y rápido, en todas direcciones',a:'Muy débil',f:'La del recipiente',v:'Ocupa todo el recipiente',l:'<b>📍 Ejemplo local:</b> el vapor de agua invisible del aire de Villa Alemana.'}
+};
+function state(){ return T<0?'solid':(T<100?'liquid':'gas'); }
+function box(){ const w=CW*Wpct/100; return {x:(CW-w)/2,y:12,w:w,h:CH-24}; }
+function resizeSim(){ const r=cv.getBoundingClientRect(); if(!r.width) return; const dpr=window.devicePixelRatio||1; CW=r.width; CH=r.height; cv.width=CW*dpr; cv.height=CH*dpr; cx.setTransform(dpr,0,0,dpr,0,0); if(!P.length) initP(); }
+function homes(){ const b=box(), sp=R*2.25, cols=8, rows=Math.ceil(N/cols); const x0=b.x+b.w/2-(cols-1)*sp/2, y0=b.y+b.h-R-2-(rows-1)*sp; const H=[];
+  for(let i=0;i<N;i++){ H.push({x:x0+(i%cols)*sp, y:y0+Math.floor(i/cols)*sp}); } return H; }
+function initP(){ const H=homes(); P=H.map((h,i)=>({x:h.x,y:h.y,vx:(Math.random()-.5),vy:(Math.random()-.5),ph:Math.random()*6.28})); }
+function speed(){ return 0.25+((T+30)/160)*3.2; }
+function step(t){
+  const st=state(), b=box(), s=speed();
+  if(st==='solid'){ const H=homes(), amp=0.6+s*0.9;
+    P.forEach((p,i)=>{ const h=H[i]; const tx=h.x+Math.sin(t*0.02*(1+s)+p.ph)*amp, ty=h.y+Math.cos(t*0.023*(1+s)+p.ph*1.3)*amp; p.x+=(tx-p.x)*0.12; p.y+=(ty-p.y)*0.12; });
+  } else {
+    let top=b.y, vmax=s*(st==='gas'?2.2:0.9);
+    if(st==='liquid'){ const sp=R*2.1, cols=Math.max(1,Math.floor(b.w/sp)); const rows=Math.ceil(N/cols); top=b.y+b.h-rows*sp-4; }
+    P.forEach(p=>{
+      p.vx+=(Math.random()-.5)*0.35*s; p.vy+=(Math.random()-.5)*0.35*s;
+      if(st==='liquid'){ p.vy+=0.04; }
+      const v=Math.hypot(p.vx,p.vy); if(v>vmax){p.vx*=vmax/v;p.vy*=vmax/v;} if(st==='gas'&&v<vmax*0.6){ p.vx*=1.05; p.vy*=1.05; }
+      p.x+=p.vx; p.y+=p.vy;
+      const L=b.x+R, Rr=b.x+b.w-R, B=b.y+b.h-R, Tp=top+R;
+      if(p.x<L){p.x=L;p.vx=Math.abs(p.vx);} if(p.x>Rr){p.x=Rr;p.vx=-Math.abs(p.vx);}
+      if(p.y>B){p.y=B;p.vy=-Math.abs(p.vy);}
+      if(p.y<Tp){ if(st==='liquid'){ p.vy+=0.25; if(p.y<b.y+R){p.y=b.y+R;} } else { p.y=Tp; p.vy=Math.abs(p.vy);} }
+    });
+    for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){ const a=P[i],c=P[j], dx=c.x-a.x, dy=c.y-a.y, d=Math.hypot(dx,dy)||0.01, m=R*2;
+      if(d<m){ const o=(m-d)/2, ux=dx/d, uy=dy/d; a.x-=ux*o; a.y-=uy*o; c.x+=ux*o; c.y+=uy*o; if(st==='gas'){ const tvx=a.vx,tvy=a.vy; a.vx=c.vx; a.vy=c.vy; c.vx=tvx; c.vy=tvy; } } }
+  }
+}
+function draw(){
+  const b=box(), st=state(); cx.clearRect(0,0,CW,CH);
+  cx.strokeStyle='#5f7fb8'; cx.lineWidth=3; cx.beginPath(); cx.moveTo(b.x,b.y); cx.lineTo(b.x,b.y+b.h); cx.lineTo(b.x+b.w,b.y+b.h); cx.lineTo(b.x+b.w,b.y); cx.stroke();
+  const col= st==='solid'?['#e6f6ff','#7cc7ff','#2b6fb3'] : st==='liquid'?['#e9fffb','#3dd6c3','#127a6e'] : ['#fff2ee','#ff9a7a','#b8452e'];
+  P.forEach(p=>{ const g=cx.createRadialGradient(p.x-R*.35,p.y-R*.35,1,p.x,p.y,R); g.addColorStop(0,col[0]); g.addColorStop(.6,col[1]); g.addColorStop(1,col[2]);
+    cx.fillStyle=g; cx.beginPath(); cx.arc(p.x,p.y,R,0,6.283); cx.fill(); });
+}
+let tick=0; (function loop(){ if(!paused && document.getElementById('simc').offsetParent){ tick++; step(tick); draw(); } requestAnimationFrame(loop); })();
+function updInfo(){ const st=state(), I=INFO[st]; document.getElementById('stName').textContent=I.n; document.getElementById('pDist').textContent=I.d; document.getElementById('pMov').textContent=I.m;
+  document.getElementById('pAtr').textContent=I.a; document.getElementById('pForma').textContent=I.f; document.getElementById('pVol').textContent=I.v; document.getElementById('pLocal').innerHTML=I.l;
+  document.getElementById('tRead').textContent=T+' °C'; document.querySelectorAll('.stbtn[data-t]').forEach(b=>{ const bt=+b.dataset.t; const bs=bt<0?'solid':bt<100?'liquid':'gas'; b.classList.toggle('on',bs===st); }); }
+let lastSt=state();
+function setT(v,fromSlider){ T=v; if(!fromSlider) document.getElementById('tSlider').value=v; const st=state(); if(st!==lastSt){ sfx('tap'); lastSt=st; } updInfo(); }
+function setW(v){ Wpct=v; }
+function togglePause(){ paused=!paused; document.getElementById('pauseBtn').textContent=paused?'▶ Seguir':'⏸ Pausa'; }
+window.addEventListener('resize',resizeSim); updInfo();
+
+const SIMQ=[
+ ['¿En qué estado las partículas están MÁS separadas?',['Sólido','Líquido','Gaseoso'],2],
+ ['Achica el recipiente con el agua líquida. ¿Qué pasa con su volumen?',['Aumenta','Se mantiene','Disminuye'],1],
+ ['Al subir la temperatura, las partículas se mueven…',['Más lento','Igual','Más rápido'],2]
+];
+(function(){ const box=document.getElementById('simQs'); SIMQ.forEach((q,i)=>{ const d=document.createElement('div'); d.innerHTML=`<div class="q">${i+1}. ${q[0]}</div><div class="opts"></div>`;
+  const o=d.querySelector('.opts'); q[1].forEach((t,j)=>{ const b=document.createElement('button'); b.textContent=t; b.onclick=()=>{ if(o.dataset.done) return;
+    if(j===q[2]){ b.classList.add('ok'); o.dataset.done=1; sfx('ok'); award(5,'sim'+i);} else { b.classList.add('no'); sfx('bad'); } }; o.appendChild(b); }); box.appendChild(d); }); })();
+
+/* ---------- comparison table ---------- */
+const TAB={opts:[['Propia','La del recipiente'],['Propio','Ocupa todo el recipiente'],['Muy juntas, vibran en su lugar','Juntas, se deslizan','Muy separadas, se mueven libres'],['Casi nada','Mucho']],
+ rows:[['🧊 Sólido',[0,0,0,0]],['💧 Líquido',[1,0,1,0]],['♨️ Gaseoso',[1,1,2,1]]]};
+(function(){ const t=document.getElementById('ctab'); TAB.rows.forEach((r,ri)=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${r[0]}</td>`;
+  TAB.opts.forEach((op,ci)=>{ const td=document.createElement('td'); const s=document.createElement('select'); s.dataset.ok=r[1][ci]; s.dataset.k=ri+'-'+ci;
+    s.innerHTML='<option value="">Elegir…</option>'+op.map((o,k)=>`<option value="${k}">${o}</option>`).join(''); s.onchange=()=>s.classList.remove('ok','no'); td.appendChild(s);
+    const pr=document.createElement('span'); pr.className='print-only'; pr.textContent='_______________'; td.appendChild(pr); tr.appendChild(td); }); t.appendChild(tr); }); })();
+function checkTable(){ let ok=0,tot=0; document.querySelectorAll('#ctab select').forEach(s=>{ tot++; s.classList.remove('ok','no'); if(s.value==='') return; if(s.value===s.dataset.ok){ s.classList.add('ok'); ok++; } else s.classList.add('no'); });
+  document.getElementById('tabScore').textContent=`${ok} / ${tot} correctas`; if(ok===tot){ sfx('ok'); award(10,'tabla'); } else sfx('bad'); }
+
+/* ---------- exit ticket MC ---------- */
+document.querySelectorAll('.opts[data-q]').forEach(o=>{ o.querySelectorAll('button').forEach(b=>b.onclick=()=>{ if(o.dataset.done) return;
+  if(b.dataset.ok==='1'){ b.classList.add('ok'); o.dataset.done=1; sfx('ok'); award(3,o.dataset.q);} else { b.classList.add('no'); sfx('bad'); o.dataset.done=1; o.querySelector('[data-ok="1"]').classList.add('ok'); } }); });
+
+/* ---------- quiz ---------- */
+const QZ=[
+ ['¿Qué dos condiciones debe cumplir algo para ser materia?',['Tener masa y ocupar espacio','Ser visible y tener color','Tener forma y ser sólido','Ser frío y tener volumen'],0],
+ ['¿Con qué instrumento se mide la masa?',['Probeta','Balanza','Termómetro','Huincha'],1],
+ ['El volumen de un jugo se expresa en…',['Kilogramos','Grados Celsius','Mililitros','Centímetros'],2],
+ ['En un líquido, las partículas…',['Vibran en posiciones fijas','Se deslizan unas sobre otras','Se separan muchísimo','No se mueven nunca'],1],
+ ['¿Cuál de estos NO es materia?',['El vapor de agua','La neblina matinal','El sonido de un pito','El aire de un globo'],2],
+ ['Un gas encerrado en una jeringa…',['No se puede comprimir','Se puede comprimir','Pierde toda su masa','Se vuelve sólido'],1]
+];
+let qi=0,qs=0,qt=null,qleft=0;
+function startQuiz(){ qi=0; qs=0; renderQ(); }
+function renderQ(){ const body=document.getElementById('quizBody'); if(qi>=QZ.length){ body.innerHTML=`<p class="qtext">Resultado: ${qs} / ${QZ.length} 🎉</p><p class="lead">${qs===QZ.length?'¡Perfecto! Bonus de 5 Felipesos.':'Revisa las que fallaste con tu pareja.'}</p><button class="btn ghost ripple" onclick="startQuiz()">↻ Repetir (sin Felipesos)</button>`; if(qs===QZ.length) award(5,'quizbonus'); return; }
+  const q=QZ[qi]; body.innerHTML=`<div class="qhead"><span>Pregunta ${qi+1} / ${QZ.length}</span><span>⭐ ${qs}</span></div><div class="timer"><div id="tbar"></div></div><div class="qtext">${q[0]}</div><div class="qopts">${q[1].map((o,j)=>`<button data-j="${j}">${o}</button>`).join('')}</div>`;
+  body.querySelectorAll('.qopts button').forEach(b=>b.onclick=()=>answer(+b.dataset.j)); qleft=150; clearInterval(qt);
+  qt=setInterval(()=>{ qleft--; const tb=document.getElementById('tbar'); if(tb) tb.style.width=(qleft/1.5)+'%'; if(qleft<=0){ answer(-1); } },100); }
+function answer(j){ clearInterval(qt); const q=QZ[qi], bs=document.querySelectorAll('.qopts button'); bs.forEach(b=>b.disabled=true); bs[q[2]].classList.add('ok');
+  if(j===q[2]){ qs++; sfx('ok'); award(2,'qz'+qi); } else { if(j>=0) bs[j].classList.add('no'); sfx('bad'); } setTimeout(()=>{ qi++; renderQ(); },1300); }
+
+/* ---------- bloom ---------- */
+const BL=[
+ ['N1','Recordar',0,'Define con tus palabras qué es la materia, la masa y el volumen. ¿Qué instrumento mide cada uno?','Materia: todo lo que tiene masa y ocupa espacio. Masa: cantidad de materia, se mide con balanza (g, kg). Volumen: espacio que ocupa, se mide con probeta (mL, L).'],
+ ['N2','Comprender',0,'Explica por qué el aire es materia aunque no podamos verlo.','Porque tiene masa (demo de los globos) y ocupa espacio (demo de la jeringa). Ser visible no es una condición para ser materia.'],
+ ['N3','Aplicar',0,'Tienes una botella con 1,5 L de agua de la llave de Villa Alemana. ¿Cuál es su volumen? Describe cómo medirías su masa.','Su volumen es 1,5 L. Para medir la masa se usa una balanza: se mide la botella llena, luego vacía, y se restan ambos valores.'],
+ ['N4','Analizar',0,'Compara la distancia y el movimiento de las partículas en el hielo del Glaciar Juncal, el agua del Río Aconcagua y el vapor del aire.','Hielo: muy juntas, solo vibran. Agua del río: juntas, se deslizan. Vapor: muy separadas, se mueven libres y rápido. De sólido a gas aumentan la distancia y el movimiento.'],
+ ['N5','Evaluar · Boss',1,'Un compañero afirma: "La neblina de la mañana en Villa Alemana es un gas". Evalúa su afirmación usando el modelo de partículas.','Es incorrecta. La neblina se ve porque está formada por gotitas de agua líquida: sus partículas están juntas, formando gotas. El vapor de agua (gas) tiene partículas muy separadas y es invisible.'],
+ ['N6','Crear · Boss',1,'Diseña un experimento con materiales de tu casa para demostrar que el aire ocupa espacio. Indica pregunta, materiales, pasos y resultado esperado.','Ejemplo: ¿el aire ocupa espacio? Materiales: vaso, servilleta, fuente con agua. Pegar la servilleta al fondo del vaso, hundirlo boca abajo en el agua y sacarlo. Resultado esperado: la servilleta sale seca porque el aire atrapado ocupó el espacio e impidió entrar al agua.']
+];
+(function(){ const box=document.getElementById('bloom'); BL.forEach((b,i)=>{ const d=document.createElement('div'); d.className='acc'+(b[2]?' boss':'');
+  d.innerHTML=`<div class="h"><span class="lv">${b[0]}</span><span>${b[1]}</span><span style="margin-left:auto;color:var(--muted);font-size:13px">${b[2]?'👑 +10':'+3'}</span></div>
+  <div class="body"><p class="qq">${b[3]}</p><textarea placeholder="Tu respuesta..."></textarea><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="seeans">Ver respuesta</button><button class="seeans" style="color:var(--gold)">✔ Respondió bien</button></div><div class="ans">${b[4]}</div></div>`;
+  d.querySelector('.h').onclick=()=>{ d.classList.toggle('open'); sfx('tap'); };
+  const [sa,ok]=d.querySelectorAll('.seeans'); sa.onclick=()=>{ d.querySelector('.ans').classList.toggle('show'); };
+  ok.onclick=()=>award(b[2]?10:3,'bl'+i,ok); box.appendChild(d); }); })();
+
+/* ---------- print ---------- */
+function printGuide(){ window.print(); }
+</script>
+</body>
+</html>
