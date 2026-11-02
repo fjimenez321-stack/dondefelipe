@@ -67,3 +67,8 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 - La base guarda la tarjeta con el **sha256 del código** como nombre; los estudiantes no pueden listar tarjetas ni leer los códigos (`giftcards_codigos` es solo del profe, para reimprimir).
 - Canje en una sola escritura: la tarjeta pasa a «canjeada» (las reglas comprueban que el sha256 del código coincide) y el monto entra con un movimiento `giftcard`. Una sola vez; las vencidas y anuladas no se pueden canjear.
 - Requiere publicar el `firestore.rules` actualizado.
+
+## Tienda de artículos físicos (Mercado → 🛍️ Tienda)
+- El profe publica artículos reales (cartas, juegos, útiles…) desde la pestaña Tienda del Mercado: nombre, descripción, emoji o foto, precio y unidades (o sin límite). Puede cambiar precio y unidades, ocultar o borrar.
+- Al comprar se crea un pedido `articulo` en `mercado_pedidos` con el pago retenido y el artículo descuenta una unidad en la misma escritura (`tienda_articulos`).
+- El profe lo entrega en persona y presiona «📦 Entregado» en Panel del profe → Solicitudes. Si rechaza, o el estudiante cancela antes, el pago vuelve y la unidad se repone.
