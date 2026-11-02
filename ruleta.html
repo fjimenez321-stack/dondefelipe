@@ -187,7 +187,7 @@ const RULETA = {
   // Gatito común: según el 3er carácter del hash.
   gatito: c3 => '0123'.includes(c3) ? 'naranjo' : '4567'.includes(c3) ? 'gris' : '89ab'.includes(c3) ? 'dormilon' : 'patitas',
   // Gatito sorpresa: 1 de 16 según el 3er carácter (nunca ediciones limitadas, héroes ni los de más de 1.000.000).
-  sorpresa: ['aseo', 'blanconegro', 'tricolor', 'comelon', 'siames', 'negro', 'estirado', 'jugueton',
+  sorpresa: ['masita', 'miauricio', 'tricolor', 'comelon', 'siames', 'negro', 'estirado', 'jugueton',
              'caja', 'tronco', 'barril', 'muro', 'fantasma', 'nietzsche', 'cosmico', 'dorado'],
   // Los únicos que se pueden escapar: comunes y poco comunes.
   escapables: ['naranjo', 'gris', 'dormilon', 'patitas', 'aseo', 'blanconegro', 'tricolor', 'comelon'],
@@ -213,12 +213,14 @@ const TABLA = [
   ['d', 300000], ['D', DISERTACION], ['b', 'Ruleta: 2 décimas formativas'], ['d', -90000],
   ['G'], ['P', 100000], ['d', 60000], ['d', -300000],
   ['b', 'Ruleta: 5 minutos extra en una prueba'], ['d', -60000], ['d', 120000], ['g'],
-  ['d', 30000], ['b', 'Ruleta: elegir la música de una clase'], ['d', 60000], ['b', 'Ruleta: cambio de puesto por una clase']
+  ['d', 30000], ['b', 'Ruleta: 20% de descuento en un artículo de la Tienda'], ['d', 60000], ['b', 'Ruleta: cambio de puesto libre por una semana']
 ];
 // Casilla que sale: (1er carácter impar ? 16 : 0) + valor del 2° carácter → 0..31, uniforme.
 const casillaDeHash = h => (parseInt(h[0], 16) % 2 ? 16 : 0) + parseInt(h[1], 16);
 const BENEF = {
   'Ruleta: pase de tarea': ['🎟️', 'Pase tarea'], 'Ruleta: 5 minutos extra en una prueba': ['⏱️', '+5 min'],
+  'Ruleta: cambio de puesto libre por una semana': ['💺', 'Puesto 1 sem.'], 'Ruleta: 20% de descuento en un artículo de la Tienda': ['🛍️', '−20% Tienda'],
+  // (antiguos: siguen mostrándose bien en el historial)
   'Ruleta: cambio de puesto por una clase': ['🪑', 'Puesto'], 'Ruleta: elegir la música de una clase': ['🎵', 'Tu música'],
   'Ruleta: 1 décima formativa': ['📝', '+1 form.'], 'Ruleta: 2 décimas formativas': ['📝', '+2 form.'], 'Ruleta: 1 décima sumativa': ['⭐', '+1 sum.']
 };
