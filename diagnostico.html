@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08080c">
+<meta name="robots" content="noindex">
+<title>Diagnóstico de la base · El Mundo de Felipe</title>
+<style>
+:root{--bg:#08080c;--slab:#111118;--line:rgba(255,255,255,.1);--ink:#f2f1ec;--mute:#9b9aab;--ok:#4bd08c;--mal:#ff7a70;--warn:#e9b949}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px 60px}
+h1{font-size:28px;margin:0 0 4px}
+p.m{color:var(--mute);margin:0 0 18px}
+.fila{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--slab);margin-bottom:8px}
+.fila .e{font-size:20px;line-height:1.2;width:24px;text-align:center}
+.fila b{display:block}
+.fila small{color:var(--mute);word-break:break-word}
+.ok .e{color:var(--ok)}.mal .e{color:var(--mal)}.warn .e{color:var(--warn)}
+.res{margin-top:18px;padding:14px;border-radius:12px;font-weight:700}
+.res.ok{background:#14301f;color:#c9f7d9}.res.mal{background:#2b1417;color:#ffb3ad}.res.warn{background:#2a2410;color:#ffe9a6}
+button{border:1px solid var(--line);background:#181822;color:var(--ink);border-radius:999px;padding:9px 16px;font:600 14px system-ui;cursor:pointer;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Diagnóstico de la base</h1>
+  <p class="m">Prueba la conexión con Firebase (solo lecturas: no cambia nada). Si algo falla, toma una captura y envíasela a quien mantiene el sitio.</p>
+  <div id="lista"></div>
+  <div id="res"></div>
+  <button id="otra">Volver a probar</button> <button id="entrar">Entrar con Google (para probar tu cuenta)</button>
+</div>
+<script src="firebase/df.js?v=20261102"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function explica(e) {
+  const c = String(e && (e.code || e.message) || e);
+  if (/resource-exhausted|quota/i.test(c)) return ['mal', 'Cuota de Firebase agotada', 'El plan gratuito llegó a su límite diario (o el plan Blaze aún no se activa del todo).'];
+  if (/permission-denied|insufficient permissions/i.test(c)) return ['mal', 'Permiso denegado', 'Las reglas publicadas no permiten esta lectura (¿se publicaron las reglas del repositorio?).'];
+  if (/unavailable|offline|network|failed to fetch/i.test(c)) return ['warn', 'Sin conexión con Firebase', 'Revisa el internet o vuelve a intentar en un momento.'];
+  if (/failed-precondition|index/i.test(c)) return ['warn', 'Falta un índice', 'Firebase pide crear un índice: abre el enlace que aparece en el mensaje.'];
+  return ['mal', 'Error', c];
+}
+function fila(estado, titulo, detalle) {
+  const e = estado === 'ok' ? '✓' : estado === 'warn' ? '!' : '✕';
+  $('lista').insertAdjacentHTML('beforeend', `<div class="fila ${estado}"><span class="e">${e}</span><div><b>${esc(titulo)}</b><small>${detalle}</small></div></div>`);
+}
+async function prueba(titulo, fn) {
+  const t0 = performance.now();
+  try { const d = await fn(); fila('ok', titulo, esc(d || 'Funciona') + ` · ${Math.round(performance.now() - t0)} ms`); return true; }
+  catch (e) { const [k, t, d] = explica(e); fila(k, titulo + ': ' + t, esc(d) + '<br><code>' + esc(e && (e.code || '') + ' ' + (e.message || '')) + '</code>'); return k === 'warn' ? null : false; }
+}
+async function correr() {
+  $('lista').innerHTML = ''; $('res').innerHTML = '';
+  let fb;
+  try { fb = await DF.listo(); fila('ok', 'Firebase cargó', 'Proyecto ' + esc((window.DF_CONFIG || {}).firebase ? DF_CONFIG.firebase.projectId : '?')); }
+  catch (e) { fila('mal', 'Firebase no cargó', esc(e.message)); $('res').innerHTML = '<div class="res mal">No se pudo iniciar Firebase en este navegador.</div>'; return; }
+  const { F, db } = fb, r = [];
+  r.push(await prueba('Leer configuración del banco', async () => { const s = await F.getDoc(F.doc(db, 'config', 'banco')); return s.exists() ? 'Leída' : 'No existe (normal si nunca se configuró)'; }));
+  r.push(await prueba('Leer cuentas del banco', async () => { const s = await F.getDocs(F.query(F.collection(db, 'banco_cuentas'), F.limit(3))); return s.size + ' cuenta(s) de muestra'; }));
+  r.push(await prueba('Leer subastas', async () => { const s = await F.getDocs(F.query(F.collection(db, 'subastas'), F.limit(5))); return s.size + ' subasta(s)'; }));
+  r.push(await prueba('Leer partidos de apuestas', async () => { const s = await F.getDocs(F.query(F.collection(db, 'apuestas_partidos'), F.limit(5))); return s.size + ' partido(s)'; }));
+  r.push(await prueba('Leer tienda de artículos', async () => { const s = await F.getDocs(F.query(F.collection(db, 'tienda_articulos'), F.limit(5))); return s.size + ' artículo(s)'; }));
+  const u = DF.usuario();
+  if (u) {
+    fila('ok', 'Sesión iniciada', esc(u.email) + (DF.esProfe(u) ? ' · profe' : ''));
+    r.push(await prueba('Leer tu cuenta del banco', async () => {
+      const v = await F.getDoc(F.doc(db, 'banco_vinculos', u.email.toLowerCase()));
+      if (!v.exists()) return DF.esProfe(u) ? 'Eres profe: no tienes cuenta de estudiante (normal)' : 'Tu correo no tiene cuenta vinculada';
+      const c = await F.getDoc(F.doc(db, 'banco_cuentas', v.data().cuenta));
+      return c.exists() ? 'Cuenta N° ' + (c.data().numero || '?') + ' · saldo ' + new Intl.NumberFormat('es-CL').format(c.data().saldo || 0) + ' ₣' : 'Cuenta no encontrada';
+    }));
+  } else fila('warn', 'Sin sesión', 'Para probar también tu cuenta, presiona «Entrar con Google».');
+  const malas = r.filter(x => x === false).length, dudas = r.filter(x => x === null).length;
+  $('res').innerHTML = malas ? `<div class="res mal">✕ ${malas} prueba(s) fallaron. Revisa el detalle arriba.</div>`
+    : dudas ? '<div class="res warn">! Funciona a medias: revisa los avisos arriba.</div>'
+    : '<div class="res ok">✓ La base funciona: se puede leer sin problemas.</div>';
+}
+$('otra').onclick = correr;
+$('entrar').onclick = () => DF.entrar().then(correr).catch(() => {});
+correr();
+})();
+</script>
+</body>
+</html>
