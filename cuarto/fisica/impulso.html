@@ -16,6 +16,19 @@ html,body{height:100%;background:#0a1620;overflow:hidden;font-family:'Nunito San
 .sl th,.sl td{border:2px solid #d6dde0;padding:.35em .6em}
 .sl th{background:#0B3D57;color:#F6F4EE}
 .sl a{color:inherit}
+.grid-ej{display:grid;grid-template-columns:1fr 1fr;gap:28px;flex:1}
+.flip{position:relative;perspective:2400px;min-height:340px}
+.cara{position:absolute;inset:0;background:#fff;border-radius:14px;padding:30px 34px;display:flex;flex-direction:column;gap:14px;box-shadow:0 4px 14px rgba(11,61,87,.10);backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .55s ease}
+.dorso{transform:rotateY(180deg);background:#EEF6F7;gap:10px;padding:24px 34px}
+.flip.vuelta .frente{transform:rotateY(-180deg)}
+.flip.vuelta .dorso{transform:rotateY(0)}
+.etq{font-size:24px;font-weight:800}
+.enun{font-size:29px;line-height:1.4;flex:1}
+.pasos{font-size:25px;line-height:1.4;padding-left:1.3em;color:#14213D}
+.pasos li{margin-bottom:4px}
+.tip{font-size:22px;line-height:1.35;color:#0B3D57;background:#fff;border-radius:10px;padding:8px 14px}
+.btn-ret{align-self:flex-start;font:800 24px 'Nunito Sans',Arial,sans-serif;color:#0B3D57;background:#F6B93B;border:0;border-radius:999px;padding:12px 26px;cursor:pointer}
+.btn-vol{background:#0B3D57;color:#F6F4EE;margin-top:auto;padding:9px 22px;font-size:22px}
 #nav{position:fixed;right:14px;bottom:14px;display:flex;gap:10px;align-items:center;background:rgba(11,61,87,.85);padding:6px 12px;border-radius:999px;color:#fff;font:600 14px 'Nunito Sans',sans-serif;z-index:5}
 #nav button{background:none;border:0;color:#fff;font-size:20px;cursor:pointer;padding:2px 8px}
 #home{position:fixed;left:14px;top:12px;color:#fff;background:rgba(11,61,87,.85);padding:6px 12px;border-radius:999px;font:600 13px 'Nunito Sans',sans-serif;text-decoration:none;z-index:5}
@@ -201,30 +214,63 @@ html,body{height:100%;background:#0a1620;overflow:hidden;font-family:'Nunito San
 
 </section>
 
-<section class="sl" id="ejercicios" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:36px">
+<section class="sl" id="ejercicios" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:96px 128px 110px;display:flex;flex-direction:column;gap:28px">
 <p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">📓 Ejercicios en el cuaderno · individual</p>
-<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:64px;font-weight:700;line-height:1.1;color:#0B3D57">Ahora tú: datos, fórmula, resultado con unidad</h2>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
-<div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:32px;border-left:8px solid #1C7293;border-radius:12px">
-<p style="font-size:24px;font-weight:800;color:#1C7293">1 · Aplicar</p>
-<p style="font-size:28px;line-height:1.4">Un auto de 1 200 kg frena en la Ruta 5 de 20 m/s a 0 en 4 s. Calcula Δp y la fuerza media de frenado.</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:60px;font-weight:700;line-height:1.1;color:#0B3D57">Ahora tú: resuelve primero, después revisa</h2>
+<div class="grid-ej">
+<div class="flip" id="ej1">
+ <div class="cara frente" style="border-left:8px solid #1C7293">
+  <p class="etq" style="color:#1C7293">1 · Aplicar</p>
+  <p class="enun">Un auto de 1 200 kg frena en la Ruta 5 de 20 m/s a 0 en 4 s. Calcula Δp y la fuerza media de frenado.</p>
+  <button class="btn-ret" type="button" onclick="this.closest('.flip').classList.add('vuelta')">💡 Ver retroalimentación</button>
+ </div>
+ <div class="cara dorso" style="border-left:8px solid #1C7293">
+  <p class="etq" style="color:#1C7293">1 · Aplicar · Retroalimentación</p>
+  <ol class="pasos"><li>Δp = m·v<sub>f</sub> − m·v<sub>i</sub> = 1 200·0 − 1 200·20</li><li><b>Δp = −24 000 kg·m/s</b></li><li>F = Δp / Δt = −24 000 / 4 → <b>F = −6 000 N</b></li></ol>
+  <p class="tip">El signo negativo indica que la fuerza apunta en contra del movimiento: es la fuerza que frena.</p>
+  <button class="btn-ret btn-vol" type="button" onclick="this.closest('.flip').classList.remove('vuelta')">↩ Volver al ejercicio</button>
+ </div>
 </div>
-<div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:32px;border-left:8px solid #1C7293;border-radius:12px">
-<p style="font-size:24px;font-weight:800;color:#1C7293">2 · Aplicar</p>
-<p style="font-size:28px;line-height:1.4">Una fuerza de 50 N actúa 0,2 s sobre un carro de 2 kg en reposo. Calcula el impulso y la velocidad final del carro.</p>
+<div class="flip" id="ej2">
+ <div class="cara frente" style="border-left:8px solid #1C7293">
+  <p class="etq" style="color:#1C7293">2 · Aplicar</p>
+  <p class="enun">Una fuerza de 50 N actúa 0,2 s sobre un carro de 2 kg en reposo. Calcula el impulso y la velocidad final del carro.</p>
+  <button class="btn-ret" type="button" onclick="this.closest('.flip').classList.add('vuelta')">💡 Ver retroalimentación</button>
+ </div>
+ <div class="cara dorso" style="border-left:8px solid #1C7293">
+  <p class="etq" style="color:#1C7293">2 · Aplicar · Retroalimentación</p>
+  <ol class="pasos"><li>I = F·Δt = 50 · 0,2 → <b>I = 10 N·s</b></li><li>I = Δp = m·v<sub>f</sub> − 0</li><li>v<sub>f</sub> = 10 / 2 → <b>v<sub>f</sub> = 5 m/s</b></li></ol>
+  <p class="tip">Recuerda: 1 N·s = 1 kg·m/s, por eso puedes igualar el impulso con el cambio de p.</p>
+  <button class="btn-ret btn-vol" type="button" onclick="this.closest('.flip').classList.remove('vuelta')">↩ Volver al ejercicio</button>
+ </div>
 </div>
-<div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:32px;border-left:8px solid #0B3D57;border-radius:12px">
-<p style="font-size:24px;font-weight:800;color:#0B3D57">3 · Analizar</p>
-<p style="font-size:28px;line-height:1.4">Un huevo de 0,06 kg llega al suelo a 5 m/s. Compara la fuerza media si se detiene en 0,002 s (cerámica) o en 0,1 s (cojín).</p>
+<div class="flip" id="ej3">
+ <div class="cara frente" style="border-left:8px solid #0B3D57">
+  <p class="etq" style="color:#0B3D57">3 · Analizar</p>
+  <p class="enun">Un huevo de 0,06 kg llega al suelo a 5 m/s. Compara la fuerza media si se detiene en 0,002 s (cerámica) o en 0,1 s (cojín).</p>
+  <button class="btn-ret" type="button" onclick="this.closest('.flip').classList.add('vuelta')">💡 Ver retroalimentación</button>
+ </div>
+ <div class="cara dorso" style="border-left:8px solid #0B3D57">
+  <p class="etq" style="color:#0B3D57">3 · Analizar · Retroalimentación</p>
+  <ol class="pasos"><li>|Δp| = 0,06 · 5 = 0,3 kg·m/s (igual en ambos casos)</li><li>Cerámica: F = 0,3 / 0,002 → <b>150 N</b></li><li>Cojín: F = 0,3 / 0,1 → <b>3 N</b></li></ol>
+  <p class="tip">Con 50 veces más tiempo, la fuerza es 50 veces menor. Por eso el cojín salva al huevo.</p>
+  <button class="btn-ret btn-vol" type="button" onclick="this.closest('.flip').classList.remove('vuelta')">↩ Volver al ejercicio</button>
+ </div>
 </div>
-<div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:32px;border-left:8px solid #E4572E;border-radius:12px">
-<p style="font-size:24px;font-weight:800;color:#E4572E">4 · Analizar · desafío</p>
-<p style="font-size:28px;line-height:1.4">Una pelota de béisbol de 0,145 kg llega a 30 m/s y sale en sentido contrario a 40 m/s. El contacto dura 0,001 s. Calcula la fuerza media.</p>
-</div>
-</div>
-
+<div class="flip" id="ej4">
+ <div class="cara frente" style="border-left:8px solid #E4572E">
+  <p class="etq" style="color:#E4572E">4 · Analizar · desafío</p>
+  <p class="enun">Una pelota de béisbol de 0,145 kg llega a 30 m/s y sale en sentido contrario a 40 m/s. El contacto dura 0,001 s. Calcula la fuerza media.</p>
+  <button class="btn-ret" type="button" onclick="this.closest('.flip').classList.add('vuelta')">💡 Ver retroalimentación</button>
+ </div>
+ <div class="cara dorso" style="border-left:8px solid #E4572E">
+  <p class="etq" style="color:#E4572E">4 · Analizar · desafío · Retroalimentación</p>
+  <ol class="pasos"><li>Positivo hacia el bate: v<sub>i</sub> = +30 m/s, v<sub>f</sub> = −40 m/s</li><li>Δp = 0,145 · (−40 − 30) → <b>Δp = −10,15 kg·m/s</b></li><li>F = −10,15 / 0,001 → <b>F = −10 150 N</b></li></ol>
+  <p class="tip">¿Te dio 1 450 N? Usaste 40 − 30 = 10 m/s y olvidaste que la pelota cambió de sentido.</p>
+  <button class="btn-ret btn-vol" type="button" onclick="this.closest('.flip').classList.remove('vuelta')">↩ Volver al ejercicio</button>
+ </div>
+</div></div>
 </section>
-
 <section class="sl" id="preguntas" data-transition="fade" style="background:#0B3D57;color:#F6F4EE;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
 <p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#8FD3D8">Preguntas conceptuales · responde y justifica</p>
 <h2 style="font-family:'Rubik', Arial, sans-serif;font-size:64px;font-weight:700;line-height:1.1;color:#F6F4EE">Piensa antes de calcular</h2>
@@ -245,7 +291,7 @@ const S=[...document.querySelectorAll('.sl')];let i=0;
 function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);document.getElementById('stage').style.transform='translate(-50%,-50%) scale('+k+')';}
 function go(n){i=Math.max(0,Math.min(S.length-1,n));S.forEach((s,j)=>s.classList.toggle('on',j===i));document.getElementById('cnt').textContent=(i+1)+' / '+S.length;history.replaceState(null,'','#'+(i+1));}
 addEventListener('resize',fit);
-addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key))go(i+1);if(['ArrowLeft','PageUp'].includes(e.key))go(i-1);});
+addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('button,iframe'))return;if(['ArrowRight','PageDown',' '].includes(e.key))go(i+1);if(['ArrowLeft','PageUp'].includes(e.key))go(i-1);});
 document.getElementById('prev').onclick=()=>go(i-1);document.getElementById('next').onclick=()=>go(i+1);
 let x0=null;addEventListener('touchstart',e=>x0=e.touches[0].clientX);addEventListener('touchend',e=>{if(x0===null)return;const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>50)go(i+(d<0?1:-1));x0=null;});
 fit();go((parseInt(location.hash.slice(1))||1)-1);
