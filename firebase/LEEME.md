@@ -69,6 +69,7 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 - Requiere publicar el `firestore.rules` actualizado.
 
 ## Tienda de artículos físicos (Mercado → 🛍️ Tienda)
-- El profe publica artículos reales (cartas, juegos, útiles…) desde la pestaña Tienda del Mercado: nombre, descripción, emoji o foto, precio y unidades (o sin límite). Puede cambiar precio y unidades, ocultar o borrar.
+- El profe publica artículos reales (cartas, juegos, útiles…) desde la pestaña Tienda del Mercado: nombre, descripción, emoji, hasta 2 fotos, precio y unidades (o sin límite). Puede cambiar precio, unidades y fotos, ocultar o borrar.
+- Las fotos se achican y comprimen en el navegador (máx. 640 px, WebP, ~50 KB) y se guardan dentro del artículo: no se usa Firebase Storage.
 - Al comprar se crea un pedido `articulo` en `mercado_pedidos` con el pago retenido y el artículo descuenta una unidad en la misma escritura (`tienda_articulos`).
 - El profe lo entrega en persona y presiona «📦 Entregado» en Panel del profe → Solicitudes. Si rechaza, o el estudiante cancela antes, el pago vuelve y la unidad se repone.

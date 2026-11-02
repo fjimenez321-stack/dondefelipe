@@ -66,6 +66,16 @@ h1 span{color:var(--acid)}
 .item .foto{height:140px;display:grid;place-items:center;border-radius:12px;background:var(--slab2);overflow:hidden;margin-bottom:6px}
 .item .foto img{max-width:100%;max-height:140px;object-fit:contain}
 .item .foto .emo{font-size:64px;line-height:1}
+.item .foto{position:relative;cursor:zoom-in}
+.item .foto .n-fotos{position:absolute;right:8px;bottom:8px;font:700 11px var(--ff);background:rgba(0,0,0,.65);color:#fff;border-radius:999px;padding:2px 8px}
+.fotos-prev{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.fotos-prev span{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;background:var(--slab2);border:1px solid var(--line2)}
+.fotos-prev img{width:100%;height:100%;object-fit:cover}
+.fotos-prev button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;cursor:pointer;font-size:12px;line-height:1}
+.modal:has(.galeria){width:min(860px,100%)}
+.galeria{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:6px 0}
+.modal .galeria img{flex:1 1 280px;min-width:0;max-height:min(60vh,420px);filter:none}
+.galeria img{max-width:100%;max-height:min(60vh,420px);border-radius:12px;object-fit:contain;background:var(--slab2)}
 .item.agotado{opacity:.55}
 .adm-art{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line2)}
 .aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
@@ -243,7 +253,7 @@ h1 span{color:var(--acid)}
         <label style="grid-column:1/-1">Artículo<input id="aNombre" maxlength="80" placeholder="Ej.: Sobre de cartas Pokémon"></label>
         <label style="grid-column:1/-1">Descripción (opcional)<input id="aDesc" maxlength="200" placeholder="Qué trae, estado, cuándo se entrega…"></label>
         <label>Emoji<input id="aIco" maxlength="8" value="🎁"></label>
-        <label>Foto (opcional)<input id="aImg" maxlength="300" placeholder="https://… o ruta del sitio"></label>
+        <label style="grid-column:1/-1">Fotos (hasta 2, opcional)<input id="aFotos" type="file" accept="image/*" multiple><span class="fotos-prev" id="aPrev"></span></label>
         <label>Precio (₣)<input id="aPrecio" type="number" min="100" step="1000" value="50000"></label>
         <label>Unidades<input id="aStock" type="number" min="1" step="1" value="3"></label>
         <label class="chk"><input type="checkbox" id="aIlim"> Sin límite de unidades</label>
@@ -833,28 +843,81 @@ function pintarTienda() {
     const agot = !artVigente(a);
     const acc = esProfe ? '' : agot ? '<span class="mio-tag">Agotado</span>' : botonPedir('a:' + a.id, a.precio, `data-pedir-a="${esc(a.id)}"`);
     const quedan = a.stock === -1 ? '' : `<span class="chip ${a.stock <= 2 ? 'hot' : 'lim'}">${a.stock > 0 ? 'Quedan ' + a.stock : 'Agotado'}</span>`;
-    return `<article class="item${agot ? ' agotado' : ''}"><div class="foto">${a.imagen && imgOkArt(a.imagen) ? `<img src="${esc(a.imagen)}" alt="" loading="lazy">` : `<span class="emo">${esc(a.ico || '🎁')}</span>`}</div>
+    const fs = fotosDe(a);
+    return `<article class="item${agot ? ' agotado' : ''}"><div class="foto"${fs.length ? ` data-ver-art="${esc(a.id)}" title="Ver fotos"` : ''}>${fs.length ? `<img src="${esc(fs[0])}" alt="Foto de ${esc(a.nombre)}" loading="lazy">${fs.length > 1 ? `<span class="n-fotos">1/${fs.length} · ver</span>` : ''}` : `<span class="emo">${esc(a.ico || '🎁')}</span>`}</div>
       <div class="chips"><span class="chip">📦 Artículo físico</span>${quedan}${esProfe && !a.activa ? '<span class="chip hot">Oculto</span>' : ''}</div>
       <h3>${esc(a.nombre)}</h3><p>${esc(a.desc || 'Se entrega en persona.')}</p>
       <div class="pie"><span class="precio">${fmt(a.precio)}</span>${acc}</div>
       ${esProfe ? `<div class="adm-art"><span style="font-size:12.5px;color:var(--mute);flex-basis:100%">${a.vendidos || 0} vendido(s)</span>
         <button class="btn sm" data-art="precio" data-id="${esc(a.id)}">Precio</button><button class="btn sm" data-art="stock" data-id="${esc(a.id)}">Unidades</button>
-        <button class="btn sm" data-art="activa" data-id="${esc(a.id)}">${a.activa ? 'Ocultar' : 'Mostrar'}</button><button class="btn sm" data-art="borrar" data-id="${esc(a.id)}">Borrar</button></div>` : ''}</article>`;
+        <button class="btn sm" data-art="fotos" data-id="${esc(a.id)}">Fotos</button><button class="btn sm" data-art="activa" data-id="${esc(a.id)}">${a.activa ? 'Ocultar' : 'Mostrar'}</button><button class="btn sm" data-art="borrar" data-id="${esc(a.id)}">Borrar</button></div>` : ''}</article>`;
   }).join('') || `<div class="vacio-merc" style="grid-column:1/-1"><img src="mercado/sprites/gato-duerme.webp" alt=""><p>${esProfe ? 'Aún no publicas artículos. Usa el formulario de arriba.' : 'El profe todavía no publica artículos. ¡Vuelve pronto!'}</p></div>`;
+}
+/* ── Fotos de los artículos: se achican y comprimen en el navegador (máx. 640 px, WebP/JPEG)
+      y se guardan dentro del artículo; así no hace falta Firebase Storage. ── */
+let fotosNuevas = [];
+const fotosDe = a => (Array.isArray(a.fotos) ? a.fotos.filter(f => /^data:image\/(webp|jpeg|png);base64,/.test(f)) : [])
+  .concat(a.imagen && imgOkArt(a.imagen) ? [a.imagen] : []).slice(0, 2);
+function comprimirFoto(file) {
+  return new Promise((ok, mal) => {
+    if (!/^image\//.test(file.type)) return mal(new Error('ese archivo no es una imagen'));
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let lado = 640, q = .72, out = '';
+      for (let i = 0; i < 6; i++) {
+        const k = Math.min(1, lado / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+        out = c.toDataURL('image/webp', q);
+        if (!/^data:image\/webp/.test(out)) out = c.toDataURL('image/jpeg', q);
+        if (out.length <= 160000) break;   // ~120 KB por foto como máximo
+        lado = Math.round(lado * .8); q = Math.max(.5, q - .06);
+      }
+      ok(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); mal(new Error('no se pudo leer la imagen')); };
+    img.src = url;
+  });
+}
+async function leerFotos(files) {
+  const l = Array.from(files || []).slice(0, 2), r = [];
+  for (const f of l) r.push(await comprimirFoto(f));
+  return r;
+}
+function pintarPrevFotos() {
+  $('aPrev').innerHTML = fotosNuevas.map((f, i) => `<span><img src="${f}" alt=""><button type="button" data-quitar-foto="${i}" aria-label="Quitar foto">✕</button></span>`).join('');
+}
+// Para cambiar las fotos de un artículo ya publicado: abre el selector de archivos.
+function elegirFotos() {
+  return new Promise(ok => {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+    inp.onchange = async () => {
+      if (!inp.files.length) return ok(null);
+      try { ok(await leerFotos(inp.files)); } catch (e) { alert('No se pudo usar la foto: ' + e.message); ok(null); }
+    };
+    inp.click();
+  });
+}
+function verFotosArticulo(id) {
+  const a = articulos.find(x => x.id === id); if (!a) return;
+  const fs = fotosDe(a);
+  $('modal').innerHTML = `<h3 style="margin-top:0">${esc(a.nombre)}</h3><div class="galeria">${fs.map(f => `<img src="${esc(f)}" alt="Foto de ${esc(a.nombre)}">`).join('')}</div>
+    <p style="color:var(--mute);margin:0">${esc(a.desc || '')}</p><div class="fila"><span class="precio">${fmt(a.precio)}</span><button class="btn" data-a="cerrar">Cerrar</button></div>`;
+  $('velo').hidden = false;
 }
 async function publicarArticulo() {
   const m = (t, k) => { $('aMsg').innerHTML = `<span style="color:${k === 'err' ? 'var(--neg)' : 'var(--acid)'};font-size:14px">${t}</span>`; };
   const nombre = $('aNombre').value.trim().slice(0, 80), desc = $('aDesc').value.trim().slice(0, 200), ico = $('aIco').value.trim().slice(0, 8) || '🎁';
-  const imagen = $('aImg').value.trim().slice(0, 300), precio = Math.round(+$('aPrecio').value || 0), ilim = $('aIlim').checked, stock = Math.round(+$('aStock').value || 0);
+  const precio = Math.round(+$('aPrecio').value || 0), ilim = $('aIlim').checked, stock = Math.round(+$('aStock').value || 0);
   if (nombre.length < 3) return m('Escribe el nombre del artículo.', 'err');
   if (precio < 100) return m('El precio debe ser al menos 100 ₣.', 'err');
   if (!ilim && stock < 1) return m('Indica cuántas unidades tienes (o marca «Sin límite»).', 'err');
-  if (imagen && !imgOkArt(imagen)) return m('La foto debe ser un enlace https:// o una ruta del sitio (…webp/png/jpg).', 'err');
   const { F, db } = await DF.listo();
   try {
-    await F.addDoc(F.collection(db, 'tienda_articulos'), { nombre, desc, ico, imagen, precio, stock: ilim ? -1 : stock, vendidos: 0, activa: true,
+    await F.addDoc(F.collection(db, 'tienda_articulos'), { nombre, desc, ico, imagen: '', fotos: fotosNuevas.slice(0, 2), precio, stock: ilim ? -1 : stock, vendidos: 0, activa: true,
       ultimoPedido: '', ultimoCancel: '', profe: usuario.email, creada: F.serverTimestamp() });
-    m(`✓ «${esc(nombre)}» publicado a ${fmt(precio)}.`); $('aNombre').value = ''; $('aDesc').value = ''; $('aImg').value = '';
+    m(`✓ «${esc(nombre)}» publicado a ${fmt(precio)}.`); $('aNombre').value = ''; $('aDesc').value = ''; fotosNuevas = []; pintarPrevFotos();
   } catch (e) { m('No se pudo publicar: ' + esc(/permission/i.test(e.message) ? 'Firebase lo rechazó (¿publicaste las reglas nuevas?)' : e.message), 'err'); }
 }
 async function accionArticulo(a, id) {
@@ -864,6 +927,11 @@ async function accionArticulo(a, id) {
   if (a === 'precio') { const v = prompt(`Nuevo precio para «${art.nombre}» (₣):`, art.precio); if (v === null) return; const p = Math.round(+String(v).replace(/\D/g, '')); if (p < 100) return alert('Precio inválido'); cambio = { precio: p }; }
   if (a === 'stock') { const v = prompt(`Unidades disponibles de «${art.nombre}» (escribe «sin límite» para no limitar):`, art.stock === -1 ? 'sin límite' : art.stock); if (v === null) return; cambio = { stock: /sin|∞|ilim/i.test(v) ? -1 : Math.max(0, Math.round(+v || 0)) }; }
   if (a === 'activa') cambio = { activa: !art.activa };
+  if (a === 'fotos') {
+    const fs = await elegirFotos(); if (!fs) return;
+    if (!fs.length && !confirm(`¿Quitar las fotos de «${art.nombre}»?`)) return;
+    cambio = { fotos: fs, imagen: '' };
+  }
   try {
     if (a === 'borrar') { if (!confirm(`¿Borrar «${art.nombre}»? (Los pedidos ya hechos siguen en el panel.)`)) return; await F.deleteDoc(ref); return; }
     if (cambio) await F.updateDoc(ref, cambio);
@@ -1050,6 +1118,7 @@ async function retirarMio(fila) {
   catch (e) { aviso('No se pudo retirar: ' + esc(e.message), 'err'); }
 }
 document.addEventListener('click', ev => {
+  const vf = ev.target.closest('[data-ver-art]'); if (vf) { verFotosArticulo(vf.dataset.verArt); return; }
   const b = ev.target.closest('[data-pedir-b],[data-pedir-a],[data-art],[data-pedir-r],[data-publicar],[data-retirar],[data-cancelar-p]'); if (!b || b.disabled) return;
   if (b.dataset.pedirA) { const x = articulos.find(a => a.id === b.dataset.pedirA); if (x) pedir({ tipo: 'articulo', articulo: x.id, item: x.nombre, ico: x.ico || '📦', precio: x.precio }); return; }
   if (b.dataset.art) { accionArticulo(b.dataset.art, b.dataset.id); return; }
@@ -1087,6 +1156,17 @@ $('pGato').onchange = elegirGatoForm;
 $('pIlim').onchange = () => { $('pStock').disabled = $('pIlim').checked; };
 $('pPublicar').onclick = () => publicar();
 $('aPublicar').onclick = () => publicarArticulo();
+$('aFotos').onchange = async () => {
+  const msg = $('aMsg');
+  try {
+    const elegidas = $('aFotos').files.length, antes = fotosNuevas.length;
+    msg.innerHTML = '<span style="color:var(--mute);font-size:14px">Preparando fotos…</span>';
+    fotosNuevas = fotosNuevas.concat(await leerFotos($('aFotos').files)).slice(0, 2); pintarPrevFotos();
+    msg.innerHTML = antes + elegidas > 2 ? '<span style="color:var(--mute);font-size:14px">Máximo 2 fotos por artículo: se usaron las primeras.</span>' : '';
+  } catch (e) { msg.innerHTML = `<span style="color:var(--neg);font-size:14px">${esc(e.message)}</span>`; }
+  $('aFotos').value = '';
+};
+$('aPrev').onclick = e => { const b = e.target.closest('[data-quitar-foto]'); if (!b) return; fotosNuevas.splice(+b.dataset.quitarFoto, 1); pintarPrevFotos(); };
 $('pCatalogo').onclick = () => publicarCatalogo();
 setInterval(() => { if (ofertas.some(o => ms(o.hasta))) { pintarMercado(); if (esProfe) pintarProfe(); } }, 30000);
 
