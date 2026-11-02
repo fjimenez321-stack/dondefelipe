@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impulso y cantidad de movimiento · Física 4° Medio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400..800&family=Nunito+Sans:wght@400;600;700;800&display=swap">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#0a1620;overflow:hidden;font-family:'Nunito Sans',Arial,sans-serif}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center center}
+.sl{position:absolute;inset:0;width:1920px;height:1080px;display:none!important;overflow:hidden}
+.sl.on{display:flex!important}
+.sl.on[style*="display:grid"]{display:grid!important}
+.sl ul{padding-left:1.2em}
+.sl table{border-collapse:collapse;width:100%}
+.sl th,.sl td{border:2px solid #d6dde0;padding:.35em .6em}
+.sl th{background:#0B3D57;color:#F6F4EE}
+.sl a{color:inherit}
+#nav{position:fixed;right:14px;bottom:14px;display:flex;gap:10px;align-items:center;background:rgba(11,61,87,.85);padding:6px 12px;border-radius:999px;color:#fff;font:600 14px 'Nunito Sans',sans-serif;z-index:5}
+#nav button{background:none;border:0;color:#fff;font-size:20px;cursor:pointer;padding:2px 8px}
+#home{position:fixed;left:14px;top:12px;color:#fff;background:rgba(11,61,87,.85);padding:6px 12px;border-radius:999px;font:600 13px 'Nunito Sans',sans-serif;text-decoration:none;z-index:5}
+</style></head>
+<body>
+<a id="home" href="../../index.html">← El Mundo de Felipe</a>
+<div id="stage">
+<section class="sl" id="cover" data-transition="fade" style="background:#0B3D57;color:#F6F4EE;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:40px">
+<div style="position:absolute;left:1340px;top:-180px;width:760px;height:760px;background:#1C7293;opacity:0.55;border-radius:50%"></div>
+<div style="position:absolute;left:1560px;top:-40px;width:420px;height:420px;background:#E4572E;opacity:0.85;border-radius:50%"></div>
+<p style="font-size:32px;font-weight:800;letter-spacing:6px;text-transform:uppercase;color:#8FD3D8">Física · Clase de dinámica</p>
+<h1 style="font-family:'Rubik', Arial, sans-serif;font-size:140px;font-weight:700;line-height:1.02;color:#F6F4EE">Impulso y<br>cantidad de movimiento</h1>
+<p style="font-size:40px;font-style:italic;color:#CADCE0">¿Por qué un airbag salva vidas si no detiene el choque?</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1400px;font-size:26px;color:#9FB6BF">Colegio San Agustín Villa Alemana · Unidad Técnico Pedagógica 2026</p>
+
+</section>
+
+<section class="sl" id="oa" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">Objetivo de aprendizaje</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#0B3D57">¿Qué vamos a aprender hoy?</h2>
+<div style="display:flex;gap:40px">
+<div style="flex:3;display:flex;flex-direction:column;gap:20px;background:#FFFFFF;padding:48px;border-left:10px solid #0B3D57;border-radius:12px">
+<p style="font-size:26px;font-weight:800;color:#1C7293">OA 12 · Ciencias Naturales (Física) 2° Medio</p>
+<p style="font-size:34px;line-height:1.45;color:#14213D">Analizar e interpretar datos de investigaciones sobre colisiones entre objetos, considerando la <b>cantidad de movimiento</b> de un cuerpo en función del <b>impulso</b> que adquiere.</p>
+</div>
+<div style="flex:2;display:flex;flex-direction:column;gap:20px;background:#E7F1F2;padding:48px;border-radius:12px">
+<h3 style="font-size:36px;font-weight:700;color:#0B3D57">Al final de la clase podrás…</h3>
+<ul style="font-size:30px;line-height:1.5;color:#2E3A4A">
+<li>Calcular p e I con sus unidades.</li>
+<li>Usar I = Δp para resolver problemas.</li>
+<li>Explicar por qué alargar Δt reduce la fuerza.</li>
+</ul>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1600px;font-size:24px;color:#6A7179">Fuente: Programa de Estudio Ciencias Naturales 2° Medio, MINEDUC.</p>
+
+</section>
+
+<section class="sl" id="demo" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">Demostración · Predice, observa, explica</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#0B3D57">¿Se rompe el huevo contra la sábana?</h2>
+<div style="display:flex;gap:40px">
+<div style="flex:3;display:flex;flex-direction:column;gap:18px;background:#FFFFFF;padding:44px;border-top:10px solid #E4572E;border-radius:12px">
+<h3 style="font-size:36px;font-weight:700;color:#E4572E">En vivo</h3>
+<p style="font-size:30px;line-height:1.45"><b>1. Predice:</b> si lanzo un huevo crudo con fuerza contra una sábana colgada, ¿se rompe? Escribe sí o no y por qué.</p>
+<p style="font-size:30px;line-height:1.45"><b>2. Observa:</b> dos estudiantes sostienen la sábana con la parte inferior doblada hacia adelante, como una bolsa.</p>
+<p style="font-size:30px;line-height:1.45"><b>3. Explica:</b> ¿qué cambió respecto de lanzarlo contra la pared? Lo responderemos con física esta clase.</p>
+</div>
+<div style="flex:2;display:flex;flex-direction:column;gap:18px;background:#0B3D57;padding:44px;border-radius:12px">
+<h3 style="font-size:36px;font-weight:700;color:#8FD3D8">Video de apoyo</h3>
+<div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000"><iframe src="https://www.youtube-nocookie.com/embed/GKamxzlKT_M" title="Impulso y tiempo de impacto" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>
+<p style="font-size:26px;line-height:1.45;color:#BFD8D5"><a href="https://www.youtube.com/watch?v=GKamxzlKT_M" target="_blank" rel="noopener" style="color:#8FD3D8">Impulso y tiempo de impacto</a> · CodePhysLab. Incluye una grabación del MIT del impacto de una pelota.</p>
+</div>
+</div>
+
+</section>
+
+<section class="sl" id="gancho" data-transition="fade" style="background:#E4572E;color:#FFF8F3;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:56px">
+<p style="font-size:30px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#FFE1D4">Para pensar · 2 minutos</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:88px;font-weight:700;line-height:1.12;color:#FFF8F3">Saltas desde una banca.<br>¿Por qué duele menos si flexionas las rodillas al caer?</h2>
+<p style="font-size:36px;line-height:1.45;color:#FFE9DF">Anota tu respuesta en el cuaderno. La revisaremos al final de la clase.</p>
+
+</section>
+
+<section class="sl" id="momentum" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">Concepto 1</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#0B3D57">Cantidad de movimiento (p)</h2>
+<div style="display:flex;gap:48px;align-items:stretch">
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:24px;background:#0B3D57;padding:56px;border-radius:16px">
+<p style="font-family:'Rubik', Arial, sans-serif;font-size:140px;font-weight:700;color:#F6F4EE">p = m · v</p>
+<p style="font-size:30px;color:#BFD8D5;text-align:center">m en kg · v en m/s · p en kg·m/s</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:34px;line-height:1.45">Mide <b>cuánto movimiento</b> lleva un cuerpo: depende de su masa y de su velocidad.</p>
+<p style="font-size:34px;line-height:1.45">Es un <b>vector</b>: tiene la misma dirección y sentido que la velocidad. Por eso importa el signo.</p>
+<div style="display:flex;flex-direction:column;gap:12px;background:#E7F1F2;padding:32px;border-radius:12px">
+<p style="font-size:30px;line-height:1.4"><b>Comparemos:</b> un camión de 10 000 kg a 1 m/s y un auto de 1 000 kg a 10 m/s tienen la <b>misma p</b>: 10 000 kg·m/s.</p>
+</div>
+</div>
+</div>
+
+</section>
+
+<section class="sl" id="impulso" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">Concepto 2</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#0B3D57">Impulso (I)</h2>
+<div style="display:flex;gap:48px;align-items:stretch">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:34px;line-height:1.45">El impulso es el efecto de una <b>fuerza</b> que actúa durante un <b>intervalo de tiempo</b>.</p>
+<p style="font-size:34px;line-height:1.45">También es un <b>vector</b>: apunta en la dirección de la fuerza neta.</p>
+<p style="font-size:34px;line-height:1.45">Un mismo impulso se logra con <b>mucha fuerza en poco tiempo</b> o con <b>poca fuerza en mucho tiempo</b>.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:24px;background:#1C7293;padding:56px;border-radius:16px">
+<p style="font-family:'Rubik', Arial, sans-serif;font-size:140px;font-weight:700;color:#F6F4EE">I = F · Δt</p>
+<p style="font-size:30px;color:#E3F1F2;text-align:center">F en N · Δt en s · I en N·s</p>
+<p style="font-size:26px;color:#D2E8EA;text-align:center">(F constante, o fuerza media)</p>
+</div>
+</div>
+
+</section>
+
+<section class="sl" id="teorema" data-transition="fade" style="background:#0B3D57;color:#F6F4EE;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#8FD3D8">La relación clave</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#F6F4EE">Teorema impulso – cantidad de movimiento</h2>
+<div style="display:flex;justify-content:center;background:#F6F4EE;padding:48px;border-radius:16px">
+<p style="font-family:'Rubik', Arial, sans-serif;font-size:96px;font-weight:700;color:#0B3D57">F · Δt = Δp = m·v<span style="color:#E4572E">f</span> − m·v<span style="color:#E4572E">i</span></p>
+</div>
+<div style="display:flex;gap:40px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#124B69;padding:40px;border-radius:12px">
+<h3 style="font-size:36px;font-weight:700;color:#8FD3D8">Qué dice</h3>
+<p style="font-size:30px;line-height:1.45;color:#E4EEF0">El impulso que recibe un cuerpo es igual al cambio de su cantidad de movimiento.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#124B69;padding:40px;border-radius:12px">
+<h3 style="font-size:36px;font-weight:700;color:#8FD3D8">Unidades</h3>
+<p style="font-size:30px;line-height:1.45;color:#E4EEF0">1 N·s = 1 kg·m/s. Son la misma unidad, escrita de dos formas.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#124B69;padding:40px;border-radius:12px">
+<h3 style="font-size:36px;font-weight:700;color:#8FD3D8">Signos</h3>
+<p style="font-size:30px;line-height:1.45;color:#E4EEF0">Elige un sentido positivo. Lo que va al revés lleva signo negativo.</p>
+</div>
+</div>
+
+</section>
+
+<section class="sl" id="clave" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">Idea clave</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#0B3D57">Mismo Δp, más tiempo → menos fuerza</h2>
+<p style="font-size:32px;line-height:1.4;color:#2E3A4A">Una persona de 60 kg llega al suelo a 5 m/s y se detiene. Su Δp siempre es 300 kg·m/s; lo que cambia es <b>cuánto tarda</b> en detenerse.</p>
+<table style="font-size:32px;color:#14213D">
+<tr><th style="width:40%;text-align:left">Cómo cae</th><th style="width:20%;text-align:center">Δt</th><th style="width:40%;text-align:center">Fuerza media F = Δp / Δt</th></tr>
+<tr style="background:#FCE3DA"><td>Piernas rígidas</td><td style="text-align:center">0,01 s</td><td style="text-align:center">30 000 N</td></tr>
+<tr><td>Rodillas flexionadas</td><td style="text-align:center">0,2 s</td><td style="text-align:center">1 500 N</td></tr>
+<tr style="background:#E7F1F2"><td>Sobre una colchoneta</td><td style="text-align:center">0,5 s</td><td style="text-align:center">600 N</td></tr>
+</table>
+<p style="font-size:30px;line-height:1.4;color:#0B3D57"><b>Así funcionan</b> la sábana del huevo, el airbag, los cascos, las colchonetas de salto y las zonas de deformación de los autos: alargan Δt.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1600px;font-size:24px;color:#6A7179">Valores simplificados: se calcula la fuerza neta media e ignora el peso durante el frenado.</p>
+
+</section>
+
+<section class="sl" id="ejemplo1" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">Ejemplo resuelto 1</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:64px;font-weight:700;line-height:1.1;color:#0B3D57">El penal en la cancha del colegio</h2>
+<p style="font-size:32px;line-height:1.4;color:#2E3A4A">Un balón de 0,43 kg está quieto en el punto penal. El pie lo golpea durante 0,01 s y sale a 20 m/s. ¿Qué impulso recibe y qué fuerza media aplicó el pie?</p>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:36px;border-top:8px solid #1C7293;border-radius:12px">
+<h3 style="font-size:32px;font-weight:700;color:#1C7293">1 · Datos</h3>
+<p style="font-size:28px;line-height:1.5">m = 0,43 kg<br>vi = 0 m/s<br>vf = 20 m/s<br>Δt = 0,01 s</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:36px;border-top:8px solid #0B3D57;border-radius:12px">
+<h3 style="font-size:32px;font-weight:700;color:#0B3D57">2 · Impulso</h3>
+<p style="font-size:28px;line-height:1.5">I = Δp = m·vf − m·vi<br>I = 0,43 · 20 − 0<br><b>I = 8,6 N·s</b></p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:36px;border-top:8px solid #E4572E;border-radius:12px">
+<h3 style="font-size:32px;font-weight:700;color:#E4572E">3 · Fuerza media</h3>
+<p style="font-size:28px;line-height:1.5">F = I / Δt<br>F = 8,6 / 0,01<br><b>F = 860 N</b></p>
+</div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#0B3D57">Para dimensionar: 860 N es parecido al peso de una persona de 86 kg, aplicado durante una centésima de segundo.</p>
+
+</section>
+
+<section class="sl" id="ejemplo2" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">Ejemplo resuelto 2 · Cuidado con el signo</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:64px;font-weight:700;line-height:1.1;color:#0B3D57">Una pelota que rebota en el muro</h2>
+<p style="font-size:32px;line-height:1.4;color:#2E3A4A">Una pelota de tenis de 0,06 kg llega a un muro a 25 m/s y rebota a 20 m/s. El contacto dura 0,005 s. Positivo: hacia el muro.</p>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:36px;border-top:8px solid #1C7293;border-radius:12px">
+<h3 style="font-size:32px;font-weight:700;color:#1C7293">1 · Datos con signo</h3>
+<p style="font-size:28px;line-height:1.5">m = 0,06 kg<br>vi = +25 m/s<br>vf = −20 m/s<br>Δt = 0,005 s</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:36px;border-top:8px solid #0B3D57;border-radius:12px">
+<h3 style="font-size:32px;font-weight:700;color:#0B3D57">2 · Variación de p</h3>
+<p style="font-size:28px;line-height:1.5">Δp = 0,06·(−20) − 0,06·(25)<br>Δp = −1,2 − 1,5<br><b>Δp = −2,7 kg·m/s</b></p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:36px;border-top:8px solid #E4572E;border-radius:12px">
+<h3 style="font-size:32px;font-weight:700;color:#E4572E">3 · Fuerza media</h3>
+<p style="font-size:28px;line-height:1.5">F = −2,7 / 0,005<br><b>F = −540 N</b><br>El muro empuja hacia afuera.</p>
+</div>
+</div>
+<div style="display:flex;background:#FCE3DA;padding:28px 36px;border-radius:12px">
+<p style="font-size:28px;line-height:1.4;color:#7A2A12"><b>Error típico:</b> restar solo las rapideces, 20 − 25 = −5 m/s. Eso da Δp = −0,3 kg·m/s, nueve veces menos que el valor correcto.</p>
+</div>
+
+</section>
+
+<section class="sl" id="ejercicios" data-transition="fade" style="background:#F6F4EE;color:#14213D;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:36px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#1C7293">📓 Ejercicios en el cuaderno · individual</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:64px;font-weight:700;line-height:1.1;color:#0B3D57">Ahora tú: datos, fórmula, resultado con unidad</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+<div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:32px;border-left:8px solid #1C7293;border-radius:12px">
+<p style="font-size:24px;font-weight:800;color:#1C7293">1 · Aplicar</p>
+<p style="font-size:28px;line-height:1.4">Un auto de 1 200 kg frena en la Ruta 5 de 20 m/s a 0 en 4 s. Calcula Δp y la fuerza media de frenado.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:32px;border-left:8px solid #1C7293;border-radius:12px">
+<p style="font-size:24px;font-weight:800;color:#1C7293">2 · Aplicar</p>
+<p style="font-size:28px;line-height:1.4">Una fuerza de 50 N actúa 0,2 s sobre un carro de 2 kg en reposo. Calcula el impulso y la velocidad final del carro.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:32px;border-left:8px solid #0B3D57;border-radius:12px">
+<p style="font-size:24px;font-weight:800;color:#0B3D57">3 · Analizar</p>
+<p style="font-size:28px;line-height:1.4">Un huevo de 0,06 kg llega al suelo a 5 m/s. Compara la fuerza media si se detiene en 0,002 s (cerámica) o en 0,1 s (cojín).</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;padding:32px;border-left:8px solid #E4572E;border-radius:12px">
+<p style="font-size:24px;font-weight:800;color:#E4572E">4 · Analizar · desafío</p>
+<p style="font-size:28px;line-height:1.4">Una pelota de béisbol de 0,145 kg llega a 30 m/s y sale en sentido contrario a 40 m/s. El contacto dura 0,001 s. Calcula la fuerza media.</p>
+</div>
+</div>
+
+</section>
+
+<section class="sl" id="preguntas" data-transition="fade" style="background:#0B3D57;color:#F6F4EE;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#8FD3D8">Preguntas conceptuales · responde y justifica</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:64px;font-weight:700;line-height:1.1;color:#F6F4EE">Piensa antes de calcular</h2>
+<div style="display:flex;flex-direction:column;gap:22px">
+<p style="font-size:30px;line-height:1.4;color:#E4EEF0"><b style="color:#F6B93B">1. Comprender ·</b> Un vaso cae desde la misma altura sobre cerámica y sobre una alfombra. ¿Por qué solo se rompe en la cerámica?</p>
+<p style="font-size:30px;line-height:1.4;color:#E4EEF0"><b style="color:#F6B93B">2. Comprender ·</b> ¿Puede una fuerza pequeña producir un impulso grande? Explica cómo.</p>
+<p style="font-size:30px;line-height:1.4;color:#E4EEF0"><b style="color:#F6B93B">3. Analizar ·</b> Dos pelotas iguales llegan a un muro con la misma rapidez: una se detiene y otra rebota. ¿Cuál recibe mayor impulso?</p>
+<p style="font-size:30px;line-height:1.4;color:#E4EEF0"><b style="color:#F6B93B">4. Analizar ·</b> Un camión y una bicicleta reciben el mismo impulso. ¿Terminan con la misma velocidad? Justifica.</p>
+<p style="font-size:30px;line-height:1.4;color:#E4EEF0"><b style="color:#F6B93B">5. Evaluar ·</b> Vuelve a tu respuesta del inicio sobre saltar desde la banca. ¿La mantienes o la corriges? Usa Δp y Δt.</p>
+</div>
+
+</section>
+
+</div>
+<div id="nav"><button id="prev" aria-label="Anterior">‹</button><span id="cnt"></span><button id="next" aria-label="Siguiente">›</button></div>
+<script>
+const S=[...document.querySelectorAll('.sl')];let i=0;
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);document.getElementById('stage').style.transform='translate(-50%,-50%) scale('+k+')';}
+function go(n){i=Math.max(0,Math.min(S.length-1,n));S.forEach((s,j)=>s.classList.toggle('on',j===i));document.getElementById('cnt').textContent=(i+1)+' / '+S.length;history.replaceState(null,'','#'+(i+1));}
+addEventListener('resize',fit);
+addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key))go(i+1);if(['ArrowLeft','PageUp'].includes(e.key))go(i-1);});
+document.getElementById('prev').onclick=()=>go(i-1);document.getElementById('next').onclick=()=>go(i+1);
+let x0=null;addEventListener('touchstart',e=>x0=e.touches[0].clientX);addEventListener('touchend',e=>{if(x0===null)return;const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>50)go(i+(d<0?1:-1));x0=null;});
+fit();go((parseInt(location.hash.slice(1))||1)-1);
+</script>
+</body></html>
