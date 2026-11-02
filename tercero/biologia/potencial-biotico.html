@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Potencial biótico y resistencia ambiental</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: columna de lectura de cuaderno; el simulador abre la clase a ancho completo, luego teoría, casos de la región y preguntas */
+:root{
+  --bosque:#1B4332; --oro:#C9A227; --brasa:#E2572B; --crema:#F6F1E7;
+  --bg:#F6F1E7; --surface:#FFFDF8; --fg:#1d2a22; --muted:#5b6a5f; --line:#ddd4c2;
+  --accent:var(--bosque); --curve-real:#1B4332; --curve-pot:#B8901A; --gap:rgba(226,87,43,.16); --gapline:#E2572B;
+  --grid:#e6dfcf; --chip:#efe7d6;
+  --f-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1f17; --surface:#16291f; --fg:#ece6d8; --muted:#a6b3a8; --line:#2b4335;
+  --accent:#8fd1a8; --curve-real:#8fd1a8; --curve-pot:#e3c25a; --gap:rgba(226,87,43,.22); --gapline:#f07a52;
+  --grid:#21382b; --chip:#1f3628; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1f17; --surface:#16291f; --fg:#ece6d8; --muted:#a6b3a8; --line:#2b4335;
+  --accent:#8fd1a8; --curve-real:#8fd1a8; --curve-pot:#e3c25a; --gap:rgba(226,87,43,.22); --gapline:#f07a52;
+  --grid:#21382b; --chip:#1f3628; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+.read{max-width:68ch}
+header.top{padding-block:40px 24px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(2rem,5vw,3.1rem);line-height:1.08;margin:0;text-wrap:balance;color:var(--accent)}
+h1 em{font-style:italic;color:var(--brasa)}
+.lede{color:var(--muted);margin:0;max-width:60ch}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.75rem;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:500;font-size:1.2rem;margin:0}
+section{padding-block:44px 8px;display:flex;flex-direction:column;gap:18px}
+.stage{font-family:var(--f-mono);font-size:.78rem;color:var(--brasa);letter-spacing:.06em;text-transform:uppercase}
+p{margin:0}
+
+/* simulador */
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;grid-template-columns:1fr 280px;gap:20px;box-shadow:0 6px 24px rgba(27,67,50,.08)}
+@media (max-width:760px){.sim{grid-template-columns:1fr}}
+.plot{min-width:0;display:flex;flex-direction:column;gap:10px}
+.canvas-box{position:relative;width:100%;aspect-ratio:16/10;max-width:100%}
+canvas{width:100%;height:100%;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:22px;height:0;border-top:3px solid}
+.sw.pot{border-color:var(--curve-pot);border-top-style:dashed}
+.sw.real{border-color:var(--curve-real)}
+.sw.gap{height:12px;border:0;background:var(--gap);outline:1px solid var(--gapline)}
+.controls{display:flex;flex-direction:column;gap:16px;min-width:0}
+.ctl label{display:flex;justify-content:space-between;font-size:.88rem;font-weight:500}
+.ctl output{font-family:var(--f-mono);color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--brasa)}
+fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0;display:flex;flex-direction:column;gap:6px}
+legend{font-size:.78rem;font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:0 4px}
+.chk{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.chk input{accent-color:var(--bosque);width:17px;height:17px}
+.chk small{margin-left:auto;font-family:var(--f-mono);color:var(--muted)}
+.btns{display:flex;gap:8px}
+button{font:inherit;font-weight:600;border-radius:999px;padding:9px 16px;border:1px solid var(--accent);background:var(--accent);color:var(--bg);cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--oro);outline-offset:2px}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:.78rem;color:var(--muted)}
+.readout div{background:var(--chip);border-radius:8px;padding:8px}
+.readout b{display:block;font-family:var(--f-mono);font-size:1.05rem;color:var(--fg);font-weight:500;font-variant-numeric:tabular-nums}
+.jar{border:1px solid var(--line);border-radius:10px;height:110px;position:relative;overflow:hidden;background:var(--bg)}
+.jar canvas{position:absolute;inset:0}
+.jar span{position:absolute;left:8px;top:6px;font-size:.72rem;font-family:var(--f-mono);color:var(--muted);z-index:1}
+
+.task{background:var(--chip);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.task ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+
+/* conceptos */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:700px){.duo{grid-template-columns:1fr}}
+.concept{border-top:4px solid;padding-top:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.concept.pot{border-color:var(--oro)} .concept.res{border-color:var(--brasa)}
+.concept ul{margin:0;padding-left:18px}
+.formula{font-family:var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:.92rem;overflow-x:auto}
+.key{background:var(--surface);border-left:4px solid var(--accent);padding:14px 16px;border-radius:0 10px 10px 0}
+.key b{color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500}
+
+/* ejemplos */
+.cases{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media (max-width:700px){.cases{grid-template-columns:1fr}}
+.case{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.tag{align-self:flex-start;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px}
+.tag.pot{background:rgba(201,162,39,.2);color:var(--fg)} .tag.res{background:rgba(226,87,43,.18);color:var(--fg)}
+.case .where{font-size:.82rem;color:var(--muted)}
+
+/* preguntas */
+.qs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;grid-template-columns:42px 1fr;gap:12px}
+.qn{font-family:var(--f-display);font-weight:700;font-size:1.6rem;color:var(--brasa);line-height:1}
+.q .lvl{font-family:var(--f-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.q p{margin-top:4px}
+.q .done{margin-top:10px}
+.progress{font-family:var(--f-mono);font-size:.85rem;color:var(--muted)}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">3° Medio · Biología de los Ecosistemas · Dinámica de poblaciones</div>
+  <h1>Potencial biótico y <em>resistencia ambiental</em></h1>
+  <p class="lede">¿Por qué ninguna población crece para siempre? Empieza jugando con el simulador y anota en tu cuaderno lo que observes antes de leer la teoría.</p>
+</header>
+
+<!-- 1. SIMULADOR -->
+<section id="simulador">
+  <div class="stage">Parte 1 · Explora</div>
+  <h2>Simulador: una población de conejos en un valle</h2>
+
+  <div class="sim">
+    <div class="plot">
+      <div class="canvas-box"><canvas id="graph" aria-label="Gráfico del tamaño poblacional en el tiempo"></canvas></div>
+      <div class="legend">
+        <span><i class="sw pot"></i>Potencial biótico (sin límites)</span>
+        <span><i class="sw real"></i>Crecimiento real</span>
+        <span><i class="sw gap"></i>Resistencia ambiental</span>
+      </div>
+      <div class="jar" aria-hidden="true"><span>El valle, visto desde arriba</span><canvas id="jar"></canvas></div>
+    </div>
+
+    <div class="controls">
+      <div class="ctl">
+        <label for="r">Tasa de crecimiento (r) <output id="rOut">0,30</output></label>
+        <input id="r" type="range" min="0.05" max="0.8" step="0.01" value="0.30">
+      </div>
+      <div class="ctl">
+        <label for="n0">Población inicial (N₀) <output id="n0Out">20</output></label>
+        <input id="n0" type="range" min="2" max="200" step="1" value="20">
+      </div>
+      <fieldset>
+        <legend>Factores de resistencia</legend>
+        <label class="chk"><input type="checkbox" id="f-alimento" checked> Alimento limitado <small>−40%</small></label>
+        <label class="chk"><input type="checkbox" id="f-depred" checked> Depredadores (zorro culpeo) <small>−25%</small></label>
+        <label class="chk"><input type="checkbox" id="f-espacio"> Espacio y madrigueras <small>−20%</small></label>
+        <label class="chk"><input type="checkbox" id="f-enferm"> Enfermedades <small>−15%</small></label>
+      </fieldset>
+      <div class="readout">
+        <div>Tiempo<b id="tOut">0</b></div>
+        <div>Población<b id="nOut">20</b></div>
+        <div>Capacidad K<b id="kOut">—</b></div>
+      </div>
+      <div class="btns">
+        <button id="play" type="button">Reproducir</button>
+        <button id="reset" type="button" class="ghost">Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="task">
+    <b>En tu cuaderno, mientras exploras</b>
+    <ol>
+      <li>Desmarca todos los factores y reproduce. Dibuja la forma de la curva y descríbela en una frase.</li>
+      <li>Activa los cuatro factores. ¿Qué pasa con la curva real y con la zona naranja? ¿Dónde se detiene la población?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 2. DESCRIPCIÓN -->
+<section id="conceptos">
+  <div class="stage">Parte 2 · Comprende</div>
+  <h2>Dos fuerzas que tiran en sentido contrario</h2>
+  <p class="read">Toda población tiene una tendencia a crecer y un ambiente que la frena. El tamaño que observamos en la naturaleza es el resultado del equilibrio entre ambas fuerzas.</p>
+
+  <div class="duo">
+    <article class="concept pot">
+      <h3>Potencial biótico</h3>
+      <p>Es la <b>capacidad máxima de reproducción</b> de una especie cuando las condiciones son ideales: alimento ilimitado, sin depredadores, sin enfermedades y con espacio de sobra.</p>
+      <ul>
+        <li>Depende de la especie: número de crías por camada, edad de primera reproducción, frecuencia de reproducción y longevidad.</li>
+        <li>Produce un crecimiento <b>exponencial</b>: curva en forma de <b>J</b>.</li>
+      </ul>
+      <div class="formula">ΔN = r · N</div>
+      <p style="font-size:.88rem;color:var(--muted)">Mientras más individuos hay, más rápido aumenta la población.</p>
+    </article>
+
+    <article class="concept res">
+      <h3>Resistencia ambiental</h3>
+      <p>Es el <b>conjunto de factores del ambiente que limitan el crecimiento</b> de una población e impiden que alcance su potencial biótico.</p>
+      <ul>
+        <li>Factores bióticos: depredación, competencia, parasitismo, enfermedades.</li>
+        <li>Factores abióticos: agua, temperatura, espacio, nutrientes, luz.</li>
+        <li>Produce un crecimiento <b>logístico</b>: curva en forma de <b>S</b>.</li>
+      </ul>
+      <div class="formula">ΔN = r · N · (1 − N/K)</div>
+      <p style="font-size:.88rem;color:var(--muted)">El término (1 − N/K) es el freno: se acerca a cero cuando N se acerca a K.</p>
+    </article>
+  </div>
+
+  <div class="key read">
+    <b>Capacidad de carga (K):</b> es el número máximo de individuos que un ambiente puede sostener en el tiempo con sus recursos disponibles. Cuando la población llega a K, los nacimientos y las muertes se equilibran y la curva se aplana.
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th>Potencial biótico</th><th>Resistencia ambiental</th></tr></thead>
+      <tbody>
+        <tr><td><b>Qué es</b></td><td>Capacidad intrínseca de reproducirse</td><td>Límites que impone el ambiente</td></tr>
+        <tr><td><b>Depende de</b></td><td>La biología de la especie</td><td>El ecosistema donde vive</td></tr>
+        <tr><td><b>Curva</b></td><td>Exponencial (J)</td><td>Logística (S), se estabiliza en K</td></tr>
+        <tr><td><b>Efecto</b></td><td>Empuja la población hacia arriba</td><td>Frena el crecimiento</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 3. EJEMPLOS -->
+<section id="ejemplos">
+  <div class="stage">Parte 3 · Observa casos reales</div>
+  <h2>Ejemplos en Chile</h2>
+
+  <div class="cases">
+    <article class="case">
+      <span class="tag pot">Potencial biótico desatado</span>
+      <h3>El castor en Tierra del Fuego</h3>
+      <div class="where">Patagonia chileno-argentina</div>
+      <p>En 1946 se liberaron unas 25 parejas para la industria peletera. Sin depredadores naturales y con bosques de lenga y ñirre disponibles, la población creció hasta decenas de miles de individuos. Es un caso donde la resistencia ambiental era casi nula.</p>
+    </article>
+
+    <article class="case">
+      <span class="tag pot">Potencial biótico desatado</span>
+      <h3>El conejo europeo</h3>
+      <div class="where">Chile central y austral, incluida la Región de Valparaíso</div>
+      <p>Una hembra puede tener varias camadas al año, con varias crías cada una, y estas se reproducen a los pocos meses. Al llegar a Chile encontró pocos depredadores adaptados a él, y hoy compite con especies nativas y daña la regeneración del bosque esclerófilo.</p>
+    </article>
+
+    <article class="case">
+      <span class="tag res">Resistencia ambiental</span>
+      <h3>La anchoveta y El Niño</h3>
+      <div class="where">Corriente de Humboldt</div>
+      <p>La anchoveta tiene un potencial biótico alto, pero depende del agua fría y rica en nutrientes de la surgencia. Durante El Niño el agua se calienta, baja el fitoplancton y la población cae. Cuando a esa resistencia se suma la pesca intensa, las poblaciones pueden colapsar, como ocurrió en Perú a inicios de los años 70.</p>
+    </article>
+
+    <article class="case">
+      <span class="tag res">Resistencia ambiental</span>
+      <h3>Los degús del matorral</h3>
+      <div class="where">Bosque esclerófilo y matorral de Chile central</div>
+      <p>Los degús se reproducen rápido, pero su población se mantiene regulada por la disponibilidad de pasto, la sequía de verano y depredadores como el zorro culpeo, la lechuza y el águila mora. En años lluviosos su número aumenta; en años secos disminuye.</p>
+    </article>
+  </div>
+
+  <div class="key read">
+    <b>Para pensar:</b> las especies invasoras son un experimento natural. Muestran lo que pasa cuando una especie con alto potencial biótico llega a un lugar donde la resistencia ambiental todavía no la alcanza.
+  </div>
+</section>
+
+<!-- 4. PREGUNTAS -->
+<section id="preguntas">
+  <div class="stage">Parte 4 · Desarrolla en tu cuaderno</div>
+  <h2>Preguntas</h2>
+  <p class="progress" id="prog">0 de 6 respondidas</p>
+
+  <ol class="qs">
+    <li class="q"><span class="qn">1</span><div><span class="lvl">Definir</span>
+      <p>Define con tus palabras potencial biótico y resistencia ambiental. Da un factor biótico y uno abiótico de resistencia.</p>
+      <label class="chk done"><input type="checkbox" class="qdone" id="q1"> Lo respondí en mi cuaderno</label></div></li>
+
+    <li class="q"><span class="qn">2</span><div><span class="lvl">Comparar</span>
+      <p>Dibuja en un mismo gráfico una curva J y una curva S. Marca la capacidad de carga (K) y colorea la zona que representa la resistencia ambiental.</p>
+      <label class="chk done"><input type="checkbox" class="qdone" id="q2"> Lo respondí en mi cuaderno</label></div></li>
+
+    <li class="q"><span class="qn">3</span><div><span class="lvl">Usar el simulador</span>
+      <p>Prueba con r = 0,15 y luego con r = 0,60, sin cambiar los factores. ¿Cambia el valor final de la población? ¿Qué cambia entonces? Explica por qué.</p>
+      <label class="chk done"><input type="checkbox" class="qdone" id="q3"> Lo respondí en mi cuaderno</label></div></li>
+
+    <li class="q"><span class="qn">4</span><div><span class="lvl">Explicar</span>
+      <p>¿Por qué el castor pudo crecer tanto en Tierra del Fuego, mientras que en su lugar de origen (Canadá) su población se mantiene estable? Usa los dos conceptos de la clase.</p>
+      <label class="chk done"><input type="checkbox" class="qdone" id="q4"> Lo respondí en mi cuaderno</label></div></li>
+
+    <li class="q"><span class="qn">5</span><div><span class="lvl">Predecir</span>
+      <p>Un incendio forestal en el bosque esclerófilo cerca de Villa Alemana elimina gran parte del matorral. Predice qué ocurrirá con la capacidad de carga para los degús y cómo se vería su curva de crecimiento en los años siguientes.</p>
+      <label class="chk done"><input type="checkbox" class="qdone" id="q5"> Lo respondí en mi cuaderno</label></div></li>
+
+    <li class="q"><span class="qn">6</span><div><span class="lvl">Argumentar</span>
+      <p>La población humana ha crecido de forma casi exponencial en los últimos 200 años. ¿Hemos escapado de la resistencia ambiental o solo la hemos postergado? Argumenta con al menos dos ejemplos.</p>
+      <label class="chk done"><input type="checkbox" class="qdone" id="q6"> Lo respondí en mi cuaderno</label></div></li>
+  </ol>
+</section>
+
+<footer>Colegio San Agustín · Villa Alemana · Biología de los Ecosistemas</footer>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const graph=$('graph'), jar=$('jar');
+  const factors={'f-alimento':0.6,'f-depred':0.75,'f-espacio':0.8,'f-enferm':0.85};
+  const KBASE=1200, TMAX=60, YMAX=1400;
+  let t=0, playing=false, raf=null, last=0;
+  let dots=[];
+
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const fmt=v=>v.toLocaleString('es-CL',{maximumFractionDigits:0});
+
+  function params(){
+    const r=parseFloat($('r').value), n0=parseInt($('n0').value,10);
+    let mult=1, any=false;
+    for(const id in factors){ if($(id).checked){mult*=factors[id]; any=true;} }
+    return {r,n0,K: any? KBASE*mult : Infinity};
+  }
+  function series(p){
+    const exp=[p.n0], log=[p.n0];
+    for(let i=1;i<=TMAX;i++){
+      exp.push(exp[i-1]*(1+p.r*0.5));
+      const n=log[i-1];
+      log.push(isFinite(p.K)? Math.max(0,n+p.r*0.5*n*(1-n/p.K)) : n*(1+p.r*0.5));
+    }
+    return {exp,log};
+  }
+
+  function fit(c){
+    const dpr=window.devicePixelRatio||1, b=c.getBoundingClientRect();
+    c.width=Math.max(1,b.width*dpr); c.height=Math.max(1,b.height*dpr);
+    const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx,w:b.width,h:b.height};
+  }
+
+  function draw(){
+    const p=params(), s=series(p);
+    const {ctx,w,h}=fit(graph);
+    const m={l:52,r:12,t:12,b:34}, pw=w-m.l-m.r, ph=h-m.t-m.b;
+    const X=i=>m.l+i/TMAX*pw, Y=v=>m.t+ph-Math.min(v,YMAX)/YMAX*ph;
+    const fg=css('--fg'), muted=css('--muted'), grid=css('--grid');
+    ctx.clearRect(0,0,w,h);
+    ctx.font='11px "IBM Plex Mono", monospace'; ctx.fillStyle=muted; ctx.strokeStyle=grid; ctx.lineWidth=1;
+    for(let v=0;v<=YMAX;v+=200){ctx.beginPath();ctx.moveTo(m.l,Y(v));ctx.lineTo(w-m.r,Y(v));ctx.stroke();
+      ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(fmt(v),m.l-6,Y(v));}
+    ctx.textAlign='center';ctx.textBaseline='top';
+    for(let i=0;i<=TMAX;i+=10){ctx.fillText(i,X(i),m.t+ph+6);}
+    ctx.fillText('Tiempo (meses)',m.l+pw/2,m.t+ph+19);
+    ctx.save();ctx.translate(12,m.t+ph/2);ctx.rotate(-Math.PI/2);ctx.textBaseline='middle';ctx.fillText('N° de individuos',0,0);ctx.restore();
+
+    const tEnd=Math.min(TMAX,Math.floor(t));
+    // gap
+    if(isFinite(p.K) && tEnd>0){
+      ctx.beginPath(); ctx.moveTo(X(0),Y(s.exp[0]));
+      for(let i=1;i<=tEnd;i++) ctx.lineTo(X(i),Y(s.exp[i]));
+      for(let i=tEnd;i>=0;i--) ctx.lineTo(X(i),Y(s.log[i]));
+      ctx.closePath(); ctx.fillStyle=css('--gap'); ctx.fill();
+    }
+    // K line
+    if(isFinite(p.K)){
+      ctx.setLineDash([2,4]); ctx.strokeStyle=css('--gapline'); ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(m.l,Y(p.K)); ctx.lineTo(w-m.r,Y(p.K)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=css('--gapline'); ctx.textAlign='right'; ctx.textBaseline='bottom';
+      ctx.fillText('K = '+fmt(p.K), w-m.r-4, Y(p.K)-3);
+    }
+    const line=(arr,col,dash)=>{ctx.strokeStyle=col;ctx.lineWidth=3;ctx.setLineDash(dash||[]);ctx.beginPath();
+      ctx.save();ctx.rect(m.l,m.t,pw,ph);ctx.clip();
+      ctx.moveTo(X(0),Y(arr[0])); for(let i=1;i<=tEnd;i++) ctx.lineTo(X(i),Y(arr[i])); ctx.stroke(); ctx.restore(); ctx.setLineDash([]);};
+    line(s.exp,css('--curve-pot'),[7,5]);
+    line(s.log,css('--curve-real'));
+    if(s.exp[tEnd]>YMAX){ctx.fillStyle=css('--curve-pot');ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('↑ se sale del gráfico',m.l+6,m.t+4);}
+
+    const N=s.log[tEnd];
+    $('tOut').textContent=tEnd; $('nOut').textContent=N>99999?'>99.999':fmt(N);
+    $('kOut').textContent=isFinite(p.K)?fmt(p.K):'sin límite';
+    drawJar(Math.min(N,YMAX));
+  }
+
+  function drawJar(N){
+    const {ctx,w,h}=fit(jar);
+    const target=Math.round(N/6);
+    while(dots.length<target) dots.push({x:Math.random(),y:0.15+Math.random()*0.85});
+    if(dots.length>target) dots.length=target;
+    ctx.clearRect(0,0,w,h); ctx.fillStyle=css('--curve-real');
+    for(const d of dots){ctx.beginPath();ctx.arc(d.x*(w-6)+3,d.y*(h-6)+3,2.4,0,Math.PI*2);ctx.fill();}
+  }
+
+  function tick(ts){
+    if(!playing) return;
+    if(!last) last=ts;
+    t+= (ts-last)/1000*8; last=ts;
+    if(t>=TMAX){t=TMAX;stop();}
+    draw();
+    if(playing) raf=requestAnimationFrame(tick);
+  }
+  function play(){ if(t>=TMAX) t=0; playing=true; last=0; $('play').textContent='Pausar'; raf=requestAnimationFrame(tick); }
+  function stop(){ playing=false; cancelAnimationFrame(raf); $('play').textContent='Reproducir'; }
+
+  $('play').addEventListener('click',()=>playing?stop():play());
+  $('reset').addEventListener('click',()=>{stop();t=0;dots=[];draw();});
+  $('r').addEventListener('input',e=>{$('rOut').textContent=parseFloat(e.target.value).toFixed(2).replace('.',',');draw();});
+  $('n0').addEventListener('input',e=>{$('n0Out').textContent=e.target.value;draw();});
+  Object.keys(factors).forEach(id=>$(id).addEventListener('change',draw));
+  window.addEventListener('resize',draw);
+  const mq=window.matchMedia('(prefers-color-scheme: dark)'); mq.addEventListener&&mq.addEventListener('change',draw);
+  new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+  // estado inicial: curva completa visible
+  t=TMAX; draw();
+
+  // progreso de preguntas
+  const boxes=[...document.querySelectorAll('.qdone')];
+  const upd=()=>{const n=boxes.filter(b=>b.checked).length;$('prog').textContent=n+' de '+boxes.length+' respondidas';
+    try{localStorage.setItem('pb-q',JSON.stringify(boxes.map(b=>b.checked)));}catch(e){}};
+  try{const s=JSON.parse(localStorage.getItem('pb-q')||'[]');boxes.forEach((b,i)=>b.checked=!!s[i]);}catch(e){}
+  boxes.forEach(b=>b.addEventListener('change',upd)); upd();
+})();
+</script>
+</body>
+</html>
