@@ -73,3 +73,7 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 - Las fotos se achican y comprimen en el navegador (máx. 640 px, WebP, ~50 KB) y se guardan dentro del artículo: no se usa Firebase Storage.
 - Al comprar se crea un pedido `articulo` en `mercado_pedidos` con el pago retenido y el artículo descuenta una unidad en la misma escritura (`tienda_articulos`).
 - El profe lo entrega en persona y presiona «📦 Entregado» en Panel del profe → Solicitudes. Si rechaza, o el estudiante cancela antes, el pago vuelve y la unidad se repone.
+
+## Muro de mensajes (portada)
+- Desde nov. 2026 usa Firestore (`muro`) en vez de Apps Script: se actualiza en vivo (antes cada visitante consultaba el script cada 8 s).
+- Leer es público; para escribir hay que entrar con la cuenta. Un mensaje cada 10 s por persona (`muro_ritmo`), máx. 140 caracteres, sin enlaces, correos ni números largos, y la firma debe empezar con el nombre de pila de la cuenta. El profe ve una ✕ para borrar mensajes.

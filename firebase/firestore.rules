@@ -733,6 +733,34 @@ service cloud.firestore {
         && d.oculto == (resource == null ? false : resource.data.oculto)
         && d.actualizado == request.time;
     }
+    // ═════ Muro de mensajes de la portada ═════
+    // Leerlo es público. Para escribir hay que entrar con la cuenta (así se puede limitar el ritmo y saber quién escribe):
+    // máximo 140 caracteres, sin enlaces, correos ni números largos, y un mensaje cada 10 segundos por persona
+    // (muro_ritmo/<uid> guarda la hora del último, en la misma escritura). El nombre debe empezar con el nombre de pila
+    // de la cuenta de Google. El profe puede borrar mensajes.
+    function sinDatosPersonales(t) { return !t.matches('(?s).*(https?:|www[.]|@|[0-9]{7,}).*'); }
+    match /muro/{mid} {
+      allow read: if true;
+      allow delete: if esProfe();
+      allow create: if conCuenta()
+        && request.resource.data.keys().hasOnly(['nombre', 'texto', 'ts', 'uid'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.ts == request.time
+        && texto(request.resource.data.nombre, 24) && request.resource.data.nombre.size() >= 2
+        && texto(request.resource.data.texto, 140) && request.resource.data.texto.size() >= 1
+        && sinDatosPersonales(request.resource.data.nombre) && sinDatosPersonales(request.resource.data.texto)
+        && (request.auth.token.get('name', '') == '' || request.resource.data.nombre.split(' ')[0].lower() == request.auth.token.name.split(' ')[0].lower())
+        && getAfter(/databases/$(database)/documents/muro_ritmo/$(request.auth.uid)).data.ultimo == mid
+        && getAfter(/databases/$(database)/documents/muro_ritmo/$(request.auth.uid)).data.ts == request.time;
+    }
+    match /muro_ritmo/{uid} {
+      allow read: if soyYo(uid) || esProfe();
+      allow create, update: if conCuenta() && soyYo(uid)
+        && request.resource.data.keys().hasOnly(['ts', 'ultimo'])
+        && request.resource.data.ts == request.time
+        && (resource == null || request.time > resource.data.ts + duration.value(10, 's'))
+        && existsAfter(/databases/$(database)/documents/muro/$(request.resource.data.ultimo));
+    }
     match /perfiles_publicos/{uid} {
       allow read: if soyYo(uid) || esProfe() || (esColegio() && resource.data.publico == true && resource.data.oculto == false);
       allow create, update: if esColegio() && soyYo(uid) && perfilValido(request.resource.data, uid);
