@@ -441,7 +441,7 @@ async function liquidar(pid) {
           tx.update(sc.ref, { saldo, actualizado: F.serverTimestamp() });
           tx.set(F.doc(F.collection(db, 'banco_movs')), { cuenta: a.cuenta, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
             monto: pago, motivo: (estado === 'devuelta' ? `Apuesta devuelta: «${p.titulo}»` : `Apuesta ganada: ${p.opciones[a.opcion]} en «${p.titulo}»`).slice(0, 200),
-            tipo: estado === 'devuelta' ? 'apuesta-devuelta' : 'apuesta-ganada', saldoDespues: saldo, profe, fecha: F.serverTimestamp(), apuesta: a._id });
+            tipo: estado === 'devuelta' ? 'apuesta-devuelta' : 'apuesta-ganada', saldoDespues: saldo, profe, fecha: F.serverTimestamp(), apuesta: sa.id });
         }
         tx.update(ra, { estado, pago, resuelta: F.serverTimestamp() });
       });
