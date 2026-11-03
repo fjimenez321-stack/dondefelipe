@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laboratorio de Presión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: dossier técnico NERV — barra de ficha arriba, una lámina por vista, navegación abajo */
+:root{
+  --bg:#f3f1ea; --paper:#fbfaf5; --ink:#1c1a24; --muted:#5e5a6c; --line:#d3cedc;
+  --violet:#5a33a0; --orange:#d9600c; --lime:#5f8f14; --cyan:#0d7482; --danger:#c22f2f;
+  --lcd-bg:#d5e2b4; --lcd-ink:#1d2a0e; --lcd-dim:#9fb07c;
+  --f-display:"IBM Plex Mono",Consolas,"Courier New",monospace;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-lcd:"Share Tech Mono","IBM Plex Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d0c11; --paper:#15131c; --ink:#ebe8f3; --muted:#a29db4; --line:#302c3e;
+  --violet:#a98af0; --orange:#ff8a3a; --lime:#a4dc4a; --cyan:#43cfdc; --danger:#ff6464;
+  --lcd-bg:#0c180a; --lcd-ink:#a8f24c; --lcd-dim:#2c4a1c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d0c11; --paper:#15131c; --ink:#ebe8f3; --muted:#a29db4; --line:#302c3e;
+  --violet:#a98af0; --orange:#ff8a3a; --lime:#a4dc4a; --cyan:#43cfdc; --danger:#ff6464;
+  --lcd-bg:#0c180a; --lcd-ink:#a8f24c; --lcd-dim:#2c4a1c; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;display:flex;flex-direction:column}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
+.bar{display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);font-family:var(--f-display);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex-wrap:wrap}
+.bar .tag{color:var(--paper);background:var(--violet);padding:3px 8px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%)}
+.bar .kanji{color:var(--orange);letter-spacing:.2em}
+.bar .sp{flex:1}
+
+main{flex:1;min-height:0;position:relative;overflow:hidden}
+.slide{position:absolute;inset:0;overflow-y:auto;padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.slide>.in{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px;min-height:100%}
+.slide.anim>.in{animation:enter .35s ease-out}
+@keyframes enter{from{transform:translateY(10px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.slide.anim>.in{animation:none}.blink{animation:none!important}}
+
+.eyebrow{font-family:var(--f-display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);display:flex;gap:10px;align-items:center}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line);max-width:240px}
+h1,h2{font-family:var(--f-display);font-weight:700;letter-spacing:-.02em;text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(40px,7vw,84px)}
+h2{font-size:clamp(28px,4vw,46px)}
+p{margin:0;max-width:65ch}
+.lead{font-size:clamp(18px,2.2vw,24px);color:var(--muted);max-width:52ch}
+.big{font-size:clamp(20px,2.6vw,28px);line-height:1.4}
+.hl{color:var(--orange);font-weight:600}
+.vi{color:var(--violet);font-weight:600}
+
+.panel{background:var(--paper);border:1px solid var(--line);padding:20px;position:relative;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.panel .lbl{font-family:var(--f-display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.grid2>*,.grid3>*{min-width:0}
+
+/* portada */
+.cover{justify-content:center}
+.cover .num{font-family:var(--f-lcd);font-size:clamp(56px,11vw,140px);color:var(--violet);line-height:1}
+.cover .num small{font-size:.35em;color:var(--muted)}
+
+/* opciones de predicción */
+.opts{display:grid;gap:12px}
+.opt{display:flex;gap:14px;align-items:flex-start;text-align:left;background:var(--paper);border:1px solid var(--line);padding:14px 16px;cursor:pointer}
+.opt b{font-family:var(--f-display);color:var(--violet);min-width:1.4em}
+.opt[aria-pressed="true"]{border-color:var(--orange);box-shadow:inset 4px 0 0 var(--orange)}
+.opt.ok{border-color:var(--lime);box-shadow:inset 4px 0 0 var(--lime)}
+
+/* columna de aire */
+.column{display:flex;gap:18px;align-items:stretch}
+.col-vis{width:120px;flex:none;background:linear-gradient(to top,color-mix(in srgb,var(--cyan) 55%,transparent),color-mix(in srgb,var(--cyan) 4%,transparent));border:1px dashed var(--cyan);display:flex;flex-direction:column;justify-content:space-between;font-family:var(--f-display);font-size:11px;color:var(--muted);padding:8px;min-height:260px}
+.col-vis .base{background:var(--ink);color:var(--paper);text-align:center;padding:4px;font-size:11px}
+
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-size:15px}
+th{font-family:var(--f-display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.tw{overflow-x:auto}
+
+/* LABORATORIO */
+.lab{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px}
+@media (max-width:900px){.lab{grid-template-columns:1fr}}
+.ctrl{display:flex;flex-direction:column;gap:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:transparent;padding:5px 10px;font-size:13px;cursor:pointer;font-family:var(--f-body)}
+.chip[aria-pressed="true"]{background:var(--violet);color:var(--paper);border-color:var(--violet)}
+.chip.w[aria-pressed="true"]{background:var(--orange);border-color:var(--orange);color:#fff}
+.rng{display:flex;flex-direction:column;gap:4px}
+.rng .row{display:flex;justify-content:space-between;font-family:var(--f-display);font-size:13px}
+.rng .row output{color:var(--orange);font-weight:700;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--violet)}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--orange);padding-left:10px;min-height:3em}
+
+.inst{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.inst>*{min-width:0}
+.lcd{background:var(--lcd-bg);color:var(--lcd-ink);font-family:var(--f-lcd);padding:14px 16px;border:3px solid var(--ink);position:relative}
+.lcd .main{font-size:clamp(46px,6.4vw,72px);line-height:1;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:8px}
+.lcd .main small{font-size:20px}
+.lcd .ghost{position:absolute;opacity:0;pointer-events:none}
+.lcd .sub{display:flex;gap:14px;flex-wrap:wrap;font-size:15px;margin-top:6px}
+.lcd .flag{font-size:13px;letter-spacing:.1em;min-height:1.3em}
+.trend{font-size:28px;margin-left:auto}
+.zones{display:flex;margin-top:12px;font-family:var(--f-display);font-size:10px;text-transform:uppercase;letter-spacing:.04em;position:relative}
+.zones span{flex:1;text-align:center;padding:4px 0;border-top:4px solid var(--line);color:var(--muted)}
+.zones span.on{border-top-color:var(--orange);color:var(--ink);font-weight:700}
+.dialwrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.dialwrap svg.dial{width:min(230px,100%);height:auto;flex:none}
+.bottle{width:90px;flex:none}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.fact{border:1px solid var(--line);padding:10px 12px;background:var(--paper)}
+.fact .v{font-family:var(--f-display);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.fact .k{font-size:12px;color:var(--muted)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:9px 14px;cursor:pointer;font-family:var(--f-display);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.btn.ghost{background:transparent;color:var(--ink)}
+.blink{animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:.15}}
+.dimtext{color:var(--danger)}
+
+/* alta/baja */
+.ab svg{width:100%;height:auto;display:block}
+
+.missions{counter-reset:m;display:grid;gap:12px;padding:0;margin:0;list-style:none}
+.missions li{counter-increment:m;display:grid;grid-template-columns:auto 1fr;gap:14px;background:var(--paper);border:1px solid var(--line);padding:14px 16px}
+.missions li::before{content:"M" counter(m,decimal-leading-zero);font-family:var(--f-display);font-weight:700;color:var(--violet)}
+
+.sema{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.sema div{padding:14px;border:1px solid var(--line);display:flex;gap:10px;align-items:center;background:var(--paper)}
+.dot{width:22px;height:22px;border-radius:50%;flex:none}
+
+/* navegación */
+nav.foot{display:flex;align-items:center;gap:10px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-top:1px solid var(--line);font-family:var(--f-display);font-size:13px}
+nav.foot .dots{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+nav.foot .dots button{width:22px;height:6px;border:0;background:var(--line);cursor:pointer;padding:0}
+nav.foot .dots button[aria-current="true"]{background:var(--orange)}
+.nb{border:1px solid var(--line);background:var(--paper);padding:7px 12px;cursor:pointer}
+.count{font-variant-numeric:tabular-nums;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="bar">
+  <span class="tag">Sesión 07</span>
+  <span>Unidad 2 · La Tierra dinámica · 7° básico · OA 8</span>
+  <span class="sp"></span>
+  <span class="kanji">気圧</span>
+  <span id="slideName">—</span>
+</header>
+
+<main id="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide" data-name="Portada">
+<div class="in cover">
+  <div class="eyebrow">Ficha 07 · Atmósfera</div>
+  <h1>Presión<br>atmosférica</h1>
+  <p class="lead">¿El aire pesa? Hoy vamos a medirlo con un barómetro y un manómetro, desde Viña del Mar hasta la cima del Ojos del Salado.</p>
+  <div class="num">1013,25 <small>hPa al nivel del mar</small></div>
+</div>
+</section>
+
+<!-- 2 PREGUNTA GATILLO -->
+<section class="slide" data-name="Pregunta">
+<div class="in">
+  <div class="eyebrow">Inicio · Predice</div>
+  <h2>Compras una bolsa de papas fritas en Viña y viajas a Farellones. Al llegar, la bolsa está inflada como un globo.</h2>
+  <p class="big">¿Por qué? Elige tu predicción antes de seguir.</p>
+  <div class="opts" id="opts">
+    <button class="opt" data-k="a" aria-pressed="false"><b>A</b><span>El aire de adentro se calentó en el viaje.</span></button>
+    <button class="opt" data-k="b" aria-pressed="false"><b>B</b><span>Arriba, el aire de afuera empuja menos sobre la bolsa.</span></button>
+    <button class="opt" data-k="c" aria-pressed="false"><b>C</b><span>Las papas soltaron gas.</span></button>
+    <button class="opt" data-k="d" aria-pressed="false"><b>D</b><span>En la montaña hay más aire.</span></button>
+  </div>
+  <p class="note" id="predNote">Guardamos tu respuesta. La revisamos al final de la clase.</p>
+</div>
+</section>
+
+<!-- 3 QUÉ ES -->
+<section class="slide" data-name="¿Qué es?">
+<div class="in">
+  <div class="eyebrow">Desarrollo · Concepto</div>
+  <h2>El aire tiene masa y nos aplasta todo el tiempo</h2>
+  <div class="grid2">
+    <div class="column panel">
+      <div class="col-vis"><span>Fin de la atmósfera (~100 km)</span><span>Columna de aire</span><div class="base">1 m²</div></div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <span class="lbl">Columna de aire sobre 1 m²</span>
+        <p class="big">Pesa lo mismo que <span class="hl">10 toneladas</span>: unos 7 autos.</p>
+        <p>Sobre la palma de tu mano (unos 100 cm²) hay aire equivalente a <span class="hl">100 kg</span>.</p>
+      </div>
+    </div>
+    <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <span class="lbl">Definición</span>
+      <p class="big"><span class="vi">Presión</span> = cuánta fuerza se reparte sobre una superficie.</p>
+      <p><span class="vi">Presión atmosférica</span> = la fuerza que hace el peso del aire sobre todo lo que está debajo.</p>
+      <p>Mientras más alto subes, <span class="hl">menos aire queda encima</span>, y la presión baja.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 4 POR QUÉ NO NOS APLASTA -->
+<section class="slide" data-name="Equilibrio">
+<div class="in">
+  <div class="eyebrow">Desarrollo · Pregunta</div>
+  <h2>Si son 100 kg sobre tu mano, ¿por qué no la sientes?</h2>
+  <div class="grid2">
+    <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <span class="lbl">Empuja en todas direcciones</span>
+      <p class="big">El aire empuja desde arriba, abajo y los lados por igual.</p>
+      <p>Y los fluidos de tu cuerpo empujan hacia afuera con la misma fuerza. Las fuerzas se equilibran.</p>
+      <p>Lo notas cuando ese equilibrio se rompe: los oídos que se "tapan" al subir a la cordillera o al despegar en avión.</p>
+    </div>
+    <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <span class="lbl">Demostración · vaso y cartón</span>
+      <ol style="margin:0;padding-left:1.2em;display:grid;gap:6px">
+        <li>Llena un vaso con agua hasta el borde.</li>
+        <li>Tápalo con un cartón liso.</li>
+        <li>Afirma el cartón y da vuelta el vaso.</li>
+        <li>Suelta el cartón.</li>
+      </ol>
+      <p class="hl">¿Por qué el agua no se cae?</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 5 INSTRUMENTOS -->
+<section class="slide" data-name="Instrumentos">
+<div class="in">
+  <div class="eyebrow">Desarrollo · Instrumentos</div>
+  <h2>Dos instrumentos, dos preguntas distintas</h2>
+  <div class="grid2">
+    <div class="panel" style="display:flex;flex-direction:column;gap:10px">
+      <span class="lbl">Barómetro</span>
+      <p class="big">¿Cuánto empuja el aire <span class="hl">aquí</span>?</p>
+      <p>Mide la presión atmosférica. Lo inventó Evangelista Torricelli en 1643 con un tubo de mercurio: al nivel del mar, el aire sostiene una columna de 760 mm.</p>
+    </div>
+    <div class="panel" style="display:flex;flex-direction:column;gap:10px">
+      <span class="lbl">Manómetro</span>
+      <p class="big">¿Cuánto más (o menos) presión hay <span class="hl">adentro</span> que afuera?</p>
+      <p>Mide la presión de un gas o líquido encerrado, comparada con la del aire. Ejemplos: neumáticos, balones de gas, la presión sanguínea.</p>
+    </div>
+  </div>
+  <div class="panel tw">
+    <span class="lbl">Unidades · equivalencias de 1 atmósfera</span>
+    <table>
+      <thead><tr><th>Unidad</th><th>Valor</th><th>Dónde la verás</th></tr></thead>
+      <tbody>
+        <tr><td>hectopascal (hPa)</td><td>1013,25</td><td>Pronóstico del tiempo</td></tr>
+        <tr><td>milímetros de mercurio (mmHg)</td><td>760</td><td>Presión sanguínea, barómetro de Torricelli</td></tr>
+        <tr><td>kilopascal (kPa)</td><td>101,325</td><td>Manómetros</td></tr>
+        <tr><td>atmósfera (atm)</td><td>1</td><td>Buceo, química</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- 6 LABORATORIO -->
+<section class="slide" data-name="Laboratorio">
+<div class="in">
+  <div class="eyebrow">Laboratorio virtual · Mide</div>
+  <div class="lab">
+    <div class="panel ctrl">
+      <div>
+        <span class="lbl">Lugar</span>
+        <div class="chips" id="places"></div>
+      </div>
+      <div class="rng">
+        <div class="row"><label for="alt">Altitud</label><output id="altO">0 m</output></div>
+        <input type="range" id="alt" min="0" max="11000" step="10" value="0">
+      </div>
+      <div class="rng">
+        <div class="row"><label for="dep">Profundidad bajo el mar</label><output id="depO">0 m</output></div>
+        <input type="range" id="dep" min="0" max="40" step="1" value="0">
+      </div>
+      <div class="rng">
+        <div class="row"><label for="tmp">Temperatura del aire</label><output id="tmpO">17 °C</output></div>
+        <input type="range" id="tmp" min="-55" max="40" step="1" value="17">
+      </div>
+      <div>
+        <span class="lbl">Condición del tiempo</span>
+        <div class="chips" id="weather"></div>
+      </div>
+      <p class="note" id="wNote"></p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+      <div class="inst">
+        <div class="panel">
+          <span class="lbl">Barómetro digital · presión en el lugar</span>
+          <div class="lcd">
+            <div class="flag" id="bFlag"></div>
+            <div class="main"><span id="bVal">1013,3</span><small>hPa</small><span class="trend" id="bTrend">·</span></div>
+            <div class="sub"><span id="bMm">760 mmHg</span><span id="bAtm">1,000 atm</span><span id="bKpa">101,3 kPa</span></div>
+          </div>
+          <div class="zones" id="zones" aria-label="Pronóstico según presión a nivel del mar">
+            <span>Temporal</span><span>Lluvia</span><span>Variable</span><span>Buen tiempo</span><span>Muy seco</span>
+          </div>
+          <p style="font-size:13px;color:var(--muted);margin-top:8px">El pronóstico usa la presión corregida al nivel del mar: <b id="qnh">1013 hPa</b>.</p>
+        </div>
+
+        <div class="panel">
+          <span class="lbl">Manómetro · botella plástica sellada</span>
+          <div class="dialwrap">
+            <svg class="dial" viewBox="0 0 220 180" role="img" aria-label="Manómetro">
+              <g id="ticks"></g>
+              <line id="needle" x1="110" y1="110" x2="110" y2="34" stroke-width="4" stroke-linecap="round" style="stroke:var(--orange);transition:transform .5s cubic-bezier(.3,1.4,.5,1);transform-origin:110px 110px"/>
+              <circle cx="110" cy="110" r="8" style="fill:var(--ink)"/>
+              <text x="110" y="148" text-anchor="middle" font-family="Share Tech Mono,IBM Plex Mono,monospace" font-size="22" id="mVal" style="fill:var(--ink)">0,0</text>
+              <text x="110" y="168" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" style="fill:var(--muted)">kPa (manométrica)</text>
+            </svg>
+            <svg class="bottle" viewBox="0 0 90 170" aria-hidden="true">
+              <g id="bottleG" style="transition:transform .5s;transform-origin:45px 110px">
+                <rect x="34" y="6" width="22" height="16" style="fill:var(--violet)"/>
+                <path d="M36 22 h18 v12 c0 8 22 14 22 34 v84 c0 8 -6 12 -12 12 h-38 c-6 0 -12 -4 -12 -12 v-84 c0 -20 22 -26 22 -34z" stroke-width="2.5" style="fill:color-mix(in srgb,var(--cyan) 18%,transparent);stroke:var(--cyan)"/>
+              </g>
+            </svg>
+          </div>
+          <div class="flag" id="mFlag" style="font-family:var(--f-display);font-size:13px;font-weight:700;margin-top:4px">NORMAL</div>
+          <p style="font-size:13px;color:var(--muted)">Sellada en <span id="sealAt">Viña del Mar · 1013 hPa · 15 °C</span>.</p>
+          <button class="btn ghost" id="sealBtn" style="margin-top:8px">Sellar la botella aquí</button>
+        </div>
+      </div>
+
+      <div class="facts">
+        <div class="fact"><div class="v" id="fBoil">100,0 °C</div><div class="k">El agua hierve a</div></div>
+        <div class="fact"><div class="v" id="fO2">100 %</div><div class="k">Oxígeno por respiración, comparado con el nivel del mar</div></div>
+        <div class="fact"><div class="v" id="fCol">10,3 t</div><div class="k">Peso del aire sobre 1 m²</div></div>
+        <div class="fact"><div class="v" id="fHand">103 kg</div><div class="k">Peso del aire sobre tu mano</div></div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+          <span class="lbl" style="margin:0;flex:1">Bitácora de mediciones</span>
+          <button class="btn" id="recBtn">Registrar medición</button>
+          <button class="btn ghost" id="clrBtn">Borrar</button>
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr><th>#</th><th>Lugar</th><th>Altitud</th><th>Tiempo</th><th>T°</th><th>Presión</th><th>Botella</th></tr></thead>
+            <tbody id="log"><tr><td colspan="7" style="color:var(--muted)">Todavía no hay mediciones. Elige un lugar y presiona "Registrar medición".</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--muted)">Modelo simplificado para la sala: los valores son aproximados y reales en su orden de magnitud.</p>
+</div>
+</section>
+
+<!-- 7 MISIONES -->
+<section class="slide" data-name="Misiones">
+<div class="in">
+  <div class="eyebrow">Laboratorio · Misiones</div>
+  <h2>Usa el laboratorio y anota en tu bitácora</h2>
+  <ol class="missions">
+    <li><span><b>Sube la cordillera.</b> Mide en Viña, Santiago, Farellones y Putre. ¿La presión baja siempre lo mismo cada 1000 m?</span></li>
+    <li><span><b>Cambia el tiempo sin moverte.</b> Quédate en Viña y prueba "Despejado" y "Lluvia". ¿Alta presión significa buen o mal tiempo?</span></li>
+    <li><span><b>Subsidencia.</b> Elige "Subsidencia" en San Pedro de Atacama. Lee la nota: ¿qué tiene que ver con el desierto?</span></li>
+    <li><span><b>La bolsa de papas.</b> Lleva la botella sellada desde Viña a Farellones. ¿Qué marca el manómetro? ¿Y si la sellas en Farellones y bajas?</span></li>
+    <li><span><b>Buceo.</b> Baja 10 m bajo el mar. ¿Cuánto aumentó la presión? Compara con subir 10 m en tierra.</span></li>
+  </ol>
+</div>
+</section>
+
+<!-- 8 ALTA Y BAJA -->
+<section class="slide" data-name="Alta y baja">
+<div class="in">
+  <div class="eyebrow">Desarrollo · Presión y tiempo</div>
+  <h2>Alta presión despeja, baja presión llueve</h2>
+  <div class="panel ab">
+    <svg viewBox="0 0 800 300" role="img" aria-label="Alta presión con aire que baja y cielo despejado; baja presión con aire que sube y forma nubes; el viento va de la alta a la baja">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--violet)"/></marker>
+        <marker id="ao" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--orange)"/></marker>
+      </defs>
+      <line x1="20" y1="250" x2="780" y2="250" stroke-width="2" style="stroke:var(--ink)"/>
+      <!-- Alta -->
+      <circle cx="200" cy="60" r="22" fill="none" stroke-width="3" style="stroke:var(--orange)"/>
+      <g stroke-width="3" style="stroke:var(--orange)"><line x1="200" y1="28" x2="200" y2="20"/><line x1="232" y1="60" x2="240" y2="60"/><line x1="168" y1="60" x2="160" y2="60"/><line x1="223" y1="37" x2="229" y2="31"/><line x1="177" y1="37" x2="171" y2="31"/></g>
+      <line x1="160" y1="110" x2="160" y2="200" stroke-width="3" marker-end="url(#ar)" style="stroke:var(--violet)"/>
+      <line x1="240" y1="110" x2="240" y2="200" stroke-width="3" marker-end="url(#ar)" style="stroke:var(--violet)"/>
+      <text x="200" y="285" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="700" font-size="26" style="fill:var(--ink)">A · ALTA</text>
+      <text x="200" y="160" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" style="fill:var(--muted)">el aire baja</text>
+      <!-- Baja -->
+      <path d="M540 80 q10 -30 40 -20 q20 -25 50 -5 q35 -5 35 25 q20 15 -5 30 h-115 q-25 -10 -5 -30z" stroke-width="2" style="fill:color-mix(in srgb,var(--muted) 30%,transparent);stroke:var(--muted)"/>
+      <g stroke-width="2.5" style="stroke:var(--cyan)"><line x1="570" y1="125" x2="563" y2="140"/><line x1="600" y1="125" x2="593" y2="140"/><line x1="630" y1="125" x2="623" y2="140"/><line x1="655" y1="125" x2="648" y2="140"/></g>
+      <line x1="560" y1="235" x2="560" y2="160" stroke-width="3" marker-end="url(#ar)" style="stroke:var(--violet)"/>
+      <line x1="660" y1="235" x2="660" y2="160" stroke-width="3" marker-end="url(#ar)" style="stroke:var(--violet)"/>
+      <text x="610" y="285" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="700" font-size="26" style="fill:var(--ink)">B · BAJA</text>
+      <text x="610" y="200" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" style="fill:var(--muted)">el aire sube</text>
+      <!-- viento -->
+      <line x1="280" y1="235" x2="510" y2="235" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#ao)" style="stroke:var(--orange)"/>
+      <text x="395" y="225" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="14" style="fill:var(--orange)">VIENTO</text>
+    </svg>
+  </div>
+  <div class="grid2">
+    <div class="panel"><span class="lbl">Alta presión (anticiclón)</span><p>El aire desciende y se calienta al comprimirse: las nubes se evaporan. Esto es la <span class="hl">subsidencia</span>. El Anticiclón del Pacífico la produce frente a Chile y ayuda a explicar el desierto de Atacama.</p></div>
+    <div class="panel"><span class="lbl">Baja presión (ciclón, frente)</span><p>El aire sube, se enfría y su vapor de agua se condensa en nubes. Por eso los sistemas frontales de invierno traen lluvia a Chile central.</p></div>
+  </div>
+  <p class="big">El viento siempre va de la <span class="hl">alta</span> hacia la <span class="vi">baja</span> presión. Esto lo usaremos en la próxima clase: el clima.</p>
+</div>
+</section>
+
+<!-- 9 EN TU VIDA -->
+<section class="slide" data-name="En tu vida">
+<div class="in">
+  <div class="eyebrow">Desarrollo · Aplicaciones</div>
+  <h2>La presión atmosférica en tu vida</h2>
+  <div class="grid3">
+    <div class="panel"><span class="lbl">Puna o soroche</span><p>En Putre cada respiración trae cerca de un tercio menos de oxígeno. Por eso cuesta caminar y duele la cabeza.</p></div>
+    <div class="panel"><span class="lbl">Cocinar en altura</span><p>Con menos presión el agua hierve a menos de 100 °C. Los fideos tardan más en cocerse en el altiplano.</p></div>
+    <div class="panel"><span class="lbl">Aviones presurizados</span><p>Afuera, a 11 000 m, hay unos 230 hPa. La cabina se mantiene cerca de 750 hPa, como estar a unos 2400 m.</p></div>
+    <div class="panel"><span class="lbl">Oídos tapados</span><p>Al subir o bajar rápido, el aire dentro del oído no alcanza a igualar la presión de afuera. Tragar ayuda a equilibrarla.</p></div>
+    <div class="panel"><span class="lbl">Respirar</span><p>Tus pulmones se expanden, la presión dentro baja un poco, y el aire de afuera entra solo.</p></div>
+    <div class="panel"><span class="lbl">Pronóstico</span><p>Si el barómetro baja rápido, se acerca un frente. Los meteorólogos vigilan la presión todos los días.</p></div>
+  </div>
+</div>
+</section>
+
+<!-- 10 CIERRE -->
+<section class="slide" data-name="Cierre">
+<div class="in">
+  <div class="eyebrow">Cierre · Ticket de salida</div>
+  <h2>Volvamos a la bolsa de papas</h2>
+  <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+    <p id="yourPred" class="big">Tu predicción: —</p>
+    <button class="btn" id="revealBtn" style="align-self:flex-start">Revelar respuesta</button>
+    <p id="answer" hidden class="big"><b class="hl">Respuesta B.</b> La bolsa se selló con 1013 hPa adentro. En Farellones afuera hay cerca de 760 hPa. El aire de adentro empuja más que el de afuera y la bolsa se infla. No entró gas nuevo: lo que cambió fue el aire de afuera.</p>
+  </div>
+  <div class="panel">
+    <span class="lbl">Ticket de salida</span>
+    <p class="big">Explica en dos frases por qué la presión baja cuando subes una montaña, y qué tiempo esperarías con alta presión.</p>
+  </div>
+  <div class="sema">
+    <div><span class="dot" style="background:var(--lime)"></span>Lo entendí y puedo explicarlo</div>
+    <div><span class="dot" style="background:var(--orange)"></span>Lo entiendo a medias</div>
+    <div><span class="dot" style="background:var(--danger)"></span>Necesito ayuda</div>
+  </div>
+</div>
+</section>
+
+</main>
+
+<nav class="foot" aria-label="Navegación de láminas">
+  <button class="nb" id="prev" aria-label="Lámina anterior">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="count" id="count">1 / 10</span>
+  <button class="nb" id="next" aria-label="Lámina siguiente">→</button>
+  <button class="nb" id="fs" aria-label="Pantalla completa">⛶</button>
+</nav>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const fmt=(n,d=1)=>n.toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d});
+const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- Navegación ---------- */
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0;
+slides.forEach((s,i)=>{const b=document.createElement('button');b.setAttribute('aria-label','Ir a lámina '+(i+1)+': '+s.dataset.name);b.onclick=()=>go(i);$('dots').appendChild(b)});
+function go(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,j)=>{s.hidden=j!==cur;s.classList.toggle('anim',j===cur)});
+  [...$('dots').children].forEach((b,j)=>b.setAttribute('aria-current',j===cur));
+  $('count').textContent=(cur+1)+' / '+slides.length;
+  $('slideName').textContent=slides[cur].dataset.name;
+  slides[cur].scrollTop=0;
+  if(location.hash!=='#s'+(cur+1)) history.replaceState(null,'','#s'+(cur+1));
+}
+$('prev').onclick=()=>go(cur-1);$('next').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{
+  const t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA')) return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){go(cur+1);e.preventDefault()}
+  if(e.key==='ArrowLeft'||e.key==='PageUp'){go(cur-1);e.preventDefault()}
+});
+$('fs').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
+const h=parseInt((location.hash.match(/^#s(\d+)$/)||[])[1]||'1',10);
+go(h-1);
+
+/* ---------- Predicción ---------- */
+const predTxt={a:'A · el aire de adentro se calentó',b:'B · arriba el aire de afuera empuja menos',c:'C · las papas soltaron gas',d:'D · en la montaña hay más aire'};
+let pred=store.get('pa-pred',null);
+function paintPred(){
+  document.querySelectorAll('#opts .opt').forEach(o=>o.setAttribute('aria-pressed',o.dataset.k===pred));
+  $('yourPred').textContent='Tu predicción: '+(pred?predTxt[pred]:'no elegiste ninguna');
+}
+document.querySelectorAll('#opts .opt').forEach(o=>o.onclick=()=>{pred=o.dataset.k;store.set('pa-pred',pred);paintPred()});
+paintPred();
+$('revealBtn').onclick=()=>{$('answer').hidden=false;document.querySelector('#opts .opt[data-k="b"]').classList.add('ok')};
+
+/* ---------- Modelo ---------- */
+const PLACES=[
+  {n:'Viña del Mar',a:0,t:17},{n:'Villa Alemana',a:130,t:20},{n:'Santiago',a:570,t:22},
+  {n:'Farellones',a:2400,t:8},{n:'San Pedro de Atacama',a:2408,t:24},{n:'Putre',a:3500,t:10},
+  {n:'Ojos del Salado',a:6893,t:-22},{n:'Everest',a:8849,t:-30},{n:'Avión en vuelo',a:11000,t:-55}
+];
+const WEATHER=[
+  {k:'des',n:'Despejado',o:8,d:'Alta presión. El aire baja lentamente y no se forman nubes. Días soleados y estables.'},
+  {k:'sub',n:'Subsidencia',o:20,d:'El aire desciende desde arriba, se comprime y se calienta, y las nubes se disuelven. Es lo que hace el Anticiclón del Pacífico frente a Chile: una de las razones del desierto de Atacama.'},
+  {k:'nor',n:'Normal',o:0,d:'Condición promedio, sin sistemas fuertes cerca.'},
+  {k:'nub',n:'Nublado',o:-4,d:'Presión levemente baja. Nubes, pero sin lluvia.'},
+  {k:'vag',n:'Vaguada costera',o:-7,d:'Una zona de baja presión junto a la costa. En Chile central trae días muy calurosos y secos, y después entra nubosidad.'},
+  {k:'llu',n:'Lluvia (frente)',o:-15,d:'Baja presión. El aire sube, se enfría y su vapor forma nubes y lluvia. Típico de los frentes de invierno.'},
+  {k:'tem',n:'Temporal',o:-30,d:'Baja presión muy profunda. Viento fuerte y lluvia intensa. El barómetro cae rápido.'}
+];
+const st={place:0,alt:0,dep:0,t:17,w:'nor',seal:{p:1013.25,t:15,n:'Viña del Mar'},last:null};
+
+function compute(){
+  const w=WEATHER.find(x=>x.k===st.w).o;
+  const thermal=-0.12*(st.t-15);
+  const psl=1013.25+w+thermal;                    // presión reducida al nivel del mar
+  const H=29.27*(st.t+273.15);                    // altura de escala (m)
+  let p;
+  if(st.dep>0) p=psl+100.6*st.dep;                // agua de mar: ~100,6 hPa por metro
+  else p=psl*Math.exp(-st.alt/H);
+  const pin=st.seal.p*(st.t+273.15)/(st.seal.t+273.15); // botella rígida sellada
+  const gauge=(pin-p)/10;                         // kPa
+  return {psl,p,gauge};
+}
+
+/* ---------- UI del laboratorio ---------- */
+PLACES.forEach((pl,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=pl.n;b.onclick=()=>{st.place=i;st.alt=pl.a;st.t=pl.t;st.dep=0;sync();update()};$('places').appendChild(b)});
+WEATHER.forEach(w=>{const b=document.createElement('button');b.className='chip w';b.textContent=w.n;b.dataset.k=w.k;b.onclick=()=>{st.w=w.k;update()};$('weather').appendChild(b)});
+
+$('alt').oninput=e=>{st.alt=+e.target.value;st.dep=0;st.place=-1;sync();update()};
+$('dep').oninput=e=>{st.dep=+e.target.value;if(st.dep>0){st.alt=0;st.place=-1}sync();update()};
+$('tmp').oninput=e=>{st.t=+e.target.value;update()};
+
+function placeName(){
+  if(st.dep>0) return 'Bajo el mar ('+st.dep+' m)';
+  if(st.place>=0) return PLACES[st.place].n;
+  return 'Altitud '+st.alt.toLocaleString('es-CL')+' m';
+}
+function sync(){$('alt').value=st.alt;$('dep').value=st.dep;$('tmp').value=st.t}
+
+// marcas del dial: -100 a +100 kPa en 270°
+(function(){
+  const g=$('ticks');let s='';
+  s+='<path d="'+arc(110,110,86,-135,135)+'" fill="none" stroke-width="10" style="stroke:var(--line)"/>';
+  s+='<path d="'+arc(110,110,86,-135,0)+'" fill="none" stroke-width="10" style="stroke:color-mix(in srgb,var(--cyan) 50%,transparent)"/>';
+  s+='<path d="'+arc(110,110,86,0,135)+'" fill="none" stroke-width="10" style="stroke:color-mix(in srgb,var(--orange) 50%,transparent)"/>';
+  for(let v=-100;v<=100;v+=20){
+    const a=(-135+(v+100)/200*270)*Math.PI/180;
+    const x1=110+Math.sin(a)*76,y1=110-Math.cos(a)*76,x2=110+Math.sin(a)*66,y2=110-Math.cos(a)*66;
+    s+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke-width="'+(v%50===0?2.5:1.2)+'" style="stroke:var(--ink)"/>';
+    if(v%50===0){const tx=110+Math.sin(a)*52,ty=110-Math.cos(a)*52+4;s+='<text x="'+tx+'" y="'+ty+'" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" style="fill:var(--muted)">'+(v>0?'+':'')+v+'</text>'}
+  }
+  g.innerHTML=s;
+  function arc(cx,cy,r,a0,a1){const p=a=>[cx+Math.sin(a*Math.PI/180)*r,cy-Math.cos(a*Math.PI/180)*r];const [x0,y0]=p(a0),[x1,y1]=p(a1);return 'M'+x0+' '+y0+' A'+r+' '+r+' 0 '+(a1-a0>180?1:0)+' 1 '+x1+' '+y1}
+})();
+
+function update(){
+  const {psl,p,gauge}=compute();
+  // controles
+  document.querySelectorAll('#places .chip').forEach((b,i)=>b.setAttribute('aria-pressed',i===st.place));
+  document.querySelectorAll('#weather .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===st.w));
+  $('altO').textContent=st.alt.toLocaleString('es-CL')+' m';
+  $('depO').textContent=st.dep+' m';
+  $('tmpO').textContent=st.t+' °C';
+  $('wNote').textContent=WEATHER.find(x=>x.k===st.w).d;
+
+  // barómetro
+  $('bVal').textContent=fmt(p,1);
+  $('bMm').textContent=fmt(p*0.750062,0)+' mmHg';
+  $('bAtm').textContent=fmt(p/1013.25,3)+' atm';
+  $('bKpa').textContent=fmt(p/10,1)+' kPa';
+  let flag='';
+  if(st.dep>0) flag='SUMERGIDO · MIDE AIRE + AGUA';
+  else if(st.alt>=7000) flag='EXTERIOR · CABINA PRESURIZADA ≈ 750 hPa';
+  $('bFlag').textContent=flag;
+  if(st.last!==null){const d=p-st.last;$('bTrend').textContent=Math.abs(d)<0.05?'·':(d>0?'▲':'▼')}
+  st.last=p;
+  $('qnh').textContent=fmt(psl,0)+' hPa';
+  const z=psl<985?0:psl<1003?1:psl<1020?2:psl<1030?3:4;
+  [...$('zones').children].forEach((s,i)=>s.classList.toggle('on',i===z));
+
+  // manómetro
+  const clamp=Math.max(-100,Math.min(100,gauge));
+  $('needle').style.transform='rotate('+(-135+(clamp+100)/200*270)+'deg)';
+  $('mVal').textContent=(gauge>0.05?'+':'')+fmt(gauge,1);
+  const out=Math.abs(gauge)>100;
+  let state,col;
+  if(gauge>3){state='HINCHADA · ADENTRO EMPUJA MÁS';col='var(--orange)'}
+  else if(gauge<-3){state='APLASTADA · AFUERA EMPUJA MÁS';col='var(--cyan)'}
+  else {state='NORMAL · EQUILIBRIO';col='var(--lime)'}
+  if(out) state='FUERA DE RANGO · '+state;
+  const mf=$('mFlag');mf.textContent=state;mf.style.color=col;mf.classList.toggle('blink',out);
+  const sx=Math.max(0.45,Math.min(1.28,1+gauge/220));
+  $('bottleG').style.transform='scaleX('+sx+')';
+
+  // datos derivados
+  const tb=1/(1/373.15-(8.314/40660)*Math.log(p/1013.25))-273.15;
+  $('fBoil').textContent=fmt(tb,1)+' °C';
+  $('fO2').textContent=st.dep>0?'—':fmt(p/1013.25*100,0)+' %';
+  const kg=p*100/9.81;                          // kg sobre 1 m²
+  $('fCol').textContent=fmt(kg/1000,1)+' t';
+  $('fHand').textContent=fmt(kg*0.01,0)+' kg';
+  store.set('pa-st',{place:st.place,alt:st.alt,dep:st.dep,t:st.t,w:st.w,seal:st.seal});
+}
+
+$('sealBtn').onclick=()=>{
+  const {p}=compute();
+  st.seal={p,t:st.t,n:placeName()};
+  paintSeal();update();
+};
+function paintSeal(){$('sealAt').textContent=st.seal.n+' · '+fmt(st.seal.p,0)+' hPa · '+st.seal.t+' °C'}
+
+/* ---------- Bitácora ---------- */
+let log=store.get('pa-log',[]);
+function paintLog(){
+  const tb=$('log');
+  if(!log.length){tb.innerHTML='<tr><td colspan="7" style="color:var(--muted)">Todavía no hay mediciones. Elige un lugar y presiona "Registrar medición".</td></tr>';return}
+  tb.innerHTML=log.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.l+'</td><td>'+r.a+'</td><td>'+r.w+'</td><td>'+r.t+' °C</td><td><b>'+r.p+' hPa</b></td><td>'+r.g+' kPa</td></tr>').join('');
+}
+$('recBtn').onclick=()=>{
+  const {p,gauge}=compute();
+  log.push({l:placeName(),a:st.dep>0?('−'+st.dep+' m'):(st.alt.toLocaleString('es-CL')+' m'),w:WEATHER.find(x=>x.k===st.w).n,t:st.t,p:fmt(p,1),g:(gauge>0.05?'+':'')+fmt(gauge,1)});
+  if(log.length>15) log.shift();
+  store.set('pa-log',log);paintLog();
+};
+$('clrBtn').onclick=()=>{log=[];store.set('pa-log',log);paintLog()};
+
+const saved=store.get('pa-st',null);
+if(saved){Object.assign(st,saved)}
+sync();paintSeal();paintLog();update();
+})();
+</script>
+
+</body>
+</html>
