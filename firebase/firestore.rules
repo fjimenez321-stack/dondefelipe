@@ -462,6 +462,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if esProfe();
     }
+    // Bandera del estado del banco en la portada: 'ok' (verde), 'problemas' (amarillo) o 'caido' (rojo).
+    match /config/estado {
+      allow read: if true;
+      allow write: if esProfe();
+    }
 
     // ═════ Préstamos y ahorro ═════
     // PRÉSTAMOS (banco_prestamos/<cuenta>, uno a la vez): el estudiante lo pide, el profe lo aprueba

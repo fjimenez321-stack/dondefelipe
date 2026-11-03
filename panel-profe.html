@@ -115,6 +115,13 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
       <a class="btn sm" href="subastas.html">🔨 Subastas</a>
       <a class="btn sm" href="apuestas.html">⚽ Apuestas</a>
     </div>
+    <div class="card" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span style="flex:1;min-width:220px">🚩 <b>Bandera del banco</b> <span class="muted" style="font-size:13px">· se ve en la barra de la portada · ahora: <b id="estadoActual">…</b></span></span>
+      <input id="estadoTexto" maxlength="40" placeholder="Texto (opcional)" style="min-width:180px;flex:1;max-width:260px">
+      <button class="btn sm" data-estado="ok" style="background:#1f9d55;color:#fff;border-color:#1f9d55">🟢 Operativo</button>
+      <button class="btn sm" data-estado="problemas" style="background:#e0a800;color:#1a1300;border-color:#e0a800">🟡 Con problemas</button>
+      <button class="btn sm" data-estado="caido" style="background:#d7263d;color:#fff;border-color:#d7263d">🔴 Caído</button>
+    </div>
     <nav class="tabs" id="tabs">
       <button data-t="banco" class="on">Banco</button>
       <button data-t="juegos">Juegos</button>
@@ -398,6 +405,24 @@ function descargarCSV(nombre, filas) {
 
 let FB = null, cuentas = [], seleccion = new Set(), movs = [], desuscribir = [];
 
+/* ---------- bandera del estado del banco (config/estado) ---------- */
+const ESTADOS_BANCO = { ok: 'Banco operativo', problemas: 'Banco con problemas', caido: 'Banco caído' };
+async function leerEstadoBanco() {
+  try {
+    const s = await FB.F.getDoc(FB.F.doc(FB.db, 'config', 'estado')), d = s.exists() ? s.data() : { estado: 'ok' };
+    $('estadoActual').textContent = (d.texto || ESTADOS_BANCO[d.estado] || ESTADOS_BANCO.ok);
+  } catch (e) { $('estadoActual').textContent = 'no se pudo leer (¿reglas publicadas?)'; }
+}
+document.addEventListener('click', async ev => {
+  const b = ev.target.closest('[data-estado]'); if (!b || !FB) return;
+  const estado = b.dataset.estado, texto = ($('estadoTexto').value || '').trim().slice(0, 40);
+  try {
+    await FB.F.setDoc(FB.F.doc(FB.db, 'config', 'estado'), { estado, texto, actualizado: FB.F.serverTimestamp(), profe: (DF.usuario() || {}).email || '' });
+    $('estadoTexto').value = '';
+    toast('✓ Bandera: ' + (texto || ESTADOS_BANCO[estado]));
+    leerEstadoBanco();
+  } catch (e) { toast('No se pudo cambiar: ' + (/permission/i.test(e.message) ? 'publica primero las reglas nuevas' : e.message)); }
+});
 /* ---------- sesión ---------- */
 $('btnEntrar').onclick = () => DF.entrar().catch(e => aviso(esc(e.message), true));
 $('btnSalir').onclick = () => DF.salir();
@@ -410,6 +435,7 @@ DF.listo().then(fb => {
     $('btnSalir').classList.toggle('oculto', !u);
     $('quien').textContent = u ? u.email : '';
     if (!u) { $('app').classList.add('oculto'); aviso('Entra con tu cuenta de profe para usar el panel.'); return; }
+    leerEstadoBanco();
     if (!DF.esProfe(u)) { $('app').classList.add('oculto'); aviso('La cuenta <b>' + esc(u.email) + '</b> no tiene permiso de profe. Agrégala en <code>firebase/config.js</code> y en las reglas de Firestore.', true); return; }
     aviso(''); $('app').classList.remove('oculto');
     iniciarBanco();
