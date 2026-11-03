@@ -686,7 +686,13 @@ async function cargar() {
     e => aviso('No se pudieron leer las ofertas: ' + esc(e.message), 'err')));
   misPedidos = []; misVentas = []; misBenef = []; publicaciones = []; poderHoy = null; poderMes = {}; premios = {}; adquiridos = {}; fechasPedidas = new Set();
   if (usuario) {
-    unsubs.push(F.onSnapshot(F.collection(db, 'mercado_items'), s => { publicaciones = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); }, () => {}));
+    // Antes se escuchaba mercado_items completo (incluidas las publicaciones vendidas y retiradas, que
+    // nunca se borran). Ahora: las activas de todos + todas las propias (para poder republicar).
+    const pubActivas = {}, pubMias = {};
+    const unirPub = () => { publicaciones = Object.values(Object.assign({}, pubActivas, pubMias)); pintar(); };
+    const llenar = (dest, s) => { Object.keys(dest).forEach(k => delete dest[k]); s.docs.forEach(d => { dest[d.id] = Object.assign({ id: d.id }, d.data()); }); unirPub(); };
+    unsubs.push(F.onSnapshot(F.query(F.collection(db, 'mercado_items'), F.where('estado', 'in', ['venta', 'reservado'])), s => llenar(pubActivas, s), () => {}));
+    unsubs.push(F.onSnapshot(F.query(F.collection(db, 'mercado_items'), F.where('uid', '==', usuario.uid)), s => llenar(pubMias, s), () => {}));
     unsubs.push(F.onSnapshot(F.query(F.collection(db, 'gatitos_ventas'), F.orderBy('fecha', 'desc'), F.limit(40)), s => { ventas = s.docs.map(d => d.data()); pintar(); }, () => {}));
     try {
       await DF.asegurarCuentaBanco().catch(() => null);

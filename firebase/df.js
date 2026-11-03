@@ -93,7 +93,14 @@
       var A0 = mods[0], A = mods[1], F = mods[2], C = cfg();
       var app = A0.getApps().length ? A0.getApp() : A0.initializeApp(C.firebase);
       var auth = A.getAuth(app);
-      var db = F.getFirestore(app);
+      // Caché local (IndexedDB) compartida entre pestañas. Al cambiar de página o recargar, los
+      // listeners (onSnapshot) se retoman desde la caché y Firestore cobra solo los documentos que
+      // cambiaron en vez de releer la colección entera (si pasaron menos de 30 min). Sin esto, cada
+      // página nueva vuelve a leer todo. Si el navegador no permite IndexedDB, queda en memoria.
+      var db;
+      try {
+        db = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) });
+      } catch (e) { db = F.getFirestore(app); }
       if (C.emulador) {
         try { A.connectAuthEmulator(auth, C.emulador.auth, { disableWarnings: true }); } catch (e) {}
         try { var h = C.emulador.firestore.split(':'); F.connectFirestoreEmulator(db, h[0], +h[1]); } catch (e) {}
