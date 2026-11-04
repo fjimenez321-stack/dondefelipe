@@ -841,7 +841,8 @@ service cloud.firestore {
     function nombreMensual(g) { return {'cesar': 'Gato del tío César', 'grunona': 'Gruñona', 'ava': 'Ava', 'calha': 'Calha', 'miauricio': 'Miauricio'}.get(g, 'Gato Nietzsche'); }
     // Miauricio y Gruñona dan 3 sumativas (los demás 2) y se aplican en una asignatura (gatitos/catalogo.js: mensual.ramo).
     function sumMensual(g) { return g in ['miauricio', 'grunona'] ? 3 : 2; }
-    function ramoMensual(g) { return {'miauricio': ' · Matemáticas, profesora Carol', 'grunona': ' · Matemáticas, profesora Paulina'}.get(g, ''); }
+    function ramoMensual(g) { return {'miauricio': ' · Matemáticas, profesora Carol', 'grunona': ' · Matemáticas, profesora Paulina',
+                                      'ava': ' · Educación Física, profesora Dahian', 'calha': ' · Educación Física, profesora Dahian'}.get(g, ''); }
     function itemMensual(g, x) {
       return nombreMensual(g) + ': ' + string(5 * x) + ' décimas formativas y ' + string(sumMensual(g) * x) + ' décimas sumativas del mes'
         + (x == 2 ? ' (×2 mascota feliz)' : '') + ramoMensual(g);
