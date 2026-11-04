@@ -87,6 +87,15 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
 .hist-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0 14px}
 .hist-res div{background:var(--slab2);border-radius:10px;padding:10px}
 .hist-res b{display:block;font-size:18px}
+.hist-tiene{display:grid;gap:8px}
+.hist-tiene .bl{background:var(--slab2);border-radius:10px;padding:10px 12px;font-size:13.5px}
+.hist-tiene .bl>b{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
+.hist-tiene .gts{display:flex;flex-wrap:wrap;gap:6px}
+.hist-tiene .gts span{display:inline-flex;align-items:center;gap:4px;background:var(--slab);border-radius:8px;padding:3px 8px 3px 3px}
+.hist-tiene .gts img{width:30px;height:30px;object-fit:contain}
+.hist-filtros{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.hist-filtros button{border:1px solid var(--line);background:var(--slab2);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12.5px;cursor:pointer}
+.hist-filtros button.on{border-color:var(--acid,#ccff00);color:var(--acid,#ccff00)}
 .hist-res span{font-size:12px;color:var(--ink2)}
 .porcanjear .m{align-items:flex-start}
 </style>
@@ -335,10 +344,13 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
   <h3 id="hTit">Historial</h3>
   <div class="muted" id="hSub"></div>
   <div class="hist-res" id="hRes"></div>
-  <h4 style="margin:6px 0">Compras</h4>
+  <h4 style="margin:6px 0">Lo que tiene ahora</h4>
+  <div id="hTiene" class="hist-tiene"><div class="muted">Cargando…</div></div>
+  <h4 style="margin:14px 0 6px">Compras</h4>
   <div class="tabla-wrap" style="max-height:34vh"><table><thead><tr><th>Fecha</th><th>Compra</th><th class="num">Monto</th><th>Estado</th><th></th></tr></thead><tbody id="hCompras"></tbody></table></div>
-  <h4 style="margin:14px 0 6px">Todos los movimientos</h4>
-  <div class="lista-movs" id="hMovs" style="max-height:30vh"></div>
+  <h4 style="margin:14px 0 6px">Todo lo que ha hecho</h4>
+  <div class="hist-filtros" id="hFiltros"></div>
+  <div class="lista-movs" id="hMovs" style="max-height:50vh"></div>
   <div class="acc"><button class="btn" id="hCsv">Descargar CSV</button><button class="btn p" data-cerrar>Cerrar</button></div>
 </dialog>
 
@@ -1060,7 +1072,59 @@ $('listaTr').onclick = ev => {
 };
 
 /* historial de una cuenta */
-let histCuenta = null, histMovs = [];
+let histCuenta = null, histMovs = [], histFiltro = 'todo', histExtra = {};
+// Categorías de «Todo lo que ha hecho» (según el tipo de movimiento)
+const CAT_HIST = [
+  ['ruleta', '🎡 Ruleta', t => /^ruleta/.test(t)],
+  ['compras', '🛍️ Compras y Mercado', t => /^(compra|gatito-compra|gatito-reventa|reventa|devolucion|articulo)$/.test(t)],
+  ['gatitos', '🐱 Gatitos, poderes y mascota', t => /^(poder-gatito|poder-mensual|premio-gatito)$|mascota/.test(t)],
+  ['regalos', '🎁 Transferencias y regalos', t => /transferencia|regalo/.test(t)],
+  ['bolsa', '📈 Bolsa, ahorro y préstamos', t => /^(bolsa|bono|ahorro|prestamo|embargo)/.test(t)],
+  ['juegos', '🎯 Apuestas y subastas', t => /apuesta|subasta/.test(t)],
+  ['profe', '🧑‍🏫 Del profe (abonos, multas, gift cards)', t => /^(abono|multa|cargo|reverso|importacion|giftcard|premio|regalo-profe)$/.test(t) || t === ''],
+];
+const catDe = m => { const t = String(m.tipo || ''); const c = CAT_HIST.find(x => x[2](t)); return c ? c[0] : 'otros'; };
+async function cargarTiene(id) {
+  const { F, db } = FB, el = $('hTiene');
+  try {
+    let uid = id.indexOf('u-') === 0 ? id.slice(2) : '';
+    const correo = correoDe(id);
+    if (!uid && correo) { const a = await F.getDocs(F.query(F.collection(db, 'alumnos'), F.where('email', '==', correo))).catch(() => null); if (a && a.docs.length) uid = a.docs[0].id; }
+    const opt = p => p.catch(() => null);
+    const [pos, aho, pre, rul, gat, mas, regDe, regPara, pubs] = await Promise.all([
+      opt(F.getDocs(F.query(F.collection(db, 'bolsa_pos'), F.where('cuenta', '==', id)))),
+      opt(F.getDoc(F.doc(db, 'banco_ahorros', id))), opt(F.getDoc(F.doc(db, 'banco_prestamos', id))), opt(F.getDoc(F.doc(db, 'ruleta', id))),
+      uid ? opt(F.getDoc(F.doc(db, 'gatitos', uid))) : null, uid ? opt(F.getDoc(F.doc(db, 'mascotas', uid))) : null,
+      opt(F.getDocs(F.query(F.collection(db, 'regalos'), F.where('de', '==', id)))), opt(F.getDocs(F.query(F.collection(db, 'regalos'), F.where('para', '==', id)))),
+      opt(F.getDocs(F.query(F.collection(db, 'mercado_items'), F.where('vendedor', '==', id))))]);
+    if (!histCuenta || histCuenta.id !== id) return;
+    const G = window.GATITOS || [], nomG = g => (G.find(x => x.id === g) || { nombre: g }).nombre;
+    const ids = gat && gat.exists() ? (gat.data().ids || []) : [], fav = gat && gat.exists() ? gat.data().favorito : null;
+    const acc = pos ? pos.docs.map(d => d.data()).filter(x => x.acciones > 0) : [];
+    const ah = aho && aho.exists() ? aho.data() : null, pr = pre && pre.exists() ? pre.data() : null, ru = rul && rul.exists() ? rul.data() : null;
+    const ma = mas && mas.exists() ? mas.data() : null;
+    const benef = histMovs.filter(m => m.canje === 'pendiente' && m.item);
+    const congel = histMovs.filter(m => ['en-venta', 'en-regalo', 'retenida'].includes(m.canje));
+    const enVenta = pubs ? pubs.docs.map(d => d.data()).filter(x => x.estado === 'venta' || x.estado === 'reservado') : [];
+    const regalos = [].concat(regDe ? regDe.docs.map(d => Object.assign({ sale: true }, d.data())) : [], regPara ? regPara.docs.map(d => Object.assign({ sale: false }, d.data())) : []);
+    histExtra = { regalos };
+    const val = ids.reduce((s, g) => s + ((G.find(x => x.id === g) || {}).precio || 0), 0);
+    el.innerHTML = `
+      <div class="bl"><b>💰 Dinero</b>Saldo <b style="display:inline;font-size:inherit">${fmt(histCuenta.saldo)} ₣</b>
+        ${ah ? ` · Ahorro ${fmt(ah.monto)} ₣${ah.intereses ? ' (+' + fmt(ah.intereses) + ' intereses)' : ''}` : ''}
+        ${pr && !['pagado', 'rechazado', 'cancelado'].includes(pr.estado) ? ` · Préstamo <b class="neg" style="display:inline;font-size:inherit">${esc(pr.estado)}</b>, debe ${fmt(pr.deuda || 0)} ₣` : ''}
+        ${acc.length ? `<br>📈 Acciones: ${acc.map(a => `${esc(a.ticker)} × ${a.acciones}`).join(' · ')}` : ''}</div>
+      <div class="bl"><b>🐱 Gatitos (${ids.length}${ids.length ? ' · valor ' + fmt(val) + ' ₣' : ''})</b>
+        ${uid ? (ids.length ? `<div class="gts">${ids.map(g => `<span><img src="gatitos/img/${esc(g)}.webp" alt="">${esc(nomG(g))}${g === fav ? ' ⭐' : ''}</span>`).join('')}</div>` : '<span class="muted">No tiene gatitos.</span>')
+          : '<span class="muted">No se encontró su usuario del sitio (la cuenta no está vinculada a un correo con el que haya entrado).</span>'}
+        ${ma ? `<div style="margin-top:6px">🐾 Mascota: <b style="display:inline;font-size:inherit">${esc(nomG(ma.gatito))}</b></div>` : ''}</div>
+      <div class="bl"><b>🎟️ Beneficios por usar (${benef.length})</b>${benef.length ? benef.map(m => `<div>${esc(m.item)} <span class="muted">· ${fecha(m.fecha)}${m.tipo === 'ruleta' ? ' · ruleta' : m.tipo === 'regalo-recibido' ? ' · regalo' : ''}</span></div>`).join('') : '<span class="muted">Nada pendiente.</span>'}
+        ${congel.length ? `<div style="margin-top:6px" class="muted">🔒 Congelados: ${congel.map(m => esc(m.item || m.motivo) + ' (' + esc(m.canje) + ')').join(' · ')}</div>` : ''}</div>
+      ${enVenta.length ? `<div class="bl"><b>🏷️ A la venta</b>${enVenta.map(x => `<div>${esc(x.item)} · ${fmt(x.precio)} ₣ · ${esc(x.estado)}</div>`).join('')}</div>` : ''}
+      ${ru ? `<div class="bl"><b>🎡 Ruleta</b>${ru.n || 0} tiros${typeof ru.neto === 'number' ? ` · balance ${ru.neto >= 0 ? '+' : '−'}${fmt(Math.abs(ru.neto))} ₣` : ''}${ru.pendiente ? ' · <b style="display:inline;font-size:inherit">tiro sin resolver</b>' : ''}</div>` : ''}
+      ${regalos.length ? `<div class="bl"><b>🎁 Regalos de gatitos y beneficios</b>${regalos.sort((a, b) => ms(b.creada) - ms(a.creada)).map(r => `<div>${r.sale ? 'Regaló' : 'Recibió'} <b style="display:inline;font-size:inherit">${esc(r.item)}</b> ${r.sale ? 'a ' + esc(r.paraNombre) : 'de ' + esc(r.deNombre)} <span class="muted">· ${esc(r.estado)} · ${fecha(r.creada)}</span></div>`).join('')}</div>` : ''}`;
+  } catch (e) { el.innerHTML = `<div class="muted">No se pudo cargar todo: ${esc(e.message)}</div>`; }
+}
 function estadoCanje(m) {
   if (m.tipo !== 'compra') return '';
   if (m.canje === 'usada') return `<span class="can usada">Usada</span> <small class="muted">${esc(m.canjeNota || '')}${m.canjeFecha ? ' · ' + fecha(m.canjeFecha) : ''}</small>`;
@@ -1084,7 +1148,9 @@ async function abrirHistorial(id) {
   try {
     const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', id)));
     histMovs = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => ms(b.fecha) - ms(a.fecha));
+    histFiltro = 'todo'; histExtra = {};
     pintarHistorial();
+    cargarTiene(id);
   } catch (e) { $('hCompras').innerHTML = `<tr><td colspan="5" class="neg">Error: ${esc(e.message)}</td></tr>`; }
 }
 function pintarHistorial() {
@@ -1098,8 +1164,18 @@ function pintarHistorial() {
     <div><b>${vivas.filter(m => m.canje === 'pendiente' || !m.canje).length} / ${vivas.filter(m => m.canje === 'usada').length}</b><span>Compras pendientes / usadas</span></div>`;
   $('hCompras').innerHTML = compras.length ? compras.map(m => `<tr><td class="muted">${fecha(m.fecha)}</td><td>${esc(m.item || m.motivo)}</td><td class="num neg">−${fmt(Math.abs(m.monto))}</td><td style="white-space:normal">${estadoCanje(m)}</td><td>${(m.canje === 'pendiente' || !m.canje) ? `<button class="btn sm p" data-husar="${esc(m.id)}">Marcar usada</button>` : ''}</td></tr>`).join('')
     : '<tr><td colspan="5" class="muted">No ha comprado nada todavía.</td></tr>';
-  $('hMovs').innerHTML = histMovs.length ? histMovs.map(m => `<div class="m"><div class="t"><b class="${m.monto < 0 ? 'neg' : 'pos'}">${m.monto < 0 ? '−' : '+'}$${fmt(Math.abs(m.monto))}</b> ${esc(m.motivo)}<small>${fecha(m.fecha)} · saldo después: ${fmt(m.saldoDespues)} ₣</small></div></div>`).join('') : '<div class="muted">Sin movimientos.</div>';
+  const cuenta = {}; histMovs.forEach(m => { const c = catDe(m); cuenta[c] = (cuenta[c] || 0) + 1; });
+  $('hFiltros').innerHTML = [['todo', 'Todo', histMovs.length]].concat(CAT_HIST.map(c => [c[0], c[1], cuenta[c[0]] || 0]), [['otros', 'Otros', cuenta.otros || 0]])
+    .filter(x => x[0] === 'todo' || x[2]).map(x => `<button data-hf="${x[0]}" class="${histFiltro === x[0] ? 'on' : ''}">${esc(x[1])} · ${x[2]}</button>`).join('');
+  const G = window.GATITOS || [], nomG = g => (G.find(x => x.id === g) || { nombre: g }).nombre;
+  const l = histMovs.filter(m => histFiltro === 'todo' || catDe(m) === histFiltro);
+  $('hMovs').innerHTML = l.length ? l.map(m => `<div class="m"><div class="t"><b class="${m.monto < 0 ? 'neg' : 'pos'}">${m.monto < 0 ? '−' : '+'}$${fmt(Math.abs(m.monto))}</b> ${esc(m.motivo || m.tipo || '')}
+      ${m.item ? `<div>🎟️ <b>${esc(m.item)}</b> ${m.canje ? '<span class="pill">' + esc(m.canje) + '</span>' : ''}${m.canjeNota ? ' <span class="muted">' + esc(m.canjeNota) + '</span>' : ''}</div>` : ''}
+      ${m.gatito ? `<div>🐱 <b>${esc(nomG(m.gatito))}</b></div>` : ''}${m.escapa ? `<div>💨 Se escapó: ${esc(nomG(m.escapa))}</div>` : ''}
+      ${m.ticker ? `<div>📈 ${esc(m.ticker)}${m.acciones ? ' × ' + esc(m.acciones) : ''}</div>` : ''}
+      <small>${fecha(m.fecha)} · ${esc(m.tipo || '—')} · saldo después: ${fmt(m.saldoDespues)} ₣${m.profe ? ' · por ' + esc(m.profe) : ''}</small></div></div>`).join('') : '<div class="muted">Sin movimientos en esta categoría.</div>';
 }
+$('hFiltros').onclick = ev => { const b = ev.target.closest('[data-hf]'); if (!b) return; histFiltro = b.dataset.hf; pintarHistorial(); };
 $('hCompras').onclick = async ev => {
   const id = ev.target.dataset && ev.target.dataset.husar; if (!id) return;
   const m = histMovs.find(x => x.id === id); if (!m) return;
