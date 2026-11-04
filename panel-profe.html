@@ -186,6 +186,12 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
             <div class="lista-movs" id="listaPend"><div class="muted">—</div></div>
           </div>
           <div class="card porcanjear" style="margin-top:16px">
+            <h3 style="margin:0 0 4px">🎡 Ruleta: lo que ganó cada jugador <span class="pill" id="nRul">—</span></h3>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">Últimos tiros de cada estudiante (dinero, gatitos, acciones, beneficios y castigos). Los beneficios y disertaciones que ganan también aparecen arriba, en «Compras por canjear». «Ver todos» lee todos los tiros de esa cuenta.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><input id="rulBuscar" placeholder="Buscar por nombre o curso…" style="flex:1;min-width:160px"><button class="btn sm" id="rulCargar">Cargar</button></div>
+            <div class="lista-movs" id="listaRul" style="max-height:480px"><div class="muted">Presiona «Cargar».</div></div>
+          </div>
+          <div class="card porcanjear" style="margin-top:16px">
             <h3 style="margin:0 0 4px">Solicitudes por autorizar <span class="pill" id="nTr">0</span></h3>
             <p class="muted" style="margin:0 0 8px;font-size:13px">💸 Transferencias, 🛍️ compras de beneficios en el Mercado y 🤝 compras entre estudiantes. Al pedir, el dinero (y lo que se vende) sale de la cuenta y queda congelado: autorizar lo entrega, rechazar lo devuelve.</p>
             <div class="lista-movs" id="listaTr"><div class="muted">—</div></div>
@@ -547,6 +553,40 @@ async function crearCuentaPara(a) {
   return numero;
 }
 function correoDe(cuentaId) { return vinculos[cuentaId] || ''; }
+/* ── Ruleta: resumen por jugador (colección «ruleta»: un documento por cuenta con los últimos tiros) ── */
+let ruletas = null;
+const ICO_RUL = { p: '🟢', n: '🔴', b: '🎟️', g: '🐱', m: '⚠️' };
+async function cargarRuletas() {
+  const { F, db } = FB;
+  try { ruletas = (await F.getDocs(F.collection(db, 'ruleta'))).docs.map(d => Object.assign({ id: d.id }, d.data())).filter(r => r.n); pintarRuletas(); }
+  catch (e) { $('listaRul').innerHTML = `<div class="muted">No se pudo leer la ruleta: ${esc(e.message)}</div>`; }
+}
+function pintarRuletas() {
+  if (!ruletas) return;
+  const q = $('rulBuscar').value.trim().toLowerCase();
+  const l = ruletas.map(r => { const c = cuentas.find(x => x.id === r.id) || {}; return Object.assign({ nom: ((c.nombre || '') + ' ' + (c.apellido || '')).trim() || ('Cuenta ' + r.id), curso: c.curso || '' }, r); })
+    .filter(r => !q || (r.nom + ' ' + r.curso).toLowerCase().includes(q))
+    .sort((a, b) => ms(b.actualizado) - ms(a.actualizado));
+  $('nRul').textContent = l.length + ' jugadores';
+  $('listaRul').innerHTML = l.map(r => `<div class="m" style="align-items:flex-start"><div class="t">
+      <b>${esc(r.nom)}</b> <span class="pill">${esc(r.curso || '—')}</span> <span class="muted">· ${r.n} tiro${r.n === 1 ? '' : 's'} · último ${fecha(r.actualizado)}${r.pendiente ? ' · <b style="color:var(--warn,#e9b949)">tiro sin resolver</b>' : ''}</span>
+      ${typeof r.neto === 'number' ? `<span class="pill" style="margin-left:4px">neto ${r.neto >= 0 ? '+' : '−'}${fmt(Math.abs(r.neto))} ₣</span>` : ''}
+      <div style="margin-top:4px">${(Array.isArray(r.ult) ? r.ult.slice().reverse() : []).map(e => `<div>${ICO_RUL[e.k] || '·'} Tiro ${esc(e.t)}: ${esc(e.x)} <span class="muted">(${e.e >= 0 ? '+' : '−'}${fmt(Math.abs(e.e))} ₣)</span></div>`).join('') || '<span class="muted">Sin detalle guardado.</span>'}</div>
+      <div id="rulTodo-${esc(r.id)}"></div></div>
+      <button class="btn sm" data-rultodo="${esc(r.id)}">Ver todos</button></div>`).join('') || '<div class="muted">Nadie ha jugado todavía.</div>';
+}
+async function verTodosRuleta(cid) {
+  const { F, db } = FB, box = document.getElementById('rulTodo-' + cid); if (!box) return;
+  box.innerHTML = '<div class="muted">Leyendo…</div>';
+  try {
+    const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cid), F.where('tipo', 'in', ['ruleta'])));
+    const l = s.docs.map(d => d.data()).sort((a, b) => (b.tiro || 0) - (a.tiro || 0));
+    box.innerHTML = `<details open style="margin-top:6px"><summary class="muted">Todos los tiros (${l.length})</summary>${l.map(m => `<div>${fecha(m.fecha)} · ${esc(m.motivo || '')}${m.item ? ` · <b>${esc(m.item)}</b> (${esc(m.canje || '')})` : ''}${m.gatito ? ' · 🐱 ' + esc(m.gatito) : ''}</div>`).join('')}</details>`;
+  } catch (e) { box.innerHTML = `<div class="muted">No se pudo leer: ${esc(e.message)}</div>`; }
+}
+$('rulCargar').onclick = cargarRuletas;
+$('rulBuscar').oninput = pintarRuletas;
+$('listaRul').onclick = e => { const b = e.target.closest('[data-rultodo]'); if (b) verTodosRuleta(b.dataset.rultodo); };
 function pintarPendientes() {
   $('nPend').textContent = pendientes.length;
   $('listaPend').innerHTML = pendientes.length ? pendientes.map(m => `
