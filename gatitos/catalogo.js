@@ -33,7 +33,7 @@ window.GATITOS = [
   { id: 'nietzsche',   nombre: 'Gato Nietzsche',       precio: 500000,  rareza: 'legendario', txt: 'Filósofo, explorador y pensador. Cada mes: 5 décimas formativas y 2 sumativas.', anim: true, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes'] },
   // Se disfrazan según la temporada (ver TEMPORADA_GATITOS en gatitos/anim.js): Halloween o Navidad.
   { id: 'masita',      nombre: 'Masita',               precio: 500000,  rareza: 'legendario', txt: 'Masita ♀. Gatita tricolor que se disfraza en cada fiesta: bruja en Halloween y duende navideño en Navidad. Puedes usar el cuaderno 5 minutos en cada prueba.', poderes: ['📓 Uso del cuaderno 5 minutos en cada prueba'] },
-  { id: 'miauricio',   nombre: 'Miauricio',            precio: 550000,  rareza: 'legendario', txt: 'Miauricio ♂. Gato naranjo atigrado: vampiro en Halloween y bufanda de nieve en Navidad. Trae un premio único de 5 décimas sumativas.', premio: { formativas: 0, sumativas: 5 }, poderes: ['💎 Premio único: 5 décimas sumativas'] },
+  { id: 'miauricio',   nombre: 'Miauricio',            precio: 550000,  rareza: 'legendario', txt: 'Miauricio ♂. Gato naranjo atigrado: vampiro en Halloween y bufanda de nieve en Navidad. Cada mes: 5 décimas formativas y 3 sumativas en Matemáticas con la profesora Carol.', mensual: { formativas: 5, sumativas: 3, ramo: 'Matemáticas, profesora Carol' }, poderes: ['📐 5 décimas formativas y 3 sumativas cada mes (Matemáticas, profesora Carol)'] },
   // Héroes: edición limitada (el profe los publica de vez en cuando, con pocas unidades; «Publicar todo el catálogo» no los incluye).
   // Beneficio: 30% de descuento en las compras académicas del Mercado (ver «academico» en banco-felipeso/catalogo.js). No se suma entre ellos.
   { id: 'rayo',        nombre: 'Rayo',                 precio: 600000,  rareza: 'heroe',      txt: 'Velocidad y valentía. Edición limitada.', anim: true, exclusivo: true, diarias: 0, descuentoAcademico: 0.3, poderes: ['🎓 30% de descuento en compras académicas (puntos, formativas, décimas)'] },
@@ -43,7 +43,7 @@ window.GATITOS = [
   // Edición limitada de 2 unidades («stock»): al publicar el catálogo, su oferta sale con ese stock.
   { id: 'cesar',       nombre: 'Gato del tío César',   precio: 1000000, rareza: 'mitico',     txt: 'Huaso de chupalla y poncho, el gatito del tío César: baila cueca, toca guitarra y duerme siesta. Edición limitada: solo 2. Cada mes: 5 décimas formativas y 2 sumativas.', anim: true, stock: 2, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes'] },
   // La gatita de la profe Paulina: matemática de corazón.
-  { id: 'grunona',     nombre: 'Gruñona',              precio: 5000000, rareza: 'mitico',     txt: 'La gatita de la profe Paulina: cuenta del 0 al 9, suma, resta, multiplica y divide, y nunca suelta su calculadora. Cada mes: 5 décimas formativas y 2 sumativas.', anim: true, diarias: 0, mensual: { formativas: 5, sumativas: 2 }, poderes: ['📜 5 décimas formativas y 2 sumativas cada mes'] },
+  { id: 'grunona',     nombre: 'Gruñona',              precio: 5000000, rareza: 'mitico',     txt: 'La gatita de la profe Paulina: cuenta del 0 al 9, suma, resta, multiplica y divide, y nunca suelta su calculadora. Cada mes: 5 décimas formativas y 3 sumativas en Matemáticas con la profesora Paulina.', anim: true, diarias: 0, mensual: { formativas: 5, sumativas: 3, ramo: 'Matemáticas, profesora Paulina' }, poderes: ['📐 5 décimas formativas y 3 sumativas cada mes (Matemáticas, profesora Paulina)'] },
   { id: 'dorado',      nombre: 'Gato Dorado',          precio: 1000000, rareza: 'mitico',     txt: 'El más valioso del colegio. Muy pocos lo tendrán.', poderes: ['🚶 Paseo por el colegio en cada clase (cuando amerite)', '📓 Cuaderno 5 minutos en cada evaluación', '🎵 Elegir la música de la clase'] }
 ];
 
@@ -51,7 +51,8 @@ window.GATITOS = [
    Cada gatito que tienes da décimas formativas cada SEMANA (lunes a domingo; se reclaman en el Mercado,
    pestaña Mi colección): común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3. Máximo 3 por semana.
    (Antes eran por día; desde octubre de 2026 son semanales.)
-   Premio único (campo «premio»): Miauricio da 5 décimas sumativas UNA sola vez por cuenta (se reclama en Mi colección).
+   Miauricio (desde nov. 2026): ya no tiene premio único; da 5 formativas y 3 sumativas cada mes en Matemáticas con la profesora Carol.
+   Gruñona: 5 formativas y 3 sumativas cada mes en Matemáticas con la profesora Paulina.
    Ava y Calha (desde nov. 2026): como Nietzsche, sin décimas semanales y con 5 formativas y 2 sumativas cada mes.
    Gato Nietzsche y Gato del tío César (diarias: 0, mensual): no dan décimas diarias; cada uno da 5 formativas
    y 2 sumativas una vez al mes.
@@ -80,7 +81,7 @@ window.poderDelDia = function (ids) {
   });
   return { formativas: Math.max(f, Math.min(n, window.PODER_MAX_DIA)), sumativas: s };
 };
-// Poder mensual (Nietzsche, César, Gruñona, Ava y Calha): CADA gatito con «mensual» se reclama una vez
+// Poder mensual (Nietzsche, César, Gruñona, Ava, Calha y Miauricio): CADA gatito con «mensual» se reclama una vez
 // por mes calendario (si tienes los dos, reclamas los dos). Igual que opPoderMes() en las reglas.
 window.mensualesDe = function (ids) {
   return window.GATITOS.filter(function (g) { return g.mensual && (ids || []).indexOf(g.id) >= 0; });
@@ -90,7 +91,8 @@ window.idPoderMes = function (cuenta, mes, gid) { return gid === 'nietzsche' ? c
 // doble = ese gatito es tu mascota y está bien cuidada (ver gatitos/mascota.js): ×2.
 window.textoMensual = function (g, doble) {
   var p = doble ? { formativas: g.mensual.formativas * 2, sumativas: g.mensual.sumativas * 2 } : g.mensual;
-  return g.nombre + ': ' + window.textoPoderDia(p) + ' del mes' + (doble ? ' (×2 mascota feliz)' : '');
+  // «ramo»: en qué asignatura se aplican (Miauricio y Gruñona). Debe coincidir con itemMensual() en las reglas.
+  return g.nombre + ': ' + window.textoPoderDia(p) + ' del mes' + (doble ? ' (×2 mascota feliz)' : '') + (g.mensual.ramo ? ' · ' + g.mensual.ramo : '');
 };
 window.poderDelMes = function (ids) {
   var f = 0, s = 0;
