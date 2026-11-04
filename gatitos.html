@@ -127,7 +127,7 @@ h1 span{color:var(--acid)}
 .form-of .prev img{max-height:104px}
 .campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .campos label{display:flex;flex-direction:column;gap:4px;font:700 11px var(--ff);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
-.campos input,.campos select{background:var(--slab2);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:9px 10px;font:500 15px var(--ff);text-transform:none;letter-spacing:0}
+.campos input,.campos select,#colBuscar,#colCurso,#colGato{background:var(--slab2);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:9px 10px;font:500 15px var(--ff);text-transform:none;letter-spacing:0}
 .campos .chk{flex-direction:row;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font:600 14px var(--ff);color:var(--ink)}
 .tabla{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
 .tabla th{text-align:left;font:700 11px var(--ff);letter-spacing:1px;text-transform:uppercase;color:var(--mute);padding:8px;border-bottom:1px solid var(--line2)}
@@ -318,6 +318,18 @@ h1 span{color:var(--acid)}
       <h2 style="font:900 28px var(--ff-d);text-transform:uppercase;margin:0">Últimas ventas</h2>
       <div class="tabla-wrap"><table class="tabla"><thead><tr><th>Fecha</th><th>Comprador</th><th>Gatito</th><th class="n">Precio</th></tr></thead><tbody id="pVentas"></tbody></table></div>
     </div>
+    <div class="card">
+      <h2 style="font:900 28px var(--ff-d);text-transform:uppercase;margin:0 0 4px">Colecciones de los estudiantes</h2>
+      <p class="intro" style="margin:0 0 10px">Qué gatitos tiene cada estudiante. Los que están publicados a la venta entre estudiantes no aparecen aquí hasta que vuelvan o se vendan.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="colBuscar" placeholder="Buscar por nombre…" style="flex:1;min-width:180px">
+        <select id="colCurso"><option value="">Todos los cursos</option></select>
+        <select id="colGato"><option value="">Cualquier gatito</option></select>
+        <button class="btn" id="colCargar"><i class="fa-solid fa-rotate"></i> Cargar</button>
+      </div>
+      <div class="kpis" id="colKpis"></div>
+      <div class="tabla-wrap"><table class="tabla"><thead><tr><th>Estudiante</th><th>Curso</th><th class="n">Gatitos</th><th class="n">Valor</th><th>Colección</th></tr></thead><tbody id="colTabla"><tr><td colspan="5" class="muted">Presiona «Cargar» para ver las colecciones.</td></tr></tbody></table></div>
+    </div>
   </section>
 
   <p class="intro" style="margin-top:22px">¿Cómo se ganan Hipopesos? Revisa las <a href="banco-felipeso/bases.html">Bases de los Hipopesos</a> y la <a href="banco-felipeso/bolsa.html">Bolsa de Comercio</a> (bono diario). Tu colección se ve en <a href="cuenta.html#gatitosSec">Mi cuenta</a>.</p>
@@ -325,7 +337,7 @@ h1 span{color:var(--acid)}
 
 <div class="velo" id="velo" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 
-<script src="gatitos/catalogo.js?v=20261101"></script>
+<script src="gatitos/catalogo.js?v=20261104c"></script>
 <script src="gatitos/anim.js?v=20261031"></script>
 <script src="gatitos/mascota.js?v=20261030"></script>
 <script src="banco-felipeso/catalogo.js?v=20261104b"></script>
@@ -424,7 +436,7 @@ function poderHtml(g) {
 }
 function pintarPoderes() {
   const el = $('poderes'); if (!el) return;
-  if (!usuario || esProfe || !cuenta) { el.innerHTML = `<div style="grid-column:1/-1"><h2 class="h2s">⚡ Poderes de tus gatitos</h2><p class="intro" style="margin:0">Cada gatito da décimas formativas cada semana (común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3; máximo ${PODER_MAX_DIA} por semana). Miauricio trae un premio único de 5 sumativas; Ava, Calha, el Gato Nietzsche, el Gato del tío César y Gruñona dan, cada uno, 5 formativas y 2 sumativas cada mes; los héroes (Rayo, Sombra y Luna) dan 30% de descuento en compras académicas. Los más valiosos dan además poderes especiales en clases.</p></div>`; return; }
+  if (!usuario || esProfe || !cuenta) { el.innerHTML = `<div style="grid-column:1/-1"><h2 class="h2s">⚡ Poderes de tus gatitos</h2><p class="intro" style="margin:0">Cada gatito da décimas formativas cada semana (común y poco común: 1 · raro y épico: 2 · legendario y mítico: 3; máximo ${PODER_MAX_DIA} por semana). Ava, Calha, el Gato Nietzsche y el Gato del tío César dan, cada uno, 5 formativas y 2 sumativas cada mes; Miauricio (con la profesora Carol) y Gruñona (con la profesora Paulina) dan 5 formativas y 3 sumativas cada mes en Matemáticas; los héroes (Rayo, Sombra y Luna) dan 30% de descuento en compras académicas. Los más valiosos dan además poderes especiales en clases.</p></div>`; return; }
   const ids = coleccion.ids || [], pd = poderDelDia(ids), n = pd.formativas, txt = textoPoderDia(pd);
   const especiales = []; ids.forEach(id => { const g = gato(id); (g && g.poderes || []).forEach(p => especiales.push([p, g.nombre])); });
   const yaHoy = poderHoy && poderHoy.semana === semanaHoy();
@@ -440,7 +452,7 @@ function pintarPoderes() {
     ${boton}`;
 }
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-// Premio único (Miauricio): una sola vez por cuenta y por gatito.
+// Premio único (campo «premio»): una sola vez por cuenta y por gatito. (Miauricio lo tuvo hasta nov. 2026.)
 function bloquePremios() {
   return (coleccion.ids || []).map(gato).filter(g => g && g.premio).map(g => {
     const ya = premios[g.id] === true, sabe = g.id in premios;
@@ -588,6 +600,38 @@ function pintarAlbum() {
     </article>`;
   }).join('');
 }
+/* ── Colecciones de los estudiantes (solo profe): gatitos/{uid} + curso desde la cuenta automática u-<uid> ── */
+let colecciones = null;
+async function cargarColecciones() {
+  const b = $('colCargar'); b.disabled = true;
+  try {
+    const { F, db } = await DF.listo();
+    const [gs, cs] = await Promise.all([F.getDocs(F.collection(db, 'gatitos')), F.getDocs(F.collection(db, 'banco_cuentas'))]);
+    const cuentas = {}; cs.docs.forEach(d => { cuentas[d.id] = d.data(); });
+    colecciones = gs.docs.map(d => { const x = d.data(), c = cuentas['u-' + d.id] || {};
+      return { uid: d.id, nombre: x.nombre || ((c.nombre || '') + ' ' + (c.apellido || '')).trim() || '(sin nombre)', curso: c.curso || '', ids: x.ids || [], favorito: x.favorito }; })
+      .filter(x => x.ids.length);
+    const cursos = [...new Set(colecciones.map(x => x.curso).filter(Boolean))].sort();
+    $('colCurso').innerHTML = '<option value="">Todos los cursos</option>' + cursos.map(c => `<option>${esc(c)}</option>`).join('');
+    $('colGato').innerHTML = '<option value="">Cualquier gatito</option>' + G.map(g => `<option value="${g.id}">${esc(g.nombre)}</option>`).join('');
+    pintarColecciones();
+  } catch (e) { $('colTabla').innerHTML = `<tr><td colspan="5">No se pudieron leer las colecciones: ${esc(e.message)}</td></tr>`; }
+  b.disabled = false;
+}
+function pintarColecciones() {
+  if (!colecciones) return;
+  const q = $('colBuscar').value.trim().toLowerCase(), cur = $('colCurso').value, gid = $('colGato').value;
+  const val = ids => ids.reduce((s, id) => s + ((G.find(g => g.id === id) || {}).precio || 0), 0);
+  const l = colecciones.filter(x => (!q || x.nombre.toLowerCase().includes(q)) && (!cur || x.curso === cur) && (!gid || x.ids.includes(gid)))
+    .sort((a, b) => b.ids.length - a.ids.length || a.nombre.localeCompare(b.nombre));
+  const tot = l.reduce((s, x) => s + x.ids.length, 0);
+  $('colKpis').innerHTML = `<div><small>Estudiantes</small><b>${l.length}</b></div><div><small>Gatitos</small><b>${tot}</b></div>` + (gid ? `<div><small>Tienen ${esc((G.find(g => g.id === gid) || {}).nombre || '')}</small><b>${l.length}</b></div>` : '');
+  $('colTabla').innerHTML = l.map(x => `<tr><td><b>${esc(x.nombre)}</b></td><td>${esc(x.curso || '—')}</td><td class="n">${x.ids.length}</td><td class="n">${fmt(val(x.ids))}</td>
+    <td>${x.ids.map(id => { const g = G.find(y => y.id === id) || { nombre: id }; return `<img src="gatitos/img/${esc(id)}.webp" alt="${esc(g.nombre)}" title="${esc(g.nombre)}${id === x.favorito ? ' ★ favorito' : ''}" style="${id === gid ? 'outline:2px solid var(--acid);border-radius:8px' : ''}">`; }).join('')}</td></tr>`).join('')
+    || '<tr><td colspan="5" class="muted">Nadie coincide con el filtro.</td></tr>';
+}
+$('colCargar').onclick = cargarColecciones;
+['colBuscar', 'colCurso', 'colGato'].forEach(id => { $(id).oninput = pintarColecciones; $(id).onchange = pintarColecciones; });
 function pintarProfe() {
   if (!esProfe) return;
   const sel = $('pGato');

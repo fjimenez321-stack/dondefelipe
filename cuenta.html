@@ -327,7 +327,7 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
   <footer>El Mundo de Felipe · Colegio San Agustín, Villa Alemana</footer>
 </div>
 
-<script src="gatitos/catalogo.js?v=20261101"></script>
+<script src="gatitos/catalogo.js?v=20261104c"></script>
 <script src="gatitos/anim.js?v=20261031"></script>
 <script src="gatitos/mascota.js?v=20261030"></script>
 <script src="firebase/perfil-publico.js"></script>
@@ -436,7 +436,7 @@ async function cargarMascota(u) {
     const ids = sg.exists() ? sg.data().ids || [] : [];
     if (!sm.exists()) {
       box.innerHTML = `<h2><i class="fa-solid fa-paw"></i> Mi mascota</h2>
-        <p class="muted" style="margin:0 0 12px">${ids.length ? 'Adopta uno de tus gatitos y cuídalo: comida, baños, juegos y veterinario. Si está bien cuidado, el poder mensual de Nietzsche, César o Gruñona vale ×2.' : 'Consigue un gatito en el Mercado y adóptalo como mascota.'}</p>
+        <p class="muted" style="margin:0 0 12px">${ids.length ? 'Adopta uno de tus gatitos y cuídalo: comida, baños, juegos y veterinario. Si está bien cuidado, el poder mensual de Nietzsche, César, Gruñona, Miauricio, Ava o Calha vale ×2.' : 'Consigue un gatito en el Mercado y adóptalo como mascota.'}</p>
         <a class="btn p" href="${ids.length ? 'mascota.html' : 'gatitos.html'}">${ids.length ? '🐾 Adoptar mascota' : '🛒 Ir al Mercado'}</a>`;
       return;
     }

@@ -816,7 +816,7 @@ service cloud.firestore {
               'miauricio': 'Miauricio: premio único de 5 décimas sumativas'}.get(g, '');
     }
     function opPremio(d) {
-      return d.gatito is string && d.gatito in ['miauricio'] && d.gatito in gatitosAntes(request.auth.uid)
+      return d.gatito is string && d.gatito in [] && d.gatito in gatitosAntes(request.auth.uid)
         && d.monto == 0 && d.canje == 'pendiente' && d.item == textoPremio(d.gatito)
         && !d.keys().hasAny(['oferta', 'precio', 'pedido', 'transferencia'])
         && !exists(rutaPremio(d.cuenta, d.gatito)) && existsAfter(rutaPremio(d.cuenta, d.gatito));
@@ -828,7 +828,7 @@ service cloud.firestore {
         && request.resource.data.cuenta == miCuentaBanco() && miCuentaBanco() != ''
         && request.resource.data.keys().hasOnly(['cuenta', 'uid', 'gatito', 'fecha'])
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.gatito in ['miauricio']
+        && request.resource.data.gatito in []   // (Miauricio ya no tiene premio único: pasó a poder mensual)
         && request.resource.data.gatito in gatitosAntes(request.auth.uid)
         && pid == request.resource.data.cuenta + '__' + request.resource.data.gatito
         && request.resource.data.fecha == request.time
@@ -838,17 +838,24 @@ service cloud.firestore {
     // ── Poder mensual: Gato Nietzsche y Gato del tío César dan, CADA UNO, 5 formativas y 2 sumativas
     //    una vez por mes (debe coincidir con gatitos/catalogo.js: mensualesDe, idPoderMes, textoMensual) ──
     function mesHoy() { let t = request.time - duration.value(4, 'h'); return t.year() * 12 + t.month() - 1; }
-    function nombreMensual(g) { return {'cesar': 'Gato del tío César', 'grunona': 'Gruñona', 'ava': 'Ava', 'calha': 'Calha'}.get(g, 'Gato Nietzsche'); }
+    function nombreMensual(g) { return {'cesar': 'Gato del tío César', 'grunona': 'Gruñona', 'ava': 'Ava', 'calha': 'Calha', 'miauricio': 'Miauricio'}.get(g, 'Gato Nietzsche'); }
+    // Miauricio y Gruñona dan 3 sumativas (los demás 2) y se aplican en una asignatura (gatitos/catalogo.js: mensual.ramo).
+    function sumMensual(g) { return g in ['miauricio', 'grunona'] ? 3 : 2; }
+    function ramoMensual(g) { return {'miauricio': ' · Matemáticas, profesora Carol', 'grunona': ' · Matemáticas, profesora Paulina'}.get(g, ''); }
+    function itemMensual(g, x) {
+      return nombreMensual(g) + ': ' + string(5 * x) + ' décimas formativas y ' + string(sumMensual(g) * x) + ' décimas sumativas del mes'
+        + (x == 2 ? ' (×2 mascota feliz)' : '') + ramoMensual(g);
+    }
     // El de Nietzsche conserva el formato antiguo (<cuenta>__<mes>); los demás llevan el gatito al final.
     function idPoderMes(c, m, g) { return g == 'nietzsche' ? c + '__' + string(m) : c + '__' + string(m) + '__' + g; }
     function rutaPoderMes(c, m, g) { return /databases/$(database)/documents/gatitos_poderes_mes/$(idPoderMes(c, m, g)); }
     function opPoderMes(d) {
       let g = d.get('gatito', 'nietzsche');
-      return g in ['nietzsche', 'cesar', 'grunona', 'ava', 'calha'] && g in gatitosAntes(request.auth.uid)
+      return g in ['nietzsche', 'cesar', 'grunona', 'ava', 'calha', 'miauricio'] && g in gatitosAntes(request.auth.uid)
         && d.monto == 0 && d.canje == 'pendiente'
-        && (d.item == nombreMensual(g) + ': 5 décimas formativas y 2 décimas sumativas del mes'
+        && (d.item == itemMensual(g, 1)
             // ×2 si ESE gatito es tu mascota y está bien cuidada
-            || (d.item == nombreMensual(g) + ': 10 décimas formativas y 4 décimas sumativas del mes (×2 mascota feliz)' && mascotaFeliz(g)))
+            || (d.item == itemMensual(g, 2) && mascotaFeliz(g)))
         && !d.keys().hasAny(['oferta', 'precio', 'pedido', 'transferencia'])
         && !exists(rutaPoderMes(d.cuenta, mesHoy(), g))
         && getAfter(rutaPoderMes(d.cuenta, mesHoy(), g)).data.mes == mesHoy();
@@ -861,7 +868,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['cuenta', 'uid', 'mes', 'fecha', 'gatito'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.mes == mesHoy()
-        && request.resource.data.get('gatito', 'nietzsche') in ['nietzsche', 'cesar', 'grunona', 'ava', 'calha']
+        && request.resource.data.get('gatito', 'nietzsche') in ['nietzsche', 'cesar', 'grunona', 'ava', 'calha', 'miauricio']
         && pid == idPoderMes(request.resource.data.cuenta, mesHoy(), request.resource.data.get('gatito', 'nietzsche'))
         && request.resource.data.fecha == request.time
         && opsDespues(request.resource.data.cuenta) == opsAntes(request.resource.data.cuenta) + 1
