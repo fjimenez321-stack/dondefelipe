@@ -87,7 +87,7 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-top:6px;
 .item{display:grid;grid-template-columns:120px 1fr auto;gap:24px;align-items:center;padding:16px 0;border-top:2px solid rgba(255,255,255,.08)}
 .item:first-of-type{border-top:0}
 .item .ico{width:120px;height:120px;border-radius:22px;background:rgba(255,255,255,.06);display:grid;place-items:center;font-size:72px;overflow:hidden}
-.item .ico img{width:100%;height:100%;object-fit:cover}
+
 .item .t{font:900 46px/1 var(--fd);text-transform:uppercase}
 .item .s{font:700 24px Inter;color:#a9a9b8;margin-top:6px}
 .item .p{font:900 54px/1 var(--fd);color:var(--tema,#ccff00);white-space:nowrap}
@@ -95,6 +95,32 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-top:6px;
 .frase b{color:var(--tema,#ccff00)}
 .adorno{height:110px;width:auto;margin:-30px 0 -10px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.5))}
 .lienzo.historia .adorno{height:150px}
+.gato{display:grid;grid-template-columns:400px minmax(0,1fr);gap:30px;align-items:center}
+.gato>div{min-width:0;overflow-wrap:anywhere}
+.lienzo.historia .gato{grid-template-columns:1fr;justify-items:center;text-align:center}
+.bg{display:block;width:100%;height:100%;background-repeat:no-repeat;background-position:center}
+.gato .foto{width:400px;height:400px}
+.lienzo.historia .gato .foto{width:620px;height:620px}
+.lienzo.historia .vitrina .foto{height:210px}
+.gato .nom{font:900 76px/.9 var(--fd);text-transform:uppercase}
+.chip{display:inline-block;font:800 22px Inter;letter-spacing:2px;text-transform:uppercase;padding:8px 18px;border-radius:999px;border:3px solid currentColor;margin:16px 0 10px}
+.gato .pr{font:900 70px/1 var(--fd);color:var(--tema)}
+.gato .tx{font:700 28px/1.35 Inter;color:#d7d7e2;margin-top:14px}
+.pod{font:800 28px/1.35 Inter;margin-top:10px}
+.vitrina{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.vitrina .caja{text-align:center;padding:16px}
+.vitrina .foto{width:100%;height:170px}
+.vitrina .n{font:900 40px/1 var(--fd);text-transform:uppercase;margin-top:8px}
+.vitrina .r{font:800 18px Inter;letter-spacing:2px;text-transform:uppercase;margin-top:6px}
+.vitrina .p{font:900 44px/1 var(--fd);color:var(--tema);margin-top:8px}
+.big-ico{font-size:220px;line-height:1;text-align:center}
+.rank{display:grid;grid-template-columns:90px 1fr auto;gap:22px;align-items:center;padding:16px 0;border-top:2px solid rgba(255,255,255,.08)}
+.rank:first-of-type{border-top:0}
+.rank .pos{font:900 64px/1 var(--fd);color:#a9a9b8;text-align:center}
+.rank.top .pos{color:var(--tema)}
+.rank .n{font:900 52px/1 var(--fd);text-transform:uppercase}
+.rank .s{font:700 24px Inter;color:#a9a9b8;margin-top:4px}
+.rank .v{font:900 60px/1 var(--fd);color:var(--tema);white-space:nowrap}
 .vacio{font:800 40px Inter;color:#a9a9b8;text-align:center;padding:80px 0}
 </style>
 </head>
@@ -126,6 +152,8 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-top:6px;
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="gatitos/catalogo.js?v=20261104"></script>
+<script src="banco-felipeso/catalogo.js?v=20261104"></script>
 <script src="firebase/df.js?v=20261104"></script>
 <script>
 (function () {
@@ -177,6 +205,13 @@ async function cargarTorneos() {
     const fin = [...d.querySelectorAll('.finalistas .slot')].map(s => ({ n: txt(s.querySelector('.nombre')), c: txt(s.querySelector('.curso')) }));
     datos.ping = { semis, fin, campeon: txt(d.querySelector('.final-match .txt')) };
   } catch (e) { datos.ping = { error: e.message }; }
+  for (const [k, url] of [['golV', 'goleadores.html'], ['golD', 'goleadoras.html']]) {
+    try {
+      const d = await leerHTML(url);
+      datos[k] = [...d.querySelectorAll('.scorer-card')].map(c => ({ n: txt(c.querySelector('.sc-name,.name')), g: +txt(c.querySelector('.sc-num,.goals-num')) || 0 }))
+        .filter(x => x.n).sort((a, b) => b.g - a.g);
+    } catch (e) { datos[k] = []; }
+  }
 }
 async function cargarFirebase() {
   const { F, db } = await DF.listo();
@@ -190,7 +225,14 @@ async function cargarFirebase() {
   datos.articulos = articulos.filter(a => a.activa && (a.stock === -1 || a.stock > 0));
   const act = cuentas.filter(c => c.estado !== 'Cerrada');
   datos.banco = { cuentas: act.length, total: act.reduce((s, c) => s + (c.saldo || 0), 0), movs7 };
+  // rankings de los juegos (mejor puntaje de cada estudiante)
+  datos.rank = {};
+  await Promise.all(Object.keys(JUEGOS).map(async j => {
+    try { datos.rank[j] = (await F.getDocs(F.query(F.collection(db, 'rankings', j, 'mejores'), F.orderBy('puntaje', 'desc'), F.limit(10)))).docs.map(d => d.data()).sort((a, b) => b.puntaje - a.puntaje); }
+    catch (e) { datos.rank[j] = []; }
+  }));
 }
+const JUEGOS = { 'odisea': 'Odisea', 'operacion-barrera': 'Operación Barrera', 'segunda-barrera': 'Segunda Barrera', 'energia-pista': 'Pista de Energía', 'ruta-paes': 'Ruta PAES', 'ludo-chileno': 'Ludo Chileno' };
 
 /* ═════════ plantillas ═════════ */
 const PL = {
@@ -200,6 +242,11 @@ const PL = {
   apuesta: { nombre: '🎯 Apuestas: partido', tema: ['#22e3ff', 'rgba(34,227,255,.22)', 'rgba(204,255,0,.1)'], kick: 'Apuestas de los partidos', titulo: '', html: () => htmlApuesta(), opciones: () => opcionesPartido() },
   subastas: { nombre: '🔨 Subastas', tema: ['#e9b949', 'rgba(233,185,73,.25)', 'rgba(255,46,126,.1)'], kick: 'Casa de Subastas · Hipopesos', titulo: 'Subastas <b>abiertas</b>', html: () => htmlSubastas() },
   tienda: { nombre: '🛍️ Tienda', tema: ['#4bd08c', 'rgba(75,208,140,.22)', 'rgba(233,185,73,.12)'], kick: 'Mercado Hipopesos', titulo: 'Nuevo en la <b>Tienda</b>', html: () => htmlTienda() },
+  gatos: { nombre: '🐱 Gatitos', tema: ['#ff9f1c', 'rgba(255,159,28,.22)', 'rgba(178,107,255,.16)'], kick: 'Mercado de gatitos · Hipopesos', titulo: '', html: () => htmlGatos(), opciones: () => selOp('gato', 'Gatito', [['vitrina', '✨ Vitrina (4–6 gatitos al azar)']].concat((window.GATITOS || []).slice().reverse().map(g => [g.id, g.nombre + ' · ' + (RAREZAS[g.rareza] || {}).nombre]))) },
+  benef: { nombre: '🎁 Beneficios', tema: ['#ccff00', 'rgba(204,255,0,.2)', 'rgba(255,46,126,.14)'], kick: 'Se compran con Hipopesos', titulo: '', html: () => htmlBenef(), opciones: () => selOp('benef', 'Beneficio', [['lista', '📋 Lista de beneficios']].concat((window.CATALOGO_BENEFICIOS || []).map((b, i) => [String(i), b.ico + ' ' + b.nombre]))) },
+  juegos: { nombre: '🎮 Juegos: ranking', tema: ['#b26bff', 'rgba(178,107,255,.25)', 'rgba(34,227,255,.14)'], kick: 'Ranking de juegos', titulo: '', html: () => htmlJuego(), opciones: () => selOp('juego', 'Juego', Object.entries(JUEGOS)) + selOp('nombres', 'Mostrar', [['corto', 'Nombre y curso'], ['curso', 'Solo el curso (sin nombres)']]) },
+  golV: { nombre: '🥅 Goleadores', tema: ['#ccff00', 'rgba(204,255,0,.22)', 'rgba(34,227,255,.16)'], kick: 'Copa San Agustín 2026', titulo: 'Tabla de <b>goleadores</b>', html: () => htmlGoles(datos.golV) },
+  golD: { nombre: '🥅 Goleadoras', tema: ['#ff4d94', 'rgba(255,77,148,.25)', 'rgba(255,215,0,.12)'], kick: 'Copa San Agustín 2026', titulo: 'Tabla de <b>goleadoras</b>', html: () => htmlGoles(datos.golD) },
   banco: { nombre: '🏦 Banco Hipopesos', tema: ['#e9b949', 'rgba(233,185,73,.22)', 'rgba(75,208,140,.14)'], kick: 'Economía del curso', titulo: 'Banco <b>Hipopesos</b>', html: () => htmlBanco() }
 };
 function vsHTML(p, grande) {
@@ -242,7 +289,7 @@ function htmlApuesta() {
 function htmlSubastas() {
   const l = (datos.subastas || []).slice(0, formato === 'historia' ? 6 : 4);
   if (!l.length) return `<div class="vacio">No hay subastas abiertas ahora.</div>`;
-  return `<div class="caja">${l.map(s => `<div class="item"><div class="ico">${s.imagen ? `<img src="${esc(s.imagen)}" alt="">` : esc(s.ico || '🎁')}</div>
+  return `<div class="caja">${l.map(s => `<div class="item"><div class="ico">${s.imagen ? fondo(s.imagen, 'cover') : esc(s.ico || '🎁')}</div>
     <div><div class="t">${esc(s.titulo)}</div><div class="s">${s.ofertas ? num(s.ofertas) + ' oferta' + (s.ofertas === 1 ? '' : 's') : 'Sin ofertas aún'} · cierra el ${esc(new Date(ms(s.cierre)).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }))}</div></div>
     <div class="p">${fmt(s.mejorCuenta ? s.mejor : s.minimo)}</div></div>`).join('')}</div>
     <div class="frase">¿Quién ofrecerá más? <b>Oferta con tus Hipopesos</b> en la Casa de Subastas.</div>`;
@@ -251,9 +298,68 @@ function htmlTienda() {
   const l = (datos.articulos || []).slice(0, formato === 'historia' ? 6 : 4);
   if (!l.length) return `<div class="vacio">No hay artículos a la venta.</div>`;
   return `<div class="caja">${l.map(a => { const f = (a.fotos || [])[0] || (a.imagen || '');
-    return `<div class="item"><div class="ico">${f ? `<img src="${esc(f)}" alt="">` : esc(a.ico || '🎁')}</div>
+    return `<div class="item"><div class="ico">${f ? fondo(f, 'cover') : esc(a.ico || '🎁')}</div>
     <div><div class="t">${esc(a.nombre)}</div><div class="s">${a.stock === -1 ? 'Disponible' : 'Quedan ' + a.stock}</div></div><div class="p">${fmt(a.precio)}</div></div>`; }).join('')}</div>
     <div class="frase">Cartas, juegos y más: <b>se compran con Hipopesos</b> en el Mercado.</div>`;
+}
+function selOp(k, etq, l) {
+  if (opcion[k] == null || !l.some(x => x[0] === opcion[k])) opcion[k] = l.length ? l[0][0] : '';
+  return `<h3>${esc(etq)}</h3><select data-op="${k}">${l.map(([v, t]) => `<option value="${esc(v)}"${v === opcion[k] ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
+}
+// html2canvas no respeta object-fit en <img>: las fotos van como fondo (background-size sí lo respeta)
+const fondo = (url, modo) => `<span class="bg" style="background-image:url('${esc(url).replace(/'/g, '%27')}');background-size:${modo || 'contain'}"></span>`;
+function imgGato(id) {
+  const m = new Date().getMonth() + 1, d = new Date().getDate(), nav = (m === 11 && d >= 20) || m === 12 || m === 1;
+  return 'gatitos/img/' + id + (nav && ['masita', 'miauricio'].includes(id) ? '-navidad' : '') + '.webp';
+}
+let vitrinaFija = null;
+function htmlGatos() {
+  const G = window.GATITOS || [], R = window.RAREZAS || {};
+  if (opcion.gato === 'vitrina') {
+    if (!vitrinaFija) vitrinaFija = G.filter(g => !['comun', 'pococomun'].includes(g.rareza)).sort(() => Math.random() - .5);
+    PL.gatos.titulo = 'Adopta un <b>gatito</b>';
+    return `<div class="vitrina">${vitrinaFija.slice(0, formato === 'historia' ? 6 : 4).map(g => `<div class="caja"><div class="foto">${fondo(imgGato(g.id))}</div>
+      <div class="n">${esc(g.nombre)}</div><div class="r" style="color:${(R[g.rareza] || {}).color}">${esc((R[g.rareza] || {}).nombre)}</div><div class="p">${fmt(g.precio)}</div></div>`).join('')}</div>
+      <div class="frase">Cada gatito da <b>poderes y décimas</b>. Se adoptan con Hipopesos en el Mercado.</div>`;
+  }
+  const g = G.find(x => x.id === opcion.gato); if (!g) return '<div class="vacio">Gatito no encontrado.</div>';
+  const r = R[g.rareza] || {}, pod = (g.poderes || []);
+  PL.gatos.titulo = (g.exclusivo ? 'Edición <b>limitada</b>' : 'Gatito <b>destacado</b>');
+  return `<div class="caja dest"><div class="gato"><div class="foto">${fondo(imgGato(g.id))}</div><div>
+    <div class="nom">${esc(g.nombre)}</div><span class="chip" style="color:${r.color}">${esc(r.nombre)}</span>
+    <div class="pr">${fmt(g.precio)}</div><div class="tx">${esc(g.txt)}</div></div></div></div>
+    ${pod.length ? `<div class="caja"><div class="etq">Poderes</div>${pod.map(x => `<div class="pod">${esc(x)}</div>`).join('')}</div>` : ''}`;
+}
+function htmlBenef() {
+  const B = window.CATALOGO_BENEFICIOS || [];
+  if (opcion.benef === 'lista') {
+    PL.benef.titulo = 'Beneficios <b>Hipopesos</b>';
+    const l = B.slice().sort((a, b) => a.precio - b.precio).slice(0, formato === 'historia' ? 9 : 6);
+    return `<div class="caja">${l.map(b => `<div class="item" style="grid-template-columns:90px 1fr auto"><div class="ico" style="width:90px;height:90px;font-size:56px">${esc(b.ico)}</div>
+      <div><div class="t" style="font-size:42px">${esc(b.nombre)}</div></div><div class="p" style="font-size:48px">${fmt(b.precio)}</div></div>`).join('')}</div>
+      <div class="frase">Ahorra y canjéalos en el <b>Mercado</b>. ${B.length > l.length ? `Y hay ${B.length - l.length} más en la página.` : ''}</div>`;
+  }
+  const b = B[+opcion.benef]; if (!b) return '<div class="vacio">Beneficio no encontrado.</div>';
+  PL.benef.titulo = esc(b.nombre);
+  return `<div class="caja dest"><div class="big-ico">${esc(b.ico)}</div><div class="cifra" style="text-align:center">${fmt(b.precio)}<small>Precio en Hipopesos</small></div></div>
+    ${b.desc ? `<div class="caja"><div class="frase">${esc(b.desc)}</div></div>` : ''}
+    <div class="frase">${b.ocasion ? 'Se usa <b>cuando la ocasión lo amerite</b>. ' : ''}Se pide en el <b>Mercado</b> y el profe lo autoriza.</div>`;
+}
+function htmlJuego() {
+  const j = opcion.juego, l = ((datos.rank || {})[j] || []).slice(0, formato === 'historia' ? 10 : 6);
+  PL.juegos.titulo = esc(JUEGOS[j] || 'Juego');
+  if (!l.length) return '<div class="vacio">Todavía no hay puntajes en este juego.</div>';
+  const solo = opcion.nombres === 'curso', med = ['🥇', '🥈', '🥉'];
+  return `<div class="caja">${l.map((x, i) => `<div class="rank ${i < 3 ? 'top' : ''}"><div class="pos">${med[i] || i + 1}</div>
+    <div><div class="n">${esc(solo ? (x.curso || 'Estudiante') : x.nombre)}</div>${!solo && x.curso ? `<div class="s">${esc(x.curso)}</div>` : ''}</div><div class="v">${num(x.puntaje)}</div></div>`).join('')}</div>
+    <div class="frase">¿Puedes superarlos? <b>Juega en El Mundo de Felipe</b> y entra al ranking.</div>`;
+}
+function htmlGoles(l) {
+  l = (l || []).slice(0, formato === 'historia' ? 10 : 7);
+  if (!l.length) return '<div class="vacio">No se pudo leer la tabla.</div>';
+  let pos = 0, prev = null;
+  return `<div class="caja">${l.map((x, i) => { if (x.g !== prev) { pos = i + 1; prev = x.g; }
+    return `<div class="rank ${pos === 1 ? 'top' : ''}"><div class="pos">${pos}°</div><div><div class="n">${esc(x.n)}</div></div><div class="v">${x.g} ⚽</div></div>`; }).join('')}</div>`;
 }
 function htmlBanco() {
   const b = datos.banco || {};
@@ -325,6 +431,7 @@ function pintarControles() {
   $('plantillas').innerHTML = Object.entries(PL).map(([k, p]) => `<button data-p="${k}" class="${k === plantilla ? 'on' : ''}">${p.nombre}</button>`).join('');
   $('opciones').innerHTML = PL[plantilla].opciones ? PL[plantilla].opciones() : '';
   const s = $('selPartido'); if (s) s.onchange = () => { opcion.partido = s.value; dibujar(); };
+  $('opciones').querySelectorAll('[data-op]').forEach(x => { x.onchange = () => { opcion[x.dataset.op] = x.value; dibujar(); }; });
 }
 $('plantillas').onclick = e => { const b = e.target.closest('[data-p]'); if (!b) return; plantilla = b.dataset.p; pintarControles(); dibujar(); };
 $('formato').onclick = e => { const b = e.target.closest('[data-f]'); if (!b) return; formato = b.dataset.f; [...$('formato').children].forEach(x => x.classList.toggle('on', x === b)); dibujar(); };
