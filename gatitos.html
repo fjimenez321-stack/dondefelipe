@@ -276,6 +276,9 @@ h1 span{color:var(--acid)}
     <div class="card"><h2 class="h2s">Vender lo mío</h2>
       <p class="intro" style="margin:0">Puedes vender tus beneficios sin usar y tus gatitos. Al publicarlo sale de tu cuenta y queda congelado; si nadie lo ha pedido, puedes retirarlo y recuperarlo. Cuando alguien lo compra y el profe autoriza, recibes los Hipopesos.</p>
       <div class="lista-p" id="mios"></div></div>
+    <div class="card" id="cRegalos"><h2 class="h2s">🎁 Regalos</h2>
+      <p class="intro" style="margin:0">Regala un gatito o un beneficio sin usar a un compañero con el botón <b>🎁 Regalar</b> de arriba. Sale de tu cuenta y le llega cuando lo <b>acepte</b>. Si lo rechaza (o mientras no lo acepta) puedes recuperarlo.</p>
+      <div class="lista-p" id="regRecibidos"></div><div class="lista-p" id="regEnviados"></div></div>
     <div class="card"><h2 class="h2s">Mis ventas</h2><div class="lista-p" id="misVentas"></div></div>
   </section>
 
@@ -351,6 +354,7 @@ const fmt = n => new Intl.NumberFormat('es-CL').format(Math.round(n || 0)) + ' �
 const R = window.RAREZAS, G = window.GATITOS, gato = id => G.find(g => g.id === id);
 const ms = t => (t && t.toMillis ? t.toMillis() : (t && t.toDate ? t.toDate().getTime() : (typeof t === 'number' ? t : 0)));
 let usuario = null, esProfe = false, cuentaId = null, cuenta = null, coleccion = { ids: [], favorito: null };
+let regRec = [], regEnv = [], cuentasDir = null;
 let publicaciones = [], misPedidos = [], misVentas = [], misBenef = [], poderHoy = null, poderMes = {}, premios = {}, reclamando = false;
 // Fecha de adquisición: se consultan solo los movimientos de los gatitos que tienes (una vez por gatito),
 // no todos los movimientos de la cuenta.
@@ -398,7 +402,7 @@ function pintarTabs() {
     ['tienda', '🛍️ Tienda', articulos.filter(artVigente).length],
     ['estudiantes', '🤝 Entre estudiantes', publicaciones.filter(x => x.estado === 'venta').length],
     ['coleccion', '🐾 Mi colección', (coleccion.ids || []).length]];
-  if (usuario && !esProfe) t.push(['mio', '📦 Vender lo mío', publicaciones.filter(x => x.estado === 'venta' && x.uid === usuario.uid).length]);
+  if (usuario && !esProfe) t.push(['mio', '📦 Vender o regalar', publicaciones.filter(x => x.estado === 'venta' && x.uid === usuario.uid).length + regRec.filter(r => r.estado === 'pendiente').length]);
   if (esProfe) t.push(['profe', '🧑‍🏫 Vender', ofertas.length]);
   $('tabs').innerHTML = t.map(([k, n, c]) => `<button data-v="${k}" class="${k === vista ? 'on' : ''}">${n}<span class="cuenta-n">${c}</span></button>`).join('');
   ['mercado', 'beneficios', 'tienda', 'estudiantes', 'mio', 'coleccion', 'profe'].forEach(k => $('v' + k[0].toUpperCase() + k.slice(1)).classList.toggle('oculto', k !== vista));
@@ -730,7 +734,7 @@ async function cargar() {
   unsubs.push(F.onSnapshot(F.collection(db, 'tienda_articulos'), s => { articulos = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); }, () => {}));
   unsubs.push(F.onSnapshot(F.collection(db, 'gatitos_ofertas'), s => { ofertas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); },
     e => aviso('No se pudieron leer las ofertas: ' + esc(e.message), 'err')));
-  misPedidos = []; misVentas = []; misBenef = []; publicaciones = []; poderHoy = null; poderMes = {}; premios = {}; adquiridos = {}; fechasPedidas = new Set();
+  regRec = []; regEnv = []; misPedidos = []; misVentas = []; misBenef = []; publicaciones = []; poderHoy = null; poderMes = {}; premios = {}; adquiridos = {}; fechasPedidas = new Set();
   if (usuario) {
     // Antes se escuchaba mercado_items completo (incluidas las publicaciones vendidas y retiradas, que
     // nunca se borran). Ahora: las activas de todos + todas las propias (para poder republicar).
@@ -762,6 +766,10 @@ async function cargar() {
           const todos = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
           misBenef = todos.filter(m => m.canje === 'pendiente' && m.item && m.item !== 'Ruleta: disertación' && m.tipo !== 'poder-gatito' && m.tipo !== 'poder-mensual' && m.tipo !== 'premio-gatito');
           pintar(); }, () => {}));
+        // regalos recibidos y enviados
+        const msR = t => (t && t.toMillis ? t.toMillis() : 0);
+        unsubs.push(F.onSnapshot(F.query(F.collection(db, 'regalos'), F.where('para', '==', cuentaId)), s => { regRec = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => msR(b.creada) - msR(a.creada)); pintar(); avisoRegalos(); }, () => {}));
+        unsubs.push(F.onSnapshot(F.query(F.collection(db, 'regalos'), F.where('de', '==', cuentaId)), s => { regEnv = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => msR(b.creada) - msR(a.creada)); pintar(); }, () => {}));
         pedirFechas();
         unsubs.push(F.onSnapshot(F.doc(db, 'gatitos_poderes', idPoderSemana(cuentaId)), d => { poderHoy = d.exists() ? d.data() : false; pintar(); }, () => { poderHoy = null; }));
         G.filter(g => g.mensual).forEach(g => unsubs.push(F.onSnapshot(F.doc(db, 'gatitos_poderes_mes', idPoderMes(cuentaId, mesHoy(), g.id)),
@@ -1034,7 +1042,7 @@ function filaMia(x, pub) {
   return `<div class="it" data-mia="${esc(clave)}"><span class="ico-m">${icoHtml(x)}</span><div class="t"><b>${esc(x.item)}</b>
     <small>${x.tipo === 'gatito' ? 'Gatito' : 'Beneficio sin usar'}${enVenta ? ' · 🔒 <b style="color:var(--acid)">en venta a ' + fmt(pub.precio) + '</b> (congelado: no está en tu cuenta mientras se vende)' : ''}</small></div>
     <input type="number" min="100" step="500" placeholder="Precio ₣" value="${pub ? pub.precio : (x.ref || '')}" aria-label="Precio">
-    <button class="btn ${enVenta ? '' : 'p'}" data-publicar>${enVenta ? 'Cambiar precio' : 'Poner a la venta'}</button>${enVenta ? '<button class="btn" data-retirar>Retirar y recuperar</button>' : ''}</div>`;
+    <button class="btn ${enVenta ? '' : 'p'}" data-publicar>${enVenta ? 'Cambiar precio' : 'Poner a la venta'}</button>${enVenta ? '<button class="btn" data-retirar>Retirar y recuperar</button>' : '<button class="btn" data-regalar>🎁 Regalar</button>'}</div>`;
 }
 function pintarMio() {
   if (!usuario || esProfe) return;
@@ -1050,6 +1058,7 @@ function pintarMio() {
     : items.map(x => filaMia(x, pubDe(x.tipo === 'gatito' ? 'g-' + usuario.uid + '-' + x.gatito : 'b-' + x.mov))).join('') || '<p class="intro">No tienes beneficios sin usar ni gatitos para vender.</p>';
   $('misVentas').innerHTML = misVentas.length ? misVentas.map(p => `<div class="it"><span class="ico-m">${icoHtml(p)}</span><div class="t"><b>${esc(p.item)}</b><small>${esc(p.compradorNombre)} lo pidió por ${fmt(p.precio)}${p.nota ? ' · ' + esc(p.nota) : ''}</small></div>${EST_P[p.estado] || ''}</div>`).join('')
     : '<p class="intro">Todavía nadie te ha comprado nada.</p>';
+  pintarRegalos();
 }
 function pintarPedidos() {
   const h = misPedidos.length ? misPedidos.slice(0, 20).map(p => `<div class="it"><span class="ico-m">${icoHtml(p)}</span><div class="t"><b>${esc(p.item)}</b>
@@ -1116,6 +1125,134 @@ async function cancelarPedido(pid) {
     aviso('Pedido cancelado: el pago volvió a tu cuenta.', 'ok');
   } catch (e) { aviso('No se pudo cancelar: ' + esc(e.message), 'err'); }
 }
+/* ═════════ regalos entre estudiantes ═════════ */
+const EST_REG = { pendiente: '<span class="chip lim">Esperando que lo acepte</span>', aceptado: '<span class="chip">✓ Aceptado</span>', rechazado: '<span class="chip hot">Rechazado</span>', devuelto: '<span class="chip">Recuperado</span>' };
+let avisado = false;
+function avisoRegalos() {
+  const n = regRec.filter(r => r.estado === 'pendiente').length;
+  if (n && !avisado) { avisado = true; aviso(`🎁 Tienes ${n === 1 ? 'un regalo' : n + ' regalos'} por aceptar en «Vender o regalar».`, 'ok'); }
+}
+function icoReg(r) { return r.tipo === 'gatito' ? `<img src="gatitos/img/${esc(r.gatito)}.webp" alt="" style="width:34px;height:34px;object-fit:contain">` : esc(r.ico || '🎟️'); }
+function pintarRegalos() {
+  if (!$('regRecibidos')) return;
+  const rec = regRec.filter(r => r.estado === 'pendiente'), env = regEnv.slice(0, 15);
+  $('regRecibidos').innerHTML = rec.length ? '<p class="sub" style="margin:12px 0 4px"><b>Para ti</b></p>' + rec.map(r => `<div class="it"><span class="ico-m">${icoReg(r)}</span><div class="t"><b>${esc(r.item)}</b>
+      <small>De ${esc(r.deNombre)}${r.nota ? ' · «' + esc(r.nota) + '»' : ''}</small></div>
+      <button class="btn p" data-reg-ok="${esc(r.id)}">Aceptar</button><button class="btn" data-reg-no="${esc(r.id)}">Rechazar</button></div>`).join('') : '';
+  $('regEnviados').innerHTML = env.length ? '<p class="sub" style="margin:12px 0 4px"><b>Que regalaste</b></p>' + env.map(r => `<div class="it"><span class="ico-m">${icoReg(r)}</span><div class="t"><b>${esc(r.item)}</b>
+      <small>Para ${esc(r.paraNombre)}</small></div>${EST_REG[r.estado] || ''}
+      ${r.estado === 'pendiente' || r.estado === 'rechazado' ? `<button class="btn" data-reg-volver="${esc(r.id)}">Recuperar</button>` : ''}</div>`).join('') : '';
+}
+async function abrirRegalo(fila) {
+  const clave = fila.dataset.mia, esG = clave.indexOf('g-') === 0, gid = esG ? clave.slice(('g-' + usuario.uid + '-').length) : null;
+  const m = esG ? null : misBenef.find(x => 'b-' + x.id === clave);
+  const item = esG ? (gato(gid) || {}).nombre || gid : m && m.item;
+  if (!item) return aviso('Ya no tienes ese objeto.', 'err');
+  if (esG) {
+    try { const { F, db } = await DF.listo(), sm = await F.getDoc(F.doc(db, 'mascotas', usuario.uid));
+      if (sm.exists() && sm.data().gatito === gid) return aviso(`${esc(item)} es tu mascota: elige otra mascota antes de regalarlo.`, 'err'); } catch (e) {}
+  }
+  if (!cuentasDir) {
+    try { const { F, db } = await DF.listo(); cuentasDir = (await F.getDocs(F.collection(db, 'banco_cuentas'))).docs.map(d => Object.assign({ id: d.id }, d.data()))
+      .filter(x => x.id !== cuentaId && x.estado !== 'Cerrada')
+      .sort((a, b) => String(a.curso || '').localeCompare(String(b.curso || ''), 'es') || String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es'));
+    } catch (e) { return aviso('No se pudo cargar la lista de compañeros: ' + esc(e.message), 'err'); }
+  }
+  const cursos = [...new Set(cuentasDir.map(x => x.curso || 'Sin curso'))];
+  $('modal').innerHTML = `<div style="grid-column:1/-1">
+    <h3 style="margin:0 0 6px">🎁 Regalar «${esc(item)}»</h3>
+    <p style="color:var(--mute);margin:0 0 12px;font-size:14px">Sale de tu cuenta ahora y le llega cuando lo acepte. Si lo rechaza, o mientras no lo acepte, puedes recuperarlo.</p>
+    <select id="regPara" style="width:100%;margin-bottom:8px;background:var(--slab2);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:10px"><option value="">¿A quién se lo regalas?</option>${cursos.map(cu => `<optgroup label="${esc(cu)}">${cuentasDir.filter(x => (x.curso || 'Sin curso') === cu)
+      .map(x => `<option value="${esc(x.id)}">${esc(((x.nombre || '') + ' ' + (x.apellido || '')).trim())} · N° ${esc(x.numero || '')}</option>`).join('')}</optgroup>`).join('')}</select>
+    <input id="regNota" maxlength="120" placeholder="Mensaje (opcional)" style="width:100%;background:var(--slab2);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:10px">
+    <div id="mMsg"></div>
+    <div class="fila" style="margin-top:12px"><button class="btn" data-a="cerrar">Cancelar</button><button class="btn p" id="regEnviar" data-clave="${esc(clave)}">🎁 Regalar</button></div></div>`;
+  $('velo').hidden = false;
+  $('regEnviar').onclick = () => enviarRegalo(clave);
+}
+async function enviarRegalo(clave) {
+  const para = $('regPara').value, nota = $('regNota').value.trim().slice(0, 120);
+  const dest = (cuentasDir || []).find(x => x.id === para);
+  if (!dest) return $('mMsg').innerHTML = '<p style="color:var(--neg)">Elige a quién se lo regalas.</p>';
+  const esG = clave.indexOf('g-') === 0, gid = esG ? clave.slice(('g-' + usuario.uid + '-').length) : null;
+  const m = esG ? null : misBenef.find(x => 'b-' + x.id === clave);
+  const item = esG ? (gato(gid) || {}).nombre || gid : m.item;
+  const paraNombre = ((dest.nombre || '') + ' ' + (dest.apellido || '')).trim().slice(0, 80);
+  if (!confirm(`¿Regalar «${item}» a ${paraNombre}?`)) return;
+  $('regEnviar').disabled = true;
+  const { F, db } = await DF.listo();
+  try {
+    await F.runTransaction(db, async tx => {
+      const rid = esG ? 'g-' + usuario.uid + '-' + gid : 'b-' + m.id, rr = F.doc(db, 'regalos', rid), rgc = F.doc(db, 'gatitos', usuario.uid);
+      const sgc = esG ? await tx.get(rgc) : null;
+      const base = { tipo: esG ? 'gatito' : 'beneficio', de: cuentaId, deUid: usuario.uid, deNombre: nombreCorto(), para, paraNombre,
+        item, ico: esG ? '🐱' : ((BENEF.find(x => x.nombre === m.item) || {}).ico || '🎟️'), nota, estado: 'pendiente', creada: F.serverTimestamp() };
+      if (esG) {
+        const col = sgc && sgc.exists() ? sgc.data() : coleccion;
+        if (!(col.ids || []).includes(gid)) throw new Error('ese gatito ya no está en tu colección');
+        const ids = (col.ids || []).filter(x => x !== gid);
+        tx.set(rr, Object.assign(base, { gatito: gid }));
+        tx.set(rgc, { uid: usuario.uid, nombre: String(col.nombre || nombreCorto()).slice(0, 80), ids, favorito: ids.includes(col.favorito) ? col.favorito : (ids[0] || null), actualizado: F.serverTimestamp() });
+      } else {
+        tx.set(rr, Object.assign(base, { mov: m.id }));
+        tx.update(F.doc(db, 'banco_movs', m.id), { canje: 'en-regalo' });
+      }
+    });
+    $('velo').hidden = true;
+    aviso(`🎁 Regalo enviado a ${esc(paraNombre)}. Le llega cuando lo acepte.`, 'ok');
+  } catch (e) { $('mMsg').innerHTML = `<p style="color:var(--neg)">No se pudo: ${esc(/permission/i.test(e.message) ? 'el banco lo rechazó (¿ya no lo tienes, o el profe no publicó las reglas nuevas?)' : e.message)}</p>`; $('regEnviar').disabled = false; }
+}
+async function responderRegalo(rid, acepta) {
+  const r = regRec.find(x => x.id === rid); if (!r) return;
+  if (!acepta && !confirm(`¿Rechazar «${r.item}» de ${r.deNombre}? Se lo devolveremos.`)) return;
+  if (acepta && r.tipo === 'gatito' && (coleccion.ids || []).includes(r.gatito)) return aviso(`Ya tienes a ${esc(r.item)}: no puedes recibir otro igual. Recházalo para que ${esc(r.deNombre)} lo recupere.`, 'err');
+  const { F, db } = await DF.listo();
+  try {
+    await F.runTransaction(db, async tx => {
+      const rr = F.doc(db, 'regalos', rid), rgc = F.doc(db, 'gatitos', usuario.uid), rc = F.doc(db, 'banco_cuentas', cuentaId);
+      const [sr, sgc, sc] = await Promise.all([tx.get(rr), acepta && r.tipo === 'gatito' ? tx.get(rgc) : null, acepta && r.tipo === 'beneficio' ? tx.get(rc) : null]);
+      if (!sr.exists() || sr.data().estado !== 'pendiente') throw new Error('este regalo ya no está disponible');
+      tx.update(rr, { estado: acepta ? 'aceptado' : 'rechazado', resuelta: F.serverTimestamp() });
+      if (!acepta) return;
+      if (r.tipo === 'gatito') {
+        const col = sgc && sgc.exists() ? sgc.data() : { ids: [], favorito: null };
+        if ((col.ids || []).includes(r.gatito)) throw new Error('ya tienes ese gatito');
+        const ids = (col.ids || []).concat([r.gatito]);
+        tx.set(F.doc(db, 'regalos_recibe', usuario.uid), { rid, actualizado: F.serverTimestamp() });
+        tx.set(rgc, { uid: usuario.uid, nombre: String(col.nombre || nombreCorto()).slice(0, 80), ids, favorito: col.favorito && ids.includes(col.favorito) ? col.favorito : r.gatito, actualizado: F.serverTimestamp() });
+      } else {
+        const c = sc.data();
+        tx.set(F.doc(db, 'banco_movs', 'rg-' + r.mov), { cuenta: cuentaId, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
+          monto: 0, motivo: `Regalo de ${r.deNombre}: ${r.item}`.slice(0, 200), tipo: 'regalo-recibido', saldoDespues: c.saldo || 0, profe: '', fecha: F.serverTimestamp(),
+          item: r.item, canje: 'pendiente', regalo: rid });
+        tx.update(F.doc(db, 'banco_movs', r.mov), { canje: 'regalada' });
+      }
+    });
+    aviso(acepta ? `✓ Aceptaste «${esc(r.item)}». ¡Ya es tuyo!` : 'Regalo rechazado: quien te lo dio puede recuperarlo.', 'ok');
+    if (acepta) confeti(80);
+  } catch (e) { aviso('No se pudo: ' + esc(/permission/i.test(e.message) ? 'el banco lo rechazó (¿el profe publicó las reglas nuevas?)' : e.message), 'err'); }
+}
+async function recuperarRegalo(rid) {
+  const r = regEnv.find(x => x.id === rid); if (!r) return;
+  if (r.tipo === 'gatito' && (coleccion.ids || []).includes(r.gatito)) return aviso(`Ya tienes otro ${esc(r.item)} en tu colección: no puedes recuperar este.`, 'err');
+  if (!confirm(`¿Recuperar «${r.item}»? Vuelve a tu cuenta y ${r.paraNombre} ya no podrá aceptarlo.`)) return;
+  const { F, db } = await DF.listo();
+  try {
+    await F.runTransaction(db, async tx => {
+      const rr = F.doc(db, 'regalos', rid), rgc = F.doc(db, 'gatitos', usuario.uid);
+      const [sr, sgc] = await Promise.all([tx.get(rr), r.tipo === 'gatito' ? tx.get(rgc) : null]);
+      if (!sr.exists() || !['pendiente', 'rechazado'].includes(sr.data().estado)) throw new Error('ya no se puede recuperar (¿lo aceptó?)');
+      tx.update(rr, { estado: 'devuelto', resuelta: F.serverTimestamp() });
+      if (r.tipo === 'gatito') {
+        const col = sgc && sgc.exists() ? sgc.data() : { ids: [], favorito: null };
+        if ((col.ids || []).includes(r.gatito)) throw new Error('ya tienes ese gatito');
+        const ids = (col.ids || []).concat([r.gatito]);
+        tx.set(rgc, { uid: usuario.uid, nombre: String(col.nombre || nombreCorto()).slice(0, 80), ids, favorito: col.favorito && ids.includes(col.favorito) ? col.favorito : r.gatito, actualizado: F.serverTimestamp() });
+      } else tx.update(F.doc(db, 'banco_movs', r.mov), { canje: 'pendiente' });
+    });
+    aviso('✓ Recuperado: volvió a tu cuenta.', 'ok');
+  } catch (e) { aviso('No se pudo recuperar: ' + esc(e.message), 'err'); }
+}
 async function publicarMio(fila) {
   const clave = fila.dataset.mia, precio = Math.round(+fila.querySelector('input').value || 0);
   if (precio < 100) return aviso('Pon un precio de al menos 100 ₣.', 'err');
@@ -1171,6 +1308,14 @@ async function retirarMio(fila) {
 }
 document.addEventListener('click', ev => {
   const vf = ev.target.closest('[data-ver-art]'); if (vf) { verFotosArticulo(vf.dataset.verArt); return; }
+  const rg = ev.target.closest('[data-regalar],[data-reg-ok],[data-reg-no],[data-reg-volver]');
+  if (rg && !rg.disabled) {
+    if (rg.hasAttribute('data-regalar')) abrirRegalo(rg.closest('[data-mia]'));
+    else if (rg.dataset.regOk) responderRegalo(rg.dataset.regOk, true);
+    else if (rg.dataset.regNo) responderRegalo(rg.dataset.regNo, false);
+    else if (rg.dataset.regVolver) recuperarRegalo(rg.dataset.regVolver);
+    return;
+  }
   const b = ev.target.closest('[data-pedir-b],[data-pedir-a],[data-art],[data-pedir-r],[data-publicar],[data-retirar],[data-cancelar-p]'); if (!b || b.disabled) return;
   if (b.dataset.pedirA) { const x = articulos.find(a => a.id === b.dataset.pedirA); if (x) pedir({ tipo: 'articulo', articulo: x.id, item: x.nombre, ico: x.ico || '📦', precio: x.precio }); return; }
   if (b.dataset.art) { accionArticulo(b.dataset.art, b.dataset.id); return; }
