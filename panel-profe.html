@@ -105,7 +105,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
   <header class="top">
     <h1>Panel del profe<small>Banco de Hipopesos · juegos · simuladores · estudiantes · visitas</small></h1>
     <span id="quien" class="muted"></span>
-    <button class="btn p" id="btnEntrar">Entrar con Google</button>
+    <button class="btn p" id="btnEntrar">Entrar</button>
     <button class="btn oculto" id="btnSalir">Salir</button>
     <a class="btn" href="index.html">← Sitio</a>
   </header>
@@ -393,7 +393,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
 <script src="banco-felipeso/catalogo.js?v=20261104b"></script>
 <script src="gatitos/catalogo.js?v=20261104d"></script>
 <script src="gatitos/anim.js?v=20261031"></script>
-<script src="firebase/df.js?v=20261102" data-sin-visita data-sin-aviso></script>
+<script src="firebase/df.js?v=20261104e" data-sin-visita data-sin-aviso></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    CATÁLOGO DEL BANCO — edita aquí precios y multas
@@ -448,7 +448,7 @@ document.addEventListener('click', async ev => {
   } catch (e) { toast('No se pudo cambiar: ' + (/permission/i.test(e.message) ? 'publica primero las reglas nuevas' : e.message)); }
 });
 /* ---------- sesión ---------- */
-$('btnEntrar').onclick = () => DF.entrar().catch(e => aviso(esc(e.message), true));
+$('btnEntrar').onclick = () => DF.entrar().catch(e => { if (!e.cancelado) aviso(esc(e.message), true); });
 $('btnSalir').onclick = () => DF.salir();
 
 DF.listo().then(fb => {

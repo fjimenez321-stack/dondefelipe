@@ -142,7 +142,7 @@ h2.sec small{font:600 14px var(--ff);letter-spacing:0;text-transform:none;color:
 
 <div class="velo" id="velo" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 
-<script src="firebase/df.js?v=20261030"></script>
+<script src="firebase/df.js?v=20261104e"></script>
 <script>
 (function () {
 'use strict';
@@ -423,7 +423,7 @@ async function adm(a, sid) {
 /* ═════════ eventos ═════════ */
 document.addEventListener('click', ev => {
   const t = ev.target.closest('button, [data-a]'); if (!t) return;
-  if (t.dataset.a === 'entrar') { DF.entrar().catch(e => aviso('No se pudo entrar: ' + esc(e.message), 'err')); return; }
+  if (t.dataset.a === 'entrar') { DF.entrar().catch(e => { if (!e.cancelado) aviso('No se pudo entrar: ' + esc(e.message), 'err'); }); return; }
   if (t.dataset.a === 'cerrar') { $('velo').hidden = true; return; }
   if (t.dataset.a === 'confirmar') { confirmar(t.dataset.id, +t.dataset.m); return; }
   if (t.dataset.ofertar) {

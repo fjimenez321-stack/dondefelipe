@@ -285,7 +285,7 @@ footer a { color:var(--ink-2); }
         <div><div class="panel-titulo">Cómo funciona</div></div>
       </div>
       <div class="como">
-        <div class="paso"><div class="paso-num">1</div><h4>Entra con Google</h4><p>Tu cuenta del sitio está unida a tu cuenta del Banco Hipopesos: lo que compras y vendes se descuenta o se abona ahí.</p></div>
+        <div class="paso"><div class="paso-num">1</div><h4>Entra con tu cuenta</h4><p>Tu cuenta del sitio está unida a tu cuenta del Banco Hipopesos: lo que compras y vendes se descuenta o se abona ahí.</p></div>
         <div class="paso"><div class="paso-num">2</div><h4>Compra acciones</h4><p>Elige una meta en la que confíes, como la convivencia de media o el promedio de un ciclo, y compra al precio de hoy.</p></div>
         <div class="paso"><div class="paso-num">3</div><h4>El profe evalúa</h4><p>Si la meta se cumplió, el precio sube; si no, baja. Cada empresa muestra cuánto.</p></div>
         <div class="paso"><div class="paso-num">4</div><h4>Vende cuando quieras</h4><p>Vendes al precio del momento. Si el profe cierra una empresa, paga tus acciones al último precio.</p></div>
@@ -297,7 +297,7 @@ footer a { color:var(--ink-2); }
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="../firebase/df.js?v=20261102"></script>
+<script src="../firebase/df.js?v=20261104e"></script>
 <script>
 (function () {
   'use strict';
@@ -471,7 +471,7 @@ footer a { color:var(--ink-2); }
   }
   function pintarWho() {
     var w = $('who');
-    if (!usuario) { w.innerHTML = '<button class="boton marca-btn" data-a="entrar">Entrar con Google</button>'; return; }
+    if (!usuario) { w.innerHTML = '<button class="boton marca-btn" data-a="entrar">Entrar</button>'; return; }
     w.innerHTML = '<span class="boton" style="cursor:default">' + esc(String(usuario.displayName || usuario.email).split(/\s+/)[0]) + (cuenta ? ' · <span class="saldo-mini">' + fmt(cuenta.saldo) + '</span>' : '') + (esProfe ? ' · profe' : '') + '</span><button class="boton" data-a="salir">Salir</button>';
   }
   function pintar() { pintarTicker(); pintarWho(); pintarYo(); pintarTabs(); pintarEmpresas(); pintarRanking(); pintarProfe(); }

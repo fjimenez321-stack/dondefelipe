@@ -77,3 +77,15 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 ## Muro de mensajes (portada)
 - Desde nov. 2026 usa Firestore (`muro`) en vez de Apps Script: se actualiza en vivo (antes cada visitante consultaba el script cada 8 s).
 - Leer es público; para escribir hay que entrar con la cuenta. Un mensaje cada 10 s por persona (`muro_ritmo`), máx. 140 caracteres, sin enlaces, correos ni números largos, y la firma debe empezar con el nombre de pila de la cuenta. El profe ve una ✕ para borrar mensajes.
+
+## Entrar con un enlace al correo (sin Google)
+
+Además de «Continuar con Google», el botón **Entrar** ofrece «Enviarme un enlace para entrar»: la persona escribe su correo, le llega un enlace de Firebase y, al abrirlo, queda dentro (sin contraseña). El código está en `firebase/df.js` (`elegirMetodo`, `enviarEnlace`, `completarEnlace`).
+
+Para activarlo (una sola vez), en la consola de Firebase:
+1. **Authentication → Sign-in method → Agregar proveedor nuevo → Correo electrónico/contraseña**.
+2. Activa **«Vínculo de correo electrónico (acceso sin contraseña)»** y guarda.
+3. En **Authentication → Configuración → Dominios autorizados** debe estar `dondefelipe.vercel.app` (ya está si Google funciona).
+
+Mientras no se active, quien elija el correo verá: «La entrada por correo todavía no está activada en Firebase».
+Las reglas no cambian: el enlace deja el correo verificado (`email_verified`), igual que Google.

@@ -167,7 +167,7 @@ details.como p,details.como li{color:var(--mute);font-size:14.5px}
   </div>
 </div>
 
-<script src="firebase/df.js?v=20261031"></script>
+<script src="firebase/df.js?v=20261104e"></script>
 <script>
 (function () {
 'use strict';
@@ -488,7 +488,7 @@ async function adm(a, pid, op) {
 /* ═════════ eventos ═════════ */
 document.addEventListener('click', ev => {
   const t = ev.target.closest('button, [data-a]'); if (!t) return;
-  if (t.dataset.a === 'entrar') { DF.entrar().catch(e => aviso('No se pudo entrar: ' + esc(e.message), 'err')); return; }
+  if (t.dataset.a === 'entrar') { DF.entrar().catch(e => { if (!e.cancelado) aviso('No se pudo entrar: ' + esc(e.message), 'err'); }); return; }
   if (t.dataset.elegir) { eleccion[t.dataset.elegir] = t.dataset.op; pintar(); return; }
   if (t.dataset.apostar) { confirmarApuesta(t.dataset.apostar); return; }
   if (t.dataset.adm) { adm(t.dataset.adm, t.dataset.id, t.dataset.op); return; }
