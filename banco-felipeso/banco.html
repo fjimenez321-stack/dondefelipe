@@ -95,7 +95,7 @@ ul.reglas li{margin:3px 0}
   </section>
 </div>
 
-<script src="../firebase/df.js?v=20261102"></script>
+<script src="../firebase/df.js?v=20261104e"></script>
 <script>
 'use strict';
 /* Debe coincidir con firebase/firestore.rules (sección «Préstamos y ahorro»). */
@@ -150,7 +150,7 @@ function pintar() {
   const t = ahora();
   $('sesion').innerHTML = usuario
     ? `<span>${esc(usuario.email)}</span><button class="btn" type="button" data-a="salir">Salir</button>`
-    : `<button class="btn p" type="button" data-a="entrar">Entrar con Google</button>`;
+    : `<button class="btn p" type="button" data-a="entrar">Entrar</button>`;
   $('saldo').innerHTML = (cuenta ? fmt(cuenta.saldo) : '—') + '<small>Tu saldo</small>';
   const ah = ahorroAl(ahorro, t);
   $('dAhorro').innerHTML = (cuenta ? fmt(ah) : '—') + '<small>Ahorrado</small>';

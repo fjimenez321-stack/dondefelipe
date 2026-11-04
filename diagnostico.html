@@ -29,9 +29,9 @@ button{border:1px solid var(--line);background:#181822;color:var(--ink);border-r
   <p class="m">Prueba la conexión con Firebase (solo lecturas: no cambia nada). Si algo falla, toma una captura y envíasela a quien mantiene el sitio.</p>
   <div id="lista"></div>
   <div id="res"></div>
-  <button id="otra">Volver a probar</button> <button id="entrar">Entrar con Google (para probar tu cuenta)</button>
+  <button id="otra">Volver a probar</button> <button id="entrar">Entrar (para probar tu cuenta)</button>
 </div>
-<script src="firebase/df.js?v=20261102"></script>
+<script src="firebase/df.js?v=20261104e"></script>
 <script>
 (function () {
 'use strict';
@@ -74,7 +74,7 @@ async function correr() {
       const c = await F.getDoc(F.doc(db, 'banco_cuentas', v.data().cuenta));
       return c.exists() ? 'Cuenta N° ' + (c.data().numero || '?') + ' · saldo ' + new Intl.NumberFormat('es-CL').format(c.data().saldo || 0) + ' ₣' : 'Cuenta no encontrada';
     }));
-  } else fila('warn', 'Sin sesión', 'Para probar también tu cuenta, presiona «Entrar con Google».');
+  } else fila('warn', 'Sin sesión', 'Para probar también tu cuenta, presiona «Entrar».');
   const malas = r.filter(x => x === false).length, dudas = r.filter(x => x === null).length;
   $('res').innerHTML = malas ? `<div class="res mal">✕ ${malas} prueba(s) fallaron. Revisa el detalle arriba.</div>`
     : dudas ? '<div class="res warn">! Funciona a medias: revisa los avisos arriba.</div>'

@@ -170,7 +170,7 @@ h1 span{color:var(--acid)}
 
 <script src="gatitos/catalogo.js?v=20261104d"></script>
 <script src="gatitos/anim.js?v=20261031"></script>
-<script src="firebase/df.js?v=20261102"></script>
+<script src="firebase/df.js?v=20261104e"></script>
 <script>
 'use strict';
 /* ═══════════════════════════════════════════════════════════════
@@ -612,7 +612,7 @@ function pintar() {
   $('tiros').innerHTML = (cuenta ? hoyJugados() + '/' + RULETA.porDia : '—') + '<small>Tiros de hoy · ' + tiros + ' en total</small>';
   $('sesion').innerHTML = usuario
     ? `<span>${esc(usuario.email)}</span><button class="btn" type="button" data-a="salir">Salir</button>`
-    : `<button class="btn p" type="button" data-a="entrar">Entrar con Google</button>`;
+    : `<button class="btn p" type="button" data-a="entrar">Entrar</button>`;
   const hub = $('hub');
   if (SUSPENDIDA) { hub.disabled = true; hub.innerHTML = 'Suspendida'; hub.setAttribute('aria-label', 'Ruleta suspendida'); return; }
   if (girando) return;
@@ -621,7 +621,7 @@ function pintar() {
   hub.disabled = !!usuario && !puede;
   hub.innerHTML = !usuario ? 'Entrar' : pendiente ? 'Terminar<small>tiro pendiente</small>' : cerrada ? 'Cerrada<small>abre ' + RULETA.desde + ':00</small>' : agotado ? 'Mañana<small>' + RULETA.porDia + ' de ' + RULETA.porDia + '</small>'
     : puede ? `Girar<small>${fmt(RULETA.costo)}</small>` : 'Girar';
-  hub.setAttribute('aria-label', !usuario ? 'Entrar con Google para jugar' : 'Girar la ruleta por ' + fmt(RULETA.costo));
+  hub.setAttribute('aria-label', !usuario ? 'Entrar para jugar' : 'Girar la ruleta por ' + fmt(RULETA.costo));
 }
 function pintarProbabilidades() {
   const filas = {};

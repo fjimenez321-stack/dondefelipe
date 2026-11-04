@@ -126,7 +126,7 @@
   function conectar(u) {
     usuario = u; listoNube = false;
     if (!u) {
-      pinta('', '<button type="button" data-ag="entrar">Entra con Google</button> para guardar este trabajo en tu cuenta.' +
+      pinta('', '<button type="button" data-ag="entrar">Entra con tu cuenta</button> para guardar este trabajo en tu cuenta.' +
         ' <button type="button" class="ag-x" data-ag="cerrar" aria-label="Ocultar">×</button>');
       return;
     }

@@ -109,6 +109,8 @@
       // La sesión se mantiene entre páginas y pestañas, pero se cierra sola
       // tras unas horas sin uso (ver cerrarSesionTrasHoras en config.js).
       return A.setPersistence(auth, A.browserLocalPersistence).catch(function () {}).then(function () {
+        return completarEnlace(fb);
+      }).then(function () {
         return new Promise(function (ok) {
           var primera = true;
           A.onAuthStateChanged(auth, function (u) {
@@ -191,7 +193,17 @@
   }
 
   /* ---------- sesión ---------- */
+  /* Entrar: con Google o con un enlace al correo (sin contraseña).
+     El enlace se activa en Firebase → Authentication → Sign-in method → «Correo electrónico/contraseña»
+     → «Vínculo de correo electrónico (acceso sin contraseña)». Ver firebase/LEEME.md. */
+  var K_CORREO = 'df-correo-enlace';
   function entrar() {
+    return elegirMetodo().then(function (m) {
+      if (m.metodo === 'correo') return enviarEnlace(m.correo);
+      return entrarGoogle();
+    });
+  }
+  function entrarGoogle() {
     return listo().then(function (fb) {
       var p = new fb.A.GoogleAuthProvider();
       var d = String(cfg().dominioColegio || '').replace(/^@/, '');
@@ -212,6 +224,97 @@
       if (/popup-closed|cancelled-popup/.test(e.code || '')) { var x = new Error(''); x.cancelado = true; throw x; }
       throw e;
     });
+  }
+  function cancelado() { var x = new Error(''); x.cancelado = true; return x; }
+  // Ventanita para elegir cómo entrar (se dibuja sola, sin depender del CSS de cada página).
+  function elegirMetodo() {
+    return new Promise(function (ok, no) {
+      var viejo = document.getElementById('df-entrar'); if (viejo) viejo.remove();
+      var d = String(cfg().dominioColegio || '').replace(/^@/, '');
+      var v = document.createElement('div');
+      v.id = 'df-entrar';
+      v.setAttribute('style', 'position:fixed;inset:0;z-index:2147483000;background:rgba(5,5,10,.72);display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif');
+      var bt = 'display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border-radius:12px;padding:12px 14px;font:700 15px system-ui,sans-serif;cursor:pointer;';
+      v.innerHTML = '<div role="dialog" aria-modal="true" aria-label="Entrar" style="background:#14161f;color:#f2f1ec;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.5)">' +
+        '<div style="font:800 20px system-ui,sans-serif;margin:0 0 4px">Entrar</div>' +
+        '<div style="color:#9b9aab;font-size:14px;margin:0 0 16px">Elige cómo quieres entrar a El Mundo de Felipe.</div>' +
+        '<button type="button" id="df-e-google" style="' + bt + 'background:#fff;color:#1f1f1f;border:0">' +
+          '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>' +
+          'Continuar con Google</button>' +
+        '<div style="display:flex;align-items:center;gap:10px;color:#6f6e80;font-size:12px;margin:14px 0">' +
+          '<span style="flex:1;height:1px;background:rgba(255,255,255,.1)"></span>o con tu correo<span style="flex:1;height:1px;background:rgba(255,255,255,.1)"></span></div>' +
+        '<form id="df-e-form" novalidate>' +
+          '<input id="df-e-correo" type="email" autocomplete="email" required placeholder="' + (d ? 'tu.nombre@' + esc(d) : 'tu correo') + '" ' +
+            'style="width:100%;box-sizing:border-box;background:#0e0f16;color:#f2f1ec;border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 14px;font:500 15px system-ui,sans-serif;margin-bottom:8px">' +
+          '<button type="submit" style="' + bt + 'background:#ccff00;color:#101400;border:0">Enviarme un enlace para entrar</button>' +
+          '<div id="df-e-msg" style="font-size:13px;color:#9b9aab;margin-top:8px">Te llega un correo con un enlace: lo abres y quedas dentro, sin contraseña.</div>' +
+        '</form>' +
+        '<button type="button" id="df-e-cerrar" style="' + bt + 'background:transparent;color:#9b9aab;border:0;margin-top:6px;font-weight:600">Cancelar</button>' +
+        '</div>';
+      document.body.appendChild(v);
+      var cerrar = function (fn, val) { v.remove(); document.removeEventListener('keydown', tecla); fn(val); };
+      var tecla = function (e) { if (e.key === 'Escape') cerrar(no, cancelado()); };
+      document.addEventListener('keydown', tecla);
+      v.addEventListener('click', function (e) { if (e.target === v) cerrar(no, cancelado()); });
+      document.getElementById('df-e-cerrar').onclick = function () { cerrar(no, cancelado()); };
+      document.getElementById('df-e-google').onclick = function () { cerrar(ok, { metodo: 'google' }); };
+      var guardado = ls(K_CORREO); if (guardado) document.getElementById('df-e-correo').value = guardado;
+      document.getElementById('df-e-form').onsubmit = function (e) {
+        e.preventDefault();
+        var correo = String(document.getElementById('df-e-correo').value || '').trim().toLowerCase(), msg = document.getElementById('df-e-msg');
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) { msg.style.color = '#ff7a70'; msg.textContent = 'Escribe un correo válido.'; return; }
+        if (d && correo.slice(-(d.length + 1)) !== '@' + d) { msg.style.color = '#ff7a70'; msg.textContent = 'Usa tu correo del colegio (@' + d + ').'; return; }
+        cerrar(ok, { metodo: 'correo', correo: correo });
+      };
+      setTimeout(function () { var b = document.getElementById('df-e-google'); if (b) b.focus(); }, 30);
+    });
+  }
+  function enviarEnlace(correo) {
+    return listo().then(function (fb) {
+      var url = location.href.split('#')[0];
+      return fb.A.sendSignInLinkToEmail(fb.auth, correo, { url: url, handleCodeInApp: true }).then(function () {
+        ls(K_CORREO, correo);
+        aviso('📧 Te enviamos un enlace a <b>' + esc(correo) + '</b>. Ábrelo en este mismo navegador para entrar. Si no aparece, revisa la carpeta de spam.');
+        throw cancelado();   // la página no cambia hasta que abra el enlace
+      });
+    }).catch(function (e) {
+      if (e && e.cancelado) throw e;
+      if (/operation-not-allowed/.test(e.code || '')) throw new Error('La entrada por correo todavía no está activada en Firebase. Usa «Continuar con Google» o avísale al profe.');
+      if (/quota|too-many/.test(e.code || '')) throw new Error('Se enviaron demasiados enlaces. Intenta más tarde o entra con Google.');
+      throw e;
+    });
+  }
+  // Al abrir el enlace del correo: termina de entrar y limpia la dirección.
+  function completarEnlace(fb) {
+    var A = fb.A;
+    if (!A.isSignInWithEmailLink || !A.isSignInWithEmailLink(fb.auth, location.href)) return Promise.resolve();
+    var correo = ls(K_CORREO);
+    if (!correo) correo = window.prompt('Para terminar de entrar, escribe el correo al que llegó el enlace:') || '';
+    correo = String(correo).trim().toLowerCase();
+    var limpiar = function () {
+      try { var u = new URL(location.href); ['apiKey', 'oobCode', 'mode', 'continueUrl', 'lang', 'tenantId'].forEach(function (k) { u.searchParams.delete(k); }); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } catch (e) {}
+    };
+    if (!correo) { limpiar(); return Promise.resolve(); }
+    return A.signInWithEmailLink(fb.auth, correo, location.href).then(function (r) {
+      limpiar();
+      if (!dominioOk(r.user)) return A.signOut(fb.auth).then(function () { aviso('Usa tu correo del colegio.'); });
+      marcarActividad();
+      aviso('✓ Entraste como <b>' + esc(correo) + '</b>.');
+    }).catch(function (e) {
+      limpiar();
+      aviso(/expired|invalid-action/.test(e.code || '') ? 'Ese enlace ya se usó o venció. Pide uno nuevo con «Entrar».' : 'No se pudo entrar con el enlace: ' + esc(e.message));
+    });
+  }
+  // Aviso flotante breve (no depende de cada página).
+  function aviso(html) {
+    var go = function () {
+      var a = document.createElement('div');
+      a.setAttribute('style', 'position:fixed;left:16px;right:16px;bottom:20px;margin:0 auto;z-index:2147483001;max-width:520px;box-sizing:border-box;background:#14161f;color:#f2f1ec;border:1px solid rgba(204,255,0,.4);border-radius:14px;padding:12px 16px;font:500 14px/1.4 system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.5)');
+      a.innerHTML = html + ' <button type="button" style="margin-left:8px;background:none;border:0;color:#9b9aab;cursor:pointer;font-size:16px" aria-label="Cerrar">✕</button>';
+      a.querySelector('button').onclick = function () { a.remove(); };
+      document.body.appendChild(a); setTimeout(function () { a.remove(); }, 12000);
+    };
+    if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
   }
   function salir() {
     return listo().then(function (fb) { perfil = null; ls(K_ACT, null); return fb.A.signOut(fb.auth); });
@@ -570,8 +673,8 @@
     var a = document.createElement('div');
     a.className = 'dfa'; a.setAttribute('role', 'dialog'); a.setAttribute('aria-label', 'Aviso de privacidad');
     a.innerHTML = '<b class="t">🔒 Tus datos en El Mundo de Felipe</b>' +
-      '<p>Puedes usar el sitio sin cuenta. Si entras con Google para guardar tu progreso, guardamos <b>solo lo mínimo</b>:</p>' +
-      '<ul><li><b>Nombre</b> y <b>correo</b> (los de tu cuenta Google)</li><li><b>Edad</b> (la escribes tú)</li>' +
+      '<p>Puedes usar el sitio sin cuenta. Si entras con tu cuenta (Google o correo) para guardar tu progreso, guardamos <b>solo lo mínimo</b>:</p>' +
+      '<ul><li><b>Nombre</b> y <b>correo</b> (los de tu cuenta)</li><li><b>Edad</b> (la escribes tú)</li>' +
       '<li><b>Grupo</b>: estudiante, docente o público general</li>' +
       '<li>Tus puntajes, resultados y avances en el sitio</li></ul>' +
       '<p>Solo el profe los ve. No se venden ni se comparten, y puedes borrarlos cuando quieras desde <b>Mi cuenta</b>. Las visitas se cuentan sin saber quién eres.</p>' +
@@ -669,7 +772,7 @@
       function pasoLogin(msgErr) {
         pinta('<h4>' + titulo + '</h4><p>¿Guardar tu ' + nombreCosa + ' (' + resumen + ') ' + (esPuntaje ? 'en el ranking del colegio' : 'para el profe') + '?</p>' +
           (msgErr ? '<p class="err">' + esc(msgErr) + '</p>' : '') +
-          '<div class="fila"><button class="b p" type="button" data-a="entrar">Entrar con Google</button>' +
+          '<div class="fila"><button class="b p" type="button" data-a="entrar">Entrar</button>' +
           '<button class="b s" type="button" data-a="cerrar">No, gracias</button></div>', false);
       }
       function pasoPerfil(err) { pinta(htmlPerfil(err), true); engancharPerfil(t); }
@@ -724,6 +827,7 @@
     alCambiarUsuario: function (cb) { oyentes.push(cb); if (_fb) _fb.then(function () { cb(usuario); }, function () {}); },
     esProfe: esProfe,
     entrar: entrar,
+    entrarGoogle: entrarGoogle,
     salir: salir,
     perfil: leerPerfil,
     perfilCompleto: perfilCompleto,
