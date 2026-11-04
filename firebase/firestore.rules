@@ -1241,6 +1241,107 @@ service cloud.firestore {
       return (d.tipo == 'beneficio' && getAfter(/databases/$(database)/documents/banco_movs/$(d.mov)).data.canje == 'pendiente')
         || (d.tipo == 'gatito' && d.gatito in getAfter(rutaGatitos(request.auth.uid)).data.ids);
     }
+    // ═════ Regalos entre estudiantes (gatitos y beneficios sin usar) ═════
+    // Quien regala: el objeto sale de su cuenta y queda congelado en el regalo (estado «pendiente»).
+    // Quien recibe: lo acepta (le llega en la misma escritura) o lo rechaza. Si lo rechaza, o mientras
+    // nadie lo acepta, quien regaló puede recuperarlo («devuelto»). Id del regalo:
+    //   gatito    g-<uid de quien regala>-<gatito>     ·   beneficio  b-<id del movimiento>
+    // El beneficio que llega es un movimiento nuevo rg-<id del movimiento original> (monto 0, por usar).
+    function rutaRegalo(r) { return /databases/$(database)/documents/regalos/$(r); }
+    function rutaRecibe(u) { return /databases/$(database)/documents/regalos_recibe/$(u); }
+    function regaloFinal(r) { return !exists(rutaRegalo(r)) || get(rutaRegalo(r)).data.estado in ['aceptado', 'devuelto']; }
+    function esMascota(g) { return exists(rutaMascota(request.auth.uid)) && get(rutaMascota(request.auth.uid)).data.get('gatito', '') == g; }
+    function regaloNuevo(rid, d) {
+      let c = miCuentaBanco();
+      return c != '' && d.de == c && d.deUid == request.auth.uid && d.para != c && d.para is string && exists(rutaCuenta(d.para))
+        && d.estado == 'pendiente' && d.creada == request.time
+        && texto(d.deNombre, 80) && texto(d.paraNombre, 80) && texto(d.item, 120) && texto(d.ico, 8) && texto(d.nota, 120)
+        && regaloFinal(rid)
+        && ((d.tipo == 'gatito' && d.keys().hasOnly(['tipo', 'de', 'deUid', 'deNombre', 'para', 'paraNombre', 'gatito', 'item', 'ico', 'nota', 'estado', 'creada'])
+              && rid == 'g-' + request.auth.uid + '-' + d.gatito
+              && d.gatito in gatitosAntes(request.auth.uid) && !esMascota(d.gatito)
+              && getAfter(rutaGatitos(request.auth.uid)).data.ids == gatitosAntes(request.auth.uid).removeAll([d.gatito]))
+          || (d.tipo == 'beneficio' && d.keys().hasOnly(['tipo', 'de', 'deUid', 'deNombre', 'para', 'paraNombre', 'mov', 'item', 'ico', 'nota', 'estado', 'creada'])
+              && rid == 'b-' + d.mov
+              && get(rutaMov(d.mov)).data.cuenta == c
+              && get(rutaMov(d.mov)).data.get('canje', '') == 'pendiente'
+              && get(rutaMov(d.mov)).data.get('item', '') == d.item && d.item != itemDisertacion()
+              && !(get(rutaMov(d.mov)).data.get('tipo', '') in ['poder-gatito', 'poder-mensual', 'premio-gatito'])
+              && getAfter(rutaMov(d.mov)).data.canje == 'en-regalo'));
+    }
+    // Lo acepta quien recibe: el objeto le llega en la misma escritura.
+    function regaloEntregado(rid, r) {
+      return (r.tipo == 'gatito' && !(r.gatito in gatitosAntes(request.auth.uid))
+                && getAfter(rutaGatitos(request.auth.uid)).data.ids == gatitosAntes(request.auth.uid).concat([r.gatito])
+                && getAfter(rutaRecibe(request.auth.uid)).data.rid == rid)
+        || (r.tipo == 'beneficio' && existsAfter(rutaMov('rg-' + r.mov)) && getAfter(rutaMov(r.mov)).data.canje == 'regalada');
+    }
+    // Lo recupera quien regaló: el objeto vuelve en la misma escritura.
+    function regaloRecuperado(r) {
+      return (r.tipo == 'gatito' && !(r.gatito in gatitosAntes(request.auth.uid))
+                && getAfter(rutaGatitos(request.auth.uid)).data.ids == gatitosAntes(request.auth.uid).concat([r.gatito]))
+        || (r.tipo == 'beneficio' && getAfter(rutaMov(r.mov)).data.canje == 'pendiente');
+    }
+    match /regalos/{rid} {
+      allow read: if esProfe() || (miCuentaBanco() != '' && (resource.data.de == miCuentaBanco() || resource.data.para == miCuentaBanco()));
+      allow write: if esProfe();
+      allow create: if esColegio() && regaloNuevo(rid, request.resource.data);
+      allow update: if esColegio() && (
+          // volver a regalar algo cuyo regalo anterior ya terminó (mismo id)
+          (resource.data.estado in ['aceptado', 'devuelto'] && regaloNuevo(rid, request.resource.data))
+          // quien recibe: acepta o rechaza
+          || (resource.data.estado == 'pendiente' && resource.data.para == miCuentaBanco() && miCuentaBanco() != ''
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'resuelta'])
+              && request.resource.data.resuelta == request.time
+              && (request.resource.data.estado == 'rechazado'
+                  || (request.resource.data.estado == 'aceptado' && regaloEntregado(rid, resource.data))))
+          // quien regaló: lo recupera (mientras está pendiente o si se lo rechazaron)
+          || (resource.data.estado in ['pendiente', 'rechazado'] && resource.data.de == miCuentaBanco() && miCuentaBanco() != ''
+              && resource.data.deUid == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'resuelta'])
+              && request.resource.data.resuelta == request.time && request.resource.data.estado == 'devuelto'
+              && regaloRecuperado(resource.data)));
+    }
+    // Marca de qué regalo de gatito se está aceptando (la regla de la colección la necesita para saber cuál).
+    match /regalos_recibe/{uid} {
+      allow read: if soyYo(uid) || esProfe();
+      allow create, update: if esColegio() && soyYo(uid)
+        && request.resource.data.keys().hasOnly(['rid', 'actualizado']) && request.resource.data.actualizado == request.time
+        && get(rutaRegalo(request.resource.data.rid)).data.estado == 'pendiente'
+        && get(rutaRegalo(request.resource.data.rid)).data.para == miCuentaBanco()
+        && getAfter(rutaRegalo(request.resource.data.rid)).data.estado == 'aceptado';
+    }
+    function gatitoARegalo(uid) {
+      return resource != null && request.resource.data.ids.size() == resource.data.ids.size() - 1
+        && resource.data.ids.removeAll(request.resource.data.ids).size() == 1
+        && getAfter(rutaRegalo('g-' + uid + '-' + resource.data.ids.removeAll(request.resource.data.ids)[0])).data.estado == 'pendiente'
+        && regaloFinal('g-' + uid + '-' + resource.data.ids.removeAll(request.resource.data.ids)[0]);
+    }
+    function gatitoRegaloRecibido(uid) {
+      let rid = getAfter(rutaRecibe(uid)).data.rid;
+      let r = get(rutaRegalo(rid)).data;
+      let antes = resource == null ? [] : resource.data.ids;
+      return r.tipo == 'gatito' && r.para == miCuentaBanco() && miCuentaBanco() != '' && r.estado == 'pendiente'
+        && getAfter(rutaRegalo(rid)).data.estado == 'aceptado'
+        && !(r.gatito in antes) && request.resource.data.ids == antes.concat([r.gatito]);
+    }
+    function gatitoRegaloDevuelto(uid) {
+      return resource != null && request.resource.data.ids.size() == resource.data.ids.size() + 1
+        && request.resource.data.ids.removeAll(resource.data.ids).size() == 1
+        && get(rutaRegalo('g-' + uid + '-' + request.resource.data.ids.removeAll(resource.data.ids)[0])).data.estado in ['pendiente', 'rechazado']
+        && getAfter(rutaRegalo('g-' + uid + '-' + request.resource.data.ids.removeAll(resource.data.ids)[0])).data.estado == 'devuelto';
+    }
+    // Beneficio que llega con un regalo aceptado (lo escribe quien lo recibe).
+    function movRegalo(orig, d) {
+      let r = get(rutaRegalo('b-' + orig)).data;
+      return r.tipo == 'beneficio' && r.estado == 'pendiente' && r.para == miCuentaBanco()
+        && getAfter(rutaRegalo('b-' + orig)).data.estado == 'aceptado'
+        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'item', 'canje', 'regalo'])
+        && d.cuenta == miCuentaBanco() && d.monto == 0 && d.tipo == 'regalo-recibido' && d.item == r.item && d.canje == 'pendiente'
+        && d.regalo == 'b-' + orig && d.profe == '' && d.fecha == request.time
+        && d.saldoDespues == get(rutaCuenta(miCuentaBanco())).data.saldo
+        && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200);
+    }
     match /mercado_items/{iid} {
       allow read: if conCuenta();
       allow create: if esColegio() && datosPublicacion(request.resource.data, iid)
@@ -1409,7 +1510,8 @@ service cloud.firestore {
             || (request.resource.data.ids.size() == 0 && request.resource.data.favorito == null))
         && request.resource.data.actualizado == request.time
         && ((resource != null && request.resource.data.ids == resource.data.ids)   // solo cambia el favorito
-            || compraDeGatito(uid) || gatitoACustodia(uid) || gatitoDeVuelta(uid) || gatitoEscapado(uid));
+            || compraDeGatito(uid) || gatitoACustodia(uid) || gatitoDeVuelta(uid) || gatitoEscapado(uid)
+            || gatitoARegalo(uid) || gatitoRegaloRecibido(uid) || gatitoRegaloDevuelto(uid));
       // El profe traspasa gatitos al autorizar una venta entre estudiantes.
       allow create, update, delete: if esProfe();
     }
@@ -1530,6 +1632,14 @@ service cloud.firestore {
       // Devolución a quien fue superado en una subasta (la escribe quien oferta más, en la misma escritura).
       allow create: if esColegio() && miCuentaBanco() != '' && id.matches('^sb-.+')
         && movSubastaDevuelta(id, request.resource.data);
+      // Beneficio recibido de regalo (rg-<movimiento original>).
+      allow create: if esColegio() && miCuentaBanco() != '' && id.matches('^rg-.+')
+        && movRegalo(id[3:id.size()], request.resource.data);
+      // Quien acepta un regalo marca el beneficio original como «regalada» (no puede leerlo, solo esto).
+      allow update: if esColegio() && miCuentaBanco() != '' && resource.data.get('canje', '') == 'en-regalo'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['canje']) && request.resource.data.canje == 'regalada'
+        && get(rutaRegalo('b-' + id)).data.estado == 'pendiente' && get(rutaRegalo('b-' + id)).data.para == miCuentaBanco()
+        && getAfter(rutaRegalo('b-' + id)).data.estado == 'aceptado';
       allow update: if esProfe()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['canje', 'canjeNota', 'canjeFecha', 'canjeProfe', 'tema']);
       allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
@@ -1548,6 +1658,14 @@ service cloud.firestore {
             && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
             && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.tipo == 'ruleta'
             && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.get('pierde', '') == id)
+          // regalarlo: queda congelado en el regalo
+          || (resource.data.get('canje', '') == 'pendiente' && request.resource.data.canje == 'en-regalo'
+            && resource.data.get('item', '') != itemDisertacion()
+            && getAfter(rutaRegalo('b-' + id)).data.estado == 'pendiente' && regaloFinal('b-' + id))
+          // recuperar el regalo (pendiente o rechazado): vuelve a estar por usar
+          || (resource.data.get('canje', '') == 'en-regalo' && request.resource.data.canje == 'pendiente'
+            && get(rutaRegalo('b-' + id)).data.estado in ['pendiente', 'rechazado']
+            && getAfter(rutaRegalo('b-' + id)).data.estado == 'devuelto')
           // cancelar un pedido: la compra retenida se anula (el dinero vuelve con un movimiento «devolucion»)
           || (resource.data.get('canje', '') == 'retenida' && request.resource.data.canje == 'anulada'
             && getAfter(rutaPedido(resource.data.pedido)).data.estado == 'cancelada'));

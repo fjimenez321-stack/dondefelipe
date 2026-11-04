@@ -653,7 +653,7 @@ function pintarPendientes() {
   $('nPend').textContent = pendientes.length;
   $('listaPend').innerHTML = pendientes.length ? pendientes.map(m => `
     <div class="m"><div class="t"><b>${m.item === 'Ruleta: disertación' ? '🎤 ' : ''}${esc(m.item || m.motivo)}</b> · ${esc(m.nombre)} <span class="pill">${esc(m.curso || '—')}</span>
-      ${m.item === 'Ruleta: disertación' ? `<small>Tema: <b>${esc(m.tema || '(sin tema)')}</b> · castigo de la ruleta, tiro #${esc(m.tiro)} del ${fecha(m.fecha)}</small>` : `<small>${m.tipo === 'ruleta' ? 'Ganada en la ruleta' : 'Comprada'} el ${fecha(m.fecha)}${m.monto ? ' · −$' + fmt(Math.abs(m.monto)) : ''}</small>`}</div>
+      ${m.item === 'Ruleta: disertación' ? `<small>Tema: <b>${esc(m.tema || '(sin tema)')}</b> · castigo de la ruleta, tiro #${esc(m.tiro)} del ${fecha(m.fecha)}</small>` : `<small>${m.tipo === 'ruleta' ? 'Ganada en la ruleta' : m.tipo === 'regalo-recibido' ? esc(m.motivo || 'Regalo') + ' ·' : 'Comprada'} el ${fecha(m.fecha)}${m.monto ? ' · −$' + fmt(Math.abs(m.monto)) : ''}</small>`}</div>
       <div style="display:flex;gap:6px">${m.item === 'Ruleta: disertación' ? `<button class="btn sm" data-tema="${esc(m.id)}">Cambiar tema</button>` : ''}
       <button class="btn sm p" data-usar="${esc(m.id)}">${m.item === 'Ruleta: disertación' ? 'Marcar hecha' : 'Marcar usada'}</button></div></div>`).join('')
     : '<div class="muted">No hay compras pendientes.</div>';
