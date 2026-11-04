@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fases lunares y eclipses · U4 S2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0e1a; --panel:#141a2e; --panel2:#1b2340; --line:#2a3458;
+  --ink:#e8ecf5; --muted:#9aa4c2; --moon:#ece6d3; --sun:#f5b941; --blue:#5b8def; --red:#ef5b5b; --green:#4fc98d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;padding:5vh 6vw 9vh;display:none;flex-direction:column;gap:2.4vh;overflow:auto}
+.slide.active{display:flex;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.3vw,15px);letter-spacing:.14em;color:var(--sun);text-transform:uppercase}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(30px,5.2vw,72px);line-height:1.05;font-weight:700}
+h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(24px,3.4vw,46px);line-height:1.1;font-weight:700}
+h3{font-family:'Space Grotesk',sans-serif;font-size:clamp(16px,1.7vw,24px);font-weight:700;margin-bottom:.4em}
+p,li{font-size:clamp(15px,1.55vw,22px);line-height:1.45;color:var(--ink)}
+.muted{color:var(--muted)}
+.mono{font-family:'JetBrains Mono',monospace}
+.row{display:flex;gap:2vw;flex:1;min-height:0}
+.col{flex:1;display:flex;flex-direction:column;gap:1.6vh;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:2.2vh 1.6vw}
+.card.hl{background:var(--panel2)}
+.grid{display:grid;gap:1.4vw}
+.g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.1vw,14px);padding:.25em .7em;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-right:.4em}
+.big{font-family:'Space Grotesk',sans-serif;font-size:clamp(34px,4.6vw,64px);font-weight:700;line-height:1}
+.sun{color:var(--sun)} .red{color:var(--red)} .blue{color:var(--blue)} .moon{color:var(--moon)}
+ol.q{padding-left:1.3em;display:flex;flex-direction:column;gap:1.2vh}
+ul.b{padding-left:1.2em;display:flex;flex-direction:column;gap:.8vh}
+/* timeline pauta */
+.tl{display:grid;grid-template-columns:repeat(6,1fr);gap:1vw;margin-top:1vh}
+.tl .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.8vh 1vw;display:flex;flex-direction:column;gap:.6vh}
+.tl .min{font-family:'JetBrains Mono',monospace;color:var(--sun);font-size:clamp(13px,1.3vw,18px)}
+.tl .name{font-family:'Space Grotesk';font-weight:700;font-size:clamp(14px,1.45vw,21px)}
+.tl .what{font-size:clamp(12px,1.15vw,16px);color:var(--muted);line-height:1.35}
+.tl .step.now{border-color:var(--sun)}
+.bar{height:10px;border-radius:99px;display:flex;overflow:hidden;margin-top:1vh}
+.bar span{display:block;height:100%}
+/* phases grid */
+.phase{display:flex;flex-direction:column;align-items:center;gap:.8vh;text-align:center}
+.phase svg{width:min(9vw,13vh);height:min(9vw,13vh)}
+.phase .n{font-family:'Space Grotesk';font-weight:700;font-size:clamp(13px,1.35vw,19px)}
+.phase .d{font-family:'JetBrains Mono';font-size:clamp(11px,1vw,14px);color:var(--muted)}
+/* sim */
+.simwrap{display:grid;grid-template-columns:1.25fr 1fr;gap:2vw;flex:1;min-height:0}
+.simwrap svg{width:100%;height:100%;max-height:60vh}
+input[type=range]{width:100%;accent-color:var(--sun)}
+.btn{font:600 clamp(13px,1.2vw,16px) Inter;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:.55em 1em;cursor:pointer}
+.btn:hover{border-color:var(--sun)}
+.btn.on{background:var(--sun);color:#1a1300;border-color:var(--sun)}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw}
+.readout .card{padding:1.4vh 1vw}
+.readout .v{font-family:'Space Grotesk';font-weight:700;font-size:clamp(18px,2.1vw,30px)}
+.readout .l{font-size:clamp(11px,1vw,14px);color:var(--muted)}
+/* timer */
+.timer{font-family:'JetBrains Mono';font-size:clamp(48px,9vw,130px);font-weight:600;color:var(--moon);letter-spacing:.03em}
+/* chrome */
+.hud{position:fixed;left:0;right:0;bottom:0;height:6vh;display:flex;align-items:center;justify-content:space-between;padding:0 2vw;font-family:'JetBrains Mono';font-size:12px;color:var(--muted);pointer-events:none}
+.hud .keys span{border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin:0 2px}
+.prog{position:fixed;left:0;bottom:0;height:3px;background:var(--sun);transition:width .3s}
+.notes{position:fixed;left:2vw;right:2vw;bottom:7vh;max-height:42vh;overflow:auto;background:#0f1428f2;border:1px solid var(--sun);border-radius:14px;padding:2vh 1.6vw;display:none;z-index:5}
+.notes.show{display:block}
+.notes h4{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.12em;color:var(--sun);margin-bottom:.8vh}
+.notes p,.notes li{font-size:clamp(13px,1.2vw,17px);color:var(--ink)}
+.notes ul{padding-left:1.2em}
+.cover-moon{position:absolute;right:6vw;top:12vh;width:min(30vw,48vh);height:min(30vw,48vh)}
+@media (max-width:820px){.row,.simwrap{flex-direction:column;display:flex}.tl{grid-template-columns:repeat(2,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.cover-moon{position:static;width:40vw;height:40vw}.readout{grid-template-columns:1fr 1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide" data-notes="<p>Sesión 2 de 10 · 90 min. Antes de empezar: oscurecer la sala lo más posible (cortinas) y tener la linterna lista. Revisar que cada trío trajo su pelota.</p><p>La Luna de la portada se calcula con la fecha del computador. Úsala como gancho: «¿alguien la vio anoche?».</p>">
+  <div class="kicker">Unidad 4 · Estructuras cósmicas · Sesión 2</div>
+  <h1 style="max-width:62vw">Fases lunares<br>y eclipses</h1>
+  <p class="muted" style="max-width:55vw">¿Por qué la Luna cambia de forma si siempre es la misma esfera?</p>
+  <div style="margin-top:auto;display:flex;flex-wrap:wrap;gap:1vw;max-width:60vw">
+    <div class="card"><div class="mono sun" style="font-size:13px">OA 14</div><p style="font-size:clamp(13px,1.2vw,17px)">Crear modelos que expliquen fenómenos del sistema Tierra-Luna: fases lunares y eclipses.</p></div>
+    <div class="card"><div class="mono sun" style="font-size:13px">IE</div><p style="font-size:clamp(13px,1.2vw,17px)">Explican las fases lunares y los eclipses con óptica geométrica y modelos del sistema Tierra-Luna.</p></div>
+    <div class="card"><div class="mono sun" style="font-size:13px">BLOOM</div><p style="font-size:clamp(13px,1.2vw,17px)">Comprender · Aplicar</p></div>
+  </div>
+  <svg class="cover-moon" viewBox="0 0 200 200" id="coverMoon"></svg>
+</section>
+
+<!-- 2 PAUTA -->
+<section class="slide" data-notes="<p>Esta es la pauta completa. Proyéctala 30 segundos para que el curso sepa qué viene y que el producto de hoy es la guía respondida y el ticket.</p><ul><li>Materiales: linterna (1, la del profesor), 1 pelota por trío, guía impresa (4 págs.) por estudiante, 1 hoja ZipGrade por estudiante (formato de 20 preguntas o más).</li><li>Producto evaluable (formativo): preguntas 1–9 de la guía + ticket de salida en ZipGrade (5 preguntas, clave 1D 2C 3B 4E 5A).</li><li>El semáforo de metacognición no va hoy: queda para el cierre de la unidad.</li></ul>">
+  <div class="kicker">Pauta de la clase · 90 min</div>
+  <h2>Lo que haremos hoy</h2>
+  <div class="tl">
+    <div class="step"><div class="min">0–10'</div><div class="name">Gancho</div><div class="what">¿Cómo está la Luna hoy? Hipótesis sobre por qué cambia.</div></div>
+    <div class="step"><div class="min">10–25'</div><div class="name">Modelo con el cuerpo</div><div class="what">Linterna + pelota en tríos: producir las fases.</div></div>
+    <div class="step"><div class="min">25–45'</div><div class="name">Contenido</div><div class="what">Mitad iluminada, 8 fases, hemisferio sur, eclipses.</div></div>
+    <div class="step"><div class="min">45–70'</div><div class="name">Lectura</div><div class="what">«La Luna no miente»: extraer información y responder la guía.</div></div>
+    <div class="step"><div class="min">70–80'</div><div class="name">Puesta en común</div><div class="what">Revisar respuestas clave y corregir errores.</div></div>
+    <div class="step"><div class="min">80–90'</div><div class="name">Ticket de salida</div><div class="what">5 preguntas de alternativas en la hoja ZipGrade.</div></div>
+  </div>
+  <div class="bar"><span style="width:11.1%;background:#f5b941"></span><span style="width:16.7%;background:#5b8def"></span><span style="width:22.2%;background:#ece6d3"></span><span style="width:27.8%;background:#4fc98d"></span><span style="width:11.1%;background:#9aa4c2"></span><span style="width:11.1%;background:#ef5b5b"></span></div>
+  <div class="row" style="flex:0 0 auto;margin-top:1vh">
+    <div class="card col"><h3 class="sun">Producto de la clase</h3><p>Guía respondida (preguntas 1–9) y ticket de salida en hoja ZipGrade.</p></div>
+    <div class="card col"><h3 class="sun">Materiales</h3><p>Linterna · 1 pelota por trío · guía impresa · hoja ZipGrade · lápiz</p></div>
+  </div>
+</section>
+
+<!-- 3 GANCHO -->
+<section class="slide" data-notes="<p>Pregunta abierta. Anota todas las hipótesis en la pizarra sin corregir. Casi siempre aparece «es la sombra de la Tierra»: déjala escrita, porque el párrafo 6 del texto la desmiente y se retoma en la puesta en común.</p><p>Si alguien dice «son las nubes» o «la Luna se achica», también anótalo.</p>">
+  <div class="kicker">Gancho · 10 min</div>
+  <h2>La Luna de hoy, vista desde Villa Alemana</h2>
+  <div class="row">
+    <div class="col" style="align-items:center;justify-content:center">
+      <svg viewBox="0 0 200 200" style="width:min(32vw,46vh);height:min(32vw,46vh)" id="todayMoon"></svg>
+      <p class="mono muted" id="todayTxt"></p>
+    </div>
+    <div class="col" style="justify-content:center">
+      <div class="card hl"><h3 class="sun">Pregunta para todo el curso</h3>
+        <p>La Luna es una esfera y no cambia de tamaño.</p>
+        <p style="margin-top:1vh;font-size:clamp(20px,2.3vw,32px);font-family:'Space Grotesk';font-weight:700">¿Por qué entonces la vemos con formas distintas durante el mes?</p></div>
+      <p class="muted">Escriban su hipótesis en el cuaderno. La revisaremos al final.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 EMBODIED -->
+<section class="slide" data-notes="<p>Instrucciones en una línea por rol (leer tal cual):</p><ul><li><b>Sol</b>: «Linterna fija apuntando a la Tierra, no te muevas».</li><li><b>Tierra</b>: «Pelota con el brazo estirado, un poco más arriba de tu cabeza; gira despacio hacia tu izquierda».</li><li><b>Observador</b>: «Dibuja la pelota en las 4 posiciones marcadas».</li></ul><p>Qué deben descubrir: la pelota siempre tiene una mitad iluminada; lo que cambia es cuánto de esa mitad ve la Tierra. Si la sombra de la cabeza cae sobre la pelota cuando está opuesta a la linterna, ¡acaban de hacer un eclipse lunar! Por eso la pelota va algo más arriba de la cabeza: así se modela la inclinación de la órbita.</p><p>Rotar roles cada vuelta (3 vueltas).</p>">
+  <div class="kicker">Modelo con el cuerpo · 15 min</div>
+  <h2>Tu cabeza es la Tierra; la pelota, la Luna</h2>
+  <div class="grid g3">
+    <div class="card"><h3 class="sun">☀ Sol</h3><p>Sostiene la linterna fija apuntando a la Tierra. No se mueve.</p></div>
+    <div class="card"><h3 class="blue">◐ Tierra</h3><p>Pelota con el brazo estirado, un poco sobre la cabeza. Gira despacio hacia su izquierda.</p></div>
+    <div class="card"><h3 class="moon">✎ Observador</h3><p>Dibuja la pelota en las 4 posiciones: frente a la linterna, a un lado, de espaldas, al otro lado.</p></div>
+  </div>
+  <div class="card hl">
+    <h3>Respondan en el trío</h3>
+    <ol class="q">
+      <li>¿Qué parte de la pelota está iluminada en todo momento?</li>
+      <li>¿En qué posición la Tierra no ve nada iluminado? ¿Y en cuál lo ve todo?</li>
+      <li>¿Qué pasó cuando la sombra de la cabeza cayó sobre la pelota?</li>
+    </ol>
+  </div>
+  <p class="muted mono" style="font-size:13px">Tríos · roles fijos · rotan roles en cada vuelta · sala oscura</p>
+</section>
+
+<!-- 5 CONTENIDO: mitad iluminada -->
+<section class="slide" data-notes="<p>Formalizar lo que vieron con la pelota. Idea central: la mitad iluminada nunca cambia; cambia el ángulo desde el que la miramos.</p><p>Preguntar: «¿la Luna tiene luz propia?». Conectar con la Unidad 2 (reflexión de la luz).</p>">
+  <div class="kicker">Contenido · 1 de 4</div>
+  <h2>Siempre hay media Luna iluminada</h2>
+  <div class="row">
+    <div class="col">
+      <div class="card"><h3 class="sun">No brilla: refleja</h3><p>La Luna no tiene luz propia. Vemos luz del Sol que rebota en su superficie, como la linterna en la pelota.</p></div>
+      <div class="card"><h3 class="sun">La mitad que mira al Sol</h3><p>En todo momento, la mitad que mira al Sol está iluminada. Lo que cambia durante el mes es <b>cuánto de esa mitad vemos desde la Tierra</b>.</p></div>
+      <div class="card"><h3 class="sun">Una sola cara</h3><p>La Luna gira sobre sí misma en el mismo tiempo que da la vuelta a la Tierra: por eso siempre nos muestra la misma cara. La cara oculta <b>no</b> es oscura.</p></div>
+    </div>
+    <div class="col" style="align-items:center;justify-content:center">
+      <svg viewBox="0 0 420 300" style="width:100%;max-height:55vh">
+        <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f5b941"/></marker></defs>
+        <g stroke="#f5b941" stroke-width="2.5" marker-end="url(#ar)"><line x1="10" y1="80" x2="140" y2="80"/><line x1="10" y1="150" x2="140" y2="150"/><line x1="10" y1="220" x2="140" y2="220"/></g>
+        <text x="10" y="50" fill="#f5b941" font-family="JetBrains Mono" font-size="14">LUZ DEL SOL</text>
+        <circle cx="260" cy="150" r="80" fill="#2a3150"/>
+        <path d="M260 70 A80 80 0 0 0 260 230 Z" fill="#ece6d3"/>
+        <line x1="260" y1="55" x2="260" y2="245" stroke="#9aa4c2" stroke-dasharray="5 5"/>
+        <text x="200" y="275" fill="#ece6d3" font-family="Inter" font-size="15" text-anchor="middle">iluminada</text>
+        <text x="320" y="275" fill="#9aa4c2" font-family="Inter" font-size="15" text-anchor="middle">a oscuras</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 6 SIMULADOR -->
+<section class="slide" data-notes="<p>Mueve el deslizador despacio desde el día 0. Para en los días 0, 7, 15 y 22 y pregunta en cada uno: «¿dónde está la Luna respecto del Sol y la Tierra?».</p><p>Puntos a remarcar: en Luna nueva la Luna está entre la Tierra y el Sol; en Luna llena la Tierra está al centro. Las fases dependen de la posición, no de una sombra.</p><p>Botón ▶: animación automática de un mes completo.</p>">
+  <div class="kicker">Contenido · 2 de 4 · simulador</div>
+  <h2>Un mes en 30 segundos</h2>
+  <div class="simwrap">
+    <div class="card" style="display:flex;flex-direction:column;gap:1vh">
+      <div class="mono muted" style="font-size:13px">VISTA DESDE ARRIBA (SOBRE EL POLO NORTE)</div>
+      <svg viewBox="0 0 400 400" id="topView"></svg>
+    </div>
+    <div class="col">
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:1vh">
+        <div class="mono muted" style="font-size:13px" id="viewLbl">ASÍ SE VE DESDE CHILE</div>
+        <svg viewBox="0 0 200 200" id="simMoon" style="width:min(18vw,26vh);height:min(18vw,26vh)"></svg>
+      </div>
+      <div class="readout">
+        <div class="card"><div class="v" id="rDay">0</div><div class="l">día del ciclo</div></div>
+        <div class="card"><div class="v" id="rPct">0%</div><div class="l">disco iluminado</div></div>
+        <div class="card"><div class="v" id="rName" style="font-size:clamp(14px,1.5vw,21px)">Luna nueva</div><div class="l">fase</div></div>
+      </div>
+      <input type="range" id="simRange" min="0" max="29.53" step="0.01" value="0">
+      <div style="display:flex;gap:.8vw;flex-wrap:wrap">
+        <button class="btn" id="simPlay">▶ Animar</button>
+        <button class="btn on" id="hS">Hemisferio sur</button>
+        <button class="btn" id="hN">Hemisferio norte</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 OCHO FASES + HEMISFERIO -->
+<section class="slide" data-notes="<p>Las 8 fases dibujadas como se ven desde Chile. Mnemotecnia: en el norte «la Luna es mentirosa» (la C es de decreciente); en Chile la C es de creciente: <b>aquí la Luna no miente</b>.</p><p>Mes sinódico 29,5 días vs. vuelta orbital 27,3 días: la Tierra avanza alrededor del Sol mientras tanto (párrafo 3 del texto).</p>">
+  <div class="kicker">Contenido · 3 de 4</div>
+  <h2>Las 8 fases, vistas desde Chile</h2>
+  <div class="grid g4" id="phaseGrid"></div>
+  <div class="row" style="flex:0 0 auto">
+    <div class="card col"><div class="big sun">29,5 días</div><p class="muted">de una Luna nueva a la siguiente (mes sinódico). La vuelta orbital dura 27,3 días.</p></div>
+    <div class="card col hl"><h3 class="sun">En Chile la Luna no miente</h3><p>Creciente = luz a la izquierda = <b>C</b>. En el hemisferio norte se ve al revés: la creciente parece una D.</p></div>
+  </div>
+</section>
+
+<!-- 8 ECLIPSES -->
+<section class="slide" data-notes="<p>Retomar la hipótesis «es la sombra de la Tierra»: esa sombra solo cae sobre la Luna en un eclipse lunar, y solo en Luna llena.</p><p>¿Por qué no cada mes? Órbita inclinada ~5°: casi siempre la Luna pasa por arriba o por abajo de la línea Sol-Tierra. Con la pelota: si la sostenían sobre la cabeza no había eclipse; si bajaba, sí.</p><p>Coincidencia: el Sol es ~400 veces más grande que la Luna y está ~400 veces más lejos; por eso parecen del mismo tamaño. Chile vio eclipses solares totales el 2 de julio de 2019 (Coquimbo) y el 14 de diciembre de 2020 (La Araucanía).</p>">
+  <div class="kicker">Contenido · 4 de 4</div>
+  <h2>Eclipses: cuando la alineación es perfecta</h2>
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <h3 class="sun">Eclipse solar · Luna nueva</h3>
+        <svg viewBox="0 0 400 90" style="width:100%"><circle cx="40" cy="45" r="32" fill="#f5b941"/><circle cx="230" cy="45" r="11" fill="#ece6d3"/><path d="M241 40 L360 30 L360 60 L241 50Z" fill="#2a3150"/><circle cx="360" cy="45" r="24" fill="#5b8def"/><text x="230" y="85" fill="#9aa4c2" font-size="12" text-anchor="middle" font-family="JetBrains Mono">LUNA</text><text x="360" y="85" fill="#9aa4c2" font-size="12" text-anchor="middle" font-family="JetBrains Mono">TIERRA</text></svg>
+        <p>La Luna se interpone y su sombra cae sobre una franja de la Tierra.</p>
+      </div>
+      <div class="card">
+        <h3 class="red">Eclipse lunar · Luna llena</h3>
+        <svg viewBox="0 0 400 90" style="width:100%"><circle cx="40" cy="45" r="32" fill="#f5b941"/><circle cx="230" cy="45" r="24" fill="#5b8def"/><path d="M254 33 L370 38 L370 52 L254 57Z" fill="#2a3150"/><circle cx="360" cy="45" r="11" fill="#b5523f"/><text x="230" y="85" fill="#9aa4c2" font-size="12" text-anchor="middle" font-family="JetBrains Mono">TIERRA</text><text x="360" y="85" fill="#9aa4c2" font-size="12" text-anchor="middle" font-family="JetBrains Mono">LUNA</text></svg>
+        <p>La Tierra queda al centro y su sombra cae sobre la Luna.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card hl"><h3>¿Por qué no hay uno cada mes?</h3>
+        <svg viewBox="0 0 400 140" style="width:100%"><line x1="20" y1="90" x2="380" y2="90" stroke="#5b8def" stroke-width="2"/><line x1="20" y1="110" x2="380" y2="60" stroke="#ece6d3" stroke-width="2" stroke-dasharray="6 5"/><text x="380" y="108" fill="#5b8def" font-size="12" text-anchor="end" font-family="JetBrains Mono">órbita de la Tierra</text><text x="380" y="52" fill="#ece6d3" font-size="12" text-anchor="end" font-family="JetBrains Mono">órbita de la Luna · ~5°</text></svg>
+        <p>La órbita de la Luna está inclinada unos 5°. Casi siempre pasa por arriba o por debajo de la sombra.</p></div>
+      <div class="card"><div class="big sun">×400</div><p class="muted">El Sol es unas 400 veces más grande que la Luna y está unas 400 veces más lejos: por eso, desde aquí, parecen del mismo tamaño.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 LECTURA -->
+<section class="slide" data-notes="<p>Repartir la guía. Lectura individual (primera lectura completa, segunda subrayando). Luego responder en parejas, pero cada uno escribe en su propia guía.</p><p>Circular por la sala: los errores más frecuentes suelen estar en la pregunta 5 (el diagrama). Pista: «busca primero dónde está la Luna nueva: entre la Tierra y el Sol».</p><p>Usa el cronómetro: botón Iniciar.</p>">
+  <div class="kicker">Actividad · 25 min</div>
+  <h2>Lectura: «La Luna no miente»</h2>
+  <div class="row">
+    <div class="col">
+      <div class="card"><h3 class="sun">1 · Lee</h3><p>Primera lectura completa, sin subrayar.</p></div>
+      <div class="card"><h3 class="sun">2 · Subraya</h3><p>Segunda lectura: marca los datos que necesitas. Cada párrafo tiene su número entre corchetes: [1], [2]…</p></div>
+      <div class="card"><h3 class="sun">3 · Responde</h3><p>Preguntas 1–9 de la guía. En parejas, pero cada uno escribe en su guía y cita el número de párrafo como evidencia.</p></div>
+    </div>
+    <div class="col" style="align-items:center;justify-content:center;gap:2vh">
+      <div class="timer" id="timer">25:00</div>
+      <div style="display:flex;gap:.8vw"><button class="btn" id="tStart">▶ Iniciar</button><button class="btn" id="tReset">↺ Reiniciar</button></div>
+      <p class="muted" style="text-align:center">Al terminar el tiempo, sonará un aviso.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 10 PUESTA EN COMÚN -->
+<section class="slide" data-notes="<p>Respuestas esperadas (no proyectar):</p><ul><li>P5: A gibosa creciente · B creciente · C cuarto menguante · D llena · E nueva · F menguante · G cuarto creciente · H gibosa menguante.</li><li>P8 (AER): falso. Evidencia: párrafo 2 (siempre hay media Luna iluminada) y párrafo 6 (la sombra de la Tierra solo cae en eclipse lunar, en Luna llena).</li><li>P9: a) Luna llena; b) eclipse lunar posible (solo si la alineación es casi perfecta); solar no, requiere Luna nueva.</li></ul><p>Volver a las hipótesis del gancho y tachar las que el texto descartó.</p>">
+  <div class="kicker">Puesta en común · 10 min</div>
+  <h2>Revisemos tres respuestas clave</h2>
+  <div class="grid g3" style="flex:1">
+    <div class="card"><div class="big sun">5</div><p>En el diagrama, ¿cuál letra es la Luna nueva? ¿Cómo lo supieron?</p></div>
+    <div class="card hl"><div class="big red">8</div><p>¿Las fases son la sombra de la Tierra? ¿Qué evidencia del texto usaron?</p></div>
+    <div class="card"><div class="big sun">9</div><p>Si hoy hay cuarto creciente, ¿podría haber un eclipse en una semana? ¿De qué tipo?</p></div>
+  </div>
+  <p class="muted">Volvamos a nuestras hipótesis del inicio: ¿cuáles se sostienen y cuáles descartamos?</p>
+</section>
+
+<!-- 11 TICKET A -->
+<section class="slide" data-notes="<p>Repartir una hoja ZipGrade por estudiante. Que completen nombre e ID antes de proyectar la pregunta 1. Individual y en silencio: 7 minutos para las 5 preguntas (diapositivas 11 y 12).</p><p>Clave para ZipGrade: <b>1 D · 2 C · 3 B · 4 E · 5 A</b>.</p><p>La guía se queda con el estudiante, o se recoge si quieres revisarla.</p>">
+  <div class="kicker">Cierre · 10 min · hoja ZipGrade</div>
+  <h2>Ticket de salida <span class="muted" style="font-size:.55em">· preguntas 1 y 2</span></h2>
+  <div class="card hl">
+    <p><b class="sun">1.</b> ¿Cuál dibujo muestra la Luna en <b>cuarto menguante</b> vista desde Villa Alemana?</p>
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:1.6vh" id="q1opts"></div>
+  </div>
+  <div class="card">
+    <p><b class="sun">2.</b> Un eclipse solar solo puede ocurrir en:</p>
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:1vh">
+      <p><b>A)</b> Luna llena</p><p><b>B)</b> cuarto creciente</p><p><b>C)</b> Luna nueva</p><p><b>D)</b> cuarto menguante</p><p><b>E)</b> cualquier fase</p>
+    </div>
+  </div>
+  <p class="muted mono" style="font-size:13px">Marca en tu hoja ZipGrade · solo preguntas 1 a 5</p>
+</section>
+
+<!-- 12 TICKET B -->
+<section class="slide" data-notes="<p>Al terminar, recoger las hojas ZipGrade y escanearlas con la app. Si la pregunta 4 sale baja, es señal de que la idea «las fases son la sombra de la Tierra» sigue viva: retomarla al inicio de la Sesión 3.</p><p>Clave: 3 B · 4 E · 5 A.</p>">
+  <div class="kicker">Cierre · hoja ZipGrade</div>
+  <h2>Ticket de salida <span class="muted" style="font-size:.55em">· preguntas 3 a 5</span></h2>
+  <div class="card">
+    <p><b class="sun">3.</b> ¿Por qué no hay un eclipse todos los meses?</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.4vh;margin-top:.6vh">
+      <li><b>A)</b> Porque la sombra de la Tierra es demasiado pequeña para alcanzar a la Luna.</li>
+      <li><b>B)</b> Porque la órbita de la Luna está inclinada unos 5° respecto de la órbita de la Tierra.</li>
+      <li><b>C)</b> Porque la Luna solo refleja la luz del Sol durante algunos meses del año.</li>
+      <li><b>D)</b> Porque la Luna tarda un año completo en dar la vuelta a la Tierra.</li>
+      <li><b>E)</b> Porque los eclipses solo pueden ocurrir durante el invierno.</li>
+    </ul>
+  </div>
+  <div class="row" style="flex:0 0 auto">
+    <div class="card col">
+      <p><b class="sun">4.</b> Las fases de la Luna se producen porque:</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:.4vh;margin-top:.6vh">
+        <li><b>A)</b> la sombra de la Tierra cubre parte de la Luna.</li>
+        <li><b>B)</b> cambia la distancia entre la Tierra y la Luna.</li>
+        <li><b>C)</b> las nubes tapan distintas partes de la Luna.</li>
+        <li><b>D)</b> la Luna emite más o menos luz según la noche.</li>
+        <li><b>E)</b> cambia cuánto vemos de su mitad iluminada.</li>
+      </ul>
+    </div>
+    <div class="card col">
+      <p><b class="sun">5.</b> Hoy hay Luna llena. ¿En cuántos días, aproximadamente, habrá Luna nueva?</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:.4vh;margin-top:.6vh">
+        <li><b>A)</b> 15 días</li><li><b>B)</b> 7 días</li><li><b>C)</b> 22 días</li><li><b>D)</b> 27,3 días</li><li><b>E)</b> 29,5 días</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 12 BOOKEND -->
+<section class="slide" style="background:#13204a" data-notes="<p>Anuncio de la próxima sesión. Pedir que guarden las cartulinas del gnomon de la Sesión 1: se reutilizan para las estaciones.</p>">
+  <div class="kicker">Próxima sesión</div>
+  <h1>Estaciones climáticas y otros planetas</h1>
+  <p class="muted" style="max-width:60vw">Hoy movimos la Luna alrededor de la Tierra. La próxima clase inclinamos la Tierra para entender por qué en diciembre la sombra del gnomon es tan corta. Traigan su cartulina de la Sesión 1.</p>
+</section>
+
+</div>
+<div class="notes" id="notes"><h4>PAUTA DOCENTE · tecla N para cerrar</h4><div id="notesBody"></div></div>
+<div class="hud"><div id="count">1 / 13</div><div class="keys"><span>←</span><span>→</span> navegar · <span>N</span> notas · <span>F</span> pantalla completa · <span>M</span> sonido</div></div>
+<div class="prog" id="prog"></div>
+
+<script>
+const P=29.530588853, REF=Date.UTC(2000,0,6,18,14);
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0, hemi='S', muted=false;
+// ---------- sound
+let actx=null;
+function tick(f=660,d=0.06,type='sine',v=0.05){ if(muted) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const o=actx.createOscillator(), g=actx.createGain(); o.type=type;o.frequency.value=f; g.gain.setValueAtTime(v,actx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+d); o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime+d);}catch(e){} }
+// ---------- nav
+function show(i){ cur=Math.max(0,Math.min(slides.length-1,i)); slides.forEach((s,k)=>s.classList.toggle('active',k===cur));
+  document.getElementById('count').textContent=(cur+1)+' / '+slides.length;
+  document.getElementById('prog').style.width=((cur+1)/slides.length*100)+'%';
+  document.getElementById('notesBody').innerHTML=slides[cur].dataset.notes||'<p>Sin notas.</p>';
+  try{ history.replaceState(null,'','#'+(cur+1)); }catch(e){} }
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT') { if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return; else return; }
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(cur+1);tick(720);}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){show(cur-1);tick(520);}
+  else if(e.key==='n'||e.key==='N'){document.getElementById('notes').classList.toggle('show');}
+  else if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }
+  else if(e.key==='m'||e.key==='M'){muted=!muted;}
+});
+let tx=null; document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{ if(tx===null) return; const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>60 && e.target.tagName!=='INPUT'){ show(cur+(dx<0?1:-1)); tick(dx<0?720:520);} tx=null; });
+// ---------- moon geometry
+function phaseName(a){ const b=[1.85,5.54,9.23,12.92,16.61,20.30,23.99,27.68]; const n=['Luna nueva','Luna creciente','Cuarto creciente','Gibosa creciente','Luna llena','Gibosa menguante','Cuarto menguante','Luna menguante','Luna nueva']; for(let i=0;i<b.length;i++) if(a<b[i]) return n[i]; return n[8]; }
+function litPath(cx,cy,R,age,h){ const th=2*Math.PI*age/P, c=Math.cos(th); let L=(age<P/2)?-1:1; if(h==='N') L=-L;
+  const rx=Math.abs(R*c), limb=L>0?1:0, term=(L*c>0)?0:1;
+  return `M ${cx} ${cy-R} A ${R} ${R} 0 0 ${limb} ${cx} ${cy+R} A ${rx} ${R} 0 0 ${term} ${cx} ${cy-R} Z`; }
+function moonSVG(el,age,h='S'){ el.innerHTML=`<circle cx="100" cy="100" r="88" fill="#232a45"/><path d="${litPath(100,100,88,age,h)}" fill="#ece6d3"/><circle cx="100" cy="100" r="88" fill="none" stroke="#3a4570" stroke-width="1.5"/>`; }
+const illum=a=>(1-Math.cos(2*Math.PI*a/P))/2;
+function ageNow(){ return (((Date.now()-REF)/864e5)%P+P)%P; }
+// cover + today
+(function(){ const a=ageNow(); moonSVG(document.getElementById('coverMoon'),a); moonSVG(document.getElementById('todayMoon'),a);
+  const nextFull=new Date(Date.now()+(((P/2-a)%P+P)%P)*864e5); const nextNew=new Date(Date.now()+(P-a)*864e5);
+  const f=d=>d.toLocaleDateString('es-CL',{day:'numeric',month:'long'});
+  document.getElementById('todayTxt').innerHTML=`${phaseName(a)} · día ${a.toFixed(1)} · ${Math.round(illum(a)*100)}% iluminada<br>próxima Luna nueva: ${f(nextNew)} · próxima llena: ${f(nextFull)}`; })();
+// phase grid
+(function(){ const ages=[0,3.7,7.4,11.1,14.8,18.5,22.1,25.8], d=['día 0','día ~4','día ~7','día ~11','día ~15','día ~18','día ~22','día ~26'];
+  const g=document.getElementById('phaseGrid'); ages.forEach((a,i)=>{ const div=document.createElement('div'); div.className='phase card';
+   div.innerHTML=`<svg viewBox="0 0 200 200"></svg><div class="n">${phaseName(a===0?0.1:a)}</div><div class="d">${d[i]}</div>`; g.appendChild(div);
+   const s=div.querySelector('svg'); if(a===0){ s.innerHTML='<circle cx="100" cy="100" r="88" fill="#232a45" stroke="#3a4570" stroke-width="1.5"/>'; } else moonSVG(s,a); }); })();
+// ticket q1 options: A creciente, B cuarto creciente, C llena, D cuarto menguante, E menguante
+(function(){ const g=document.getElementById('q1opts'); [3.7,7.4,14.8,22.1,25.8].forEach((a,i)=>{ const d=document.createElement('div'); d.className='phase';
+  d.innerHTML=`<svg viewBox="0 0 200 200"></svg><div class="n">${'ABCDE'[i]})</div>`; g.appendChild(d); moonSVG(d.querySelector('svg'),a); }); })();
+// simulator
+const topEl=document.getElementById('topView'), rng=document.getElementById('simRange');
+function drawTop(age){ const cx=220,cy=200,r=130,th=2*Math.PI*age/P, phi=Math.PI+th; const mx=cx+r*Math.cos(phi), my=cy-r*Math.sin(phi);
+  let s='<defs><marker id="sa" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8z" fill="#f5b941"/></marker></defs>';
+  for(let i=0;i<5;i++){ const y=80+i*60; s+=`<line x1="0" y1="${y}" x2="50" y2="${y}" stroke="#f5b941" stroke-width="2" marker-end="url(#sa)"/>`; }
+  s+=`<text x="0" y="40" fill="#f5b941" font-family="JetBrains Mono" font-size="12">SOL →</text>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#2a3458" stroke-dasharray="4 5"/>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="26" fill="#1d3d7a"/><path d="M ${cx} ${cy-26} A 26 26 0 0 0 ${cx} ${cy+26} Z" fill="#5b8def"/><text x="${cx}" y="${cy+46}" fill="#9aa4c2" font-family="JetBrains Mono" font-size="11" text-anchor="middle">TIERRA</text>`;
+  s+=`<line x1="${cx}" y1="${cy}" x2="${mx}" y2="${my}" stroke="#ece6d3" stroke-opacity=".25"/>`;
+  s+=`<circle cx="${mx}" cy="${my}" r="16" fill="#232a45" stroke="#3a4570"/><path d="M ${mx} ${my-16} A 16 16 0 0 0 ${mx} ${my+16} Z" fill="#ece6d3"/>`;
+  s+=`<text x="${cx}" y="390" fill="#9aa4c2" font-family="JetBrains Mono" font-size="11" text-anchor="middle">la Luna gira en sentido antihorario</text>`;
+  topEl.innerHTML=s; }
+function upd(){ const a=parseFloat(rng.value); drawTop(a); moonSVG(document.getElementById('simMoon'),a,hemi);
+  document.getElementById('rDay').textContent=a.toFixed(1); document.getElementById('rPct').textContent=Math.round(illum(a)*100)+'%'; document.getElementById('rName').textContent=phaseName(a); }
+rng.addEventListener('input',upd);
+let playT=null; document.getElementById('simPlay').onclick=function(){ if(playT){clearInterval(playT);playT=null;this.textContent='▶ Animar';return;} this.textContent='❚❚ Pausa';
+  playT=setInterval(()=>{ let v=parseFloat(rng.value)+0.06; if(v>P){v=0;tick(880,.12);} rng.value=v; upd(); },60); };
+const hS=document.getElementById('hS'), hN=document.getElementById('hN');
+hS.onclick=()=>{hemi='S';hS.classList.add('on');hN.classList.remove('on');document.getElementById('viewLbl').textContent='ASÍ SE VE DESDE CHILE';upd();};
+hN.onclick=()=>{hemi='N';hN.classList.add('on');hS.classList.remove('on');document.getElementById('viewLbl').textContent='ASÍ SE VE DESDE EL HEMISFERIO NORTE';upd();};
+upd();
+// timer
+let tLeft=25*60, tInt=null; const tEl=document.getElementById('timer');
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+document.getElementById('tStart').onclick=function(){ if(tInt){clearInterval(tInt);tInt=null;this.textContent='▶ Continuar';return;} this.textContent='❚❚ Pausa';
+  tInt=setInterval(()=>{ tLeft--; tEl.textContent=fmt(Math.max(tLeft,0)); if(tLeft===300){tEl.style.color='#f5b941';tick(660,.25);} if(tLeft<=0){clearInterval(tInt);tInt=null;tEl.style.color='#ef5b5b';tick(880,.4,'triangle',.08);setTimeout(()=>tick(660,.4,'triangle',.08),450);} },1000); };
+document.getElementById('tReset').onclick=()=>{ clearInterval(tInt);tInt=null;tLeft=25*60;tEl.textContent='25:00';tEl.style.color='';document.getElementById('tStart').textContent='▶ Iniciar'; };
+// start
+const h=parseInt((location.hash||'').slice(1)); show(isNaN(h)?0:h-1);
+</script>
+</body>
+</html>
