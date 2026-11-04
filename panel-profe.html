@@ -198,6 +198,11 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
             <details style="margin-top:8px"><summary class="muted" style="cursor:pointer;font-size:13px">Últimas solicitudes resueltas</summary><div class="lista-movs" id="listaTrHist"></div></details>
           </div>
           <div class="card porcanjear" style="margin-top:16px">
+            <h3 style="margin:0 0 4px">🏷️ Publicaciones de los estudiantes <span class="pill" id="nPub">0</span></h3>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">Lo que los estudiantes tienen a la venta en el Mercado. Puedes <b>comprarlo</b> (el banco le paga al vendedor y el objeto sale de circulación), <b>cambiar el precio</b> o <b>retirarlo</b> (el objeto vuelve a su dueño). Las reservadas tienen un pedido en curso: resuélvelo arriba, en «Solicitudes por autorizar».</p>
+            <div class="lista-movs" id="listaPub"><div class="muted">—</div></div>
+          </div>
+          <div class="card porcanjear" style="margin-top:16px">
             <h3 style="margin:0 0 4px">⚡ Poderes de los gatitos <span class="pill" id="nPod">0</span></h3>
             <p class="muted" style="margin:0 0 8px;font-size:13px">Poderes especiales permanentes de cada estudiante según sus gatitos (se usan cuando la clase lo permite). Las décimas diarias que reclaman aparecen en «Compras por canjear».</p>
             <input id="podBuscar" placeholder="Buscar estudiante o poder…" style="width:100%;margin-bottom:8px;background:var(--slab2);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;font:inherit">
@@ -497,6 +502,9 @@ function iniciarBanco() {
     transPend = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => ms(a.creada) - ms(b.creada));
     pintarTransferencias();
   }, e => console.info(e)));
+  desuscribir.push(F.onSnapshot(F.query(F.collection(db, 'mercado_items'), F.where('estado', 'in', ['venta', 'reservado'])), s => {
+    publicaciones = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintarPublicaciones();
+  }, e => console.info(e)));
   desuscribir.push(F.onSnapshot(F.query(F.collection(db, 'mercado_pedidos'), F.where('estado', '==', 'pendiente')), s => {
     pedPend = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintarTransferencias();
   }, e => console.info(e)));
@@ -587,6 +595,60 @@ async function verTodosRuleta(cid) {
 $('rulCargar').onclick = cargarRuletas;
 $('rulBuscar').oninput = pintarRuletas;
 $('listaRul').onclick = e => { const b = e.target.closest('[data-rultodo]'); if (b) verTodosRuleta(b.dataset.rultodo); };
+/* ── Publicaciones de los estudiantes (mercado_items): comprar, cambiar precio o retirar ── */
+let publicaciones = [];
+function pintarPublicaciones() {
+  const l = publicaciones.filter(x => x.estado === 'venta' || x.estado === 'reservado').sort((a, b) => ms(b.actualizado || b.creada) - ms(a.actualizado || a.creada));
+  $('nPub').textContent = l.length;
+  $('listaPub').innerHTML = l.map(x => `<div class="m"><div class="t"><b>${esc(x.ico || '')} ${esc(x.item)}</b> · ${esc(x.vendedorNombre || '')} <span class="pill">$${fmt(x.precio)}</span>
+      <small>${x.tipo === 'gatito' ? '🐱 gatito' : '🎟️ beneficio'} · publicada el ${fecha(x.creada)}${x.estado === 'reservado' ? ' · <b>reservada</b> (hay un pedido pendiente)' : ''}</small></div>
+      ${x.estado === 'venta' ? `<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm p" data-pub="comprar:${esc(x.id)}">Comprar</button><button class="btn sm" data-pub="precio:${esc(x.id)}">Precio</button><button class="btn sm" data-pub="retirar:${esc(x.id)}">Retirar</button></div>` : ''}</div>`).join('')
+    || '<div class="muted">No hay publicaciones a la venta.</div>';
+}
+async function accionPublicacion(accion, id) {
+  const x = publicaciones.find(p => p.id === id); if (!x) return;
+  const { F, db } = FB, profe = (DF.usuario() || {}).email || '', rpub = F.doc(db, 'mercado_items', id);
+  try {
+    if (accion === 'precio') {
+      const v = prompt(`Nuevo precio para «${x.item}» de ${x.vendedorNombre} (ahora $${fmt(x.precio)}):`, x.precio); if (v === null) return;
+      const n = Math.round(Number(String(v).replace(/\D/g, '')));
+      if (!(n >= 100 && n <= 10000000)) return toast('Precio no válido (entre 100 y 10.000.000)');
+      await F.runTransaction(db, async tx => {
+        const s = await tx.get(rpub); if (!s.exists() || s.data().estado !== 'venta') throw new Error('ya no está a la venta');
+        tx.update(rpub, { precio: n, actualizado: F.serverTimestamp() });
+      });
+      return toast('✓ Precio cambiado a $' + fmt(n));
+    }
+    const comprar = accion === 'comprar';
+    if (!confirm(comprar
+      ? `Comprar «${x.item}» a ${x.vendedorNombre} por $${fmt(x.precio)}.\n\nEl banco le abona $${fmt(x.precio)} y el objeto sale de circulación (no vuelve a nadie).`
+      : `Retirar «${x.item}» de la venta.\n\nEl objeto vuelve a ${x.vendedorNombre}.`)) return;
+    await F.runTransaction(db, async tx => {
+      const s = await tx.get(rpub); if (!s.exists() || s.data().estado !== 'venta') throw new Error('ya no está a la venta (¿alguien la reservó?)');
+      const pub = s.data();
+      let rmv = null, rg = null, sg = null, rv = null, sv = null;
+      if (pub.tipo === 'beneficio') { rmv = F.doc(db, 'banco_movs', pub.mov); const sm = await tx.get(rmv); if (!sm.exists() || sm.data().canje !== 'en-venta') throw new Error('el beneficio no está congelado'); }
+      else if (!comprar) { rg = F.doc(db, 'gatitos', pub.uid); sg = await tx.get(rg); }
+      if (comprar) { rv = F.doc(db, 'banco_cuentas', pub.vendedor); sv = await tx.get(rv); if (!sv.exists()) throw new Error('la cuenta del vendedor ya no existe'); }
+      if (comprar) {
+        const v = sv.data(), saldo = (v.saldo || 0) + pub.precio;
+        tx.update(rv, { saldo, actualizado: F.serverTimestamp() });
+        movProfe(F, db, tx, pub.vendedor, v, pub.precio, saldo, `Mercado: el profe compró ${pub.item}`, 'reventa', { publicacion: id });
+        if (rmv) tx.update(rmv, { canje: 'traspasada', canjeNota: 'Comprado por el profe', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
+        tx.update(rpub, { estado: 'vendido', actualizado: F.serverTimestamp() });
+      } else {
+        if (rmv) tx.update(rmv, { canje: 'pendiente', canjeNota: 'Retirado de la venta por el profe', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
+        else {
+          const prev = sg.exists() ? sg.data() : { nombre: pub.vendedorNombre, ids: [], favorito: null }, ids = (prev.ids || []).includes(pub.gatito) ? prev.ids : (prev.ids || []).concat([pub.gatito]);
+          tx.set(rg, { uid: pub.uid, nombre: String(prev.nombre || pub.vendedorNombre || '').slice(0, 80), ids, favorito: prev.favorito && ids.includes(prev.favorito) ? prev.favorito : pub.gatito, actualizado: F.serverTimestamp() });
+        }
+        tx.update(rpub, { estado: 'retirado', actualizado: F.serverTimestamp() });
+      }
+    });
+    toast(comprar ? '✓ Comprado: se le pagó al vendedor' : '✓ Retirado: el objeto volvió a su dueño');
+  } catch (e) { toast('No se pudo: ' + e.message); }
+}
+$('listaPub').onclick = e => { const b = e.target.closest('[data-pub]'); if (!b) return; const [a, id] = b.dataset.pub.split(':'); accionPublicacion(a, id); };
 function pintarPendientes() {
   $('nPend').textContent = pendientes.length;
   $('listaPend').innerHTML = pendientes.length ? pendientes.map(m => `
