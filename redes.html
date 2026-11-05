@@ -227,6 +227,13 @@ async function cargarFirebase() {
   datos.articulos = articulos.filter(a => a.activa && (a.stock === -1 || a.stock > 0));
   const act = cuentas.filter(c => c.estado !== 'Cerrada');
   datos.banco = { cuentas: act.length, total: act.reduce((s, c) => s + (c.saldo || 0), 0), movs7 };
+  // Bolsa: empresas activas y acciones en manos de los estudiantes (solo totales, sin nombres)
+  try {
+    const [emp, pos] = await Promise.all([lista('bolsa_empresas'), lista('bolsa_pos').catch(() => [])]);
+    const circ = {}; pos.forEach(x => { if (x.acciones > 0) circ[x.ticker] = (circ[x.ticker] || 0) + x.acciones; });
+    const due = {}; pos.forEach(x => { if (x.acciones > 0) due[x.ticker] = (due[x.ticker] || 0) + 1; });
+    datos.bolsa = emp.filter(e => e.activa).map(e => Object.assign(e, { circ: circ[e.id] || 0, duenos: due[e.id] || 0 })).sort((a, b) => cambioB(b) - cambioB(a));
+  } catch (e) { datos.bolsa = []; }
   // rankings de los juegos (mejor puntaje de cada estudiante)
   datos.rank = {};
   await Promise.all(Object.keys(JUEGOS).map(async j => {
@@ -249,6 +256,8 @@ const PL = {
   juegos: { nombre: '🎮 Juegos: ranking', tema: ['#b26bff', 'rgba(178,107,255,.25)', 'rgba(34,227,255,.14)'], kick: 'Ranking de juegos', titulo: '', html: () => htmlJuego(), opciones: () => selOp('juego', 'Juego', Object.entries(JUEGOS)) + selOp('nombres', 'Mostrar', [['corto', 'Nombre y curso'], ['curso', 'Solo el curso (sin nombres)']]) },
   golV: { nombre: '🥅 Goleadores', tema: ['#ccff00', 'rgba(204,255,0,.22)', 'rgba(34,227,255,.16)'], kick: 'Copa San Agustín 2026', titulo: 'Tabla de <b>goleadores</b>', html: () => htmlGoles(datos.golV) },
   golD: { nombre: '🥅 Goleadoras', tema: ['#ff4d94', 'rgba(255,77,148,.25)', 'rgba(255,215,0,.12)'], kick: 'Copa San Agustín 2026', titulo: 'Tabla de <b>goleadoras</b>', html: () => htmlGoles(datos.golD) },
+  bolsa: { nombre: '📈 Bolsa de Comercio', tema: ['#4bd08c', 'rgba(75,208,140,.24)', 'rgba(255,77,148,.12)'], kick: 'Bolsa de Comercio · Hipopesos', titulo: '', html: () => htmlBolsa(),
+    opciones: () => selOp('empresa', 'Qué mostrar', [['todas', '📊 Todas las empresas']].concat((datos.bolsa || []).map(e => [e.id, e.id + ' · ' + e.nombre]))) },
   banco: { nombre: '🏦 Banco Hipopesos', tema: ['#e9b949', 'rgba(233,185,73,.22)', 'rgba(75,208,140,.14)'], kick: 'Economía del curso', titulo: 'Banco <b>Hipopesos</b>', html: () => htmlBanco() }
 };
 function vsHTML(p, grande) {
@@ -362,6 +371,45 @@ function htmlGoles(l) {
   let pos = 0, prev = null;
   return `<div class="caja">${l.map((x, i) => { if (x.g !== prev) { pos = i + 1; prev = x.g; }
     return `<div class="rank ${pos === 1 ? 'top' : ''}"><div class="pos">${pos}°</div><div><div class="n">${esc(x.n)}</div></div><div class="v">${x.g} ⚽</div></div>`; }).join('')}</div>`;
+}
+const cambioB = e => e.apertura ? (e.precio - e.apertura) / e.apertura : 0;
+const pct = c => (c > 0 ? '▲ ' : c < 0 ? '▼ ' : '• ') + Math.abs(c * 100).toFixed(1).replace('.', ',') + '%';
+// Gráfico de la evolución del precio dibujado en un canvas (html2canvas copia bien las imágenes, no los SVG)
+function grafico(e, W, H) {
+  const h = [e.apertura || e.precio].concat((e.historial || []).map(x => x.p));
+  if (h.length < 2) return '';
+  const c = document.createElement('canvas'); c.width = W * 2; c.height = H * 2; const g = c.getContext('2d'); g.scale(2, 2);
+  const mn = Math.min(...h), mx = Math.max(...h), r = (mx - mn) || 1, sube = h[h.length - 1] >= h[0], col = sube ? '#4bd08c' : '#ff4d6d';
+  const pts = h.map((v, i) => [i / (h.length - 1) * (W - 8) + 4, H - 6 - (v - mn) / r * (H - 12)]);
+  const grad = g.createLinearGradient(0, 0, 0, H); grad.addColorStop(0, sube ? 'rgba(75,208,140,.35)' : 'rgba(255,77,109,.35)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+  g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.lineTo(pts[pts.length - 1][0], H); g.lineTo(pts[0][0], H); g.closePath(); g.fillStyle = grad; g.fill();
+  g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.strokeStyle = col; g.lineWidth = Math.max(3, H / 40); g.lineJoin = 'round'; g.stroke();
+  const [lx, ly] = pts[pts.length - 1]; g.beginPath(); g.arc(lx, ly, Math.max(5, H / 28), 0, 7); g.fillStyle = col; g.fill();
+  return `<img src="${c.toDataURL('image/png')}" alt="" style="width:${W}px;height:${H}px;display:block">`;
+}
+function htmlBolsa() {
+  const l = datos.bolsa || [];
+  if (!l.length) return '<div class="vacio">La bolsa no tiene empresas activas.</div>';
+  if (opcion.empresa && opcion.empresa !== 'todas') {
+    const e = l.find(x => x.id === opcion.empresa); if (!e) return '<div class="vacio">Empresa no encontrada.</div>';
+    const c = cambioB(e), ev = (e.historial || []).slice(-(formato === 'historia' ? 4 : 2)).reverse(), H = formato === 'historia';
+    PL.bolsa.titulo = `<b>${esc(e.id)}</b> · ${esc(e.nombre)}`;
+    return `<div class="caja dest"><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+        <div class="cifra">${fmt(e.precio)}<small>Precio por acción</small></div>
+        <div class="mini" style="color:${c >= 0 ? '#4bd08c' : '#ff4d6d'}">${pct(c)}<small>Desde la apertura (${fmt(e.apertura || e.precio)})</small></div></div>
+      <div style="margin-top:20px">${grafico(e, 870, H ? 300 : 170)}</div>
+      <div class="s" style="font:800 26px var(--ff);color:#a9a9b8;margin-top:16px">${num(e.circ)} acciones en circulación · ${num(e.duenos)} accionista${e.duenos === 1 ? '' : 's'}</div></div>
+      ${e.desc ? `<div class="frase">🎯 ${esc(e.desc)}</div>` : ''}
+      ${ev.length ? `<div class="caja"><div class="etq">Últimas evaluaciones</div>${ev.map(x => `<div class="op"><div style="flex:1"><div class="n" style="font-size:40px;color:${x.r === '+' ? '#4bd08c' : '#ff4d6d'}">${x.r === '+' ? '✓ Cumplió' : '✗ No cumplió'}</div>${x.nota ? `<div class="s">${esc(x.nota)}</div>` : ''}<div class="s">${esc(new Date(x.f).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' }))}</div></div><div class="c" style="font-size:48px">${fmt(x.p)}</div></div>`).join('')}</div>` : ''}
+`;
+  }
+  PL.bolsa.titulo = 'Bolsa de <b>Comercio</b>';
+  const v = l.slice(0, formato === 'historia' ? 8 : 5);
+  const sube = l.filter(e => cambioB(e) > 0).length, baja = l.filter(e => cambioB(e) < 0).length;
+  return `<div class="caja">${v.map(e => { const c = cambioB(e); return `<div class="op"><div style="min-width:0;flex:1"><div class="n">${esc(e.id)}</div><div class="s">${esc(e.nombre)}</div></div>
+      <div style="width:220px">${grafico(e, 220, 70)}</div>
+      <div style="text-align:right;min-width:200px"><div class="c" style="font-size:52px">${fmt(e.precio)}</div><div class="s" style="color:${c >= 0 ? '#4bd08c' : '#ff4d6d'};font-weight:900">${pct(c)}</div></div></div>`; }).join('')}</div>
+    <div class="frase">${sube} ${sube === 1 ? 'empresa sube' : 'empresas suben'} y ${baja} ${baja === 1 ? 'baja' : 'bajan'}. <b>Invierte tus Hipopesos</b> en las metas del colegio que crees que se van a cumplir.</div>`;
 }
 function htmlBanco() {
   const b = datos.banco || {};
