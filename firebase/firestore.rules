@@ -369,6 +369,7 @@ service cloud.firestore {
             || (d.tipo == 'prestamo-pago' && opPagoPrestamo(d)) || (d.tipo == 'mascota' && opMascota(d)) || (d.tipo in ['ahorro-deposito', 'ahorro-retiro'] && opAhorro(d))
             || (d.tipo == 'subasta-oferta' && opSubasta(id, d))
             || (d.tipo == 'apuesta' && opApuestaPartido(id, d))
+            || (d.tipo == 'juego-envio' && opJuego(d))
             || (d.tipo == 'giftcard' && opGiftcard(id, d)));
     }
 
@@ -1529,6 +1530,21 @@ service cloud.firestore {
         && getAfter(rutaIngreso(d.cuenta, diaHoy())).data.bono == d.monto;
     }
 
+    // ── Dinero traído desde el juego «Mercado de Villa Verde» ──
+    // El juego vive en el navegador del estudiante, así que su dinero NO es
+    // comprobable desde aquí. Lo que sí se puede imponer, y es lo que de verdad
+    // protege al banco, es: un envío por cuenta por día y un tope por envío.
+    // El documento juego_envios/<cuenta>__<día> es el candado: existe solo una
+    // vez al día y queda como registro para el panel del profe.
+    // topeJuegoDia() debe ser el mismo número que BC_TOPE en el juego.
+    function rutaJuegoEnvio(c, d) { return /databases/$(database)/documents/juego_envios/$(c + '__' + string(d)); }
+    function topeJuegoDia() { return 50000; }
+    function opJuego(d) {
+      return d.monto > 0 && d.monto <= topeJuegoDia()
+        && !exists(rutaJuegoEnvio(d.cuenta, diaHoy()))
+        && getAfter(rutaJuegoEnvio(d.cuenta, diaHoy())).data.monto == d.monto;
+    }
+
     function posCuadra(p, m) {
       return opsDespues(p.cuenta) == opsAntes(p.cuenta) + 1
         && m.ticker == p.ticker
@@ -1714,6 +1730,23 @@ service cloud.firestore {
         && request.resource.data.bono == 1000 + (request.resource.data.racha % 5 == 0 ? 5000 : 0)
         && opsDespues(request.resource.data.cuenta) == opsAntes(request.resource.data.cuenta) + 1
         && getAfter(rutaOp(request.resource.data.cuenta, opsDespues(request.resource.data.cuenta))).data.tipo == 'bono-ingreso';
+    }
+    // Envío de dinero desde el juego: uno por cuenta por día, con tope.
+    // El documento no se puede borrar ni editar: por eso el candado del día aguanta.
+    match /juego_envios/{jid} {
+      allow read: if esProfe() || (resource.data.cuenta == miCuentaBanco() && miCuentaBanco() != '');
+      allow write: if esProfe();
+      allow create: if esColegio()
+        && request.resource.data.cuenta == miCuentaBanco() && request.resource.data.cuenta != ''
+        && request.resource.data.dia == diaHoy()
+        && jid == request.resource.data.cuenta + '__' + string(diaHoy())
+        && request.resource.data.keys().hasOnly(['cuenta', 'dia', 'juego', 'monto', 'fecha'])
+        && request.resource.data.juego == 'villaverde'
+        && request.resource.data.monto is int
+        && request.resource.data.monto > 0 && request.resource.data.monto <= topeJuegoDia()
+        && request.resource.data.fecha == request.time
+        && opsDespues(request.resource.data.cuenta) == opsAntes(request.resource.data.cuenta) + 1
+        && getAfter(rutaOp(request.resource.data.cuenta, opsDespues(request.resource.data.cuenta))).data.tipo == 'juego-envio';
     }
   }
 }
