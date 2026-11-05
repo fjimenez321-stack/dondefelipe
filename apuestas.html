@@ -211,7 +211,7 @@ const fechaTxt = t => new Date(t).toLocaleString('es-CL', { weekday: 'short', da
 /* ═════════ pintar ═════════ */
 function pintarEstado() {
   const e = $('estado');
-  if (!usuario) { e.innerHTML = `<div class="estado"><div class="col">Para apostar, entra con tu cuenta. Puedes mirar los partidos sin entrar.</div><button class="btn p" data-a="entrar"><i class="fa-brands fa-google"></i> Entrar</button></div>`; return; }
+  if (!usuario) { e.innerHTML = `<div class="estado"><div class="col">Para apostar, entra con tu cuenta. Puedes mirar los partidos sin entrar.</div><button class="btn p" data-a="entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button></div>`; return; }
   if (esProfe) { e.innerHTML = `<div class="estado"><div class="col"><b style="color:var(--ink)">Hola, profe.</b> Crea partidos más abajo. Cuando termine uno, elige quién ganó: el pozo se reparte solo entre quienes acertaron.</div></div>`; return; }
   if (!cuenta) { e.innerHTML = `<div class="estado"><div class="col">Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule para poder apostar.</div></div>`; return; }
   const activas = Object.values(misApuestas).filter(a => a.estado === 'activa');

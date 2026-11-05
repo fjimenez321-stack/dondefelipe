@@ -171,7 +171,7 @@ const fechaTxt = t => new Date(t).toLocaleString('es-CL', { weekday: 'short', da
 /* ═════════ pintar ═════════ */
 function pintarEstado() {
   const e = $('estado');
-  if (!usuario) { e.innerHTML = `<div class="estado"><div class="col">Para ofertar, entra con tu cuenta. Puedes mirar las subastas sin entrar.</div><button class="btn p" data-a="entrar"><i class="fa-brands fa-google"></i> Entrar</button></div>`; return; }
+  if (!usuario) { e.innerHTML = `<div class="estado"><div class="col">Para ofertar, entra con tu cuenta. Puedes mirar las subastas sin entrar.</div><button class="btn p" data-a="entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button></div>`; return; }
   if (esProfe) { e.innerHTML = `<div class="estado"><div class="col"><b style="color:var(--ink)">Hola, profe.</b> Publica subastas más abajo. Cuando una termina, la adjudicas y entregas el objeto: el dinero de quien ganó ya está cobrado.</div></div>`; return; }
   if (!cuenta) { e.innerHTML = `<div class="estado"><div class="col">Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule para poder ofertar.</div></div>`; return; }
   const ganando = subastas.filter(s => abierta(s) && s.mejorCuenta === cuentaId);

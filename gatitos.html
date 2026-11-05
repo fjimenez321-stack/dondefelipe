@@ -415,7 +415,7 @@ function pintarEstado() {
   $('prog').style.width = (n / total * 100) + '%';
   $('saldo').innerHTML = '<img class="mon" src="mercado/sprites/moneda.webp" alt="">' + (cuenta ? fmt(cuenta.saldo) : '—') + '<small>' + (cuenta ? 'Tu saldo · cuenta N° ' + esc(cuenta.numero || '') : 'Tu saldo') + '</small>';
   $('sesion').innerHTML = usuario ? `<span style="color:var(--mute);font-size:14px">${esc(DF.nombreCorto(usuario.displayName, usuario.email))}${esProfe ? ' · profe' : ''}</span> <button class="btn" data-a="salir">Salir</button>`
-    : `<button class="btn p" data-a="entrar"><i class="fa-brands fa-google"></i> Entrar para comprar</button>`;
+    : `<button class="btn p" data-a="entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar para comprar</button>`;
 }
 function pintarFiltros() {
   const l = [['todos', 'Todas'], ['ofertas', '🔥 Rebajas'], ['limitadas', '⏳ Limitadas'], ...Object.entries(R).map(([k, r]) => [k, r.nombre])];
