@@ -512,6 +512,14 @@ service cloud.firestore {
         && opsDespues(c) == opsAntes(c) + 1
         && getAfter(rutaOp(c, opsDespues(c))).data.tipo in ['ahorro-deposito', 'ahorro-retiro'];
     }
+    // 4° Medio ya no puede pedir préstamos (egresan antes de poder pagarlos). Se mira el curso de la cuenta
+    // del banco y el del perfil del sitio, en cualquier forma: «4° Medio», «4°M», «4to medio», «IV Medio»…
+    function cursoSinPrestamo(x) { return x is string && x.lower().matches('\\s*(4|iv|cuarto)\\s*(to)?\\s*[°º.]?\\s*m.*'); }
+    function puedePedirPrestamo(c) {
+      return !cursoSinPrestamo(get(rutaCuenta(c)).data.get('curso', ''))
+        && !(exists(/databases/$(database)/documents/alumnos/$(request.auth.uid))
+             && cursoSinPrestamo(get(/databases/$(database)/documents/alumnos/$(request.auth.uid)).data.get('curso', '')));
+    }
     match /banco_prestamos/{c} {
       allow read: if esProfe() || (c == miCuentaBanco() && c != '');
       allow write: if esProfe();
@@ -520,6 +528,7 @@ service cloud.firestore {
         && (resource == null || resource.data.estado in ['pagado', 'rechazado', 'cancelado'])
         && request.resource.data.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'estado', 'solicitado', 'n', 'deuda', 'pagado', 'embargado', 'actualizado'])
         && request.resource.data.cuenta == c && request.resource.data.estado == 'solicitado'
+        && puedePedirPrestamo(c)
         && request.resource.data.monto is int && request.resource.data.monto >= 10000 && request.resource.data.monto <= 1000000
         && texto(request.resource.data.motivo, 120) && request.resource.data.motivo.size() >= 3
         && texto(request.resource.data.nombre, 160) && texto(request.resource.data.curso, 40) && texto(request.resource.data.numero, 20)

@@ -138,6 +138,7 @@ async function cargar(forzar) {
         cuentaId = v.data().cuenta;
         const [c, p, a] = await Promise.all([F.getDoc(F.doc(db, 'banco_cuentas', cuentaId)), F.getDoc(F.doc(db, 'banco_prestamos', cuentaId)), F.getDoc(F.doc(db, 'banco_ahorros', cuentaId))]);
         cuenta = c.exists() ? c.data() : null; prestamo = p.exists() ? p.data() : null; ahorro = a.exists() ? a.data() : null;
+        try { const pf = await DF.perfil(); cursoPerfil = (pf && pf.curso) || ''; } catch (e) { cursoPerfil = ''; }
       }
       if (!cuenta) aviso('Tu cuenta del banco todavía no está conectada con este correo. Pídele al profe que la vincule.');
     }
@@ -175,8 +176,15 @@ function pintarAhorro(ah, t) {
       <button class="btn" type="button" data-a="retirarTodo" ${ah > 0 ? '' : 'disabled'}>Retirar todo</button></div>
     <p class="nota">${bloqueo ? '🔒 No puedes depositar mientras tengas un préstamo pedido o sin pagar.' : tope ? '' : `Puedes depositar hasta ${fmt(Math.min(espacio, cuenta.saldo || 0))}.`} Depositar o retirar reinicia la semana en curso.</p>`;
 }
+// 4° Medio ya no puede pedir préstamos (también lo bloquean las reglas de Firebase).
+const sinPrestamo = c => /^\s*(4|iv|cuarto)\s*(to)?\s*[°º.]?\s*m/i.test(String(c || ''));
+let cursoPerfil = '';
 function pintarPrestamo(t) {
   const p = prestamo, box = $('cPrestamo');
+  if ((!p || CERRADO.includes(p.estado)) && (sinPrestamo(cuenta && cuenta.curso) || sinPrestamo(cursoPerfil))) {
+    box.innerHTML = `<h2>🏦 Préstamo</h2><p>Los estudiantes de <b>4° Medio</b> ya no pueden pedir préstamos (egresan antes de alcanzar a pagarlos). Puedes seguir ahorrando.</p>`;
+    return;
+  }
   if (!p || CERRADO.includes(p.estado)) {
     const ultimo = p ? (p.estado === 'pagado' ? `<p class="nota">Tu último préstamo quedó <span class="pill g">pagado</span>${p.embargado ? ' (con ' + fmt(p.embargado) + ' embargados)' : ''}.</p>`
       : p.estado === 'rechazado' ? `<p class="nota">Tu última solicitud fue <span class="pill r">rechazada</span>${p.nota ? ': ' + esc(p.nota) : ''}.</p>` : '') : '';
