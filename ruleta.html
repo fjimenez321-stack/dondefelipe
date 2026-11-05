@@ -121,7 +121,7 @@ h1 span{color:var(--acid)}
   <a class="crumb" href="index.html">← El Mundo de Felipe</a>
   <p class="kick">Juego · Banco de Hipopesos</p>
   <h1>Ruleta de <span>Hipopesos</span></h1>
-  <p class="intro">Cada tiro cuesta <b id="costoTxt">30.000 ₣</b>. Abierta de <b>08:00 a 16:00</b>, hasta 3 tiros por día. Hay 32 casillas y los premios y castigos caen en <b>tus cosas</b>: tu saldo, tus décimas y beneficios, tus acciones de la Bolsa y tus gatitos. Y ojo: hay castigos de disertación.</p>
+  <p class="intro">Cada tiro cuesta <b id="costoTxt">30.000 ₣</b>. Abierta de <b>08:00 a 16:00</b>, hasta 5 tiros por día. Hay 32 casillas y los premios y castigos caen en <b>tus cosas</b>: tu saldo, tus décimas y beneficios, tus acciones de la Bolsa y tus gatitos. Y ojo: hay castigos de disertación.</p>
 
   <div id="avisos"></div>
 
@@ -183,7 +183,7 @@ h1 span{color:var(--acid)}
 const RULETA = {
   costo: 30000,
   retenerMax: 330000,
-  porDia: 3,
+  porDia: 5,
   desde: 8, hasta: 16,   // horario (hora de Chile); las reglas lo exigen con un margen de 1 hora
   sal: 'dondefelipe-ruleta-v2',
   // Gatito común: según el 3er carácter del hash.
@@ -215,7 +215,7 @@ const TABLA = [
   ['d', 300000], ['D', DISERTACION], ['b', 'Ruleta: 2 décimas formativas'], ['d', -90000],
   ['G'], ['P', 100000], ['d', 60000], ['d', -300000],
   ['b', 'Ruleta: 5 minutos extra en una prueba'], ['d', -60000], ['d', 120000], ['g'],
-  ['d', 30000], ['b', 'Ruleta: 20% de descuento en un artículo de la Tienda'], ['d', 60000], ['b', 'Ruleta: cambio de puesto libre por una semana']
+  ['d', -30000], ['b', 'Ruleta: 20% de descuento en un artículo de la Tienda'], ['d', -60000], ['b', 'Ruleta: cambio de puesto libre por una semana']
 ];
 // Casilla que sale: (1er carácter impar ? 16 : 0) + valor del 2° carácter → 0..31, uniforme.
 const casillaDeHash = h => (parseInt(h[0], 16) % 2 ? 16 : 0) + parseInt(h[1], 16);
