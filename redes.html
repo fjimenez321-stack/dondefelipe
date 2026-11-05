@@ -51,6 +51,7 @@ label.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-top:6px;
 .lienzo h2 b{color:var(--tema,#ccff00)}
 .lienzo .cuerpo{flex:1;min-height:0;overflow:hidden}
 .lienzo .ajuste{display:flex;flex-direction:column;gap:22px;transform-origin:top center}
+.lienzo.historia .ajuste{min-height:100%;justify-content:center}
 .lienzo .pie{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-top:30px;padding-top:24px;border-top:2px solid rgba(255,255,255,.12);font:700 24px var(--ff);color:#a9a9b8}
 .lienzo .pie b{color:#f2f1ec}
 .caja{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);border-radius:28px;padding:26px 30px}
@@ -207,6 +208,14 @@ async function cargarTorneos() {
     const fin = [...d.querySelectorAll('.finalistas .slot')].map(s => ({ n: txt(s.querySelector('.nombre')), c: txt(s.querySelector('.curso')) }));
     datos.ping = { semis, fin, campeon: txt(d.querySelector('.final-match .txt')) };
   } catch (e) { datos.ping = { error: e.message }; }
+  // Quemados: llaves por ronda
+  try {
+    const d = await leerHTML('quemados.html'), ronda = sel => [...d.querySelectorAll(sel + ' .match')].map(m => { const s = [...m.querySelectorAll('.slot')];
+      const lado = x => x ? { n: txt(x.querySelector('.nombre')), w: x.classList.contains('ganador'), o: x.classList.contains('perdedor'), tbd: x.classList.contains('tbd') } : {};
+      const a = lado(s[0]), b = lado(s[1]); return { l: a.n, r: b.n, lw: a.w, rw: b.w, lo: a.o, ro: b.o, mid: a.w || b.w ? 'Ganó ' + (a.w ? a.n : b.n).replace(/ (Básico|Medio)$/, m2 => m2 === ' Básico' ? ' B' : ' M') : 'VS', tbd: a.tbd || b.tbd }; });
+    const fin = [...d.querySelectorAll('.round.final .slot')].map(x => txt(x.querySelector('.nombre')));
+    datos.quem = { cuartos: ronda('.round.cuartos'), semis: ronda('.round.semifinal'), fin, campeon: txt(d.querySelector('.final-match .txt')), fase: txt(d.querySelector('h1 .fase')), estado: txt(d.querySelector('.estado .txt')) };
+  } catch (e) { datos.quem = { error: e.message }; }
   for (const [k, url] of [['golV', 'goleadores.html'], ['golD', 'goleadoras.html']]) {
     try {
       const d = await leerHTML(url);
@@ -227,6 +236,14 @@ async function cargarFirebase() {
   datos.articulos = articulos.filter(a => a.activa && (a.stock === -1 || a.stock > 0));
   const act = cuentas.filter(c => c.estado !== 'Cerrada');
   datos.banco = { cuentas: act.length, total: act.reduce((s, c) => s + (c.saldo || 0), 0), movs7 };
+  // Mercado entre estudiantes (lo publicado) y Ruleta (solo totales)
+  try { datos.merc = (await lista('mercado_items')).filter(x => x.estado === 'venta').sort((a, b) => ms(b.actualizado || b.creada) - ms(a.actualizado || a.creada)); } catch (e) { datos.merc = []; }
+  try {
+    const r = await lista('ruleta');
+    const ult = [].concat(...r.map(x => Array.isArray(x.ult) ? x.ult : []));
+    datos.rul = { jugadores: r.filter(x => x.n).length, tiros: r.reduce((s, x) => s + (x.n || 0), 0),
+      premios: ult.filter(e => e.k === 'p' && e.e > 0).sort((a, b) => b.e - a.e).slice(0, 5), gatitos: ult.filter(e => e.k === 'g').length, castigos: ult.filter(e => e.e < 0).length, recientes: ult.length };
+  } catch (e) { datos.rul = null; }
   // Bolsa: empresas activas y acciones en manos de los estudiantes (solo totales, sin nombres)
   try {
     const [emp, pos] = await Promise.all([lista('bolsa_empresas'), lista('bolsa_pos').catch(() => [])]);
@@ -256,6 +273,10 @@ const PL = {
   juegos: { nombre: '🎮 Juegos: ranking', tema: ['#b26bff', 'rgba(178,107,255,.25)', 'rgba(34,227,255,.14)'], kick: 'Ranking de juegos', titulo: '', html: () => htmlJuego(), opciones: () => selOp('juego', 'Juego', Object.entries(JUEGOS)) + selOp('nombres', 'Mostrar', [['corto', 'Nombre y curso'], ['curso', 'Solo el curso (sin nombres)']]) },
   golV: { nombre: '🥅 Goleadores', tema: ['#ccff00', 'rgba(204,255,0,.22)', 'rgba(34,227,255,.16)'], kick: 'Copa San Agustín 2026', titulo: 'Tabla de <b>goleadores</b>', html: () => htmlGoles(datos.golV) },
   golD: { nombre: '🥅 Goleadoras', tema: ['#ff4d94', 'rgba(255,77,148,.25)', 'rgba(255,215,0,.12)'], kick: 'Copa San Agustín 2026', titulo: 'Tabla de <b>goleadoras</b>', html: () => htmlGoles(datos.golD) },
+  quem: { nombre: '🔥 Quemados', tema: ['#ff6a1a', 'rgba(255,106,26,.26)', 'rgba(255,214,10,.12)'], kick: 'Torneo de Quemados 2026', titulo: 'Torneo de <b>Quemados</b>', html: () => htmlQuemados() },
+  merc: { nombre: '🤝 Venden los estudiantes', tema: ['#22e3ff', 'rgba(34,227,255,.22)', 'rgba(255,46,126,.14)'], kick: 'Mercado entre estudiantes', titulo: 'Se <b>vende</b>', html: () => htmlMercEst(),
+    opciones: () => selOp('mercTipo', 'Qué mostrar', [['todo', 'Todo'], ['fisico', '📦 Artículos físicos'], ['gatito', '🐱 Gatitos'], ['beneficio', '🎟️ Beneficios']]) + selOp('mercNom', 'Vendedor', [['no', 'Sin nombres'], ['si', 'Mostrar quién vende']]) },
+  ruleta: { nombre: '🎡 Ruleta', tema: ['#f5c400', 'rgba(245,196,0,.22)', 'rgba(255,46,126,.16)'], kick: 'Ruleta de la Fortuna · Hipopesos', titulo: 'La <b>Ruleta</b>', html: () => htmlRuleta() },
   bolsa: { nombre: '📈 Bolsa de Comercio', tema: ['#4bd08c', 'rgba(75,208,140,.24)', 'rgba(255,77,148,.12)'], kick: 'Bolsa de Comercio · Hipopesos', titulo: '', html: () => htmlBolsa(),
     opciones: () => selOp('empresa', 'Qué mostrar', [['todas', '📊 Todas las empresas']].concat((datos.bolsa || []).map(e => [e.id, e.id + ' · ' + e.nombre]))) },
   banco: { nombre: '🏦 Banco Hipopesos', tema: ['#e9b949', 'rgba(233,185,73,.22)', 'rgba(75,208,140,.14)'], kick: 'Economía del curso', titulo: 'Banco <b>Hipopesos</b>', html: () => htmlBanco() }
@@ -410,6 +431,34 @@ function htmlBolsa() {
       <div style="width:220px">${grafico(e, 220, 70)}</div>
       <div style="text-align:right;min-width:200px"><div class="c" style="font-size:52px">${fmt(e.precio)}</div><div class="s" style="color:${c >= 0 ? '#4bd08c' : '#ff4d6d'};font-weight:900">${pct(c)}</div></div></div>`; }).join('')}</div>
     <div class="frase">${sube} ${sube === 1 ? 'empresa sube' : 'empresas suben'} y ${baja} ${baja === 1 ? 'baja' : 'bajan'}. <b>Invierte tus Hipopesos</b> en las metas del colegio que crees que se van a cumplir.</div>`;
+}
+function htmlQuemados() {
+  const d = datos.quem;
+  if (!d || d.error) return '<div class="vacio">No se pudo leer el torneo.</div>';
+  const H = formato === 'historia', camp = d.campeon && !/definir/i.test(d.campeon);
+  const finOk = d.fin.length === 2 && d.fin.every(x => x && !/ganador/i.test(x));
+  return `${finOk ? `<div class="caja dest"><div class="etq">🏆 Gran final</div>${vsHTML({ l: d.fin[0], r: d.fin[1], mid: 'VS' }, true)}${camp ? `<div class="fecha"><b>${esc(d.campeon)}</b></div>` : ''}</div>` : ''}
+    ${d.semis.length ? `<div class="caja ${finOk ? '' : 'dest'}"><div class="etq">Semifinales</div>${d.semis.map(p => `<div style="margin:10px 0">${vsHTML(p, !finOk)}</div>`).join('')}</div>` : ''}
+    ${(H || !finOk) && d.cuartos.length ? `<div class="caja"><div class="etq">Cuartos de final</div>${d.cuartos.map(p => `<div style="margin:6px 0;transform:scale(.85);transform-origin:center">${vsHTML(p)}</div>`).join('')}</div>` : ''}`;
+}
+function htmlMercEst() {
+  const t = opcion.mercTipo || 'todo', conNom = opcion.mercNom === 'si';
+  const l = (datos.merc || []).filter(x => t === 'todo' || x.tipo === t).slice(0, formato === 'historia' ? 6 : 4);
+  if (!l.length) return '<div class="vacio">No hay nada a la venta ahora.</div>';
+  const G = window.GATITOS || [];
+  return `<div class="caja">${l.map(x => { const f = x.tipo === 'fisico' && Array.isArray(x.fotos) && x.fotos[0];
+    const ico = f ? fondo(f, 'cover') : x.tipo === 'gatito' ? fondo('gatitos/img/' + x.gatito + '.webp') : esc(x.ico || '🎟️');
+    const tipo = x.tipo === 'fisico' ? '📦 Artículo' : x.tipo === 'gatito' ? '🐱 Gatito' + ((G.find(g => g.id === x.gatito) || {}).rareza ? ' ' + esc(((window.RAREZAS || {})[(G.find(g => g.id === x.gatito) || {}).rareza] || {}).nombre || '') : '') : '🎟️ Beneficio';
+    return `<div class="item"><div class="ico">${ico}</div><div><div class="t">${esc(x.item)}</div><div class="s">${tipo}${conNom ? ' · vende ' + esc(x.vendedorNombre || '') : ''}</div></div><div class="p">${fmt(x.precio)}</div></div>`; }).join('')}</div>
+    <div class="frase">${(datos.merc || []).length} publicacion${(datos.merc || []).length === 1 ? '' : 'es'} en «Entre estudiantes». <b>Compra, vende o regala</b> en el Mercado.</div>`;
+}
+function htmlRuleta() {
+  const r = datos.rul;
+  if (!r || !r.tiros) return '<div class="vacio">Todavía nadie ha jugado.</div>';
+  return `<div class="caja dest"><div class="grid2"><div class="mini">${num(r.tiros)}<small>Tiros en total</small></div><div class="mini">${num(r.jugadores)}<small>Jugadores</small></div></div></div>
+    ${r.premios.length ? `<div class="caja"><div class="etq">Grandes premios recientes</div>${r.premios.slice(0, formato === 'historia' ? 5 : 3).map(e => `<div class="op"><div class="n" style="font-size:44px">🎉 ${esc(e.x)}</div></div>`).join('')}</div>` : ''}
+    <div class="grid2"><div class="caja"><div class="mini">${num(r.gatitos)}<small>Gatitos ganados</small></div></div><div class="caja"><div class="mini">${num(r.castigos)}<small>Castigos</small></div></div></div>
+    <div class="frase">Últimos ${num(r.recientes)} tiros registrados. Abierta de <b>08:00 a 16:00</b>, hasta 5 tiros al día. <span style="font-size:24px;color:#a9a9b8">Es azar: a la larga, la casa gana.</span></div>`;
 }
 function htmlBanco() {
   const b = datos.banco || {};
