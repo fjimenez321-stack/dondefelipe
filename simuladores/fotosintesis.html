@@ -1,0 +1,721 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Simulador de fotosíntesis</title>
+<style>
+/* Layout: a la izquierda la escena del cloroplasto (fija al desplazarse en escritorio) con las lecturas clave; a la derecha el diagnóstico, los cuatro mandos y los resultados. En móvil: escena, diagnóstico, mandos, resultados, y las lecturas clave en una barra inferior. */
+:root{
+  --bg:#F4FAEF; --card:#FFFFFF; --soft:#E6F2DA; --soft-2:#D3E8BC; --fg:#1E3B1D; --dim:#4F6448; --line:#BFD8A6;
+  --accent:#2F6B34; --on-accent:#FFFFFF; --amber:#7A4E10; --amber-fill:#E0A83E;
+  --pos:#2A6A30; --neg:#A84E30; --lim-bg:#A84E30; --lim-ink:#FFFFFF; --focus:#1D5C7A;
+  --z1:#DCEAF5; --z2:#E6F2D8; --z3:#D3EBBF; --z4:#F8E5CC; --z5:#F3D5D2;
+  --sc-bg:#F8FCF3; --sc-air:#E3F0F7; --sc-epi:#CFE3BC; --sc-guard:#8FBF7F; --sc-wall:#6E9A5C;
+  --sc-cell:#EEF7E4; --sc-env:#2D5A2C; --sc-ink:#1E3B1D; --sc-xyl:#A9D0E6; --sc-phl:#EFD9A6; --sc-chl-l:34;
+  --disp:Cambria,Georgia,"Times New Roman",serif;
+  --body:Calibri,"Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10190F; --card:#182416; --soft:#1F2E1C; --soft-2:#2C4027; --fg:#E3EFD9; --dim:#A9BF9E; --line:#3A5234;
+  --accent:#8CCB84; --on-accent:#10190F; --amber:#E8B955; --amber-fill:#E0A83E;
+  --pos:#8CCB84; --neg:#F0967A; --lim-bg:#F0967A; --lim-ink:#10190F; --focus:#7DC0DE;
+  --z1:#1B3040; --z2:#22331F; --z3:#27421F; --z4:#47341C; --z5:#472420;
+  --sc-bg:#0E160D; --sc-air:#13212B; --sc-epi:#27402A; --sc-guard:#3F6E3A; --sc-wall:#5E8F55;
+  --sc-cell:#17261A; --sc-env:#9CD08F; --sc-ink:#DCEBD0; --sc-xyl:#24485E; --sc-phl:#5A4A25; --sc-chl-l:28;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10190F; --card:#182416; --soft:#1F2E1C; --soft-2:#2C4027; --fg:#E3EFD9; --dim:#A9BF9E; --line:#3A5234;
+  --accent:#8CCB84; --on-accent:#10190F; --amber:#E8B955; --amber-fill:#E0A83E;
+  --pos:#8CCB84; --neg:#F0967A; --lim-bg:#F0967A; --lim-ink:#10190F; --focus:#7DC0DE;
+  --z1:#1B3040; --z2:#22331F; --z3:#27421F; --z4:#47341C; --z5:#472420;
+  --sc-bg:#0E160D; --sc-air:#13212B; --sc-epi:#27402A; --sc-guard:#3F6E3A; --sc-wall:#5E8F55;
+  --sc-cell:#17261A; --sc-env:#9CD08F; --sc-ink:#DCEBD0; --sc-xyl:#24485E; --sc-phl:#5A4A25; --sc-chl-l:28;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--body)}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:16px;padding-block:22px 48px}
+.kicker{margin:0;font-size:13px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--amber)}
+h1{font:700 clamp(28px,4.4vw,40px)/1.1 var(--disp);margin:6px 0 8px;text-wrap:balance}
+h2{font:700 20px/1.2 var(--disp);margin:0}
+.lead{margin:0;max-width:70ch;color:var(--dim);font-size:17px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.dim{color:var(--dim)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.38fr) minmax(0,1fr);
+  grid-template-areas:"scene story" "scene controls" "scene results";gap:16px;margin-top:20px;align-items:start}
+.scene{grid-area:scene;align-self:start}
+.story{grid-area:story}.controls{grid-area:controls}.results{grid-area:results}
+@media (min-width:921px) and (min-height:720px){.scene{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}}
+@media (max-width:920px){
+  .grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"scene" "story" "controls" "results"}
+  .wrap{padding-block:18px 110px}
+}
+
+/* escena */
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.presets .lbl{flex:0 0 100%;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.chip{border:1.5px solid var(--line);background:var(--soft);border-radius:999px;padding:6px 13px;font-size:14.5px;cursor:pointer;line-height:1.2}
+.chip:hover{border-color:var(--accent)}
+.chip.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+canvas{display:block;width:100%;aspect-ratio:880/560;height:auto;border-radius:10px;border:1px solid var(--line);background:var(--sc-bg)}
+.legend{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px}
+.legend li{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:50%;display:inline-block;border:1.5px solid rgba(0,0,0,.28)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.kpi{background:var(--soft);border-radius:10px;padding:8px 10px;min-width:0}
+.kpi .k{display:block;font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v{display:block;font:700 22px/1.15 var(--disp);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi .v.neg{color:var(--neg)}
+.kpi-note{margin:6px 2px 0;font-size:13px;color:var(--dim)}
+@media (max-width:920px){
+  .kpis{position:fixed;left:0;right:0;bottom:0;margin:0;gap:6px;z-index:5;background:var(--card);border-top:1px solid var(--line);
+    padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px))}
+  .kpi{padding:6px 8px}.kpi .k{font-size:12px}.kpi .v{font-size:17px}
+  .kpi-note{display:none}
+}
+
+/* diagnóstico */
+.story h2{margin-bottom:6px}
+.story p{margin:0}
+#storyMain{font-size:17px;line-height:1.45}
+#storySub{margin-top:6px;font-size:15px}
+
+/* mandos */
+.ctl-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.btn{border:1.5px solid var(--line);background:var(--soft);border-radius:10px;padding:7px 14px;font-size:14.5px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.seg{border:0;margin:0 0 6px;padding:0;min-width:0}
+.seg legend{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:0;margin-bottom:6px}
+.seg .opts{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+.seg label{flex:1;text-align:center;padding:7px 8px;font-size:14.5px;cursor:pointer;background:var(--soft);font-weight:600}
+.seg label + label{border-left:1.5px solid var(--line)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked + span{display:block;margin:-7px -8px;padding:7px 8px;background:var(--accent);color:var(--on-accent)}
+.seg input:focus-visible + span{outline:3px solid var(--focus);outline-offset:-3px}
+.seg-help{margin:8px 0 0;font-size:14px;color:var(--dim)}
+.factor{padding:14px 0 12px;border-top:1px solid var(--line);margin-top:12px}
+.factor .head{display:flex;align-items:center;gap:8px}
+.factor .head svg{flex:none;color:var(--amber)}
+.factor .name{font-weight:700;font-size:16.5px;flex:1;min-width:0}
+.factor .val{font:700 24px/1 var(--disp);font-variant-numeric:tabular-nums}
+.rng{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:6px 0 0;display:block}
+.rng::-webkit-slider-runnable-track{height:10px;border-radius:5px;background:var(--track)}
+.rng::-moz-range-track{height:10px;border-radius:5px;background:var(--track)}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-7px;border-radius:50%;background:var(--fg);border:3px solid var(--card);box-shadow:0 0 0 1.5px var(--fg),0 2px 5px rgba(0,0,0,.3)}
+.rng::-moz-range-thumb{box-sizing:border-box;width:24px;height:24px;border-radius:50%;background:var(--fg);border:3px solid var(--card);box-shadow:0 0 0 1.5px var(--fg)}
+.rng:focus-visible{outline:none}
+.rng:focus-visible::-webkit-slider-thumb{outline:3px solid var(--focus);outline-offset:2px}
+.rng:focus-visible::-moz-range-thumb{outline:3px solid var(--focus);outline-offset:2px}
+.t-light{--track:linear-gradient(90deg,#46543F,#E8CF6A 70%,#F7DE7A)}
+.t-temp{--track:linear-gradient(90deg,#4B8FD0 0 20%,#8CC47A 20% 50%,#3F9A46 50% 70%,#E58A2B 70% 90%,#CC3B2E 90%)}
+.t-water{--track:linear-gradient(90deg,#D9C79B,#6FAAD0 55%,#1D5C7A)}
+.t-sub{--track:linear-gradient(90deg,#E6D6AC,#A98B5B 50%,#5B3E23)}
+.ticks{position:relative;height:20px;font-size:13px;color:var(--dim)}
+.ticks span{position:absolute;top:0;white-space:nowrap}
+.fbody{display:flex;gap:12px;align-items:center;margin-top:6px}
+.fbody svg.curve{flex:none;width:124px;height:auto;border-radius:6px}
+.fbody .txt{min-width:0}
+.fbody .eff{font-size:15.5px;line-height:1.3}
+.fbody .eff b{font-variant-numeric:tabular-nums}
+.fbody .sub{font-size:13.5px;color:var(--dim);line-height:1.3;margin-top:2px}
+.pill{display:inline-block;margin-top:5px;background:var(--lim-bg);color:var(--lim-ink);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700}
+
+/* resultados */
+.results h2{margin-bottom:10px}
+.rate{margin-bottom:14px}
+.rate .row{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.rate .big{font:700 34px/1 var(--disp);font-variant-numeric:tabular-nums}
+.rate .u{font-size:14px;color:var(--dim)}
+.meter{position:relative;height:14px;border-radius:7px;background:var(--soft-2);margin-top:10px;overflow:visible}
+.meter i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--accent)}
+.meter b{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--neg);border-radius:2px}
+.meter-cap{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:13.5px;color:var(--dim)}
+.meter-cap .r{color:var(--neg);font-weight:700}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.out th,.out td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;font-size:15px}
+.out thead th{font-size:13px;color:var(--dim);font-weight:700;vertical-align:bottom}
+.out thead th small{display:block;font-weight:400}
+.out tbody th{text-align:left;font-weight:700}
+.out tbody th small{display:block;font-weight:400;color:var(--dim);font-size:12.5px}
+.out td.net{font-weight:700}
+.neg{color:var(--neg)}
+.bio{margin-top:14px;background:var(--soft);border-radius:12px;padding:12px 14px}
+.bio .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.bio .lbl{font-weight:700}
+.bio .v{font:700 30px/1 var(--disp);font-variant-numeric:tabular-nums}
+.bio .bar{height:10px;border-radius:5px;background:var(--soft-2);margin-top:8px;overflow:hidden}
+.bio .bar i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.bio .cap{font-size:13.5px;color:var(--dim);margin-top:6px}
+.extras{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.extras div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.extras .k{font-size:13px;color:var(--dim);display:block}
+.extras .v{font:700 19px/1.2 var(--disp);font-variant-numeric:tabular-nums}
+.balance{margin:12px 0 0;font-size:14px;color:var(--dim);line-height:1.45}
+.balance b{color:var(--fg)}
+.log{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.log-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.log-btns{display:flex;gap:8px;flex-wrap:wrap}
+.log table th,.log table td{font-size:14px;padding:6px 5px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.log table th{font-size:12.5px;color:var(--dim)}
+.log table td:first-child,.log table th:first-child{text-align:left}
+.log table td.lim{text-align:left}
+.log-empty{font-size:14.5px;color:var(--dim);margin:6px 0 0}
+.log-msg{font-size:13.5px;color:var(--dim);min-height:1.3em;margin:6px 0 0}
+.aer{font-size:14px;color:var(--dim);margin:10px 0 0}
+.foot{margin:22px 0 0;font-size:13.5px;color:var(--dim);max-width:100ch;line-height:1.5}
+.foot b{color:var(--fg)}
+@media (max-width:420px){
+  .fbody svg.curve{width:104px}
+  .extras{grid-template-columns:1fr 1fr 1fr}
+  .out th,.out td{padding:7px 3px;font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="kicker">Unidad 3 · OA 7 · Biología 1° Medio</p>
+    <h1>Simulador de fotosíntesis</h1>
+    <p class="lead">Cambia la luz, la temperatura, el agua y el sustrato. Mira qué pasa dentro del cloroplasto y cuánta glucosa, oxígeno y biomasa produce una hoja en un día.</p>
+  </header>
+
+  <div class="grid">
+    <section class="card scene" aria-label="Escena del cloroplasto">
+      <div class="presets" id="presets" role="group" aria-label="Escenarios de Chile">
+        <span class="lbl">Escenarios ilustrativos</span>
+      </div>
+      <canvas id="scene" role="img" aria-label="Cloroplasto dentro de una hoja"></canvas>
+      <ul class="legend" aria-label="Leyenda de moléculas">
+        <li><i style="background:#F2B632"></i>Fotón</li>
+        <li><i style="background:#2E7FB8"></i>H₂O</li>
+        <li><i style="background:#6F7B72"></i>CO₂</li>
+        <li><i style="background:#D0503A"></i>O₂</li>
+        <li><i style="background:#E0A83E"></i>ATP</li>
+        <li><i style="background:#1F9E96"></i>NADPH</li>
+        <li><i style="background:#B8791A"></i>Glucosa</li>
+      </ul>
+      <div class="kpis" id="kpis" aria-label="Lecturas clave">
+        <div class="kpi"><span class="k">Glucosa</span><span class="v" id="kGlu">0</span></div>
+        <div class="kpi"><span class="k">Oxígeno</span><span class="v" id="kO2">0</span></div>
+        <div class="kpi"><span class="k">Biomasa</span><span class="v" id="kBio">0</span></div>
+        <div class="kpi"><span class="k">Limita</span><span class="v" id="kLim">0</span></div>
+      </div>
+      <p class="kpi-note">Por m² de hoja en 1 día: 8 h de luz y 16 h de noche.</p>
+    </section>
+
+    <section class="card story" aria-labelledby="hStory">
+      <h2 id="hStory">Qué está pasando</h2>
+      <p id="storyMain"></p>
+      <p id="storySub" class="dim"></p>
+    </section>
+
+    <section class="card controls" aria-labelledby="hCtl">
+      <div class="ctl-head">
+        <h2 id="hCtl">Condiciones</h2>
+        <button class="btn" id="reset" type="button">Restablecer</button>
+      </div>
+      <fieldset class="seg">
+        <legend>Cómo se combinan los factores</legend>
+        <div class="opts">
+          <label><input type="radio" name="mode" id="modeMin" value="min" checked><span>Factor limitante</span></label>
+          <label><input type="radio" name="mode" id="modeMul" value="mul"><span>Se multiplican</span></label>
+        </div>
+        <p class="seg-help" id="modeHelp"></p>
+      </fieldset>
+      <div id="factors"></div>
+    </section>
+
+    <section class="card results" aria-labelledby="hRes">
+      <h2 id="hRes">Resultados</h2>
+      <div class="rate">
+        <div class="row"><span class="big" id="rateBig">0</span><span class="u">µmol CO₂ m⁻² s⁻¹ de tasa fotosintética bruta</span></div>
+        <div class="meter" id="meter" role="img" aria-label="Tasa bruta frente al máximo de 26"><i id="meterFill"></i><b id="meterResp" title="Respiración"></b></div>
+        <div class="meter-cap"><span>0</span><span id="meterCap"></span><span>26 (máximo)</span></div>
+      </div>
+      <div class="tablewrap">
+        <table class="out">
+          <caption style="position:absolute;left:-9999px">Balance de masa por metro cuadrado de hoja en un día</caption>
+          <thead><tr><th scope="col" style="text-align:left">Por m² de hoja y día</th><th scope="col">Fotosíntesis<small>8 h de luz</small></th><th scope="col">Respiración<small>24 h</small></th><th scope="col">Balance</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Glucosa (g)<small>producida · consumida · acumulada</small></th><td id="tGluP"></td><td id="tGluR"></td><td class="net" id="tGluN"></td></tr>
+            <tr><th scope="row">Oxígeno O₂ (g)<small>liberado · consumido · al aire</small></th><td id="tO2P"></td><td id="tO2R"></td><td class="net" id="tO2N"></td></tr>
+            <tr><th scope="row">CO₂ (g)<small>fijado · liberado · neto fijado</small></th><td id="tCO2P"></td><td id="tCO2R"></td><td class="net" id="tCO2N"></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="bio">
+        <div class="row"><span class="lbl">Biomasa nueva (masa seca)</span><span class="v" id="bioVal">0</span></div>
+        <div class="bar"><i id="bioBar" style="width:0"></i></div>
+        <div class="cap" id="bioCap"></div>
+      </div>
+      <div class="extras">
+        <div><span class="k">Agua usada</span><span class="v" id="xH2O"></span></div>
+        <div><span class="k">ATP (fase clara)</span><span class="v" id="xATP"></span></div>
+        <div><span class="k">NADPH (fase clara)</span><span class="v" id="xNADPH"></span></div>
+      </div>
+      <p class="balance" id="balance"></p>
+
+      <div class="log">
+        <div class="log-head">
+          <h2 style="font-size:17px">Registro de mediciones</h2>
+          <div class="log-btns">
+            <button class="btn primary" id="logAdd" type="button">Guardar medición</button>
+            <button class="btn" id="logCopy" type="button">Copiar tabla</button>
+            <button class="btn" id="logClear" type="button">Borrar</button>
+          </div>
+        </div>
+        <div class="tablewrap" id="logWrap"></div>
+        <p class="log-msg" id="logMsg" role="status"></p>
+        <p class="aer">Para argumentar con tus datos: escribe una afirmación (qué factor limita), la evidencia (los números de la tabla) y el razonamiento (por qué, usando la fase clara y la fase oscura).</p>
+      </div>
+    </section>
+  </div>
+
+  <p class="foot"><b>Cómo funciona el modelo.</b> Es un modelo didáctico. La tasa máxima (26 µmol CO₂ m⁻² s⁻¹) y la curva de temperatura vienen del gráfico de la unidad: óptimo cerca de 32 °C, casi nula sobre 45 °C. Cada factor se expresa de 0 a 1 respecto de su óptimo. Con luz al 100 % (pleno sol, unos 2.000 µmol de fotones m⁻² s⁻¹) y 8 h de luz sostenida, las cifras son un máximo ideal para una hoja. La respiración es de 1,6 µmol CO₂ m⁻² s⁻¹ a 25 °C, se duplica cada 10 °C y ocurre las 24 h. Estequiometría: 6 CO₂ + 6 H₂O → C₆H₁₂O₆ + 6 O₂, con 3 ATP y 2 NADPH por CO₂ fijado (18 y 12 por glucosa). Biomasa: carbono neto fijado como CH₂O, 30 g por mol. Los escenarios son ilustrativos, no datos medidos.</p>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r)=>(r||document).querySelector(s);
+const fmt=(n,d)=>n.toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d});
+const f1=n=>fmt(Math.abs(n)<0.05?0:n,1);
+const sg=n=>(Math.abs(n)<0.05?'':(n>0?'+':'−'))+fmt(Math.abs(n)<0.05?0:Math.abs(n),1);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ================= MODELO ================= */
+const P={Pmax:26,Rd:1.6,Q10:2,Tref:25,lightH:8,dayH:24,fullSun:2000,
+  M:{CO2:44.009,H2O:18.015,Glu:180.156,O2:31.998,CH2O:30.026}};
+
+// curva de temperatura: puntos del gráfico de la unidad, interpolación monótona (Fritsch-Carlson)
+const TX=[0,11,21,32,41,51], TY=[0,4,12,26,8,0].map(v=>v/26);
+const TM=(function(){
+  const n=TX.length,d=[],m=new Array(n).fill(0);
+  for(let i=0;i<n-1;i++)d.push((TY[i+1]-TY[i])/(TX[i+1]-TX[i]));
+  for(let i=1;i<n-1;i++)m[i]=(d[i-1]*d[i]<=0)?0:(d[i-1]+d[i])/2;
+  for(let i=0;i<n-1;i++){
+    const a=m[i]/d[i],b=m[i+1]/d[i],s=a*a+b*b;
+    if(s>9){const t=3/Math.sqrt(s);m[i]=t*a*d[i];m[i+1]=t*b*d[i];}
+  }
+  return m;
+})();
+function tempFactor(T){
+  if(T<=TX[0])return 0; if(T>=TX[TX.length-1])return 0;
+  let i=0; while(T>TX[i+1])i++;
+  const h=TX[i+1]-TX[i],t=(T-TX[i])/h,t2=t*t,t3=t2*t;
+  const v=(2*t3-3*t2+1)*TY[i]+(t3-2*t2+t)*h*TM[i]+(-2*t3+3*t2)*TY[i+1]+(t3-t2)*h*TM[i+1];
+  return clamp(v,0,1);
+}
+function lightFactor(l){const x=clamp(l,0,100)/100;return (1-Math.exp(-4.5*x))/(1-Math.exp(-4.5));}
+function waterFactor(w){let f=1/(1+Math.exp(-(w-30)/8));if(w>85)f*=1-0.3*(w-85)/15;return clamp(f,0,1);}
+function subFactor(s){return 0.12+0.88*(s/(s+25))/0.8;}
+function resp(T){const dn=T<=38?1:Math.max(0,1-(T-38)/14);return P.Rd*Math.pow(P.Q10,(T-P.Tref)/10)*dn;}
+
+const KEYS=['light','temp','water','sub'];
+function compute(s,mode){
+  const f={light:lightFactor(s.light),temp:tempFactor(s.temp),water:waterFactor(s.water),sub:subFactor(s.sub)};
+  const vals=KEYS.map(k=>f[k]);
+  let limKey=KEYS[0];KEYS.forEach(k=>{if(f[k]<f[limKey])limKey=k;});
+  const comb=mode==='min'?Math.min(...vals):vals.reduce((a,b)=>a*b,1);
+  const gross=P.Pmax*comb,R=resp(s.temp),net=gross-R;
+  const secL=P.lightH*3600,secD=P.dayH*3600;
+  const co2Fix=gross*secL/1e6, co2Resp=R*secD/1e6, netC=co2Fix-co2Resp;
+  const M=P.M;
+  return {f,limKey:f[limKey]<0.97?limKey:null,comb,gross,R,net,co2Fix,co2Resp,netC,
+    g:{co2:co2Fix*M.CO2,h2o:co2Fix*M.H2O,glu:co2Fix/6*M.Glu,o2:co2Fix*M.O2,
+       gluR:co2Resp/6*M.Glu,o2R:co2Resp*M.O2,co2R:co2Resp*M.CO2},
+    bio:netC*M.CH2O, atp:3*co2Fix, nadph:2*co2Fix};
+}
+function lrr(vals,totalTenths){
+  const t=vals.map(v=>v*10),fl=t.map(Math.floor);
+  let rem=totalTenths-fl.reduce((a,b)=>a+b,0);
+  const idx=t.map((v,i)=>[v-fl[i],i]).sort((a,b)=>b[0]-a[0]);
+  for(let k=0;k<rem;k++)fl[idx[k%idx.length][1]]++;
+  return fl.map(v=>v/10);
+}
+const BEST=compute({light:100,temp:32,water:80,sub:100},'min');
+window.__foto={compute,tempFactor,lightFactor,waterFactor,subFactor,resp,lrr,P};
+
+/* ================= ESTADO ================= */
+const DEFAULT={light:70,temp:22,water:65,sub:70};
+const PRESETS=[
+  {id:'opt',name:'Condiciones óptimas',v:{light:100,temp:32,water:80,sub:100}},
+  {id:'val',name:'Sotobosque valdiviano',v:{light:6,temp:12,water:80,sub:85}},
+  {id:'inv',name:'Invierno en Chile central',v:{light:35,temp:8,water:80,sub:70}},
+  {id:'seq',name:'Megasequía en Chile central',v:{light:95,temp:34,water:12,sub:40}},
+  {id:'ata',name:'Desierto de Atacama',v:{light:100,temp:40,water:3,sub:10}}
+];
+const state=Object.assign({},DEFAULT);
+let mode='min',cur=null,logRows=[];
+const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= MANDOS ================= */
+const ICON={
+ sun:'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></svg>',
+ therm:'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.5V5a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 9v7"/></svg>',
+ drop:'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3.5 4.4 6 7.4 6 10.5a6 6 0 0 1-12 0C6 10.4 8.5 7.4 12 3z"/></svg>',
+ soil:'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c3-2 6 2 9 0s6 2 9 0M3 13c3-2 6 2 9 0s6 2 9 0M3 18c3-2 6 2 9 0s6 2 9 0"/></svg>'
+};
+function tempZone(T){
+  if(T<10)return '< 10 °C: tasa muy baja';
+  if(T<25)return '10–25 °C: aumento gradual';
+  if(T<=35)return '25–35 °C: rango óptimo';
+  if(T<=45)return '35–45 °C: disminuye la tasa';
+  return '> 45 °C: tasa casi nula';
+}
+const FACTORS=[
+ {key:'light',name:'Exposición solar',min:0,max:100,unit:' %',track:'t-light',icon:'sun',fn:lightFactor,
+  ticks:[[0,'Sombra'],[50,'Nublado'],[100,'Pleno sol']],eff:'Fase clara al ',
+  sub:v=>'≈ '+fmt(Math.round(v*P.fullSun/100/10)*10,0)+' µmol de fotones m⁻² s⁻¹',aria:v=>v+' por ciento'},
+ {key:'temp',name:'Temperatura',min:0,max:50,unit:' °C',track:'t-temp',icon:'therm',fn:tempFactor,
+  ticks:[[0,'0'],[10,'10'],[25,'25'],[35,'35'],[45,'45']],eff:'Enzimas al ',
+  sub:v=>tempZone(v),aria:v=>v+' grados Celsius'},
+ {key:'water',name:'Agua en el sustrato',min:0,max:100,unit:' %',track:'t-water',icon:'drop',fn:waterFactor,
+  ticks:[[0,'Seco'],[50,'Húmedo'],[100,'Anegado']],eff:'Estomas abiertos al ',
+  sub:v=>v<15?'Suelo seco':v<40?'Suelo algo seco':v<=85?'Suelo húmedo':'Suelo anegado, raíces sin O₂',aria:v=>v+' por ciento'},
+ {key:'sub',name:'Nutrientes del sustrato',min:0,max:100,unit:' %',track:'t-sub',icon:'soil',fn:subFactor,
+  ticks:[[0,'Arena'],[50,'Franco'],[100,'Humus rico']],eff:'Clorofila y Rubisco al ',
+  sub:v=>v<20?'Arena pobre en nitrógeno y magnesio':v<60?'Suelo franco':'Suelo rico en humus',aria:v=>v+' por ciento'}
+];
+const CW=124,CH=50,CP=5;
+function cx(v,F){return CP+(CW-2*CP)*(v-F.min)/(F.max-F.min);}
+function cy(y){return CH-CP-(CH-2*CP)*y;}
+function curveD(F){
+  let d='';for(let i=0;i<=60;i++){const v=F.min+(F.max-F.min)*i/60;d+=(i?'L':'M')+cx(v,F).toFixed(1)+' '+cy(F.fn(v)).toFixed(1);}
+  return d;
+}
+const refs={};
+function buildFactors(){
+  const host=$('#factors');
+  FACTORS.forEach(F=>{
+    const el=document.createElement('div');el.className='factor';el.id='f-'+F.key;
+    const ticks=F.ticks.map(([v,l])=>{
+      const p=(v-F.min)/(F.max-F.min);
+      const tr=p===0?'translateX(-12px)':p===1?'translateX(calc(-100% + 12px))':'translateX(-50%)';
+      return '<span style="left:calc(12px + (100% - 24px) * '+p+');transform:'+tr+'">'+l+'</span>';
+    }).join('');
+    let zones='';
+    if(F.key==='temp'){
+      const zs=[[0,10,'--z1'],[10,25,'--z2'],[25,35,'--z3'],[35,45,'--z4'],[45,50,'--z5']];
+      zones=zs.map(([a,b,c])=>'<rect x="'+cx(a,F).toFixed(1)+'" y="0" width="'+(cx(b,F)-cx(a,F)).toFixed(1)+'" height="'+CH+'" style="fill:var('+c+')"/>').join('');
+    }
+    const d=curveD(F);
+    el.innerHTML=
+     '<div class="head">'+ICON[F.icon]+'<label class="name" for="r-'+F.key+'">'+F.name+'</label><span class="val" id="v-'+F.key+'"></span></div>'+
+     '<input class="rng '+F.track+'" id="r-'+F.key+'" type="range" min="'+F.min+'" max="'+F.max+'" step="1" value="'+state[F.key]+'">'+
+     '<div class="ticks" aria-hidden="true">'+ticks+'</div>'+
+     '<div class="fbody"><svg class="curve" viewBox="0 0 '+CW+' '+CH+'" role="img" aria-label="Curva de respuesta de '+F.name.toLowerCase()+'">'+
+       '<rect width="'+CW+'" height="'+CH+'" rx="6" style="fill:var(--soft)"/>'+zones+
+       '<path d="'+d+'L'+cx(F.max,F).toFixed(1)+' '+cy(0)+'L'+cx(F.min,F).toFixed(1)+' '+cy(0)+'Z" style="fill:var(--soft-2);opacity:.75"/>'+
+       '<path d="'+d+'" style="fill:none;stroke:var(--fg);stroke-width:1.8"/>'+
+       '<circle id="m-'+F.key+'" r="4.6" style="fill:var(--amber-fill);stroke:var(--fg);stroke-width:1.6"/></svg>'+
+     '<div class="txt"><div class="eff">'+F.eff+'<b id="e-'+F.key+'"></b></div><div class="sub" id="s-'+F.key+'"></div><span class="pill" id="p-'+F.key+'" hidden>Factor limitante</span></div></div>';
+    host.appendChild(el);
+    refs[F.key]={rng:$('#r-'+F.key),val:$('#v-'+F.key),eff:$('#e-'+F.key),sub:$('#s-'+F.key),pill:$('#p-'+F.key),mark:$('#m-'+F.key),box:el};
+    refs[F.key].rng.addEventListener('input',e=>{state[F.key]=+e.target.value;update();});
+  });
+}
+function renderFactors(c){
+  FACTORS.forEach(F=>{
+    const r=refs[F.key],v=state[F.key],fv=c.f[F.key];
+    r.val.textContent=v+F.unit;
+    r.rng.setAttribute('aria-valuetext',F.aria(v));
+    r.eff.textContent=fmt(Math.round(fv*100),0)+' %';
+    r.sub.textContent=F.sub(v);
+    r.pill.hidden=c.limKey!==F.key;
+    r.mark.setAttribute('cx',cx(v,F).toFixed(1));r.mark.setAttribute('cy',cy(fv).toFixed(1));
+  });
+}
+
+/* ================= DIAGNÓSTICO ================= */
+const LIMNAME={light:'Luz',temp:'Temp.',water:'Agua',sub:'Sustrato'};
+function storyText(c){
+  let main='',sub='';
+  if(!c.limKey){
+    main='Condiciones casi óptimas: la hoja trabaja cerca de su máximo, con '+fmt(c.gross,1)+' µmol CO₂ m⁻² s⁻¹.';
+  }else{
+    const k=c.limKey,f=c.f[k];
+    if(k==='light')main=f<0.4?'Llega poca luz: la fase clara produce poco ATP y NADPH, y la fase oscura se queda sin energía para reducir el CO₂.':'La luz todavía no satura la fase clara: con más fotones se formaría más ATP y NADPH.';
+    if(k==='temp'){
+      const T=state.temp;
+      main=T<10?'Hace frío: la actividad enzimática es baja y la tasa casi no despega.':
+           T<=32?'La temperatura está bajo el óptimo: las enzimas del ciclo de Calvin, como la Rubisco, aún no trabajan a su máxima velocidad.':
+           T<=45?'Hace calor: se cierran los estomas, aumenta la fotorrespiración y se fija menos CO₂.':
+           'Calor extremo: las enzimas se desnaturalizan, hay daño celular y la fotosíntesis se detiene.';
+    }
+    if(k==='water')main=state.water>85?'Exceso de agua: el sustrato anegado deja sin oxígeno a las raíces y baja el aporte de agua a la hoja.':
+      f<0.5?'Falta agua: los estomas se cierran para no deshidratarse, entra poco CO₂ y la fase oscura se frena.':
+      'El agua está algo justa: los estomas no alcanzan a abrir del todo y entra menos CO₂.';
+    if(k==='sub')main='Faltan nutrientes (nitrógeno, magnesio, hierro): hay menos clorofila y Rubisco, así que se capta menos luz y se fija menos CO₂.';
+    sub=mode==='min'?'Mientras este factor no mejore, subir los otros no cambia la tasa.':'Los factores se multiplican: mejorar cualquiera sube la tasa, y este es el que más la reduce.';
+  }
+  if(c.gross<0.05){main='La fotosíntesis casi se detiene. '+main;}
+  if(c.net<0){
+    sub=(sub?sub+' ':'')+'La respiración ('+fmt(c.R,1)+') supera a la fotosíntesis ('+fmt(c.gross,1)+'): la planta gasta sus reservas y pierde biomasa.';
+  }else if(c.limKey){
+    sub+=' Tasa neta: '+fmt(c.net,1)+' µmol CO₂ m⁻² s⁻¹.';
+  }
+  return {main,sub:sub.trim()};
+}
+
+/* ================= RESULTADOS ================= */
+function renderResults(c){
+  $('#rateBig').textContent=fmt(c.gross,1);
+  $('#meterFill').style.width=clamp(c.gross/P.Pmax,0,1)*100+'%';
+  $('#meterResp').style.left='calc('+clamp(c.R/P.Pmax,0,1)*100+'% - 1.5px)';
+  $('#meter').setAttribute('aria-label','Tasa bruta '+fmt(c.gross,1)+' de un máximo de 26; respiración '+fmt(c.R,1));
+  $('#meterCap').innerHTML='<span class="r">| respiración '+fmt(c.R,1)+'</span> · neta '+fmt(c.net,1);
+
+  const g=c.g, tot=Math.round((g.co2+g.h2o)*10);
+  const [co2,h2o]=lrr([g.co2,g.h2o],tot), [glu,o2]=lrr([g.glu,g.o2],tot);
+  const gluR=+(g.gluR.toFixed(1)),o2R=+(g.o2R.toFixed(1)),co2R=+(g.co2R.toFixed(1));
+  const set=(id,v,cls)=>{const e=$(id);e.textContent=v;e.className=(e.className.replace(/\bneg\b/g,'').trim()+(cls?' '+cls:'')).trim();};
+  set('#tGluP',f1(glu));set('#tGluR',f1(gluR));
+  set('#tO2P',f1(o2));set('#tO2R',f1(o2R));
+  set('#tCO2P',f1(co2));set('#tCO2R',f1(co2R));
+  const nGlu=+(glu-gluR).toFixed(1),nO2=+(o2-o2R).toFixed(1),nCO2=+(co2-co2R).toFixed(1);
+  set('#tGluN',sg(nGlu),nGlu<0?'neg':'');set('#tO2N',sg(nO2),nO2<0?'neg':'');set('#tCO2N',sg(nCO2),nCO2<0?'neg':'');
+
+  $('#bioVal').textContent=sg(c.bio)+' g';
+  $('#bioVal').className='v'+(c.bio<-0.05?' neg':'');
+  $('#bioBar').style.width=clamp(c.bio/BEST.bio,0,1)*100+'%';
+  $('#bioCap').textContent=c.bio<-0.05?'La planta pierde '+f1(-c.bio)+' g de reservas al día.':
+    'Máximo posible en este modelo: '+f1(BEST.bio)+' g al día ('+fmt(Math.max(0,c.bio)/BEST.bio*100,0)+' % de ese máximo).';
+  $('#xH2O').textContent=f1(h2o)+' g';
+  $('#xATP').textContent=fmt(c.atp,2)+' mol';
+  $('#xNADPH').textContent=fmt(c.nadph,2)+' mol';
+  $('#balance').innerHTML='Balance de masa de la fotosíntesis: entran <b>'+f1(co2)+' g CO₂ + '+f1(h2o)+' g H₂O = '+fmt(tot/10,1)+' g</b>; salen <b>'+f1(glu)+' g glucosa + '+f1(o2)+' g O₂ = '+fmt(tot/10,1)+' g</b>. La materia se conserva.';
+
+  $('#kGlu').textContent=f1(glu-gluR)+' g';
+  $('#kO2').textContent=f1(o2-o2R)+' g';
+  $('#kBio').textContent=sg(c.bio)+' g';
+  $('#kBio').className='v'+(c.bio<-0.05?' neg':'');
+  $('#kLim').textContent=c.limKey?LIMNAME[c.limKey]:'Ninguno';
+  $('.kpis').setAttribute('aria-label','Por metro cuadrado de hoja en un día: glucosa acumulada '+f1(glu-gluR)+' gramos, oxígeno al aire '+f1(o2-o2R)+' gramos, biomasa '+sg(c.bio)+' gramos');
+  c.rounded={glu:nGlu,o2:nO2,co2:nCO2};
+}
+// Nota: los KPI muestran el balance (neto) de glucosa y O2; la tabla muestra producido y consumido.
+
+/* ================= REGISTRO ================= */
+function renderLog(){
+  const w=$('#logWrap');
+  if(!logRows.length){w.innerHTML='<p class="log-empty">Aún no hay mediciones. Ajusta las condiciones y pulsa «Guardar medición».</p>';return;}
+  let h='<table><thead><tr><th>N°</th><th>Luz %</th><th>Temp. °C</th><th>Agua %</th><th>Sust. %</th><th>Glucosa g</th><th>O₂ g</th><th>Biomasa g</th><th style="text-align:left">Limita</th></tr></thead><tbody>';
+  logRows.forEach((r,i)=>{h+='<tr><td>'+(i+1)+'</td><td>'+r.light+'</td><td>'+r.temp+'</td><td>'+r.water+'</td><td>'+r.sub+'</td><td>'+r.glu+'</td><td>'+r.o2+'</td><td'+(r.bioN<0?' class="neg"':'')+'>'+r.bio+'</td><td class="lim">'+r.lim+'</td></tr>';});
+  w.innerHTML=h+'</tbody></table>';
+}
+function msg(t){const m=$('#logMsg');m.textContent=t;clearTimeout(msg.t);msg.t=setTimeout(()=>{m.textContent='';},3500);}
+$('#logAdd').addEventListener('click',()=>{
+  if(logRows.length>=10){msg('Máximo 10 mediciones. Borra el registro para empezar de nuevo.');return;}
+  const c=cur;
+  logRows.push({light:state.light,temp:state.temp,water:state.water,sub:state.sub,glu:f1(c.rounded.glu),o2:f1(c.rounded.o2),bio:sg(c.bio),bioN:c.bio,lim:c.limKey?LIMNAME[c.limKey]:'Ninguno'});
+  renderLog();msg('Medición '+logRows.length+' guardada.');
+});
+$('#logClear').addEventListener('click',()=>{logRows=[];renderLog();msg('Registro borrado.');});
+$('#logCopy').addEventListener('click',()=>{
+  if(!logRows.length){msg('No hay mediciones para copiar.');return;}
+  const head=['N°','Luz %','Temp. °C','Agua %','Sustrato %','Glucosa g','O2 g','Biomasa g','Factor limitante'];
+  const txt=[head.join('\t')].concat(logRows.map((r,i)=>[i+1,r.light,r.temp,r.water,r.sub,r.glu,r.o2,r.bio,r.lim].join('\t'))).join('\n');
+  const fail=()=>msg('No se pudo copiar. Selecciona la tabla con el cursor y copia con Ctrl+C.');
+  try{navigator.clipboard.writeText(txt).then(()=>msg('Tabla copiada. Pégala en Excel o en un documento.'),fail);}catch(e){fail();}
+});
+
+/* ================= ESCENARIOS Y MODO ================= */
+function buildPresets(){
+  const host=$('#presets');
+  PRESETS.forEach(p=>{
+    const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=p.name;b.dataset.id=p.id;
+    b.setAttribute('aria-pressed','false');
+    b.addEventListener('click',()=>{Object.assign(state,p.v);syncSliders();update();});
+    host.appendChild(b);
+  });
+}
+function markPresets(){
+  document.querySelectorAll('.chip').forEach(b=>{
+    const p=PRESETS.find(x=>x.id===b.dataset.id);
+    const on=KEYS.every(k=>state[k]===p.v[k]);
+    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');
+  });
+}
+function syncSliders(){KEYS.forEach(k=>{refs[k].rng.value=state[k];});}
+$('#reset').addEventListener('click',()=>{Object.assign(state,DEFAULT);syncSliders();update();});
+function setMode(m){
+  mode=m;
+  $('#modeHelp').textContent=m==='min'?'La tasa la fija el factor más escaso. Mejorar los demás no cambia nada hasta que el limitante mejore.':'Cada factor reduce la tasa a la vez. Mejorar cualquiera la sube, aunque no sea el más escaso.';
+  update();
+}
+document.querySelectorAll('input[name="mode"]').forEach(r=>r.addEventListener('change',e=>{if(e.target.checked)setMode(e.target.value);}));
+
+/* ================= ESCENA (canvas) ================= */
+const W=880,H=560,X_S=640,SUN={x:64,y:34};
+const GR=[{x:300,y:250},{x:365,y:205},{x:365,y:305},{x:440,y:255},{x:500,y:212}];
+const ST=[{x:580,y:290},{x:612,y:236},{x:520,y:338},{x:560,y:200}];
+const CHL={x:420,y:262,rx:250,ry:118};
+const cv=$('#scene'),ctx=cv.getContext('2d');
+let scale=1,dpr=1,TK={},tick=0;
+function readTokens(){
+  const cs=getComputedStyle(document.documentElement),g=n=>cs.getPropertyValue(n).trim();
+  TK={bg:g('--sc-bg'),air:g('--sc-air'),epi:g('--sc-epi'),guard:g('--sc-guard'),wall:g('--sc-wall'),cell:g('--sc-cell'),
+      env:g('--sc-env'),ink:g('--sc-ink'),xyl:g('--sc-xyl'),phl:g('--sc-phl'),chlL:parseFloat(g('--sc-chl-l'))||34};
+}
+function resize(){
+  const r=cv.getBoundingClientRect();if(!r.width)return;
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.width*H/W*dpr);scale=r.width/W;
+}
+const sim={g:0,l:0.7,speed:1,open:1,T:22,acc:{ph:0,co2:0,h2o:0,bnc:0},parts:[],flashes:[],fix:0,time:0};
+const K=5.5,BASE=150;
+function mk(type,pts,extra){
+  if(sim.parts.length>260)return;
+  const segs=[];let L=0;
+  for(let i=0;i<pts.length-1;i++){const d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);segs.push(d);L+=d;}
+  const mul=type==='ph'?2.4:(type==='atp'||type==='nadph')?0.9:1;
+  sim.parts.push(Object.assign({type,pts,segs,L,s:0,speed:BASE*mul*(0.85+Math.random()*0.3),ph:Math.random()*6.28},extra||{}));
+}
+function flash(x,y,color){sim.flashes.push({x,y,t:0,color});}
+function spawnPhoton(){const g=pick(GR);mk('ph',[[SUN.x,SUN.y],[g.x,g.y-24]],{onEnd:()=>flash(g.x,g.y-20,'#F2B632')});}
+function spawnH2O(){
+  const g=pick(GR);
+  mk('h2o',[[24,536],[110,536],[110,440],[g.x,g.y+26]],{onEnd:()=>{
+    flash(g.x,g.y,'#2E7FB8');
+    mk('o2',[[g.x,g.y],[X_S-30,138],[X_S,100],[X_S+rnd(-8,8),-8]]);
+    const st=pick(ST);
+    mk('atp',[[g.x+10,g.y],[st.x,st.y]]);
+    mk('nadph',[[g.x-10,g.y+6],[st.x+12,st.y+10]]);
+  }});
+}
+function spawnCO2(){
+  const st=pick(ST);
+  mk('co2',[[X_S+rnd(-14,14),-8],[X_S,86],[X_S,140],[st.x,st.y]],{onEnd:()=>{
+    flash(st.x,st.y,'#6F7B72');sim.fix++;
+    if(sim.fix%6===0)mk('glu',[[st.x,st.y],[700,400],[770,470],[770,536],[872,536]]);
+  }});
+}
+function spawnBounce(){mk('co2',[[X_S+rnd(-70,70),-8],[X_S+rnd(-8,8),62],[X_S+rnd(-90,90),-10]]);}
+function step(dt){
+  sim.time+=dt;const a=sim.acc;
+  a.ph+=dt*14*sim.l;if(a.ph>=1){a.ph-=1;spawnPhoton();}
+  a.co2+=dt*K*sim.g;if(a.co2>=1){a.co2-=1;spawnCO2();}
+  a.h2o+=dt*K*sim.g;if(a.h2o>=1){a.h2o-=1;spawnH2O();}
+  a.bnc+=dt*4*(1-sim.open);if(a.bnc>=1){a.bnc-=1;spawnBounce();}
+  const ps=sim.parts;
+  for(let i=0;i<ps.length;i++){const p=ps[i];p.s+=p.speed*sim.speed*dt;if(p.s>=p.L){p.dead=true;if(p.onEnd)p.onEnd(p);}}
+  sim.parts=ps.filter(p=>!p.dead);
+  sim.flashes.forEach(f=>f.t+=dt);sim.flashes=sim.flashes.filter(f=>f.t<0.4);
+}
+function posOf(p){
+  let s=Math.min(p.s,p.L);
+  for(let i=0;i<p.segs.length;i++){
+    if(s<=p.segs[i]||i===p.segs.length-1){
+      const t=p.segs[i]?s/p.segs[i]:1,a=p.pts[i],b=p.pts[i+1];
+      return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,(b[0]-a[0])/(p.segs[i]||1),(b[1]-a[1])/(p.segs[i]||1)];
+    }
+    s-=p.segs[i];
+  }
+  return [p.pts[0][0],p.pts[0][1],0,0];
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+function txt(s,x,y,px,o){
+  o=o||{};ctx.font=(o.w||400)+' '+(px/scale)+'px Calibri,"Segoe UI",system-ui,sans-serif';
+  ctx.textAlign=o.align||'center';ctx.textBaseline=o.base||'middle';ctx.fillStyle=o.color||TK.ink;ctx.fillText(s,x,y);
+}
+function tempColor(T){return T<10?'#3C8DC9':T<25?'#5BA84F':T<=35?'#3F9A46':T<=45?'#E58A2B':'#CC3B2E';}
+function chlColors(){
+  const ch=subFactor(state.sub),dmg=clamp((state.temp-42)/8,0,1);
+  let h=125-(1-ch)*58,s=42-(1-ch)*6,l=TK.chlL+(1-ch)*14;
+  h=h*(1-dmg)+30*dmg;s=s*(1-dmg)+30*dmg;l=l*(1-dmg)+(TK.chlL-4)*dmg;
+  return {stroma:'hsl('+h+','+s+'%,'+(l+11)+'%)',grana:'hsl('+h+','+(s+6)+'%,'+(l-7)+'%)',edge:'hsl('+h+','+s+'%,'+(l-16)+'%)'};
+}
+function draw(){
+  if(!TK.bg)readTokens();
+  ctx.setTransform(dpr*scale,0,0,dpr*scale,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=TK.bg;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=TK.air;ctx.fillRect(0,0,W,64);
+  const lbl=scale>=0.62;
+  // sol
+  const l=state.light/100,ang=reduced?0:sim.time*0.2;
+  ctx.save();ctx.globalAlpha=0.3+0.7*l;ctx.strokeStyle='#F2B632';ctx.lineWidth=3.2;ctx.lineCap='round';
+  for(let i=0;i<10;i++){const a=i/10*6.283+ang,r0=26,r1=26+6+18*l;ctx.beginPath();ctx.moveTo(SUN.x+Math.cos(a)*r0,SUN.y+Math.sin(a)*r0);ctx.lineTo(SUN.x+Math.cos(a)*r1,SUN.y+Math.sin(a)*r1);ctx.stroke();}
+  ctx.fillStyle='#F6BD35';ctx.strokeStyle='#C98A1A';ctx.lineWidth=2;ctx.beginPath();ctx.arc(SUN.x,SUN.y,20,0,6.283);ctx.fill();ctx.stroke();
+  ctx.restore();
+  txt('luz solar',108,50,13,{align:'left'});
+  // termómetro
+  const tx=846,T=state.temp;
+  rr(tx-5,8,10,34,5);ctx.fillStyle=TK.bg;ctx.fill();ctx.strokeStyle=TK.ink;ctx.lineWidth=1.6;ctx.stroke();
+  const th=Math.max(3,32*T/50);rr(tx-3,40-th,6,th,3);ctx.fillStyle=tempColor(T);ctx.fill();
+  ctx.beginPath();ctx.arc(tx,46,8,0,6.283);ctx.fillStyle=tempColor(T);ctx.fill();ctx.strokeStyle=TK.ink;ctx.stroke();
+  txt(T+' °C',tx-16,24,13,{align:'right',w:700});
+  // epidermis y estoma
+  const gap=6+40*sim.open,gl=X_S-gap/2-26,gr=X_S+gap/2+26;
+  ctx.fillStyle=TK.epi;ctx.strokeStyle=TK.wall;ctx.lineWidth=1.8;
+  ctx.fillRect(0,64,gl,36);ctx.strokeRect(0,64,gl,36);ctx.fillRect(gr,64,W-gr,36);ctx.strokeRect(gr,64,W-gr+2,36);
+  [[X_S-gap/2-13,1],[X_S+gap/2+13,-1]].forEach(([x])=>{ctx.beginPath();ctx.ellipse(x,82,13,18,0,0,6.283);ctx.fillStyle=TK.guard;ctx.fill();ctx.strokeStyle=TK.wall;ctx.stroke();});
+  txt('estoma',gr+12,82,12.5,{align:'left'});
+  // vasos
+  const wa=0.3+0.7*state.water/100;
+  ctx.fillStyle=TK.cell;ctx.strokeStyle=TK.wall;
+  ctx.save();ctx.globalAlpha=wa;ctx.fillStyle=TK.xyl;rr(0,520,150,32,16);ctx.fill();ctx.fillRect(98,500,24,24);ctx.restore();
+  ctx.fillStyle=TK.phl;rr(730,520,150,32,16);ctx.fill();ctx.fillRect(758,500,24,24);
+  // célula
+  rr(70,118,740,387,38);ctx.fillStyle=TK.cell;ctx.fill();ctx.strokeStyle=TK.wall;ctx.lineWidth=3.2;ctx.stroke();
+  txt('xilema',75,536,11.5,{w:700});txt('floema',805,536,11.5,{w:700});
+  // cloroplasto
+  const C=chlColors();
+  ctx.beginPath();ctx.ellipse(CHL.x,CHL.y,CHL.rx,CHL.ry,0,0,6.283);ctx.fillStyle=C.stroma;ctx.fill();ctx.lineWidth=4;ctx.strokeStyle=TK.env;ctx.stroke();
+  ctx.beginPath();ctx.ellipse(CHL.x,CHL.y,CHL.rx-9,CHL.ry-9,0,0,6.283);ctx.lineWidth=1.5;ctx.globalAlpha=0.6;ctx.strokeStyle=TK.env;ctx.stroke();ctx.globalAlpha=1;
+  ctx.strokeStyle=C.edge;ctx.lineWidth=2.2;ctx.globalAlpha=0.7;
+  [[0,1],[0,2],[1,3],[2,3],[3,4]].forEach(([a,b])=>{ctx.beginPath();ctx.moveTo(GR[a].x,GR[a].y);ctx.lineTo(GR[b].x,GR[b].y);ctx.stroke();});
+  ctx.globalAlpha=1;
+  GR.forEach(g=>{for(let k=-2;k<=2;k++){rr(g.x-27,g.y+k*11-4,54,8,4);ctx.fillStyle=C.grana;ctx.fill();ctx.lineWidth=1.3;ctx.strokeStyle=C.edge;ctx.stroke();}});
+  // etiquetas de zona
+  const fz=13/scale;
+  txt('TILACOIDES',270,444,13,{w:700});txt('fase clara',270,444+fz*1.2,12.5);
+  txt('ESTROMA',600,444,13,{w:700});txt('fase oscura',600,444+fz*1.2,12.5);
+  // partículas
+  const rs=lbl?10.5:7.5,r=rs/scale,jit=(1.2+state.temp*0.1);
+  sim.parts.forEach(p=>{
+    const q=posOf(p);let x=q[0],y=q[1];
+    if(p.type!=='ph'){x+=Math.sin(sim.time*6+p.ph)*jit;y+=Math.cos(sim.time*5+p.ph)*jit;}
+    if(p.type==='ph'){
+      ctx.strokeStyle='#F2B632';ctx.lineWidth=3.6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-q[2]*13,y-q[3]*13);ctx.lineTo(x,y);ctx.stroke();return;
+    }
+    const spec={h2o:['#2E7FB8','H₂O','#fff',1],co2:['#6F7B72','CO₂','#fff',1],o2:['#D0503A','O₂','#fff',1],
+                atp:['#E0A83E','ATP','#2b1d00',2.0],nadph:['#1F9E96','NADPH','#fff',2.7],glu:['#B8791A','Glu','#fff',1.45]}[p.type];
+    ctx.fillStyle=spec[0];ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1.3/scale;
+    if(spec[3]>1.6){const w=r*spec[3],h=r*1.5;rr(x-w/2,y-h/2,w,h,h/2);}
+    else{ctx.beginPath();ctx.arc(x,y,r*spec[3],0,6.283);}
+    ctx.fill();ctx.stroke();
+    if(lbl)txt(spec[1],x,y+0.5,p.type==='nadph'?7.2:8.8,{w:700,color:spec[2]});
+  });
+  sim.flashes.forEach(f=>{const k=f.t/0.4;ctx.beginPath();ctx.arc(f.x,f.y,6+16*k,0,6.283);ctx.strokeStyle=f.color;ctx.globalAlpha=1-k;ctx.lineWidth=2.5;ctx.stroke();ctx.globalAlpha=1;});
+}
+let last=0;
+function frame(ts){const dt=Math.min(0.05,((ts-last)/1000)||0.016);last=ts;step(dt);draw();requestAnimationFrame(frame);}
+function warm(){sim.parts=[];sim.flashes=[];for(let i=0;i<100;i++)step(0.05);}
+function setSim(c){sim.g=clamp(c.gross/P.Pmax,0,1);sim.l=state.light/100;sim.speed=0.45+0.025*state.temp;sim.open=c.f.water;sim.T=state.temp;}
+
+/* ================= ACTUALIZAR ================= */
+function update(){
+  const c=compute(state,mode);cur=c;
+  renderFactors(c);
+  const st=storyText(c);$('#storyMain').textContent=st.main;$('#storySub').textContent=st.sub;
+  renderResults(c);markPresets();setSim(c);
+  cv.setAttribute('aria-label','Cloroplasto dentro de una hoja. Luz '+state.light+' por ciento, '+state.temp+' grados, agua '+state.water+' por ciento, sustrato '+state.sub+' por ciento. Tasa fotosintética bruta '+fmt(c.gross,1)+' micromoles de CO₂ por metro cuadrado por segundo.');
+  if(reduced){warm();draw();}
+}
+
+/* ================= INICIO ================= */
+buildFactors();buildPresets();renderLog();setMode('min');
+readTokens();resize();
+new ResizeObserver(()=>{resize();if(reduced)draw();}).observe(cv);
+new MutationObserver(()=>{readTokens();if(reduced)draw();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readTokens();if(reduced)draw();});
+warm();
+if(reduced){draw();}else{requestAnimationFrame(frame);}
+})();
+</script>
+</body></html>
