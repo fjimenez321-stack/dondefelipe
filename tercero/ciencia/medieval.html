@@ -458,6 +458,13 @@ button.qz-opt:active{transform:translateY(1px)}
 .pc-lbl b{color:var(--leaf-d)}
 .pc-rng{display:block;width:100%;margin:9px 0 4px;accent-color:var(--leaf)}
 .pc-hint{display:block;font:600 11.5px/1.4 var(--f-body);color:var(--muted)}
+
+/* ---- duelos y ficha de combate ---- */
+.pv-exp{height:9px;border-radius:5px;background:rgba(0,0,0,.12);overflow:hidden;margin:0 0 10px}
+.pv-exp i{display:block;height:100%;background:linear-gradient(90deg,#9a7fd4,#c8a5ff);border-radius:5px;transition:width .3s}
+.btn.mini{padding:7px 12px;min-width:0;font-size:13px;flex:0 0 auto}
+.lnk{background:none;border:0;padding:0;font:inherit;font-weight:800;color:var(--leaf-d);text-decoration:underline;cursor:pointer}
+.bt-wait{padding:14px 4px;text-align:center;font:700 14px/1.4 var(--f-body);color:var(--on-glass-dim)}
 </style>
 </head><body>
 <div id="app">
@@ -2525,7 +2532,7 @@ async function boot(){
    Cada jugador mantiene su propia semana, dinero y despensa.
    ========================================================= */
 const NET={on:false,mode:null,room:'',name:'',uid:'',color:0,peers:{},world:{cut:{},pl:{},lf:0,cl:0,who:{}},
-  lastSent:0,lastKey:'',lastBeat:0,offset:0,adapter:null,emote:null,emoteT:0,chat:[],chatIds:{},trades:{},tradeDone:{},muted:{},unread:0,say:'',sayT:0};
+  lastSent:0,lastKey:'',lastBeat:0,offset:0,adapter:null,emote:null,emoteT:0,chat:[],chatIds:{},trades:{},tradeDone:{},duels:{},muted:{},unread:0,say:'',sayT:0};
 const PEER_HUES=[0,40,90,150,200,250,300,330];
 const EMOTES=['👋','😀','👍','♻️','🌳','❓'];
 function isOnline(){return NET.on}
@@ -2593,6 +2600,8 @@ function firebaseAdapter(){
       base.child('w/who').on('value',s=>h.who(s.val()||{}));
       base.child('chat').limitToLast(30).on('child_added',s=>h.chat(s.key,s.val()));
       const TR=base.child('tr').orderByChild('t').startAt(Date.now()-10*60000);TR.on('child_added',s=>h.trade(s.key,s.val()));TR.on('child_changed',s=>h.trade(s.key,s.val()));
+      const DUE=base.child('du').orderByChild('t').startAt(Date.now()-20*60000);
+      DUE.on('child_added',s=>h.duel&&h.duel(s.key,s.val()));DUE.on('child_changed',s=>h.duel&&h.duel(s.key,s.val()));
       return uid;
     },
     presence(d){if(me)me.set({...d,t:TS()})},
@@ -2605,10 +2614,13 @@ function firebaseAdapter(){
     sendChat(m){return base.child('chat').push({by:NET.uid,n:NET.name,m,t:TS()})},
     tradeNew(id,v){return base.child('tr/'+id).set(v)},
     tradeUpd(id,patch){return base.child('tr/'+id).update(patch)},
+    duelNew(id,v){return base.child('du/'+id).set(v)},
+    duelUpd(id,patch){return base.child('du/'+id).update(patch)},
     leave(){if(me)me.remove()}
   };
 }
 
+function mergeDu(id,patch){const v={...(NET.duels[id]||{})};for(const k in patch){if(patch[k]===null)delete v[k];else v[k]=patch[k]}NET.duels[id]=v;return v}
 function mergeTr(id,patch){const v={...(NET.trades[id]||{})};for(const k in patch){if(patch[k]===null)delete v[k];else v[k]=patch[k]}NET.trades[id]=v;return v}
 /* ---------- adaptador local (varias pestañas del mismo navegador, para probar sin Firebase) ---------- */
 function localAdapter(){
@@ -2628,6 +2640,8 @@ function localAdapter(){
         else if(m.type==='chat')h.chat(m.id,m.v);
         else if(m.type==='tr')h.trade(m.id,m.v);
         else if(m.type==='trp')h.trade(m.id,mergeTr(m.id,m.patch));
+        else if(m.type==='du'){NET.duels[m.id]=m.v;h.duel&&h.duel(m.id,m.v)}
+        else if(m.type==='dup'){const v=mergeDu(m.id,m.patch);h.duel&&h.duel(m.id,v)}
         else if(m.type==='hello'){send({type:'p',uid:NET.uid,d:NET.lastInfo});send({type:'state',w:W})}
         else if(m.type==='state'){for(const k in m.w.cut)if(!W.cut[k])h.cut(k,m.w.cut[k]);for(const k in m.w.pl)if(!W.pl[k])h.pl(k,m.w.pl[k]);if(m.w.lf>W.lf)h.num('lf',m.w.lf);if(m.w.cl>W.cl)h.num('cl',m.w.cl);h.who({...W.who,...m.w.who})}
       };
@@ -2644,6 +2658,8 @@ function localAdapter(){
     async add(key,n){const v=(W[key]||0)+n;h.num(key,v);send({type:'num',key,v})},
     async tradeNew(id,v){NET.trades[id]=v;h.trade(id,v);send({type:'tr',id,v})},
     async tradeUpd(id,patch){const v=mergeTr(id,patch);send({type:'trp',id,patch});h.trade(id,v)},
+    async duelNew(id,v){NET.duels[id]=v;send({type:'du',id,v});h.duel&&h.duel(id,v)},
+    async duelUpd(id,patch){const v=mergeDu(id,patch);send({type:'dup',id,patch});h.duel&&h.duel(id,v)},
     async sendChat(m){const id='c'+Date.now()+Math.random().toString(36).slice(2,5),v={by:NET.uid,n:NET.name,m,t:Date.now()};h.chat(id,v);send({type:'chat',id,v})},
     leave(){send({type:'bye',uid:NET.uid});ch&&ch.close()}
   };
@@ -4283,6 +4299,690 @@ let XFRASE={};
     }
     return oi.apply(this,arguments);
   };
+})();
+/* =========================================================
+   DUELOS ENTRE ESTUDIANTES (PvP)
+   ---------------------------------------------------------
+   Mismo estilo que el combate con Mu, pero contra otro jugador del curso.
+   · Solo se pelea dentro del Coliseo, al sur del puente.
+   · Quien ataca elige su habilidad; quien DEFIENDE recibe una pregunta:
+     si acierta, bloquea el golpe y carga cosmo.
+   · No se apuesta nada: se gana experiencia. Al subir de nivel hay puntos
+     para repartir entre lucha, defensa, agilidad, magia y suerte.
+   · El equipo y las habilidades se compran en el Almacén.
+
+   RED: el que desafía es el anfitrión y lleva la simulación. El otro solo
+   manda su jugada. Así no hay dos cabezas decidiendo el mismo turno.
+   Protocolo calcado del trueque que ya funciona (nodo `du`).
+   ========================================================= */
+
+/* ---------- atributos ---------- */
+const PATR=[
+  {id:'lucha',   n:'Lucha',    em:'⚔️', d:'Sube el daño de los golpes físicos.'},
+  {id:'defensa', n:'Defensa',  em:'🛡️', d:'Baja el daño que recibes y sube tu vida.'},
+  {id:'agilidad',n:'Agilidad', em:'🌀', d:'Decide quién golpea primero y te deja esquivar.'},
+  {id:'magia',   n:'Magia',    em:'✨', d:'Sube el daño de las habilidades especiales.'},
+  {id:'suerte',  n:'Suerte',   em:'🍀', d:'Más golpes potenciados y más experiencia.'},
+];
+/* ---------- equipo que se compra en el Almacén ---------- */
+const EQUIPO=[
+  {id:'palo',   t:'arma', n:'Palo de entrenamiento', em:'🪵', $:0,     dmg:3,  at:{},                  d:'Lo que te presta el coliseo. Sirve para empezar.'},
+  {id:'espada', t:'arma', n:'Espada corta',          em:'🗡️', $:6500,  dmg:8,  at:{lucha:1},           d:'Rápida y pareja. No falla nunca del todo.'},
+  {id:'lanza',  t:'arma', n:'Lanza larga',           em:'🔱', $:11000, dmg:10, at:{agilidad:2},        d:'Alcance: golpeas antes de que lleguen a ti.'},
+  {id:'hacha',  t:'arma', n:'Hacha de combate',      em:'🪓', $:13000, dmg:14, at:{lucha:3,agilidad:-2},d:'Pega durísimo, pero es lenta de levantar.'},
+  {id:'baculo', t:'arma', n:'Báculo de cristal',     em:'🪄', $:15000, dmg:5,  at:{magia:5},           d:'Casi inútil para pegar; multiplica lo que sabes.'},
+  {id:'tunica', t:'armadura', n:'Túnica de tela',    em:'👕', $:0,     def:1,  at:{},                  d:'Abriga y poco más.'},
+  {id:'cuero',  t:'armadura', n:'Peto de cuero',     em:'🦺', $:7000,  def:4,  at:{defensa:1},         d:'Liviano y honesto.'},
+  {id:'malla',  t:'armadura', n:'Cota de malla',     em:'🛡️', $:16000, def:9,  at:{defensa:3,agilidad:-2},d:'Aguanta de todo, pero se siente cada kilo.'},
+  {id:'manto',  t:'armadura', n:'Manto del Santuario',em:'🧥', $:19000, def:5, at:{magia:2,agilidad:1}, d:'Tejido en Aries. Protege sin estorbar.'},
+  {id:'ninguno',t:'amuleto', n:'Sin amuleto',        em:'·',  $:0,     at:{},                          d:''},
+  {id:'trebol', t:'amuleto', n:'Trébol de cuatro hojas',em:'🍀',$:9000, at:{suerte:5},                 d:'La suerte no se compra. Este sí.'},
+  {id:'pluma',  t:'amuleto', n:'Pluma del viento',   em:'🪶', $:9500,  at:{agilidad:3},                d:'Pesa nada y se nota.'},
+  {id:'ambar',  t:'amuleto', n:'Ámbar de Newton',    em:'🟠', $:13000, at:{magia:2,lucha:2},           d:'Dentro hay un insecto de hace 40 millones de años.'},
+];
+const EQ=id=>EQUIPO.find(e=>e.id===id);
+/* ---------- habilidades ---------- */
+const HAB=[
+  {id:'golpe',  n:'Golpe',            em:'⚔️', k:'fis', min:7, max:11, $:0,     lvl:1, d:'Ataque básico. Siempre lo tienes.'},
+  {id:'guardia',n:'Guardia',          em:'🛡️', k:'def',              $:4000,  lvl:2, d:'Este turno recibes la mitad y recuperas 8 de vida.'},
+  {id:'embate', n:'Embate',           em:'💥', k:'fis', min:13,max:18, $:6000,  lvl:2, cos:1, d:'Carga con todo el cuerpo. Cuesta 1 de cosmo.'},
+  {id:'duda',   n:'Sembrar la duda',  em:'💭', k:'men', min:4, max:7,  $:6500,  lvl:3, d:'Pega poco, pero el rival golpea débil dos turnos.'},
+  {id:'rafaga', n:'Ráfaga',           em:'🌀', k:'fis', min:5, max:8,  $:9000,  lvl:3, cos:1, golpes:3, d:'Tres golpes seguidos. Cuesta 1 de cosmo.'},
+  {id:'conatus',n:'Conatus',          em:'🔆', k:'mag', min:15,max:21, $:10000, lvl:4, cos:1, d:'La fuerza de perseverar en el propio ser.'},
+  {id:'revol',  n:'Revolución del Cosmo',em:'✨',k:'mag', min:30,max:40,$:22000, lvl:6, cos:3, d:'Todo lo que tienes, de una vez. Cuesta 3 de cosmo.'},
+];
+const HB=id=>HAB.find(h=>h.id===id);
+
+/* ---------- estado del jugador ---------- */
+function pvpState(){
+  if(!S.pvp)S.pvp={lvl:1,exp:0,pts:0,at:{lucha:3,defensa:3,agilidad:3,magia:3,suerte:3},
+                   eq:{arma:'palo',armadura:'tunica',amuleto:'ninguno'},hab:['golpe'],win:0,lose:0};
+  const p=S.pvp;
+  if(!p.at)p.at={lucha:3,defensa:3,agilidad:3,magia:3,suerte:3};
+  if(!p.eq)p.eq={arma:'palo',armadura:'tunica',amuleto:'ninguno'};
+  if(!p.hab||!p.hab.length)p.hab=['golpe'];
+  return p;
+}
+/* atributos ya sumado el equipo */
+function pvpAtr(p){
+  p=p||pvpState();const a={...p.at};
+  for(const k of['arma','armadura','amuleto']){const e=EQ(p.eq[k]);if(e&&e.at)for(const s in e.at)a[s]=(a[s]||0)+e.at[s]}
+  for(const s of['lucha','defensa','agilidad','magia','suerte'])a[s]=Math.max(1,a[s]|0);
+  return a;
+}
+function pvpVida(p){p=p||pvpState();return 80+pvpAtr(p).defensa*5+p.lvl*5}
+function pvpDef(p){p=p||pvpState();const e=EQ(p.eq.armadura);return (e&&e.def||0)+pvpAtr(p).defensa*.7}
+function expNec(l){return 60+l*40}
+/* el perfil que viaja por la red (lo que el rival necesita saber) */
+function pvpPerfil(){
+  const p=pvpState(),a=pvpAtr(p);
+  return{lvl:p.lvl,at:a,vida:pvpVida(p),def:Math.round(pvpDef(p)*10)/10,
+         arma:(EQ(p.eq.arma)||{}).dmg|0,hab:p.hab.filter(h=>HB(h))};
+}
+function pvpGanarExp(n,motivo){
+  const p=pvpState();p.exp+=n;let subio=0;
+  while(p.exp>=expNec(p.lvl)){p.exp-=expNec(p.lvl);p.lvl++;p.pts+=3;subio++}
+  if(subio){beep('day');toast('🏅',`Subiste a <b>nivel ${p.lvl}</b>. Tienes <b>${p.pts}</b> puntos para repartir en tu ficha de combate.`,'good')}
+  else toast('✨',`+${n} de experiencia${motivo?' · '+motivo:''}.`);
+  save();
+}
+
+/* =========================================================
+   FICHA DE COMBATE
+   ========================================================= */
+function openFicha(){
+  openSheet({kind:'ficha',title:'Ficha de combate',emoji:'🛡️',color:'#5b4a8a',tab:'at',
+    tabs:[{id:'at',label:'Atributos'},{id:'eq',label:'Equipo'},{id:'hb',label:'Habilidades'}],
+    sub:()=>{const p=pvpState();return`Nivel ${p.lvl} · ${p.exp}/${expNec(p.lvl)} de experiencia · ${p.win}V ${p.lose}D`},
+    render:fichaRender});
+}
+function barraExp(){
+  const p=pvpState(),f=Math.min(1,p.exp/expNec(p.lvl));
+  return`<div class="pv-exp"><i style="width:${(f*100).toFixed(1)}%"></i></div>`;
+}
+function fichaRender(tab){
+  const p=pvpState(),a=pvpAtr(p);
+  if(tab==='eq'){
+    const grupo=(t,lab)=>`<p class="sec-t">${lab}</p><div class="grid">${EQUIPO.filter(e=>e.t===t).map(e=>{
+      const tengo=e.$===0||(p.comprado||[]).includes(e.id),puesto=p.eq[t]===e.id;
+      const bonos=Object.entries(e.at||{}).map(([k,v])=>tag((v>0?'+':'')+v+' '+PATR.find(x=>x.id===k).n.toLowerCase(),v>0?'g':'r')).join('');
+      return`<div class="card ${puesto?'hl':''}"><div class="c-top"><div class="c-em">${e.em}</div><div style="min-width:0"><p class="c-name">${e.n}</p><div class="c-sub">${e.d||''}</div></div></div>
+        <div class="tags">${e.dmg?tag('Daño base '+e.dmg,'y'):''}${e.def?tag('Armadura '+e.def,'b'):''}${bonos}</div>
+        <div class="c-row">${tengo?'':`<span class="price">${fmt(e.$)}</span>`}<button class="btn" style="margin-left:auto" data-act="pvEquipar" data-arg="${e.id}" ${!tengo||puesto?'disabled':''}>${puesto?'Puesto':tengo?'Equipar':'Se compra en el Almacén'}</button></div></div>`}).join('')}</div>`;
+    return{body:info('🏪','El equipo se compra en el <b>Almacén y Bazar</b>, pestaña Combate. Aquí decides qué te pones.')+grupo('arma','Armas')+grupo('armadura','Armaduras')+grupo('amuleto','Amuletos')};
+  }
+  if(tab==='hb'){
+    return{body:info('📜','Las habilidades también se compran en el Almacén. En el duelo puedes usar las que tengas.')+
+      `<div class="grid">${HAB.map(h=>{const tengo=p.hab.includes(h.id);
+        return`<div class="card ${tengo?'':'dim'}"><div class="c-top"><div class="c-em">${h.em}</div><div style="min-width:0"><p class="c-name">${h.n}</p><div class="c-sub">${h.d}</div></div></div>
+        <div class="tags">${h.min?tag(`${h.min}–${h.max} de daño`,'y'):''}${h.k==='mag'?tag('Usa Magia','b'):h.k==='fis'?tag('Usa Lucha','g'):''}${h.cos?tag(h.cos+' de cosmo','r'):''}${h.golpes?tag(h.golpes+' golpes','b'):''}${tag('Nivel '+h.lvl,'')}</div>
+        <div class="c-row"><span class="c-sub">${tengo?'La tienes':'Aún no la tienes'}</span></div></div>`}).join('')}</div>`};
+  }
+  const vida=pvpVida(p),arma=EQ(p.eq.arma),arm=EQ(p.eq.armadura);
+  return{body:barraExp()+
+    (p.pts?info('🏅',`Tienes <b>${p.pts}</b> punto${p.pts===1?'':'s'} sin repartir.`,'good'):info('📈',`Te faltan <b>${expNec(p.lvl)-p.exp}</b> de experiencia para el nivel ${p.lvl+1}. Ganas experiencia peleando en el Coliseo, ganes o pierdas.`))+
+    `<div class="list">${PATR.map(x=>{
+      const base=p.at[x.id]|0,tot=a[x.id],extra=tot-base;
+      return`<div class="row"><span class="c-em">${x.em}</span><div class="grow"><div class="t">${x.n} <b>${tot}</b>${extra?` <small class="c-sub">(${base}${extra>0?'+':''}${extra} del equipo)</small>`:''}</div><div class="s">${x.d}</div></div>
+        <button class="btn mini" data-act="pvSubir" data-arg="${x.id}" ${p.pts?'':'disabled'}>+1</button></div>`}).join('')}</div>
+    <p class="sec-t">Con lo que llevas puesto</p>
+    <div class="list">
+      <div class="row"><span class="c-em">❤️</span><div class="grow"><div class="t">Vida <b>${vida}</b></div><div class="s">80 de base, +5 por cada punto de defensa y +5 por nivel</div></div></div>
+      <div class="row"><span class="c-em">${arma.em}</span><div class="grow"><div class="t">${arma.n}</div><div class="s">Daño base ${arma.dmg}</div></div></div>
+      <div class="row"><span class="c-em">${arm.em}</span><div class="grow"><div class="t">${arm.n}</div><div class="s">Resta ${Math.round(pvpDef(p))} a cada golpe que recibes</div></div></div>
+      <div class="row"><span class="c-em">🍀</span><div class="grow"><div class="t">Golpe potenciado ${(8+a.suerte*.7).toFixed(1)}%</div><div class="s">×1,5 de daño cuando sale</div></div></div>
+    </div>`};
+}
+ACTIONS.pvSubir=id=>{const p=pvpState();if(!p.pts||!PATR.find(x=>x.id===id))return;p.pts--;p.at[id]=(p.at[id]|0)+1;beep('good');save();drawSheet(true)};
+ACTIONS.pvEquipar=id=>{const e=EQ(id),p=pvpState();if(!e)return;
+  if(e.$>0&&!(p.comprado||[]).includes(id))return;
+  p.eq[e.t]=id;beep('click');save();drawSheet(true)};
+ACTIONS.pvFicha=()=>{closeSheet();setTimeout(openFicha,60)};
+
+/* =========================================================
+   TIENDA · pestaña Combate en el Almacén
+   ========================================================= */
+function tiendaCombate(){
+  const p=pvpState(),comp=p.comprado||[];
+  const eqs=EQUIPO.filter(e=>e.$>0&&!comp.includes(e.id));
+  const habs=HAB.filter(h=>h.$>0&&!p.hab.includes(h.id));
+  const cardEq=e=>{
+    const bonos=Object.entries(e.at||{}).map(([k,v])=>tag((v>0?'+':'')+v+' '+PATR.find(x=>x.id===k).n.toLowerCase(),v>0?'g':'r')).join('');
+    return`<div class="card"><div class="c-top"><div class="c-em">${e.em}</div><div style="min-width:0"><p class="c-name">${e.n}</p><div class="c-sub">${e.d||''}</div></div></div>
+      <div class="tags">${e.dmg?tag('Daño base '+e.dmg,'y'):''}${e.def?tag('Armadura '+e.def,'b'):''}${bonos}</div>
+      <div class="c-row"><span class="price">${fmt(e.$)}</span><button class="btn" style="margin-left:auto" data-act="pvComprarEq" data-arg="${e.id}" ${S.money<e.$?'disabled':''}>${S.money<e.$?'Falta dinero':'Comprar'}</button></div></div>`};
+  const cardHab=h=>{
+    const falta=p.lvl<h.lvl;
+    return`<div class="card ${falta?'dim':''}"><div class="c-top"><div class="c-em">${h.em}</div><div style="min-width:0"><p class="c-name">${h.n}</p><div class="c-sub">${h.d}</div></div></div>
+      <div class="tags">${h.min?tag(`${h.min}–${h.max} de daño`,'y'):''}${h.k==='mag'?tag('Usa Magia','b'):h.k==='fis'?tag('Usa Lucha','g'):''}${h.cos?tag(h.cos+' de cosmo','r'):''}${tag('Nivel '+h.lvl,falta?'r':'')}</div>
+      <div class="c-row"><span class="price">${fmt(h.$)}</span><button class="btn" style="margin-left:auto" data-act="pvComprarHab" data-arg="${h.id}" ${falta||S.money<h.$?'disabled':''}>${falta?'Nivel '+h.lvl:S.money<h.$?'Falta dinero':'Aprender'}</button></div></div>`};
+  return info('⚔️',`Para el Coliseo, al sur del puente. Eres <b>nivel ${p.lvl}</b>. <button class="lnk" data-act="pvFicha">Ver tu ficha de combate</button>`)
+    +(eqs.length?`<p class="sec-t">Equipo</p><div class="grid">${eqs.map(cardEq).join('')}</div>`:'')
+    +(habs.length?`<p class="sec-t">Habilidades</p><div class="grid">${habs.map(cardHab).join('')}</div>`:'')
+    +(!eqs.length&&!habs.length?`<div class="empty">Ya compraste todo lo que hay. Lo que falta se gana subiendo de nivel.</div>`:'');
+}
+ACTIONS.pvComprarEq=id=>{const e=EQ(id),p=pvpState();if(!e||S.money<e.$)return;
+  S.money-=e.$;p.comprado=[...(p.comprado||[]),id];p.eq[e.t]=id;
+  beep('good');refreshHUD();save();toast(e.em,`Compraste <b>${e.n}</b> y ya lo llevas puesto.`,'good');drawSheet(true)};
+ACTIONS.pvComprarHab=id=>{const h=HB(id),p=pvpState();if(!h||S.money<h.$||p.lvl<h.lvl)return;
+  S.money-=h.$;p.hab=[...p.hab,id];beep('good');refreshHUD();save();
+  toast(h.em,`Aprendiste <b>${h.n}</b>. La puedes usar en el Coliseo.`,'good');drawSheet(true)};
+/* se engancha como una pestaña más del Almacén */
+(function(){
+  const o=openShop;
+  openShop=function(){o.apply(this,arguments);
+    if(modal&&modal.kind==='shop'){modal.tabs=[...modal.tabs,{id:'combate',label:'⚔️ Combate'}];drawSheet()}};
+  const r=renderShop;
+  renderShop=function(tab){if(tab==='combate')return{body:tiendaCombate()};return r.apply(this,arguments)};
+})();
+
+/* =========================================================
+   EL COLISEO · al sur del puente
+   ========================================================= */
+const ARENA={x:1050,y:1560,r:150};
+/* se pinta sobre el suelo, igual que la plaza */
+(function(){
+  const o=buildGround;
+  buildGround=function(...a){
+    const r=o.apply(this,a);
+    try{
+      const g=GROUND.getContext('2d'),A=ARENA;
+      g.save();
+      g.beginPath();g.arc(A.x,A.y,A.r+22,0,7);g.fillStyle='#8d8372';g.fill();      // borde de piedra
+      g.beginPath();g.arc(A.x,A.y,A.r,0,7);g.fillStyle='#d8c39a';g.fill();          // arena
+      g.globalAlpha=.5;g.beginPath();g.arc(A.x,A.y,A.r,0,7);
+      g.fillStyle=g.createPattern(TEX.cobbleWarm,'repeat')||'#d8c39a';g.fill();g.globalAlpha=1;
+      g.strokeStyle='rgba(255,255,255,.30)';g.lineWidth=7;g.beginPath();g.arc(A.x,A.y,A.r-26,0,7);g.stroke();
+      g.strokeStyle='rgba(120,92,56,.35)';g.lineWidth=3;g.beginPath();g.arc(A.x,A.y,A.r-20,0,7);g.stroke();
+      // losas radiales
+      for(let i=0;i<24;i++){const an=i/24*Math.PI*2;
+        g.strokeStyle='rgba(120,92,56,.20)';g.lineWidth=2;g.beginPath();
+        g.moveTo(A.x+Math.cos(an)*(A.r-24),A.y+Math.sin(an)*(A.r-24));
+        g.lineTo(A.x+Math.cos(an)*A.r,A.y+Math.sin(an)*A.r);g.stroke()}
+      // círculo central
+      g.beginPath();g.arc(A.x,A.y,34,0,7);g.strokeStyle='rgba(120,92,56,.45)';g.lineWidth=3;g.stroke();
+      g.fillStyle='rgba(120,92,56,.30)';g.font=`800 26px ${FONT_B}`;g.textAlign='center';g.textBaseline='middle';
+      g.fillText('⚔',A.x,A.y+1);
+    }catch(e){console.warn('coliseo',e)}
+    return r;
+  };
+})();
+/* postes con banderines, fuera de la línea de paso */
+function arenaProps(){
+  const out=[];
+  for(let i=0;i<6;i++){
+    const an=(i/6)*Math.PI*2+Math.PI/6;
+    out.push({x:Math.round(ARENA.x+Math.cos(an)*(ARENA.r+13)),y:Math.round(ARENA.y+Math.sin(an)*(ARENA.r+13))});
+  }
+  return out;
+}
+function drawPoste(g,x,y){
+  g.save();g.translate(x,y);
+  g.fillStyle='rgba(10,25,15,.28)';g.beginPath();g.ellipse(0,0,11,4,0,0,7);g.fill();
+  g.fillStyle='#6b4a2e';g.fillRect(-3,-54,6,54);
+  g.fillStyle='#8a6240';g.fillRect(-4,-58,8,6);
+  const on=Math.sin(T*2+x*.01)*.5+.5;
+  g.fillStyle=`rgba(217,74,58,${.85+.15*on})`;
+  g.beginPath();g.moveTo(3,-52);g.lineTo(27,-46);g.lineTo(3,-38);g.closePath();g.fill();
+  g.fillStyle='rgba(255,255,255,.55)';g.fillRect(3,-52,2,14);
+  g.restore();
+}
+
+/* =========================================================
+   DUELO
+   ========================================================= */
+const DU={id:null,rol:null,otro:null,otroN:'',otroC:0,v:null,pa:null,pb:null,
+          inv:null,invT:0,timer:null,proc:{a:-1,b:-1},anim:null,dmgs:[],shake:0,flash:0};
+const DU_INV_MS=30000;
+function duActivo(){return !!(DU.id&&DU.v&&DU.v.fase!=='fin0')}
+function duYo(){return DU.rol}
+function duRival(){return DU.rol==='a'?'b':'a'}
+function duEsHost(){return DU.rol==='a'}
+function duPerfil(l){return l==='a'?DU.pa:DU.pb}
+function duHp(l){return l==='a'?DU.v.hpA:DU.v.hpB}
+function duCos(l){return l==='a'?DU.v.cosA:DU.v.cosB}
+function duNombre(l){return l===DU.rol?'Tú':(DU.otroN||'Rival')}
+
+/* ---------- daño ---------- */
+function duGolpe(at,df,h,deb){
+  const a=at.at;
+  if(h.k==='def')return{dmg:0,tag:'guardia'};
+  const esq=clamp((df.at.agilidad-a.agilidad)*1.6,0,22);
+  if(Math.random()*100<esq)return{dmg:0,tag:'miss'};
+  const pc=8+a.suerte*.7;const r=Math.random()*100;
+  let x=1,tag='';
+  if(r<pc){x=1.5;tag='crit'}else if(r<pc+10){x=.7;tag='weak'}
+  const n=h.golpes||1;let tot=0;
+  for(let i=0;i<n;i++){
+    let base=rnd(h.min,h.max)+(h.k==='mag'?a.magia*1.5:a.lucha*1.2+at.arma);
+    tot+=base;
+  }
+  let d=tot*x*(deb?.7:1)-df.def;
+  return{dmg:Math.max(1,Math.round(d)),tag};
+}
+/* ---------- el anfitrión arma el estado inicial ---------- */
+function duEstadoInicial(){
+  const A=DU.pa,B=DU.pb;
+  const turno=A.at.agilidad===B.at.agilidad?'a':(A.at.agilidad>B.at.agilidad?'a':'b');
+  return{seq:1,fase:'elige',turno,hpA:A.vida,hpB:B.vida,maxA:A.vida,maxB:B.vida,
+         cosA:0,cosB:0,debA:0,debB:0,guaA:0,guaB:0,
+         msg:`Empieza ${turno==='a'?'quien desafía':'quien fue desafiado'}: tiene más agilidad.`,
+         mv:null,q:null,ans:null,ok:null,dmg:0,tag:'',gan:null};
+}
+function duPublicar(){ if(duEsHost()&&DU.id)NET.adapter.duelUpd(DU.id,{v:JSON.stringify(DU.v)}) }
+function duEnviar(o){
+  if(!DU.id||!DU.v)return;
+  const k=DU.rol==='a'?'ia':'ib';
+  NET.adapter.duelUpd(DU.id,{[k]:JSON.stringify({...o,s:DU.v.seq})});
+}
+/* ---------- el anfitrión recibe una jugada ---------- */
+function duInput(lado,txt){
+  if(!duEsHost()||!DU.v||!txt)return;
+  let i;try{i=JSON.parse(txt)}catch(e){return}
+  if(i.s!==DU.v.seq||DU.proc[lado]===i.s)return;
+  const v=DU.v;
+  if(v.fase==='elige'&&lado===v.turno&&i.mv){
+    const h=HB(i.mv);if(!h)return;
+    const perf=duPerfil(lado);
+    if(!perf.hab.includes(h.id))return;
+    const cos=lado==='a'?v.cosA:v.cosB;
+    if(h.cos&&cos<h.cos)return;
+    DU.proc[lado]=i.s;
+    if(h.cos){if(lado==='a')v.cosA-=h.cos;else v.cosB-=h.cos}
+    v.mv=h.id;
+    if(h.k==='def'){   // guardia: no hay pregunta, se resuelve solo
+      if(lado==='a')v.guaA=1;else v.guaB=1;
+      const cur=lado==='a'?'hpA':'hpB',mx=lado==='a'?'maxA':'maxB';
+      v[cur]=Math.min(v[mx],v[cur]+8);
+      v.fase='msg';v.msg=`${duNombreRed(lado)} se cubre: el próximo golpe pega la mitad y recupera 8 de vida.`;
+      v.dmg=0;v.tag='guardia';v.seq++;duPublicar();duTimer(1.8);return;
+    }
+    v.q=duPregunta();v.ans=null;v.ok=null;v.fase='preg';v.seq++;
+    v.msg=`${duNombreRed(lado)} prepara <b>${h.n}</b>. ${duNombreRed(lado==='a'?'b':'a')} tiene que responder para bloquear.`;
+    duPublicar();return;
+  }
+  if(v.fase==='preg'&&lado!==v.turno&&i.ans!=null){
+    DU.proc[lado]=i.s;
+    const Q=QUIZ[v.q],ok=+i.ans===Q.a;
+    v.ans=+i.ans;v.ok=ok;
+    const at=duPerfil(v.turno),df=duPerfil(lado),h=HB(v.mv);
+    if(ok){
+      if(lado==='a')v.cosA=Math.min(4,v.cosA+1);else v.cosB=Math.min(4,v.cosB+1);
+      v.dmg=0;v.tag='bloq';v.fase='msg';
+      v.msg=`<b>¡Correcto!</b> ${duNombreRed(lado)} bloquea <b>${h.n}</b> y carga cosmo.`;
+    }else{
+      const deb=v.turno==='a'?v.debA:v.debB;
+      let g=duGolpe(at,df,h,deb>0);
+      if(deb>0){if(v.turno==='a')v.debA--;else v.debB--}
+      const gua=lado==='a'?v.guaA:v.guaB;
+      if(gua){g.dmg=Math.round(g.dmg/2);if(lado==='a')v.guaA=0;else v.guaB=0}
+      if(h.id==='duda'){if(lado==='a')v.debA=2;else v.debB=2}
+      if(lado==='a')v.hpA=Math.max(0,v.hpA-g.dmg);else v.hpB=Math.max(0,v.hpB-g.dmg);
+      v.dmg=g.dmg;v.tag=g.tag;v.fase='anim';
+      v.msg=g.tag==='miss'?`<b>No era esa…</b> pero ${duNombreRed(lado)} esquiva por agilidad.`
+           :`<b>No era esa.</b> ${h.n} se concreta.`;
+    }
+    v.seq++;duPublicar();duTimer(ok?2.2:1.2);return;
+  }
+}
+function duNombreRed(l){return l==='a'?(DU.rol==='a'?'Tú':DU.otroN):(DU.rol==='b'?'Tú':DU.otroN)}
+function duPregunta(){
+  DU.qs=DU.qs||[];let pool=QUIZ.map((q,i)=>i).filter(i=>!DU.qs.includes(i));
+  if(!pool.length){DU.qs=[];pool=QUIZ.map((q,i)=>i)}
+  const k=pool[Math.floor(Math.random()*pool.length)];DU.qs.push(k);return k;
+}
+/* ---------- temporizador del anfitrión ---------- */
+let DU_T=0;
+function duTimer(s){DU_T=s}
+function duTick(dt){
+  if(!DU.v)return;
+  DU.shake=Math.max(0,DU.shake-dt);DU.flash=Math.max(0,DU.flash-dt*2);
+  for(const d of DU.dmgs)d.t-=dt;DU.dmgs=DU.dmgs.filter(d=>d.t>0);
+  if(DU.anim){DU.anim.t+=dt;if(DU.anim.t>=DU.anim.dur)DU.anim=null}
+  if(!duEsHost())return;
+  if(DU_T>0){DU_T-=dt;if(DU_T>0)return}
+  const v=DU.v;
+  if(v.fase==='anim'){v.fase='msg';v.seq++;
+    const h=HB(v.mv);
+    v.msg=v.tag==='miss'?v.msg:`${h.n} pega por <b>${v.dmg}</b>.`+
+      (v.tag==='crit'?' <b>¡Golpe potenciado!</b> (×1,5)':v.tag==='weak'?' Salió debilitado (×0,7).':'');
+    duPublicar();duTimer(1.7);return;
+  }
+  if(v.fase==='msg'){
+    if(v.hpA<=0||v.hpB<=0){
+      v.gan=v.hpA<=0?'b':'a';v.fase='fin';v.seq++;
+      v.msg=`<b>${duNombreRed(v.gan)} gana el duelo.</b>`;
+      duPublicar();return;
+    }
+    v.turno=v.turno==='a'?'b':'a';v.fase='elige';v.mv=null;v.q=null;v.ans=null;v.ok=null;v.dmg=0;v.tag='';
+    v.msg=`Turno de ${duNombreRed(v.turno)}.`;v.seq++;duPublicar();return;
+  }
+}
+
+/* ---------- lo que llega de la red ---------- */
+function duHandle(id,raw){
+  if(!raw)return;
+  const soyA=raw.a===NET.uid,soyB=raw.b===NET.uid;
+  if(!soyA&&!soyB)return;
+  const st=raw.st;
+  if(st==='inv'&&soyB&&DU.id!==id&&DU.inv!==id){
+    if(duActivo()||!S.started||S.over){NET.adapter.duelUpd(id,{st:'busy',by:NET.uid});return}
+    if(NET.muted&&NET.muted[raw.a]){NET.adapter.duelUpd(id,{st:'no',by:NET.uid});return}
+    if(Date.now()-(raw.t||0)>DU_INV_MS)return;
+    DU.inv=id;DU.invRaw=raw;DU.invT=Date.now();duInvitacion(raw);return;
+  }
+  if(st==='no'||st==='busy'||st==='exp'||st==='x'){
+    if(DU.inv===id){DU.inv=null;if(modal&&modal.kind==='duinv')closeSheet()}
+    if(DU.id===id){toast('⚔️','El duelo se canceló.','warn');duSalir()}
+    else if(st==='no')toast('⚔️',`${raw.bn||'Tu rival'} no quiso pelear ahora.`);
+    else if(st==='busy')toast('⚔️',`${raw.bn||'Tu rival'} está ocupado.`);
+    return;
+  }
+  if(st==='open'){
+    if(DU.id!==id){
+      if(duActivo())return;
+      DU.id=id;DU.rol=soyA?'a':'b';DU.otro=soyA?raw.b:raw.a;DU.otroN=(soyA?raw.bn:raw.an)||'Rival';
+      DU.inv=null;DU.proc={a:-1,b:-1};DU.qs=[];DU.dmgs=[];DU.anim=null;DU.v=null;
+      const pr=NET.peers[DU.otro];DU.otroC=pr?pr.c:0;
+      duEntrar();
+    }
+    try{if(raw.pa)DU.pa=JSON.parse(raw.pa);if(raw.pb)DU.pb=JSON.parse(raw.pb)}catch(e){}
+    if(duEsHost()){
+      if(!DU.v&&DU.pa&&DU.pb){DU.v=duEstadoInicial();duPublicar();duTimer(1.8)}
+      if(DU.v){if(raw.ia)duInput('a',raw.ia);if(raw.ib)duInput('b',raw.ib)}
+    }else if(raw.v){
+      try{const nv=JSON.parse(raw.v);
+        if(!DU.v||nv.seq>DU.v.seq){const prev=DU.v;DU.v=nv;duEfectos(nv,prev)}}catch(e){}
+    }
+    duPaint();
+  }
+}
+/* sacudida y números de daño cuando cambia el estado */
+function duEfectos(v,prev){
+  if(!prev)return;
+  if(v.dmg>0&&v.fase==='anim'){
+    const yo=v.turno!==DU.rol;    // ¿me pegaron a mí?
+    DU.shake=.4;DU.anim={lado:v.turno,t:0,dur:1.0,h:HB(v.mv)};
+    DU.dmgs.push({v:v.dmg,x:yo?136:338,y:yo?214:124,t:1.1,c:yo?'#ff9a8a':'#ffd36b'});
+    beep('bad');
+  }
+  if(v.tag==='bloq'){DU.flash=.5;beep('good')}
+}
+/* ---------- invitación ---------- */
+function duInvitacion(raw){
+  let pa=null;try{pa=JSON.parse(raw.pa||'null')}catch(e){}
+  openSheet({kind:'duinv',title:'Te desafían a un duelo',emoji:'⚔️',color:'#8a3d3d',
+    sub:()=>`${raw.an} quiere pelear contigo en el Coliseo`,
+    render:()=>({body:
+      info('⚔️',`<b>${raw.an}</b> te desafía.${pa?` Es <b>nivel ${pa.lvl}</b>.`:''} No se apuesta nada: los dos ganan experiencia, gane quien gane.`)+
+      (pa?`<div class="list">${PATR.map(x=>`<div class="row"><span class="c-em">${x.em}</span><div class="grow"><div class="t">${x.n}</div></div><b>${pa.at[x.id]}</b></div>`).join('')}</div>`:''),
+      foot:`<button class="btn ghost" data-act="duNo">Ahora no</button><button class="btn" data-act="duSi">Aceptar el duelo</button>`})});
+  clearInterval(DU.timer);
+  DU.timer=setInterval(()=>{
+    if(!DU.inv){clearInterval(DU.timer);return}
+    if(Date.now()-DU.invT>DU_INV_MS){
+      clearInterval(DU.timer);const id=DU.inv;DU.inv=null;
+      if(modal&&modal.kind==='duinv')closeSheet();
+      NET.adapter.duelUpd(id,{st:'exp',by:NET.uid});
+      toast('⚔️','Se acabó el tiempo para aceptar el duelo.');
+    }
+  },1000);
+}
+ACTIONS.duSi=()=>{const id=DU.inv;if(!id)return;clearInterval(DU.timer);DU.inv=null;closeSheet();
+  NET.adapter.duelUpd(id,{pb:JSON.stringify(pvpPerfil()),st:'open'});beep('good')};
+ACTIONS.duNo=()=>{const id=DU.inv;if(!id)return;clearInterval(DU.timer);DU.inv=null;closeSheet();
+  NET.adapter.duelUpd(id,{st:'no',by:NET.uid})};
+/* ---------- desafiar ---------- */
+function duRetar(uid){
+  const p=NET.peers[uid];if(!p)return;
+  if(duActivo()){toast('⚔️','Ya estás en un duelo.');return}
+  if(!enArena(player.x,player.y)){toast('⚔️','Solo se pelea dentro del Coliseo.');return}
+  const id='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  DU.inv=null;DU.pa=pvpPerfil();DU.pb=null;
+  NET.adapter.duelNew(id,{a:NET.uid,b:uid,an:NET.name,bn:p.n,st:'inv',t:netNow(),
+                          pa:JSON.stringify(DU.pa),v:'',ia:'',ib:''});
+  beep('click');toast('⚔️',`Desafiaste a <b>${p.n}</b>. Esperando que acepte…`);
+}
+/* ---------- entrar y salir ---------- */
+function duEntrar(){
+  batLoad();armTrack(TRACKS.bat);
+  DU.vuelta={x:player.x,y:player.y};
+  player.scene='duelo';keys.clear();player.vx=player.vy=0;
+  document.getElementById('app').classList.add('in-battle');
+  $('#btl').hidden=false;duPaint();
+}
+function duSalir(){
+  $('#btl').hidden=true;document.getElementById('app').classList.remove('in-battle');
+  const v=DU.vuelta||{x:ARENA.x,y:ARENA.y+ARENA.r-30};
+  player.scene='world';player.x=v.x;player.y=v.y;player.vx=player.vy=0;
+  DU.id=null;DU.v=null;DU.rol=null;DU.otro=null;DU.pa=DU.pb=null;DU.anim=null;DU.dmgs=[];
+  clearInterval(DU.timer);snapCamera();save();
+}
+function duFin(){
+  const v=DU.v;if(!v||!v.gan)return duSalir();
+  const gane=v.gan===DU.rol,p=pvpState(),rival=duPerfil(duRival())||{lvl:1};
+  const exp=gane?30+8*rival.lvl:12+3*rival.lvl;
+  if(gane)p.win=(p.win|0)+1;else p.lose=(p.lose|0)+1;
+  if(DU.id&&duEsHost())NET.adapter.duelUpd(DU.id,{st:'fin'});
+  duSalir();
+  toast(gane?'🏆':'🤝',gane?`Ganaste el duelo contra <b>${DU.otroN||'tu rival'}</b>.`
+                          :`Perdiste contra <b>${DU.otroN||'tu rival'}</b>. También se aprende.`,gane?'good':'warn');
+  pvpGanarExp(exp,gane?'victoria':'derrota');
+}
+ACTIONS.duFin=()=>duFin();
+ACTIONS.duMove=id=>{if(!DU.v||DU.v.fase!=='elige'||DU.v.turno!==DU.rol)return;beep('click');duEnviar({mv:id})};
+ACTIONS.duAns=i=>{if(!DU.v||DU.v.fase!=='preg'||DU.v.turno===DU.rol)return;duEnviar({ans:+i})};
+ACTIONS.duRetar=uid=>duRetar(uid);
+
+/* =========================================================
+   DIBUJO DEL DUELO
+   ========================================================= */
+function duSpr(g,img,half,dir,cx,by,h){
+  if(!img)return;
+  const sw=half?KS.cw/2:KS.cw,sh=half?KS.ch/2:KS.ch,w=sw/sh*h;
+  g.drawImage(img,0,dir*sh,sw,sh,Math.round(cx-w/2),Math.round(by-h),Math.round(w),Math.round(h));
+}
+function renderDuel(){
+  const{cw,ch}=view,ph=batPanelH(),av=ch-ph;
+  const z=Math.min(cw/BW,av/BH),ox=(cw-BW*z)/2,oy=(av-BH*z)/2;
+  ctx.fillStyle='#120d08';ctx.fillRect(0,0,cw,ch);
+  ctx.save();ctx.translate(ox,oy);ctx.scale(z,z);
+  ctx.beginPath();ctx.rect(-ox/z,-oy/z,cw/z,av/z);ctx.clip();
+  const sh=DU.shake>0?Math.sin(T*60)*DU.shake*5:0;ctx.translate(sh,0);
+  const prev=ctx.imageSmoothingEnabled;ctx.imageSmoothingEnabled=false;
+  // --- fondo: ruedo de arena con gradas
+  const g1=ctx.createLinearGradient(0,0,0,BH);
+  g1.addColorStop(0,'#2a1f16');g1.addColorStop(.42,'#4a382a');g1.addColorStop(.46,'#8d8372');g1.addColorStop(1,'#d8c39a');
+  ctx.fillStyle=g1;ctx.fillRect(0,0,BW,BH);
+  // público (siluetas)
+  for(let i=0;i<70;i++){
+    const x=((i*73)%BW)+((i%3)-1)*3,y=22+((i*37)%74);
+    ctx.fillStyle=`rgba(${20+i%30},${14+i%22},${10+i%18},.9)`;
+    ctx.beginPath();ctx.arc(x,y,4.5+(i%3),0,7);ctx.fill();
+  }
+  ctx.fillStyle='rgba(0,0,0,.30)';ctx.fillRect(0,0,BW,96);
+  // banderines
+  for(let i=0;i<9;i++){const x=22+i*52,on=Math.sin(T*2+i)*.5+.5;
+    ctx.fillStyle=`rgba(217,74,58,${.7+.3*on})`;
+    ctx.beginPath();ctx.moveTo(x,98);ctx.lineTo(x+16,98);ctx.lineTo(x+8,114);ctx.closePath();ctx.fill()}
+  // elipses del ruedo
+  const plat=(x,y,rx)=>{ctx.save();ctx.globalCompositeOperation='multiply';
+    ctx.fillStyle='rgba(120,92,56,.22)';ctx.beginPath();ctx.ellipse(x,y,rx,rx*.28,0,0,7);ctx.fill();ctx.restore()};
+  plat(338,150,60);plat(136,238,74);
+  if(!DU.v){ctx.imageSmoothingEnabled=prev;ctx.restore();return}
+  const v=DU.v,A=DU.anim;
+  const miLado=DU.rol,suLado=duRival();
+  // --- rival arriba, de frente
+  let mx=338,my=150;
+  if(A&&A.lado===suLado){const k=Math.sin(Math.min(1,A.t/A.dur)*Math.PI);mx-=k*24;my+=k*8}
+  const spr=PEER_SPR[DU.otroC%Math.max(1,PEER_SPR.length)];
+  ctx.save();ctx.globalAlpha=duHp(suLado)>0?1:.35;
+  duSpr(ctx,spr?spr.c:IMG.ksheet,!!spr,0,mx,my+Math.sin(T*2.2)*2,96);ctx.restore();
+  // --- yo abajo, de espaldas
+  let px=136,py=238;
+  if(A&&A.lado===miLado){const k=Math.sin(Math.min(1,A.t/A.dur)*Math.PI);px+=k*28;py-=k*10}
+  ctx.save();ctx.globalAlpha=duHp(miLado)>0?1:.35;
+  duSpr(ctx,IMG.ksheet,false,3,px,py,104);ctx.restore();
+  // --- efecto del golpe
+  if(A&&A.h)duFx(ctx,A,A.lado===miLado);
+  if(DU.flash>0){ctx.save();ctx.globalCompositeOperation='lighter';
+    ctx.fillStyle=`rgba(140,220,180,${DU.flash*.25})`;ctx.fillRect(0,0,BW,BH);ctx.restore()}
+  // --- cajas de vida
+  batHpBox(ctx,14,14,(DU.otroN||'RIVAL').toUpperCase().slice(0,14)+' · N'+((duPerfil(suLado)||{}).lvl||1),
+           duHp(suLado),suLado==='a'?v.maxA:v.maxB,duCos(suLado));
+  batHpBox(ctx,BW-202,BH-62,'TÚ · N'+pvpState().lvl,duHp(miLado),miLado==='a'?v.maxA:v.maxB,duCos(miLado));
+  // --- números de daño
+  ctx.textAlign='center';
+  for(const d of DU.dmgs){ctx.save();ctx.globalAlpha=Math.min(1,d.t*2);ctx.font=`800 20px ${FONT_B}`;
+    ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText('-'+d.v,d.x+1,d.y-(1.1-d.t)*26+1);
+    ctx.fillStyle=d.c;ctx.fillText('-'+d.v,d.x,d.y-(1.1-d.t)*26);ctx.restore()}
+  ctx.imageSmoothingEnabled=prev;ctx.restore();
+}
+function duFx(g,A,mio){
+  const k=Math.min(1,A.t/A.dur),h=A.h;
+  const x0=mio?340:140,y0=mio?130:220;
+  g.save();g.globalCompositeOperation='lighter';
+  if(h.k==='mag'){
+    const gr=g.createRadialGradient(x0,y0,0,x0,y0,20+k*60);
+    gr.addColorStop(0,`rgba(255,225,140,${.8*(1-k)})`);gr.addColorStop(1,'rgba(255,170,60,0)');
+    g.fillStyle=gr;g.fillRect(x0-90,y0-90,180,180);
+    if(h.id==='revol')bspr(g,'fxStar',x0,y0+60,.6+k*.9,1-k*.2,true);
+  }else if(h.id==='rafaga'){
+    for(let i=0;i<3;i++){const t=k*1.5-i*.2;if(t<=0||t>1)continue;
+      g.strokeStyle=`rgba(200,235,255,${1-t})`;g.lineWidth=4;g.lineCap='round';
+      g.beginPath();g.arc(x0,y0,26+t*26+i*6,-1+t*2,.4+t*2);g.stroke()}
+  }else if(h.id==='duda'){
+    for(let i=0;i<3;i++){const t=(k*1.4-i*.18);if(t<=0||t>1)continue;
+      g.strokeStyle=`rgba(150,230,200,${.7*(1-t)})`;g.lineWidth=2;g.beginPath();g.arc(x0,y0,18+t*58,0,7);g.stroke()}
+  }else{
+    g.strokeStyle=`rgba(220,240,255,${1-k})`;g.lineWidth=5;g.lineCap='round';
+    g.beginPath();g.arc(x0,y0,38+k*20,-1.1+k*2,.5+k*2);g.stroke();
+  }
+  g.restore();
+}
+/* ---------- panel de abajo ---------- */
+function duPaint(){
+  const el=$('#btl');if(!el)return;
+  if(!DU.v){el.innerHTML=`<div class="bt-msg">Preparando el duelo…</div>`;return}
+  const v=DU.v,miTurno=v.turno===DU.rol;
+  let body='';
+  if(v.fase==='fin'){
+    const gane=v.gan===DU.rol;
+    body=`<div class="bt-moves end"><button class="bt-mv" data-act="duFin"><b>${gane?'¡Ganaste!':'Volver al Coliseo'}</b><small>${gane?'Ganas experiencia y una victoria':'Igual ganas experiencia'}</small></button></div>`;
+  }else if(v.fase==='elige'){
+    if(miTurno){
+      const p=pvpState();
+      body=`<div class="bt-moves">${p.hab.map(id=>HB(id)).filter(Boolean).map(h=>{
+        const cos=duCos(DU.rol),no=h.cos&&cos<h.cos;
+        return`<button class="bt-mv${no?' off':''}" data-act="duMove" data-arg="${h.id}" ${no?'disabled':''} style="--mc:#ffd36b">
+          <b>${h.em} ${h.n}</b><small>${no?`Necesita ${h.cos} de cosmo`:h.d}</small></button>`}).join('')}</div>`;
+    }else body=`<div class="bt-wait">Espera: ${DU.otroN} está eligiendo su golpe…</div>`;
+  }else if(v.fase==='preg'){
+    if(!miTurno){
+      const Q=QUIZ[v.q],t=QT(Q.t);
+      body=`<p class="bt-q"><span class="bt-tp">${t.emoji} ${t.name}</span>${Q.q}</p>
+        <div class="bt-opts">${Q.o.map((o,i)=>`<button class="bt-op" data-act="duAns" data-arg="${i}">${'ABC'[i]} ${o}</button>`).join('')}</div>`;
+    }else body=`<div class="bt-wait">${DU.otroN} está respondiendo para bloquear tu golpe…</div>`;
+  }else if(v.fase==='msg'&&v.q!=null&&v.ans!=null){
+    const Q=QUIZ[v.q];
+    body=`<div class="bt-exp"><b>${Q.o[Q.a]}</b> · ${Q.e}</div>`;
+  }
+  el.innerHTML=`<div class="bt-msg">${v.msg||''}</div>`+body;
+}
+/* ---------- teclado ---------- */
+function duKey(code){
+  if(!DU.v)return;
+  const n=/^Digit([1-9])$/.exec(code)||/^Numpad([1-9])$/.exec(code);
+  const v=DU.v,miTurno=v.turno===DU.rol;
+  if(v.fase==='elige'&&miTurno&&n){const p=pvpState(),h=p.hab.map(HB).filter(Boolean)[+n[1]-1];if(h)ACTIONS.duMove(h.id);return}
+  if(v.fase==='preg'&&!miTurno&&n)return ACTIONS.duAns(+n[1]-1);
+  if(v.fase==='preg'&&!miTurno&&/^Key([ABC])$/.test(code))return ACTIONS.duAns('ABC'.indexOf(code.slice(3)));
+  if(v.fase==='fin'&&(code==='Enter'||code==='Space'||code==='KeyE'))return duFin();
+}
+
+/* =========================================================
+   ENGANCHES CON EL RESTO DEL JUEGO
+   ========================================================= */
+function enArena(x,y){return Math.hypot(x-ARENA.x,y-ARENA.y)<ARENA.r-14}
+
+/* el poste con banderín, horneado una vez */
+let POSTE=null;
+function posteSpr(){
+  if(POSTE)return POSTE;
+  const c=mk(40,70),g=c.getContext('2d');g.translate(8,66);drawPoste(g,0,0);
+  return POSTE={c,ax:8,ay:66};
+}
+(function(){
+  const o=buildWorld;
+  buildWorld=function(...a){
+    const r=o.apply(this,a);
+    try{
+      /* El pueblo se construye antes que el Coliseo, así que había árboles
+         creciendo dentro del ruedo. Se despeja antes de poner los postes. */
+      const dentro=(x,y,m)=>Math.hypot(x-ARENA.x,y-ARENA.y)<ARENA.r+(m||0);
+      for(let i=OBJECTS.length-1;i>=0;i--){const q=OBJECTS[i];
+        if(q.x==null||q.kind==='building')continue;
+        if(dentro(q.x,q.y,14))OBJECTS.splice(i,1)}
+      for(let i=CIRCLES.length-1;i>=0;i--){const c=CIRCLES[i];
+        if(dentro(c.x,c.y,14))CIRCLES.splice(i,1)}
+      for(const q of arenaProps()){
+        const e={kind:'spr',x:q.x,y:q.y};
+        Object.defineProperty(e,'spr',{get:()=>posteSpr()});
+        OBJECTS.push(e);CIRCLES.push({x:q.x,y:q.y-4,r:9});
+      }
+    }catch(e){console.warn('arena',e)}
+    return r;
+  };
+})();
+/* puntos: el centro informa, y cada rival dentro del ruedo se puede desafiar */
+(function(){
+  const o=worldSpots;
+  worldSpots=function(){
+    let s=o.apply(this,arguments);
+    s.push({id:'arena',x:ARENA.x,y:ARENA.y,r:42,label:'Coliseo: ver tu ficha de combate'});
+    if(NET.on&&enArena(player.x,player.y)){
+      /* dentro del ruedo se pelea; el trueque queda para afuera, si no ambos
+         puntos caen sobre el mismo compañero y gana el que esté primero */
+      s=s.filter(q=>q.id!=='trade');
+      for(const uid in NET.peers){const p=NET.peers[uid];
+        if(p.s!=='w'||!enArena(p.rx,p.ry))continue;
+        s.push({id:'duRetar',uid,x:p.rx,y:p.ry,r:64,label:'Desafiar a '+p.n+' a un duelo'});
+      }
+    }
+    return s;
+  };
+  const oi=interact;
+  interact=function(){
+    const s=nearestSpot();
+    if(s&&s.id==='arena'){beep('click');openFicha();return}
+    if(s&&s.id==='duRetar'){duRetar(s.uid);return}
+    return oi.apply(this,arguments);
+  };
+})();
+/* render, movimiento, música y teclado de la escena de duelo */
+(function(){
+  const o=render;render=function(){if(player.scene==='duelo'){renderDuel();return}return o.apply(this,arguments)};
+  const n=nearestSpot;nearestSpot=function(){if(player.scene==='duelo')return null;return n.apply(this,arguments)};
+  const u=updatePlayer;updatePlayer=function(dt){if(player.scene==='duelo'){player.vx=player.vy=0;player.moving=false;return}return u.apply(this,arguments)};
+  const w=wantedTrack;wantedTrack=function(){if(player.scene==='duelo')return'bat';return w.apply(this,arguments)};
+  const b=updateBattle;updateBattle=function(dt){b.apply(this,arguments);if(player.scene==='duelo')duTick(dt)};
+  const c=continueGame;continueGame=function(d){
+    if(d&&d.p&&d.p.scene==='duelo'){d.p.scene='world';d.p.x=ARENA.x;d.p.y=ARENA.y+ARENA.r-30}
+    return c.apply(this,arguments)};
+  window.addEventListener('keydown',e=>{
+    if(player.scene!=='duelo'||modal)return;
+    e.preventDefault();e.stopImmediatePropagation();duKey(e.code);
+  },true);
+})();
+/* si el rival se desconecta, el duelo se corta */
+(function(){
+  const o=NET_HANDLERS.peerGone;
+  NET_HANDLERS.peerGone=function(uid){
+    if(DU.id&&DU.otro===uid){toast('⚔️',`${DU.otroN||'Tu rival'} se desconectó. El duelo queda nulo.`,'warn');duSalir()}
+    if(DU.inv&&DU.invRaw&&DU.invRaw.a===uid){DU.inv=null;clearInterval(DU.timer);if(modal&&modal.kind==='duinv')closeSheet()}
+    return o.apply(this,arguments);
+  };
+  NET_HANDLERS.duel=function(id,v){try{duHandle(id,v)}catch(e){console.warn('duelo',e)}};
 })();
 /* =========================================================
    CENTRO DE DATOS · el computador de las casas

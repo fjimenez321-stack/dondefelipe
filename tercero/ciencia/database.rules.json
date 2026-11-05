@@ -10,7 +10,9 @@
           "$uid": {
             ".write": "auth != null && auth.uid === $uid",
             ".validate": "newData.hasChildren(['n','x','y']) && newData.child('n').isString() && newData.child('n').val().length <= 16 && newData.child('x').isNumber() && newData.child('y').isNumber()",
-            "e": { ".validate": "newData.isString() && newData.val().length <= 4" }
+            "e": {
+              ".validate": "newData.isString() && newData.val().length <= 4"
+            }
           }
         },
         "w": {
@@ -39,6 +41,141 @@
             "$uid": {
               ".write": "auth != null && auth.uid === $uid",
               ".validate": "newData.isBoolean()"
+            }
+          }
+        },
+        "chat": {
+          ".read": "auth != null",
+          "$id": {
+            ".write": "auth != null && !data.exists() && newData.child('by').val() === auth.uid",
+            ".validate": "newData.hasChildren(['by','n','m','t']) && newData.child('m').isString() && newData.child('m').val().length <= 120 && newData.child('n').isString() && newData.child('n').val().length <= 16"
+          }
+        },
+        "tr": {
+          ".read": "auth != null",
+          ".indexOn": [
+            "t"
+          ],
+          "$id": {
+            ".write": "auth != null && !data.exists() && newData.child('a').val() === auth.uid && newData.child('st').val() === 'inv'",
+            ".validate": "newData.hasChildren(['a','b','st','t'])",
+            "st": {
+              ".write": "auth != null && (data.parent().child('a').val() === auth.uid || data.parent().child('b').val() === auth.uid)",
+              ".validate": "newData.isString() && newData.val().matches(/^(inv|open|done|no|busy|exp|x|fail)$/)"
+            },
+            "by": {
+              ".write": "auth != null && (data.parent().child('a').val() === auth.uid || data.parent().child('b').val() === auth.uid)",
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "h": {
+              ".write": "auth != null && (data.parent().child('a').val() === auth.uid || data.parent().child('b').val() === auth.uid)",
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "oa": {
+              ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 3000"
+            },
+            "ra": {
+              ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "ka": {
+              ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 22"
+            },
+            "ma": {
+              ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 200"
+            },
+            "ob": {
+              ".write": "auth != null && data.parent().child('b').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 3000"
+            },
+            "rb": {
+              ".write": "auth != null && data.parent().child('b').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 20"
+            },
+            "kb": {
+              ".write": "auth != null && data.parent().child('b').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 22"
+            },
+            "mb": {
+              ".write": "auth != null && data.parent().child('b').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 200"
+            },
+            "a": {
+              ".validate": "newData.isString()"
+            },
+            "b": {
+              ".validate": "newData.isString()"
+            },
+            "an": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "bn": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "du": {
+          ".read": "auth != null",
+          ".indexOn": [
+            "t"
+          ],
+          "$id": {
+            ".write": "auth != null && !data.exists() && newData.child('a').val() === auth.uid && newData.child('st').val() === 'inv'",
+            ".validate": "newData.hasChildren(['a','b','st','t'])",
+            "st": {
+              ".write": "auth != null && (data.parent().child('a').val() === auth.uid || data.parent().child('b').val() === auth.uid)",
+              ".validate": "newData.isString() && newData.val().matches(/^(inv|open|fin|no|busy|exp|x)$/)"
+            },
+            "by": {
+              ".write": "auth != null && (data.parent().child('a').val() === auth.uid || data.parent().child('b').val() === auth.uid)",
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "v": {
+              ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 2400"
+            },
+            "ia": {
+              ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 200"
+            },
+            "ib": {
+              ".write": "auth != null && data.parent().child('b').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 200"
+            },
+            "pa": {
+              ".write": "auth != null && data.parent().child('a').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 600"
+            },
+            "pb": {
+              ".write": "auth != null && data.parent().child('b').val() === auth.uid",
+              ".validate": "newData.isString() && newData.val().length <= 600"
+            },
+            "a": {
+              ".validate": "newData.isString()"
+            },
+            "b": {
+              ".validate": "newData.isString()"
+            },
+            "an": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "bn": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "$other": {
+              ".validate": false
             }
           }
         }
