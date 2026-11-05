@@ -220,7 +220,7 @@ function pintaTabs(){
 function pintaYo(){
   var e=$('yo');
   if(!DFok){e.innerHTML='<span>Comentarios no disponibles ahora</span>';return}
-  if(!usuario){e.innerHTML='<button class="lnk" data-a="entrar">Entrar con Google</button>';return}
+  if(!usuario){e.innerHTML='<button class="lnk" data-a="entrar">Entrar</button>';return}
   e.innerHTML='<span>Hola, <b>'+esc(DF.nombreCorto(usuario.displayName,usuario.email))+'</b>'+(esMod?'<span class="mod-tag">'+(esProfe?'Admin':'Moderación')+'</span>':'')+'</span><button class="lnk" data-a="salir">salir</button>';
 }
 function promedio(id){
@@ -279,7 +279,7 @@ function pintaCom(id){
   var h='';
   if(!DFok){box.innerHTML='<p class="nota">Los comentarios no están disponibles en este momento. Inténtalo más tarde.</p>';return}
   if(!usuario){
-    h+='<p class="nota" style="margin-bottom:12px">Para leer y escribir comentarios, entra con tu cuenta de Google.</p><button class="btn" data-a="entrar">Entrar con Google</button>';
+    h+='<p class="nota" style="margin-bottom:12px">Para leer y escribir comentarios, entra con tu cuenta.</p><button class="btn" data-a="entrar">Entrar</button>';
     box.innerHTML=h;return;
   }
   if(!perfil||!DF.perfilCompleto(perfil)){
