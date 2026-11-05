@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador de Poblaciones</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: panel de control arriba · gráfico + ventana al ecosistema al centro · indicadores, conceptos y misiones abajo */
+:root{
+  --bg:#ffffff; --panel:#ffffff; --soft:#f2f8f5; --fg:#15241d; --muted:#5a6a64; --line:#dce7e2; --grid:#edf2ef;
+  --verde:#2d6a4f; --verdeOsc:#1B4332; --azul:#1f5f99; --azulClaro:#e6f0f9;
+  --curvaJ:#1f5f99; --curvaS:#2d6a4f; --capK:#4b6270; --sequia:#b7791f;
+  --f-display:"Fraunces", Georgia, "Times New Roman", serif;
+  --f-body:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1714; --panel:#13201b; --soft:#172a23; --fg:#e8efec; --muted:#9fb1aa; --line:#29403a; --grid:#1f332c;
+  --verde:#74c69d; --verdeOsc:#95d5b2; --azul:#7db7e8; --azulClaro:#18324a;
+  --curvaJ:#7db7e8; --curvaS:#74c69d; --capK:#a9bcc6; --sequia:#e0aa4c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1714; --panel:#13201b; --soft:#172a23; --fg:#e8efec; --muted:#9fb1aa; --line:#29403a; --grid:#1f332c;
+  --verde:#74c69d; --verdeOsc:#95d5b2; --azul:#7db7e8; --azulClaro:#18324a;
+  --curvaJ:#7db7e8; --curvaS:#74c69d; --capK:#a9bcc6; --sequia:#e0aa4c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1200px;margin:0 auto;display:grid;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:2px solid var(--verde)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--azul)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4.2vw,40px);line-height:1.05;margin:4px 0 0;text-wrap:balance;color:var(--verdeOsc)}
+h2{font-family:var(--f-display);font-weight:500;font-size:21px;margin:0 0 10px;color:var(--verdeOsc)}
+.formula{font-family:var(--f-mono);font-size:15px;background:var(--azulClaro);border-radius:8px;padding:8px 12px;white-space:nowrap}
+.formula b{color:var(--azul)}
+
+/* Panel de control superior */
+.panel{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:12px}
+.ctls{display:grid;grid-template-columns:1.3fr repeat(3,minmax(0,1fr)) 1.2fr;gap:12px}
+@media (max-width:1000px){.ctls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.ctls{grid-template-columns:1fr}}
+.ctl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:5px;align-content:start;min-width:0}
+.ctl .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctl .name{font-weight:600;font-size:13.5px}
+.ctl .val{font-family:var(--f-mono);font-size:14px;font-variant-numeric:tabular-nums;color:var(--azul)}
+.ctl small{color:var(--muted);font-size:12px;line-height:1.35}
+.ctl.evento{border-color:var(--sequia)}
+.ctl.evento .val{color:var(--sequia)}
+input[type=range]{width:100%;accent-color:var(--verde)}
+select{width:100%;font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font-family:var(--f-body);font-size:14px;font-weight:600;border-radius:8px;border:1px solid var(--verde);padding:8px 16px;cursor:pointer;background:var(--verde);color:var(--bg)}
+button.ghost{background:transparent;color:var(--verde)}
+a.btn{font-size:14px;font-weight:600;border-radius:8px;border:1px solid var(--azul);padding:8px 16px;background:var(--azulClaro);color:var(--azul);text-decoration:none}
+a.btn:focus-visible{outline:3px solid var(--azul);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--azul);outline-offset:2px}
+.toggles{display:flex;flex-wrap:wrap;gap:14px;margin-left:auto;font-size:13px;color:var(--muted)}
+.toggles label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.toggles input{accent-color:var(--verde)}
+
+/* Centro */
+.main{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:18px}
+@media (max-width:900px){.main{grid-template-columns:1fr}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+#cv{width:100%;height:440px;display:block}
+@media (max-width:520px){#cv{height:320px}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:22px;height:3px;border-radius:2px;display:inline-block}
+.sw.res{height:10px;opacity:.3}
+.eco{display:grid;gap:12px;align-content:start}
+.scene .lab{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px}
+.scene .lab strong{font-family:var(--f-display);font-weight:500;font-size:16px}
+.scene .lab .tag{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.scene canvas{width:100%;height:190px;display:block;border-radius:10px;border:1px solid var(--line)}
+.scene.j strong{color:var(--curvaJ)} .scene.s strong{color:var(--curvaS)}
+.recursos{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 8px;align-items:center;font-size:12px;color:var(--muted);margin-top:6px}
+.meter{height:7px;border-radius:4px;background:var(--grid);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--azul)}
+.meter.v i{background:var(--verde)}
+.recursos .n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.ecoNote{font-size:12px;color:var(--muted)}
+
+.readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.readouts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ro{border-top:3px solid var(--line);padding:8px 2px 0}
+.ro .k{font-size:12.5px;color:var(--muted)}
+.ro .v{font-family:var(--f-mono);font-size:23px;font-variant-numeric:tabular-nums}
+.ro.j{border-color:var(--curvaJ)} .ro.s{border-color:var(--curvaS)} .ro.r{border-color:var(--azul)} .ro.t{border-color:var(--capK)}
+.bar{height:8px;border-radius:4px;background:var(--grid);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--azul);width:0}
+
+.conceptos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.conceptos{grid-template-columns:1fr}}
+.concepto h3{font-family:var(--f-display);font-size:18px;font-weight:500;margin:0 0 4px;color:var(--verdeOsc)}
+.concepto p{margin:0;color:var(--muted);max-width:60ch}
+.concepto .sim{font-family:var(--f-mono);color:var(--azul)}
+.misiones{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:18px}
+.misiones ol{margin:0;padding:0;list-style:none;display:grid;gap:12px;counter-reset:m}
+.misiones li{counter-increment:m;display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start}
+.misiones li::before{content:counter(m);font-family:var(--f-display);font-weight:700;font-size:20px;color:var(--azul);line-height:1.2}
+.misiones .q{max-width:70ch}
+.misiones .q strong{display:block}
+.misiones .q span{color:var(--muted);font-size:14px}
+.misiones input[type=checkbox]{width:20px;height:20px;accent-color:var(--verde);margin-top:3px}
+.nota{font-size:12.5px;color:var(--muted);margin:12px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">3° Medio · Biología de los Ecosistemas · Unidad 4</div>
+      <h1>¿Hasta dónde puede crecer una población?</h1>
+    </div>
+    <div class="formula" aria-label="Modelo logístico">dN/dt = <b>r</b>·N·(1 − N/<b>K</b>)</div>
+  </header>
+
+  <section class="panel" aria-label="Controles">
+    <div class="ctls">
+      <div class="ctl">
+        <div class="top"><span class="name">Escenario</span></div>
+        <select id="preset">
+          <optgroup label="Especies invasoras">
+            <option value="chaqueta">Chaqueta amarilla en Villa Alemana</option>
+            <option value="conejo">Conejo europeo en un predio del interior</option>
+            <option value="castor">Castor en Tierra del Fuego</option>
+          </optgroup>
+          <optgroup label="Especies nativas">
+            <option value="raton">Ratón colilarga en una ratada</option>
+            <option value="anchoveta">Anchoveta en la corriente de Humboldt</option>
+            <option value="microalga">Microalgas en una poza intermareal</option>
+          </optgroup>
+          <optgroup label="Laboratorio">
+            <option value="levadura">Levaduras en un frasco</option>
+            <option value="libre">Libre</option>
+          </optgroup>
+        </select>
+        <small id="presetTxt"></small>
+      </div>
+      <div class="ctl">
+        <div class="top"><span class="name">Potencial biótico r</span><span class="val" id="rV"></span></div>
+        <input type="range" id="r" min="0.05" max="2" step="0.05">
+        <small>Crecimiento máximo por año, sin nada que frene.</small>
+      </div>
+      <div class="ctl">
+        <div class="top"><span class="name">Capacidad de carga K</span><span class="val" id="KV"></span></div>
+        <input type="range" id="K" min="50" max="2000" step="10">
+        <small>Máximo que el ambiente puede sostener.</small>
+      </div>
+      <div class="ctl">
+        <div class="top"><span class="name">Población inicial N₀</span><span class="val" id="N0V"></span></div>
+        <input type="range" id="N0" min="2" max="200" step="1">
+        <small>Individuos al comenzar.</small>
+      </div>
+      <div class="ctl evento">
+        <div class="top"><label class="name" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="evt"> <span id="evName">Sequía</span></label><span class="val" id="evtV"></span></div>
+        <input type="range" id="evtT" min="1" max="19" step="1" aria-label="Año en que comienza el evento">
+        <input type="range" id="evtP" min="10" max="80" step="5" aria-label="Porcentaje que baja K">
+        <small>Año de inicio y cuánto baja K.</small>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="play">▶ Reproducir</button>
+      <button id="reset" class="ghost">Ver todo</button>
+      <a class="btn" id="guia" href="Guia_Capacidad_de_Carga.pdf" download="Guia_Capacidad_de_Carga.pdf" target="_blank" rel="noopener">⬇ Descargar guía de trabajo</a>
+      <div class="toggles">
+        <label><input type="checkbox" id="showJ" checked> Curva J</label>
+        <label><input type="checkbox" id="showS" checked> Curva S</label>
+        <label><input type="checkbox" id="showR" checked> Resistencia</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="main">
+    <div class="box">
+      <canvas id="cv" aria-label="Gráfico del tamaño poblacional en el tiempo"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--curvaJ)"></i>Curva J · sin límites</span>
+        <span><i class="sw" style="background:var(--curvaS)"></i>Curva S · con límites</span>
+        <span><i class="sw" style="background:var(--capK)"></i>Capacidad de carga K</span>
+        <span><i class="sw res" style="background:var(--azul)"></i>Resistencia ambiental</span>
+      </div>
+    </div>
+
+    <div class="box eco" aria-label="Ventana al ecosistema">
+      <div class="scene j">
+        <div class="lab"><strong>Mundo ideal · curva J</strong><span class="tag" id="tagJ"></span></div>
+        <canvas id="scJ" aria-label="Ecosistema sin límites"></canvas>
+        <div class="recursos">
+          <span class="r1">Agua</span><div class="meter"><i id="wJ"></i></div><span class="n" id="wJn"></span>
+          <span class="r2">Alimento</span><div class="meter v"><i id="fJ"></i></div><span class="n" id="fJn"></span>
+        </div>
+      </div>
+      <div class="scene s">
+        <div class="lab"><strong>Mundo real · curva S</strong><span class="tag" id="tagS"></span></div>
+        <canvas id="scS" aria-label="Ecosistema con límites"></canvas>
+        <div class="recursos">
+          <span class="r1">Agua</span><div class="meter"><i id="wS"></i></div><span class="n" id="wSn"></span>
+          <span class="r2">Alimento</span><div class="meter v"><i id="fS"></i></div><span class="n" id="fSn"></span>
+        </div>
+      </div>
+      <div class="ecoNote" id="ecoNote"></div>
+    </div>
+  </section>
+
+  <section class="readouts" aria-live="polite">
+    <div class="ro t"><div class="k">Tiempo</div><div class="v" id="oT">0</div></div>
+    <div class="ro j"><div class="k">N sin límites (J)</div><div class="v" id="oJ">0</div></div>
+    <div class="ro s"><div class="k">N con límites (S) · crece</div><div class="v" id="oS">0</div></div>
+    <div class="ro r"><div class="k">Resistencia ambiental frenando</div><div class="v" id="oR">0%</div><div class="bar"><i id="oRbar"></i></div></div>
+  </section>
+
+  <section class="conceptos">
+    <div class="concepto"><h3>Potencial biótico</h3><p>Capacidad máxima de una especie para reproducirse en condiciones ideales. En el modelo es <span class="sim">r</span>. Solo, produce la curva J.</p></div>
+    <div class="concepto"><h3>Resistencia ambiental</h3><p>Todo lo que frena el crecimiento: agua, alimento, espacio, depredadores, enfermedades. En el modelo es <span class="sim">N/K</span>, que aumenta a medida que la población se acerca al límite.</p></div>
+    <div class="concepto"><h3>Capacidad de carga</h3><p>Tamaño máximo que el ambiente puede sostener en el tiempo. En el modelo es <span class="sim">K</span>. La curva S se estabiliza cerca de ella.</p></div>
+  </section>
+
+  <section class="misiones">
+    <h2>Misiones para el cuaderno</h2>
+    <ol>
+      <li><div class="q"><strong>Apaga la curva S y reproduce.</strong><span>Describe la forma de la curva J y lo que pasa en el "mundo ideal". ¿Puede una población real crecer así por muchos años? ¿Por qué?</span></div><input type="checkbox" id="m1" aria-label="Misión 1 lista"></li>
+      <li><div class="q"><strong>Duplica r y luego redúcelo a la mitad.</strong><span>¿Qué cambia en la curva S: el tamaño final o la rapidez con que lo alcanza?</span></div><input type="checkbox" id="m2" aria-label="Misión 2 lista"></li>
+      <li><div class="q"><strong>Mueve solo K.</strong><span>¿Qué cambia ahora? Compara con la misión 2 y escribe la diferencia entre potencial biótico y capacidad de carga.</span></div><input type="checkbox" id="m3" aria-label="Misión 3 lista"></li>
+      <li><div class="q"><strong>Busca el momento en que la curva S crece más rápido.</strong><span>Mira el valor "crece" en los indicadores. ¿Qué fracción de K tiene la población en ese momento?</span></div><input type="checkbox" id="m4" aria-label="Misión 4 lista"></li>
+      <li><div class="q"><strong>Activa el evento ambiental.</strong><span>Puede ser una sequía, El Niño o el fin de la semilla de quila, según el escenario. Observa los recursos en el "mundo real". ¿Qué le pasa a la población? Relaciónalo con la escasez hídrica de la Región de Valparaíso. ¿Qué otra ciencia necesitas para predecir cuánto bajará K?</span></div><input type="checkbox" id="m5" aria-label="Misión 5 lista"></li>
+    </ol>
+    <p class="nota">Los valores de los escenarios son ilustrativos, para explorar el modelo. No son mediciones de terreno.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+  var PRESETS = {
+    chaqueta:{r:1.2,K:400,N0:4,sp:"avispa",hab:"tierra",u:"nidos",ev:"Sequía",evP:50,txt:"Vespula germanica, invasora. Pocos depredadores en Chile: r alto."},
+    conejo:{r:0.9,K:1500,N0:10,sp:"conejo",hab:"tierra",u:"conejos",ev:"Sequía",evP:50,txt:"Oryctolagus cuniculus, introducido. K depende del pasto disponible."},
+    raton:{r:2,K:2000,N0:30,sp:"raton",hab:"tierra",u:"ratones",ev:"Fin de la semilla de quila",evP:80,txt:"Ratón colilarga. Cuando florece la quila hay alimento de sobra (ratada); al acabarse la semilla, K cae."},
+    castor:{r:0.35,K:300,N0:6,sp:"castor",hab:"tierra",u:"castores",ev:"Pérdida de bosque",evP:40,txt:"Castor canadensis, introducido en Tierra del Fuego en 1946. Sin depredadores naturales; r bajo pero constante."},
+    anchoveta:{r:1,K:1800,N0:60,sp:"pez",hab:"mar",u:"cardúmenes",ev:"Fenómeno El Niño",evP:60,txt:"Engraulis ringens. La surgencia de la corriente de Humboldt aporta nutrientes; El Niño calienta el agua y K baja."},
+    microalga:{r:1.8,K:900,N0:20,sp:"alga",hab:"poza",u:"mil células/mL",ev:"Evaporación de la poza",evP:50,txt:"Con luz y nutrientes crecen muy rápido hasta agotar la poza."},
+    levadura:{r:1.5,K:1000,N0:10,sp:"levadura",hab:"frasco",u:"millones de células/mL",ev:"Se agota el azúcar",evP:60,txt:"Saccharomyces cerevisiae en un frasco con agua y azúcar. El experimento clásico de laboratorio."},
+    libre:{r:0.6,K:1000,N0:10,sp:"generico",hab:"tierra",u:"individuos",ev:"Perturbación",evP:50,txt:"Ajusta todo a tu gusto."}
+  };
+  var TMAX=20, DT=0.01, MAXDOTS=420, DOTS_AT_K=110;
+  var $=function(id){return document.getElementById(id)};
+  var cv=$("cv"), ctx=cv.getContext("2d");
+  var state={r:1.2,K:400,N0:4,evt:false,evtT:8,evtP:50,t:TMAX,playing:false,preset:"chaqueta"};
+  var series=null;
+  var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // posiciones fijas (semilla) para los individuos y la vegetación
+  function rng(seed){return function(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646;}}
+  var R=rng(42), SPOTS=[], PLANTS=[];
+  for(var i=0;i<MAXDOTS;i++) SPOTS.push({x:R(),y:R(),ph:R()*6.28,sp:.6+R()*.8});
+  for(var i=0;i<26;i++) PLANTS.push({x:R(),y:R(),s:.7+R()*.6});
+
+  function Kat(t){return (state.evt&&t>=state.evtT)?state.K*(1-state.evtP/100):state.K;}
+  function compute(){
+    var J=[],S=[],Ks=[],G=[],n=state.N0,steps=Math.round(TMAX/DT);
+    for(var i=0;i<=steps;i++){var t=i*DT,k=Kat(t),g=state.r*n*(1-n/k);
+      if(i%10===0){J.push(state.N0*Math.exp(state.r*t));S.push(n);Ks.push(k);G.push(g);}
+      n=Math.max(0,n+g*DT);}
+    series={J:J,S:S,K:Ks,G:G,step:DT*10};
+  }
+  function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+  function fmt(x){if(x>=1e9)return "> mil M";if(x>=1e6)return (x/1e6).toFixed(1)+" M";if(x>=1e4)return Math.round(x/1000)+" mil";return Math.round(x).toLocaleString("es-CL");}
+  function niceMax(v){var p=Math.pow(10,Math.floor(Math.log10(v))),m=v/p;return (m<=2?2:m<=2.5?2.5:m<=5?5:10)*p;}
+  function idx(){return Math.min(series.S.length-1,Math.round(state.t/series.step));}
+  function fit(c){var dpr=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
+    if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);}
+    var x=c.getContext("2d");x.setTransform(dpr,0,0,dpr,0,0);return {x:x,w:w,h:h};}
+
+  // ---------- Gráfico ----------
+  function drawChart(){
+    var f=fit(cv),w=f.w,h=f.h;ctx.clearRect(0,0,w,h);
+    var pad={l:56,r:14,t:14,b:38},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b,yMax=niceMax(state.K*1.35);
+    var X=function(t){return pad.l+t/TMAX*pw},Y=function(n){return pad.t+ph-Math.min(n,yMax*1.03)/yMax*ph};
+    ctx.font="12px "+css("--f-mono");ctx.fillStyle=css("--muted");ctx.strokeStyle=css("--grid");ctx.lineWidth=1;
+    for(var i=0;i<=5;i++){var v=yMax*i/5,y=Y(v);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.textAlign="right";ctx.fillText(fmt(v),pad.l-8,y+4);}
+    for(var t=0;t<=TMAX;t+=4){var x=X(t);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ph);ctx.stroke();ctx.textAlign="center";ctx.fillText(t,x,pad.t+ph+18);}
+    ctx.textAlign="right";ctx.fillText("años",w-pad.r,pad.t+ph+34);
+    ctx.save();ctx.translate(14,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.fillText(PRESETS[state.preset].u,0,0);ctx.restore();
+    var last=idx();
+    ctx.save();ctx.beginPath();ctx.rect(pad.l,pad.t,pw,ph);ctx.clip();
+    if($("showR").checked&&$("showJ").checked&&$("showS").checked){
+      ctx.beginPath();
+      for(var i=0;i<=last;i++){var x=X(i*series.step);i?ctx.lineTo(x,Y(series.J[i])):ctx.moveTo(x,Y(series.J[i]));}
+      for(var i=last;i>=0;i--)ctx.lineTo(X(i*series.step),Y(series.S[i]));
+      ctx.closePath();ctx.globalAlpha=.15;ctx.fillStyle=css("--azul");ctx.fill();ctx.globalAlpha=1;}
+    ctx.setLineDash([6,5]);ctx.strokeStyle=css("--capK");ctx.lineWidth=2;ctx.beginPath();
+    for(var i=0;i<series.K.length;i++){var x=X(i*series.step);i?ctx.lineTo(x,Y(series.K[i])):ctx.moveTo(x,Y(series.K[i]));}
+    ctx.stroke();ctx.setLineDash([]);
+    function line(arr,col,on){if(!on)return;ctx.strokeStyle=col;ctx.lineWidth=3;ctx.beginPath();
+      for(var i=0;i<=last;i++){var x=X(i*series.step);i?ctx.lineTo(x,Y(arr[i])):ctx.moveTo(x,Y(arr[i]));}ctx.stroke();
+      ctx.fillStyle=col;ctx.beginPath();ctx.arc(X(last*series.step),Y(arr[last]),5,0,7);ctx.fill();}
+    line(series.J,css("--curvaJ"),$("showJ").checked);
+    line(series.S,css("--curvaS"),$("showS").checked);
+    if(state.evt){var ex=X(state.evtT);ctx.strokeStyle=css("--sequia");ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(ex,pad.t);ctx.lineTo(ex,pad.t+ph);ctx.stroke();
+      ctx.fillStyle=css("--sequia");ctx.textAlign="left";ctx.fillText(PRESETS[state.preset].ev.toLowerCase(),ex+5,pad.t+14);}
+    ctx.fillStyle=css("--capK");ctx.textAlign="left";ctx.fillText("K = "+fmt(series.K[0]),pad.l+6,Y(series.K[0])-6);
+    ctx.restore();
+  }
+
+  // ---------- Ventana al ecosistema ----------
+  function drawIndividual(c,sp,x,y,s){
+    if(sp==="avispa"){c.fillStyle="rgba(255,255,255,.85)";c.beginPath();c.ellipse(x-1.5*s,y-2.6*s,2*s,1.2*s,-.5,0,7);c.ellipse(x+1.5*s,y-2.6*s,2*s,1.2*s,.5,0,7);c.fill();
+      c.fillStyle="#f2c230";c.beginPath();c.ellipse(x,y,3.4*s,2.2*s,0,0,7);c.fill();c.fillStyle="#1d1d1d";c.fillRect(x-.6*s,y-2.1*s,1.2*s,4.2*s);}
+    else if(sp==="conejo"){c.fillStyle="#8a7563";c.beginPath();c.ellipse(x-1.2*s,y-4*s,.9*s,2.4*s,-.15,0,7);c.ellipse(x+1.2*s,y-4*s,.9*s,2.4*s,.15,0,7);c.fill();
+      c.beginPath();c.arc(x,y,3*s,0,7);c.fill();c.fillStyle="#f3eee8";c.beginPath();c.arc(x+2.6*s,y+1*s,1*s,0,7);c.fill();}
+    else if(sp==="alga"){c.fillStyle="#2f9e63";c.beginPath();c.arc(x,y,2.4*s,0,7);c.fill();c.fillStyle="rgba(255,255,255,.55)";c.beginPath();c.arc(x-.8*s,y-.8*s,.8*s,0,7);c.fill();}
+    else if(sp==="raton"){c.strokeStyle="#7a6f6a";c.lineWidth=.8*s;c.beginPath();c.moveTo(x-2.8*s,y);c.quadraticCurveTo(x-6*s,y-2*s,x-7*s,y+1.5*s);c.stroke();
+      c.fillStyle="#8d8580";c.beginPath();c.ellipse(x,y,3*s,1.9*s,0,0,7);c.fill();c.beginPath();c.arc(x+2.4*s,y-1.6*s,1*s,0,7);c.fill();
+      c.fillStyle="#1d1d1d";c.beginPath();c.arc(x+2.9*s,y-.4*s,.4*s,0,7);c.fill();}
+    else if(sp==="castor"){c.fillStyle="#3b2a20";c.beginPath();c.ellipse(x-4.2*s,y+.6*s,2.6*s,1.3*s,.2,0,7);c.fill();
+      c.fillStyle="#7b5536";c.beginPath();c.ellipse(x,y,4*s,2.7*s,0,0,7);c.fill();c.beginPath();c.arc(x+3.6*s,y-1*s,1.8*s,0,7);c.fill();
+      c.fillStyle="#1d1d1d";c.beginPath();c.arc(x+4.2*s,y-1.5*s,.45*s,0,7);c.fill();}
+    else if(sp==="pez"){c.fillStyle="#9fb7c9";c.beginPath();c.moveTo(x-3.4*s,y);c.lineTo(x-6*s,y-2*s);c.lineTo(x-6*s,y+2*s);c.closePath();c.fill();
+      c.fillStyle="#cfdde6";c.beginPath();c.ellipse(x,y,4.2*s,1.5*s,0,0,7);c.fill();c.fillStyle="#4f7896";c.fillRect(x-3.6*s,y-1.3*s,7.4*s,.8*s);}
+    else if(sp==="levadura"){c.fillStyle="#d9c08a";c.beginPath();c.arc(x,y,2.4*s,0,7);c.fill();c.beginPath();c.arc(x+2.3*s,y-1.6*s,1.2*s,0,7);c.fill();
+      c.strokeStyle="rgba(120,90,40,.5)";c.lineWidth=.6;c.beginPath();c.arc(x,y,2.4*s,0,7);c.stroke();}
+    else {c.fillStyle="#2d6a4f";c.beginPath();c.arc(x,y,2.8*s,0,7);c.fill();}
+  }
+  function drawScene(canvas,N,k,food,time,overflow){
+    var f=fit(canvas),c=f.x,w=f.w,h=f.h,hab=PRESETS[state.preset].hab,dry=k/state.K; // dry: 1 normal, <1 sequía
+    var groundTop;
+    if(hab==="poza"){
+      c.fillStyle="#9aa3a6";c.fillRect(0,0,w,h);
+      var lvl=.15+.85*dry, top=h*(1-.88*lvl);
+      var g=c.createLinearGradient(0,top,0,h);g.addColorStop(0,"#7fc4e8");g.addColorStop(1,"#2e78b5");
+      c.fillStyle=g;c.beginPath();c.moveTo(0,top);for(var x=0;x<=w;x+=10)c.lineTo(x,top+Math.sin(x/22+time)*2);c.lineTo(w,h);c.lineTo(0,h);c.closePath();c.fill();
+      c.fillStyle="#6d777b";[[.08,.95,30],[.9,.9,40],[.5,1.02,46]].forEach(function(r){c.beginPath();c.ellipse(r[0]*w,r[1]*h,r[2],r[2]*.55,0,0,7);c.fill();});
+      c.fillStyle="rgba(255,255,255,.75)";var nut=Math.round(40*food);
+      for(var i=0;i<nut;i++){var p=SPOTS[i];c.fillRect(p.x*w,top+8+p.y*(h-top-14),2,2);}
+      groundTop=top+6;
+    } else if(hab==="mar"){
+      var warm=1-dry, g2=c.createLinearGradient(0,0,0,h);
+      g2.addColorStop(0,"rgb("+Math.round(90+warm*90)+","+Math.round(170+warm*20)+","+Math.round(220-warm*80)+")");
+      g2.addColorStop(1,"rgb("+Math.round(20+warm*40)+","+Math.round(70+warm*30)+","+Math.round(130-warm*50)+")");
+      c.fillStyle=g2;c.fillRect(0,0,w,h);
+      c.fillStyle="rgba(255,255,255,.12)";for(var i=0;i<4;i++){c.beginPath();c.moveTo(w*(.1+i*.25),0);c.lineTo(w*(.18+i*.25),0);c.lineTo(w*(.05+i*.25),h);c.lineTo(w*(-.03+i*.25),h);c.fill();}
+      c.fillStyle="rgba(190,235,190,.8)";var pl=Math.round(60*food);
+      for(var i=0;i<pl;i++){var p=SPOTS[MAXDOTS-1-i];c.beginPath();c.arc(p.x*w,8+p.y*(h-16),1.3,0,7);c.fill();}
+      groundTop=10;
+    } else if(hab==="frasco"){
+      c.fillStyle="#eef2f1";c.fillRect(0,0,w,h);
+      var jx=w*.1,jw=w*.8,jt=h*.12;c.strokeStyle="#9fb0b4";c.lineWidth=3;
+      c.beginPath();c.moveTo(jx+jw*.3,4);c.lineTo(jx+jw*.3,jt);c.lineTo(jx,jt+16);c.lineTo(jx,h-6);c.lineTo(jx+jw,h-6);c.lineTo(jx+jw,jt+16);c.lineTo(jx+jw*.7,jt);c.lineTo(jx+jw*.7,4);c.stroke();
+      var lt=jt+26, a=.35+.45*(1-food);
+      c.fillStyle="rgba("+Math.round(230-60*(1-dry))+","+Math.round(220-40*(1-dry))+",170,"+a+")";c.fillRect(jx+2,lt,jw-4,h-8-lt);
+      c.fillStyle="rgba(255,255,255,.8)";var bub=Math.round(30*food);
+      for(var i=0;i<bub;i++){var p=SPOTS[MAXDOTS-1-i];c.beginPath();c.arc(jx+6+p.x*(jw-12),lt+6+((p.y+time*.08*p.sp)%1)*(h-20-lt),1.6,0,7);c.fill();}
+      groundTop=lt+4;
+    } else {
+      var sky=c.createLinearGradient(0,0,0,h*.4);sky.addColorStop(0,"#cfe6f7");sky.addColorStop(1,"#f4f9fc");
+      c.fillStyle=sky;c.fillRect(0,0,w,h);
+      c.fillStyle="#b9d3c4";c.beginPath();c.moveTo(0,h*.36);c.quadraticCurveTo(w*.25,h*.18,w*.55,h*.33);c.quadraticCurveTo(w*.8,h*.22,w,h*.34);c.lineTo(w,h);c.lineTo(0,h);c.fill();
+      groundTop=h*.38;
+      var gr=Math.round(120+ (1-dry)*70), gg=Math.round(170-(1-dry)*30), gb=Math.round(110-(1-dry)*40);
+      c.fillStyle="rgb("+gr+","+gg+","+gb+")";c.fillRect(0,groundTop,w,h-groundTop);
+      // laguna: tamaño según agua disponible (K)
+      var pr=.06+.12*dry;c.fillStyle="#5aa4d6";c.beginPath();c.ellipse(w*.82,h*.62,w*pr,h*pr*1.1,0,0,7);c.fill();
+      c.fillStyle="rgba(255,255,255,.4)";c.beginPath();c.ellipse(w*.8,h*.59,w*pr*.5,h*pr*.25,0,0,7);c.fill();
+      // vegetación: cantidad según alimento restante
+      var np=Math.round(PLANTS.length*food);
+      for(var i=0;i<np;i++){var p=PLANTS[i],px=p.x*w*.72+8,py=groundTop+10+p.y*(h-groundTop-18),s=p.s*(dry<1?.8:1);
+        c.fillStyle="#2d6a4f";c.beginPath();c.arc(px,py-6*s,6*s,0,7);c.arc(px-5*s,py-2*s,4.5*s,0,7);c.arc(px+5*s,py-2*s,4.5*s,0,7);c.fill();}
+    }
+    var unit=state.K/DOTS_AT_K, n=Math.min(MAXDOTS,Math.round(N/unit)), sp=PRESETS[state.preset].sp, sc=Math.max(.75,Math.min(1.2,w/380));
+    for(var i=0;i<n;i++){var p=SPOTS[i],jx=reduce?0:Math.sin(time*p.sp+p.ph)*2.5,jy=reduce?0:Math.cos(time*p.sp*.8+p.ph)*1.8;
+      var xl=hab==="frasco"?w*.12:8, xw=hab==="frasco"?w*.76:w-16;
+      drawIndividual(c,sp,xl+p.x*xw+jx,groundTop+8+p.y*(h-groundTop-14)+jy,sc);}
+    if(overflow){c.fillStyle="rgba(31,95,153,.88)";var msg="¡No caben! +"+fmt(N-MAXDOTS*unit)+" más";c.font="600 13px "+css("--f-body");
+      var tw=c.measureText(msg).width;c.beginPath();c.roundRect?c.roundRect(w/2-tw/2-10,8,tw+20,26,13):c.rect(w/2-tw/2-10,8,tw+20,26);c.fill();
+      c.fillStyle="#fff";c.textAlign="center";c.fillText(msg,w/2,26);}
+  }
+  function pct(x){return Math.round(Math.max(0,Math.min(1,x))*100)}
+  function drawEco(time){
+    var i=idx(),nJ=series.J[i],nS=series.S[i],k=series.K[i];
+    var water=k/state.K;
+    var foodS=Math.max(0,Math.min(1,1-.75*nS/k)), foodJ=Math.max(0,Math.min(1,1-.75*nJ/k));
+    drawScene($("scJ"),nJ,k,foodJ,time,nJ>MAXDOTS*state.K/DOTS_AT_K);
+    drawScene($("scS"),nS,k,foodS,time,false);
+    $("wJ").style.width=pct(water)+"%";$("wJn").textContent=pct(water)+"%";
+    $("wS").style.width=pct(water)+"%";$("wSn").textContent=pct(water)+"%";
+    $("fJ").style.width=pct(foodJ)+"%";$("fJn").textContent=pct(foodJ)+"%";
+    $("fS").style.width=pct(foodS)+"%";$("fSn").textContent=pct(foodS)+"%";
+    $("tagJ").textContent=fmt(nJ)+" "+PRESETS[state.preset].u;
+    $("tagS").textContent=fmt(nS)+" "+PRESETS[state.preset].u;
+    $("ecoNote").textContent="Cada figura representa unos "+fmt(Math.max(1,state.K/DOTS_AT_K))+" "+PRESETS[state.preset].u+". En el mundo ideal los recursos se agotan, pero el modelo J no lo considera.";
+  }
+
+  function readouts(){
+    var i=idx(),nS=series.S[i],k=series.K[i];
+    $("oT").textContent=(i*series.step).toFixed(1)+" a";
+    $("oJ").textContent=fmt(series.J[i]);
+    $("oS").innerHTML=fmt(nS)+' <span style="font-size:14px;color:var(--muted)">+'+fmt(Math.max(0,series.G[i]))+'/a</span>';
+    var res=Math.max(0,Math.min(1,nS/k));$("oR").textContent=Math.round(res*100)+"%";$("oRbar").style.width=(res*100)+"%";
+  }
+  var clock=0;
+  function drawAll(){drawChart();drawEco(clock);readouts();}
+
+  function labels(){
+    $("rV").textContent=state.r.toFixed(2)+" /año";$("KV").textContent=state.K;$("N0V").textContent=state.N0;
+    $("evtV").textContent=state.evt?("año "+state.evtT+" · K −"+state.evtP+"%"):"apagada";
+    $("evtT").disabled=!state.evt;$("evtP").disabled=!state.evt;
+  }
+  function refresh(){labels();compute();drawAll();}
+  function setInputs(){$("r").value=state.r;$("K").value=state.K;$("N0").value=state.N0;$("evt").checked=state.evt;$("evtT").value=state.evtT;$("evtP").value=state.evtP;}
+  function loadPreset(k){var p=PRESETS[k];state.preset=k;if(k!=="libre"){state.r=p.r;state.K=p.K;state.N0=p.N0;state.evP=p.evP;}$("evName").textContent=p.ev;var RL={tierra:["Agua","Alimento"],poza:["Nivel de agua","Nutrientes"],mar:["Agua fría","Plancton"],frasco:["Agua","Azúcar"]}[p.hab];document.querySelectorAll(".r1").forEach(function(e){e.textContent=RL[0]});document.querySelectorAll(".r2").forEach(function(e){e.textContent=RL[1]});$("presetTxt").textContent=p.txt;setInputs();refresh();}
+
+  $("preset").addEventListener("change",function(e){loadPreset(e.target.value)});
+  [["r",parseFloat],["K",parseInt],["N0",parseInt],["evtT",parseInt],["evtP",parseInt]].forEach(function(a){
+    $(a[0]).addEventListener("input",function(e){state[a[0]]=a[1](e.target.value,10);refresh();});});
+  $("evt").addEventListener("change",function(e){state.evt=e.target.checked;refresh();});
+  ["showJ","showS","showR"].forEach(function(id){$(id).addEventListener("change",drawChart)});
+
+  var playStart=0,playFrom=0,playDur=0;
+  function stop(){state.playing=false;$("play").textContent="▶ Reproducir";}
+  $("play").addEventListener("click",function(){
+    if(state.playing){stop();return;}
+    if(state.t>=TMAX)state.t=0;
+    state.playing=true;$("play").textContent="❚❚ Pausa";
+    playStart=performance.now();playFrom=state.t;playDur=reduce?1:(TMAX-playFrom)/TMAX*10000;
+  });
+  $("reset").addEventListener("click",function(){stop();state.t=TMAX;drawAll();});
+
+  // un solo bucle: avanza la reproducción y mueve suavemente a los individuos
+  var lastFrame=0;
+  function loop(now){
+    if(state.playing){var f=Math.min(1,(now-playStart)/playDur);state.t=playFrom+(TMAX-playFrom)*f;if(f>=1)stop();drawChart();readouts();}
+    if(now-lastFrame>40||state.playing){clock=now/1000;drawEco(clock);lastFrame=now;}
+    requestAnimationFrame(loop);
+  }
+
+  for(var i=1;i<=5;i++){(function(id){var el=$(id);try{el.checked=localStorage.getItem("pobl-"+id)==="1";}catch(e){}
+    el.addEventListener("change",function(){try{localStorage.setItem("pobl-"+id,el.checked?"1":"0");}catch(e){}});})("m"+i);}
+
+  window.addEventListener("resize",drawAll);
+  try{window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",drawAll);}catch(e){}
+  new MutationObserver(drawAll).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(drawAll);
+  loadPreset("chaqueta");
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
