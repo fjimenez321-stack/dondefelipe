@@ -29,3 +29,16 @@
   .nav-brand { letter-spacing: 1px; }
   .nav-caido { letter-spacing: .2px; }
 }
+
+/* Letra secundaria: «Matcha World» (Khurasan, gratis para uso personal y comercial) en los subtítulos (h2).
+   El archivo original no trae acentos ni ñ: se le agregaron con fuentes/acentos-matcha-world.py.
+   No se aplica a los títulos de los banners de la portada (siguen con Matcha Style) ni a las imágenes para redes. */
+@font-face {
+  font-family: 'Matcha World';
+  src: url('matcha-world.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+:root:root { --ff-sec: 'Matcha World', 'Matcha Style', 'Big Shoulders Display', Impact, sans-serif; }
+h2:not([class*="-banner"] h2):not(.lienzo h2) { font-family: var(--ff-sec) !important; letter-spacing: .5px; }
