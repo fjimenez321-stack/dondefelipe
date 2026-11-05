@@ -1343,8 +1343,36 @@ service cloud.firestore {
         && d.saldoDespues == get(rutaCuenta(miCuentaBanco())).data.saldo
         && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200);
     }
+    // Artículos físicos que vende un estudiante (cartas, juegos…): id f-<uid>-<algo>.
+    // Entran «en revisión» y solo el profe los publica (estado «venta») o los rechaza (con una nota).
+    // Se compran igual que las demás publicaciones (pedido «reventa», pago retenido) y el profe paga
+    // al vendedor cuando confirma que el artículo se entregó.
+    function datosFisico(d, iid) {
+      return d.tipo == 'fisico' && iid.matches('^f-' + request.auth.uid + '-[A-Za-z0-9_-]{4,40}$')
+        && d.vendedor == miCuentaBanco() && miCuentaBanco() != '' && d.uid == request.auth.uid
+        && d.keys().hasOnly(['tipo', 'vendedor', 'vendedorNombre', 'uid', 'item', 'ico', 'desc', 'fotos', 'precio', 'estado', 'nota', 'reservadoPor', 'creada', 'actualizado'])
+        && d.precio is int && d.precio >= 100 && d.precio <= 10000000
+        && texto(d.vendedorNombre, 40) && texto(d.item, 80) && d.item.size() >= 3 && texto(d.ico, 8) && texto(d.desc, 300)
+        && d.fotos is list && d.fotos.size() <= 2
+        && d.actualizado == request.time;
+    }
     match /mercado_items/{iid} {
       allow read: if conCuenta();
+      allow create: if esColegio() && datosFisico(request.resource.data, iid)
+        && request.resource.data.estado == 'revision' && request.resource.data.creada == request.time
+        && !request.resource.data.keys().hasAny(['nota', 'reservadoPor']);
+      allow update: if esColegio() && resource.data.tipo == 'fisico' && resource.data.uid == request.auth.uid
+        && datosFisico(request.resource.data, iid) && request.resource.data.creada == resource.data.creada
+        && (
+          // cambiar el precio mientras está publicado
+          (resource.data.estado == 'venta' && request.resource.data.estado == 'venta'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['precio', 'actualizado']))
+          // retirarlo (en revisión o publicado, si nadie lo ha pedido)
+          || (resource.data.estado in ['revision', 'venta'] && request.resource.data.estado == 'retirado'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'actualizado']))
+          // corregirlo y mandarlo (de nuevo) a revisión
+          || (resource.data.estado in ['revision', 'retirado', 'rechazado'] && request.resource.data.estado == 'revision'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['item', 'ico', 'desc', 'fotos', 'precio', 'estado', 'nota', 'actualizado'])));
       allow create: if esColegio() && datosPublicacion(request.resource.data, iid)
         && request.resource.data.estado == 'venta' && request.resource.data.creada == request.time
         && objetoCongelado(request.resource.data);

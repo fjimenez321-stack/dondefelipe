@@ -267,7 +267,7 @@ h1 span{color:var(--acid)}
   </section>
 
   <section id="vEstudiantes" class="oculto">
-    <p class="intro" style="margin-top:16px">Lo que tus compañeros ponen a la venta: beneficios sin usar y gatitos. Al comprar, tu pago y el objeto quedan congelados; cuando el profe autoriza, el objeto llega a tu cuenta y el vendedor recibe el pago.</p>
+    <p class="intro" style="margin-top:16px">Lo que tus compañeros ponen a la venta: beneficios sin usar, gatitos y artículos físicos (revisados por el profe). Al comprar, tu pago y el objeto quedan congelados; cuando el profe autoriza, el objeto llega a tu cuenta y el vendedor recibe el pago.</p>
     <div class="grid" id="gEst"></div>
     <div class="card"><h2 class="h2s">Mis pedidos</h2><div class="lista-p" id="pedidos2"></div></div>
   </section>
@@ -276,6 +276,17 @@ h1 span{color:var(--acid)}
     <div class="card"><h2 class="h2s">Vender lo mío</h2>
       <p class="intro" style="margin:0">Puedes vender tus beneficios sin usar y tus gatitos. Al publicarlo sale de tu cuenta y queda congelado; si nadie lo ha pedido, puedes retirarlo y recuperarlo. Cuando alguien lo compra y el profe autoriza, recibes los Hipopesos.</p>
       <div class="lista-p" id="mios"></div></div>
+    <div class="card" id="cFisico"><h2 class="h2s">📦 Vender un artículo físico</h2>
+      <p class="intro" style="margin:0 0 12px">Cartas, juegos, útiles… cosas de verdad. Tu publicación queda <b>en revisión</b> hasta que el profe la apruebe. Cuando alguien la compra, su pago queda retenido: <b>entrégale el artículo</b> y el profe te paga al confirmar la entrega.</p>
+      <div class="form-art">
+        <label style="grid-column:1/-1">Artículo<input id="fNombre" maxlength="80" placeholder="Ej.: Carta Charizard holográfica"></label>
+        <label style="grid-column:1/-1">Descripción<input id="fDesc" maxlength="300" placeholder="Estado, qué incluye, cuándo lo puedes entregar…"></label>
+        <label>Emoji<input id="fIco" maxlength="8" value="📦"></label>
+        <label>Precio (₣)<input id="fPrecio" type="number" min="100" step="500" placeholder="Ej.: 40000"></label>
+        <label style="grid-column:1/-1">Fotos (hasta 2)<input id="fFotos" type="file" accept="image/*" multiple><span class="fotos-prev" id="fPrev"></span></label>
+        <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn p" id="fEnviar"><i class="fa-solid fa-paper-plane"></i> Enviar a revisión</button><span id="fMsg"></span></div>
+      </div>
+      <div class="lista-p" id="fMios"></div></div>
     <div class="card" id="cRegalos"><h2 class="h2s">🎁 Regalos</h2>
       <p class="intro" style="margin:0">Regala un gatito o un beneficio sin usar a un compañero con el botón <b>🎁 Regalar</b> de arriba. Sale de tu cuenta y le llega cuando lo <b>acepte</b>. Si lo rechaza (o mientras no lo acepta) puedes recuperarlo.</p>
       <div class="lista-p" id="regRecibidos"></div><div class="lista-p" id="regEnviados"></div></div>
@@ -1027,6 +1038,10 @@ function pintarEstudiantes() {
     const mio = usuario && x.uid === usuario.uid, g = x.gatito ? gato(x.gatito) : null, est = g && !mio ? estadoGato(g.id) : null;
     const r = g ? R[g.rareza] : null;
     let acc = mio ? '<span class="mio-tag">Es tu publicación</span>' : est === 'tengo' ? '<span class="mio-tag"><i class="fa-solid fa-check"></i> Ya lo tienes</span>' : est ? `<span class="mio-tag">${TXT_ESTADO[est]}</span>` : botonPedir('r:' + x.id, x.precio, `data-pedir-r="${esc(x.id)}"`);
+    if (x.tipo === 'fisico') { const fs = fotosDe(x);
+      return `<article class="item"><div class="foto"${fs.length ? ` data-ver-fis="${esc(x.id)}" title="Ver fotos"` : ''}>${fs.length ? `<img src="${esc(fs[0])}" alt="Foto de ${esc(x.item)}" loading="lazy">` : `<span class="emo">${esc(x.ico || '📦')}</span>`}</div>
+        <span class="chip">📦 Artículo físico</span><h3>${esc(x.item)}</h3><p>${esc(x.desc || '')}</p><p><i class="fa-solid fa-user"></i> Vende <a href="perfil.html?u=${encodeURIComponent(x.uid)}" style="color:inherit">${esc(x.vendedorNombre)}</a></p>
+        <div class="pie"><span class="precio">${fmt(x.precio)}</span>${acc}</div></article>`; }
     return `<article class="item"${r ? ` style="--rc:${r.color}"` : ''}><div class="ico">${icoHtml(x)}</div>
       ${r ? `<span class="rz" style="background:${r.color}">${esc(r.nombre)}</span>` : '<span class="chip">Beneficio sin usar</span>'}
       <h3>${esc(x.item)}</h3><p><i class="fa-solid fa-user"></i> Vende <a href="perfil.html?u=${encodeURIComponent(x.uid)}" style="color:inherit">${esc(x.vendedorNombre)}</a></p>
@@ -1049,7 +1064,7 @@ function pintarMio() {
   const pubDe = id => publicaciones.find(p => p.id === id);
   const ref = nombre => (BENEF.find(b => b.nombre === nombre) || {});
   // en mi cuenta (se pueden publicar) + congelados en publicaciones mías en venta o reservadas
-  const congeladas = publicaciones.filter(p => p.uid === usuario.uid && (p.estado === 'venta' || p.estado === 'reservado'));
+  const congeladas = publicaciones.filter(p => p.uid === usuario.uid && p.tipo !== 'fisico' && (p.estado === 'venta' || p.estado === 'reservado'));
   const items = misBenef.map(m => ({ tipo: 'beneficio', mov: m.id, item: m.item, ico: ref(m.item).ico || '🎟️', ref: ref(m.item).precio || '' }))
     .concat((coleccion.ids || []).map(id => { const g = gato(id) || { nombre: id, precio: '' }; return { tipo: 'gatito', gatito: id, item: g.nombre, ico: '🐱', ref: g.precio }; }))
     .filter(x => !congeladas.some(p => p.id === (x.tipo === 'gatito' ? 'g-' + usuario.uid + '-' + x.gatito : 'b-' + x.mov)))
@@ -1059,6 +1074,7 @@ function pintarMio() {
   $('misVentas').innerHTML = misVentas.length ? misVentas.map(p => `<div class="it"><span class="ico-m">${icoHtml(p)}</span><div class="t"><b>${esc(p.item)}</b><small>${esc(p.compradorNombre)} lo pidió por ${fmt(p.precio)}${p.nota ? ' · ' + esc(p.nota) : ''}</small></div>${EST_P[p.estado] || ''}</div>`).join('')
     : '<p class="intro">Todavía nadie te ha comprado nada.</p>';
   pintarRegalos();
+  pintarFisicos();
 }
 function pintarPedidos() {
   const h = misPedidos.length ? misPedidos.slice(0, 20).map(p => `<div class="it"><span class="ico-m">${icoHtml(p)}</span><div class="t"><b>${esc(p.item)}</b>
@@ -1125,6 +1141,82 @@ async function cancelarPedido(pid) {
     aviso('Pedido cancelado: el pago volvió a tu cuenta.', 'ok');
   } catch (e) { aviso('No se pudo cancelar: ' + esc(e.message), 'err'); }
 }
+/* ═════════ artículos físicos de los estudiantes (los aprueba el profe) ═════════ */
+let fotosFis = [], editFis = null;
+const EST_FIS = { revision: '<span class="chip lim">⏳ En revisión</span>', venta: '<span class="chip ok">✓ Publicado</span>', reservado: '<span class="chip lim">🔒 Alguien lo compró: entrégalo</span>',
+  vendido: '<span class="chip">Vendido</span>', retirado: '<span class="chip">Retirado</span>', rechazado: '<span class="chip hot">Rechazado</span>' };
+function pintarFisicos() {
+  if (!$('fMios') || !usuario) return;
+  $('cFisico').hidden = !cuenta;
+  const l = publicaciones.filter(p => p.uid === usuario.uid && p.tipo === 'fisico').sort((a, b) => ms(b.creada) - ms(a.creada));
+  $('fMios').innerHTML = l.length ? '<p class="sub" style="margin:14px 0 4px"><b>Mis artículos</b></p>' + l.map(x => { const fs = fotosDe(x);
+    return `<div class="it"><span class="ico-m">${fs.length ? `<img src="${esc(fs[0])}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:8px">` : esc(x.ico || '📦')}</span>
+      <div class="t"><b>${esc(x.item)}</b><small>${fmt(x.precio)}${x.estado === 'rechazado' && x.nota ? ' · Profe: ' + esc(x.nota) : ''}</small></div>${EST_FIS[x.estado] || ''}
+      ${x.estado === 'venta' ? `<button class="btn" data-fis="precio:${esc(x.id)}">Precio</button>` : ''}
+      ${['retirado', 'rechazado', 'revision'].includes(x.estado) ? `<button class="btn" data-fis="editar:${esc(x.id)}">${x.estado === 'revision' ? 'Editar' : 'Corregir y reenviar'}</button>` : ''}
+      ${['revision', 'venta'].includes(x.estado) ? `<button class="btn" data-fis="retirar:${esc(x.id)}">Retirar</button>` : ''}</div>`; }).join('') : '';
+}
+function pintarPrevFis() { $('fPrev').innerHTML = fotosFis.map((f, i) => `<span><img src="${f}" alt=""><button type="button" data-quitar-fis="${i}" aria-label="Quitar foto">✕</button></span>`).join(''); }
+async function enviarFisico() {
+  const m = (t, k) => { $('fMsg').innerHTML = `<span style="color:${k === 'err' ? 'var(--neg)' : 'var(--acid)'};font-size:14px">${t}</span>`; };
+  const item = $('fNombre').value.trim().slice(0, 80), desc = $('fDesc').value.trim().slice(0, 300), ico = $('fIco').value.trim().slice(0, 8) || '📦';
+  const precio = Math.round(+$('fPrecio').value || 0);
+  if (item.length < 3) return m('Escribe qué vendes.', 'err');
+  if (precio < 100) return m('Pon un precio de al menos 100 ₣.', 'err');
+  if (!cuenta || !cuentaId) return m('Necesitas tu cuenta del banco vinculada.', 'err');
+  if (!editFis && publicaciones.filter(p => p.uid === usuario.uid && p.tipo === 'fisico' && ['revision', 'venta', 'reservado'].includes(p.estado)).length >= 5) return m('Puedes tener hasta 5 artículos a la vez.', 'err');
+  const { F, db } = await DF.listo();
+  const id = editFis || ('f-' + usuario.uid + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+  const datos = { tipo: 'fisico', vendedor: cuentaId, vendedorNombre: nombreCorto(), uid: usuario.uid, item, ico, desc, fotos: fotosFis.slice(0, 2), precio, estado: 'revision', actualizado: F.serverTimestamp() };
+  $('fEnviar').disabled = true;
+  try {
+    if (editFis) await F.updateDoc(F.doc(db, 'mercado_items', id), { item, ico, desc, fotos: datos.fotos, precio, estado: 'revision', nota: F.deleteField ? F.deleteField() : '', actualizado: F.serverTimestamp() });
+    else await F.setDoc(F.doc(db, 'mercado_items', id), Object.assign(datos, { creada: F.serverTimestamp() }));
+    m('✓ Enviado. El profe lo revisará antes de publicarlo.', 'ok');
+    $('fNombre').value = ''; $('fDesc').value = ''; $('fPrecio').value = ''; $('fIco').value = '📦'; fotosFis = []; editFis = null; pintarPrevFis(); $('fEnviar').innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar a revisión';
+  } catch (e) { m('No se pudo enviar: ' + esc(/permission/i.test(e.message) ? 'el banco lo rechazó (¿el profe publicó las reglas nuevas?)' : e.message), 'err'); }
+  $('fEnviar').disabled = false;
+}
+async function accionFisico(accion, id) {
+  const x = publicaciones.find(p => p.id === id); if (!x) return;
+  const { F, db } = await DF.listo(), ref = F.doc(db, 'mercado_items', id);
+  try {
+    if (accion === 'editar') {
+      editFis = id; $('fNombre').value = x.item; $('fDesc').value = x.desc || ''; $('fIco').value = x.ico || '📦'; $('fPrecio').value = x.precio; fotosFis = (x.fotos || []).slice(0, 2); pintarPrevFis();
+      $('fEnviar').innerHTML = '<i class="fa-solid fa-paper-plane"></i> Guardar y enviar a revisión'; $('cFisico').scrollIntoView({ behavior: 'smooth' }); return;
+    }
+    if (accion === 'precio') {
+      const v = prompt(`Nuevo precio para «${x.item}» (₣):`, x.precio); if (v === null) return;
+      const n = Math.round(+String(v).replace(/\D/g, '')); if (n < 100) return aviso('El precio debe ser al menos 100 ₣.', 'err');
+      await F.runTransaction(db, async tx => { const s = await tx.get(ref); if (!s.exists() || s.data().estado !== 'venta') throw new Error('ya no está publicado (¿alguien lo compró?)'); tx.update(ref, { precio: n, actualizado: F.serverTimestamp() }); });
+      return aviso('✓ Precio cambiado.', 'ok');
+    }
+    if (accion === 'retirar') {
+      if (!confirm(`¿Retirar «${x.item}»? Deja de estar a la venta.`)) return;
+      await F.runTransaction(db, async tx => { const s = await tx.get(ref); if (!s.exists() || !['revision', 'venta'].includes(s.data().estado)) throw new Error('ya no se puede retirar (¿alguien lo compró?)'); tx.update(ref, { estado: 'retirado', actualizado: F.serverTimestamp() }); });
+      return aviso('Artículo retirado.', 'ok');
+    }
+  } catch (e) { aviso('No se pudo: ' + esc(e.message), 'err'); }
+}
+function verFotosFisico(id) {
+  const x = publicaciones.find(p => p.id === id); if (!x) return;
+  const fs = fotosDe(x);
+  $('modal').innerHTML = `<h3 style="margin-top:0">${esc(x.item)}</h3><div class="galeria">${fs.map(f => `<img src="${esc(f)}" alt="Foto de ${esc(x.item)}">`).join('')}</div>
+    <p style="color:var(--mute);margin:0">${esc(x.desc || '')} · Vende ${esc(x.vendedorNombre)}</p><div class="fila"><span class="precio">${fmt(x.precio)}</span><button class="btn" data-a="cerrar">Cerrar</button></div>`;
+  $('velo').hidden = false;
+}
+$('fEnviar').onclick = enviarFisico;
+$('fFotos').onchange = async () => {
+  try { const nuevas = await leerFotos($('fFotos').files); fotosFis = fotosFis.concat(nuevas).slice(0, 2); pintarPrevFis(); }
+  catch (e) { $('fMsg').innerHTML = `<span style="color:var(--neg);font-size:14px">No se pudo usar la foto: ${esc(e.message)}</span>`; }
+  $('fFotos').value = '';
+};
+$('fPrev').onclick = e => { const b = e.target.closest('[data-quitar-fis]'); if (!b) return; fotosFis.splice(+b.dataset.quitarFis, 1); pintarPrevFis(); };
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-fis],[data-ver-fis]'); if (!b) return;
+  if (b.dataset.verFis) return verFotosFisico(b.dataset.verFis);
+  const [a, id] = b.dataset.fis.split(/:(.+)/); accionFisico(a, id);
+});
 /* ═════════ regalos entre estudiantes ═════════ */
 const EST_REG = { pendiente: '<span class="chip lim">Esperando que lo acepte</span>', aceptado: '<span class="chip">✓ Aceptado</span>', rechazado: '<span class="chip hot">Rechazado</span>', devuelto: '<span class="chip">Recuperado</span>' };
 let avisado = false;
