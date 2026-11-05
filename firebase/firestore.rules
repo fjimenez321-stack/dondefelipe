@@ -560,13 +560,14 @@ service cloud.firestore {
     function ruletaActiva() { return true; }
     function costoRuleta() { return 30000; }
     function maxRetener() { return 330000; }   // costo + el peor castigo
-    function tirosPorDia() { return 3; }
+    function tirosPorDia() { return 5; }
     // Horario: abierta de 08:00 a 16:00 (hora de Chile). Las reglas no conocen husos horarios, así que
     // aceptan 11:00–20:00 UTC, que cubre las 08–16 tanto en horario de verano (UTC−3) como de invierno
     // (UTC−4); la página aplica el horario exacto con la hora de Chile. Resolver un tiro pendiente se
     // permite a cualquier hora.
     function ruletaAbierta() { return request.time.hours() >= 11 && request.time.hours() < 20; }
     function salRuleta() { return 'dondefelipe-ruleta-v2'; }
+    // (5 nov. 2026: hasta 5 tiros por día; las casillas 28 y 30 pasan de +30.000 y +60.000 a −30.000 y −60.000.)
     // (Nov. 2026: «Tu música» → 20% de descuento en la Tienda; «Puesto por una clase» → cambio de puesto libre por
     //  una semana; en la Sorpresa, Masita y Miauricio reemplazan a Gatito Pulcro y Esmoquin.)
     function rutaRuleta(c) { return /databases/$(database)/documents/ruleta/$(c); }
@@ -588,7 +589,7 @@ service cloud.firestore {
         {'t':'d','v':300000}, {'t':'D','v':'Ruleta: disertación'}, {'t':'b','v':'Ruleta: 2 décimas formativas'}, {'t':'d','v':-90000},
         {'t':'G','v':0}, {'t':'P','v':100000}, {'t':'d','v':60000}, {'t':'d','v':-300000},
         {'t':'b','v':'Ruleta: 5 minutos extra en una prueba'}, {'t':'d','v':-60000}, {'t':'d','v':120000}, {'t':'g','v':0},
-        {'t':'d','v':30000}, {'t':'b','v':'Ruleta: 20% de descuento en un artículo de la Tienda'}, {'t':'d','v':60000}, {'t':'b','v':'Ruleta: cambio de puesto libre por una semana'}
+        {'t':'d','v':-30000}, {'t':'b','v':'Ruleta: 20% de descuento en un artículo de la Tienda'}, {'t':'d','v':-60000}, {'t':'b','v':'Ruleta: cambio de puesto libre por una semana'}
       ];
     }
     function hexv(ch) {
