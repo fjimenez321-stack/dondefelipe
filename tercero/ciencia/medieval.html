@@ -4135,13 +4135,13 @@ function xSpr(k){
    solid: radio del bloqueo (si no, se puede pasar por encima)      */
 const XDECO=[
   /* ── la plaza ── */
-  {k:'arbolnav',  x:1200,y:648, solid:26},                       // árbol grande, al norte de la pileta
+  {k:'arbolnav',  x:1200,y:648},                       // árbol grande, al norte de la pileta
   {k:'regalos',   x:1252,y:668},                                 // regalos al pie del árbol
   {k:'baston',    x:1068,y:706},                                 // bastón de caramelo
   // la plaza ya tiene 4 faroles (y±641/869) y 4 bancas (y±640/880): la fogata y el
   // muñeco van al sur, en el hueco entre las bancas de abajo y los maceteros.
-  {anim:['lena','fogata1','fogata2','fogata1'],vel:7,x:1200,y:900,solid:18},
-  {k:'munieco',   x:1258,y:906, solid:16},
+  {anim:['lena','fogata1','fogata2','fogata1'],vel:7,x:1200,y:900},
+  {k:'munieco',   x:1258,y:906},
 
   /* ── frente al Mercado ── */
   {k:'puesto',    x:884, y:504, solid:40},                       // puesto navideño
@@ -4174,7 +4174,7 @@ const XDECO=[
 
   /* ── hacia el bosque y Newton ── */
   {k:'pelado',    x:2700,y:1420, solid:20},
-  {k:'arbolnieve',x:3000,y:1560, solid:24},
+  {k:'arbolnieve',x:3140,y:1640, solid:24},
   {k:'tocon',     x:2760,y:1560},
   {k:'nievemonton',x:2920,y:1480},
   {k:'farolmano', x:2800,y:1500},
@@ -4215,7 +4215,6 @@ function xMontar(){
     const e={kind:'spr',x:n.x,y:n.y};
     Object.defineProperty(e,'spr',{get(){return xSpr(n.k)}});
     OBJECTS.push(e);
-    CIRCLES.push({x:n.x,y:n.y-4,r:14});
   }
   /* la fuente de hielo NO va sobre la pileta del pueblo (se superponen);
      se queda de adorno junto al Banco. */
