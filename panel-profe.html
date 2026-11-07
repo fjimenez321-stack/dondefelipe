@@ -184,6 +184,19 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
               <div class="muted" style="font-size:13px" id="opsTxt">Si a alguien no le funciona el bono diario, la bolsa, la ruleta o los gatitos («Missing or insufficient permissions»), su contador de operaciones puede estar desfasado (pasa si se reimportan cuentas). Esto lo revisa y lo arregla para todas las cuentas.</div></div>
             <button class="btn sm" id="btnOps">🔧 Revisar y reparar</button>
           </div>
+          <div class="card porcanjear" id="cardFlujo" style="margin-top:16px">
+            <h3 style="margin:0 0 4px">📊 Flujo de dinero</h3>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">De dónde entró y salió el dinero en un período: por <b>origen</b> (tipo de movimiento), por <b>estudiante</b> y por <b>hora</b>. Las transferencias entre estudiantes no crean dinero. «Cuadratura» busca cuentas cuyo saldo cambió <b>sin</b> un movimiento que lo explique (señal de un error o de una trampa).</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+              <select id="flPer"><option value="3">Últimas 3 horas</option><option value="12">Últimas 12 horas</option><option value="24" selected>Últimas 24 horas</option><option value="72">Últimos 3 días</option><option value="168">Últimos 7 días</option><option value="720">Últimos 30 días</option><option value="x">Personalizado…</option></select>
+              <span id="flRango" hidden><input type="datetime-local" id="flDesde"> a <input type="datetime-local" id="flHasta"></span>
+              <select id="flAgr"><option value="tipo">Agrupar por tipo</option><option value="motivo">Agrupar por tipo + motivo</option></select>
+              <button class="btn sm p" id="flCargar">Analizar</button>
+              <button class="btn sm" id="flCuadra">🔍 Cuadratura de saldos</button>
+              <button class="btn sm" id="flCsv" disabled>⬇ CSV</button>
+            </div>
+            <div id="flOut"><div class="muted">Elige un período y presiona «Analizar».</div></div>
+          </div>
           <div class="card porcanjear" id="cardPrest" style="margin-top:16px">
             <h3 style="margin:0 0 4px">🏦 Préstamos <span class="pill" id="nPrest">0</span></h3>
             <p class="muted" style="margin:0 0 8px;font-size:13px">Solicitudes por aprobar y préstamos vigentes. Al aprobar, el estudiante recibe el dinero y debe devolver lo pedido + 30% en 14 días. Si vence con deuda, <b>al abrir este panel</b> se embarga automáticamente (saldo → ahorro → acciones → gatitos → beneficios); también puedes hacerlo con el botón.</p>
@@ -578,6 +591,116 @@ async function crearCuentaPara(a) {
   return numero;
 }
 function correoDe(cuentaId) { return vinculos[cuentaId] || ''; }
+/* ═════════ Flujo de dinero: de dónde sale el crecimiento del banco ═════════ */
+const NOM_TIPO = {
+  abono: '🧑‍🏫 Abono del profe', multa: '🧑‍🏫 Multa del profe', cargo: '🧑‍🏫 Cargo del profe', reverso: '🧑‍🏫 Reverso', importacion: '🧑‍🏫 Importación', premio: '🧑‍🏫 Premio del profe',
+  ruleta: '🎡 Ruleta (resultado)', 'ruleta-apuesta': '🎡 Ruleta (apuesta retenida)', 'juego-envio': '🎮 Juegos (puntaje → Hipopesos)', 'bono-ingreso': '🎁 Bono de ingreso',
+  'bolsa-compra': '📈 Bolsa: compra', 'bolsa-venta': '📈 Bolsa: venta', 'ahorro-deposito': '🐷 Ahorro: depósito', 'ahorro-retiro': '🐷 Ahorro: retiro (con intereses)',
+  prestamo: '🏦 Préstamo otorgado', 'prestamo-pago': '🏦 Pago de préstamo', embargo: '🏦 Embargo',
+  'transferencia-envio': '🔁 Transferencia enviada', 'transferencia-recibida': '🔁 Transferencia recibida',
+  compra: '🛍️ Compra en el Mercado', devolucion: '🛍️ Devolución', reventa: '🤝 Venta entre estudiantes', 'gatito-compra': '🐱 Compra de gatito', 'gatito-reventa': '🐱 Venta de gatito',
+  'subasta-oferta': '🔨 Subasta: oferta', 'subasta-devuelta': '🔨 Subasta: devolución', apuesta: '🎯 Apuesta', 'apuesta-premio': '🎯 Apuesta: premio', 'apuesta-devuelta': '🎯 Apuesta: devolución',
+  giftcard: '💳 Gift card', mascota: '🐾 Mascota', articulo: '📦 Artículo de la Tienda', 'regalo-recibido': '🎁 Regalo recibido', 'poder-gatito': '🐱 Poder de gatito', 'poder-mensual': '🐱 Poder mensual', 'premio-gatito': '🐱 Premio de gatito'
+};
+const nomTipo = t => NOM_TIPO[t] || ('❓ ' + (t || 'sin tipo'));
+let flMovs = [], flFiltro = null, flRango = [0, 0];
+function flPeriodo() {
+  const v = $('flPer').value, ahora = Date.now();
+  if (v !== 'x') return [ahora - (+v) * 3600e3, ahora];
+  const d = Date.parse($('flDesde').value), h = Date.parse($('flHasta').value);
+  return [isNaN(d) ? ahora - 864e5 : d, isNaN(h) ? ahora : h];
+}
+$('flPer').onchange = () => { $('flRango').hidden = $('flPer').value !== 'x'; };
+async function flujoCargar() {
+  const { F, db } = FB, [desde, hasta] = flRango = flPeriodo();
+  $('flOut').innerHTML = '<div class="muted">Leyendo movimientos…</div>';
+  try {
+    const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('fecha', '>=', F.Timestamp.fromDate(new Date(desde)))));
+    flMovs = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => msT(m.fecha) >= desde && msT(m.fecha) <= hasta && typeof m.monto === 'number');
+    flFiltro = null; $('flCsv').disabled = !flMovs.length; flujoPintar();
+  } catch (e) { $('flOut').innerHTML = `<div class="neg">No se pudo leer: ${esc(e.message)}</div>`; }
+}
+const flClave = m => $('flAgr').value === 'motivo' ? (m.tipo || '') + ' · ' + String(m.motivo || '').replace(/\d[\d.,]*/g, '#').replace(/\s+/g, ' ').slice(0, 60) : (m.tipo || '');
+function flujoPintar() {
+  const l = flMovs, cu = id => cuentas.find(c => c.id === id) || {}, nomC = id => { const c = cu(id); return ((c.nombre || '') + ' ' + (c.apellido || '')).trim() || ('Cuenta ' + id); };
+  const ent = l.filter(m => m.monto > 0).reduce((a, m) => a + m.monto, 0), sal = l.filter(m => m.monto < 0).reduce((a, m) => a - m.monto, 0);
+  const total = cuentas.filter(c => c.estado !== 'Cerrada').reduce((a, c) => a + (c.saldo || 0), 0);
+  // por origen
+  const g = {};
+  l.forEach(m => { const k = flClave(m); const x = g[k] || (g[k] = { k, tipo: m.tipo, n: 0, ent: 0, sal: 0, cuentas: new Set(), profe: 0 });
+    x.n++; if (m.monto > 0) x.ent += m.monto; else x.sal -= m.monto; x.cuentas.add(m.cuenta); if (m.profe) x.profe++; });
+  const orig = Object.values(g).sort((a, b) => (b.ent - b.sal) - (a.ent - a.sal));
+  // por estudiante
+  const e = {};
+  l.forEach(m => { const x = e[m.cuenta] || (e[m.cuenta] = { id: m.cuenta, n: 0, neto: 0, ent: 0, por: {} }); x.n++; x.neto += m.monto; if (m.monto > 0) { x.ent += m.monto; x.por[m.tipo] = (x.por[m.tipo] || 0) + m.monto; } });
+  const est = Object.values(e).sort((a, b) => b.neto - a.neto);
+  // por hora
+  const [d0, d1] = flRango, horas = Math.max(1, Math.ceil((d1 - d0) / 3600e3)), paso = horas > 72 ? 24 : 1, nb = Math.ceil(horas / paso), barras = Array.from({ length: nb }, () => ({ ent: 0, sal: 0 }));
+  l.forEach(m => { const i = Math.min(nb - 1, Math.floor((msT(m.fecha) - d0) / (paso * 3600e3))); if (i >= 0) { if (m.monto > 0) barras[i].ent += m.monto; else barras[i].sal -= m.monto; } });
+  const mx = Math.max(1, ...barras.map(b => Math.max(b.ent, b.sal)));
+  // alertas: cuentas que ganaron mucho, muchos movimientos por hora, tipos sin nombre conocido
+  const alertas = [];
+  est.filter(x => x.neto >= 300000).slice(0, 8).forEach(x => { const top = Object.entries(x.por).sort((a, b) => b[1] - a[1])[0]; alertas.push(`<b>${esc(nomC(x.id))}</b> ganó <b>$${fmt(x.neto)}</b> neto (${x.n} mov.; sobre todo ${esc(nomTipo(top ? top[0] : ''))})`); });
+  const porHora = {}; l.forEach(m => { const k = m.cuenta + '|' + Math.floor(msT(m.fecha) / 3600e3); porHora[k] = (porHora[k] || 0) + 1; });
+  Object.entries(porHora).filter(([, n]) => n >= 25).sort((a, b) => b[1] - a[1]).slice(0, 5).forEach(([k, n]) => { const [id, h] = k.split('|'); alertas.push(`<b>${esc(nomC(id))}</b> hizo <b>${n} movimientos</b> en una hora (${fecha(+h * 3600e3)})`); });
+  orig.filter(x => !NOM_TIPO[x.tipo] && x.ent > 0).forEach(x => alertas.push(`Hay dinero entrando por un tipo desconocido: <b>${esc(x.tipo || 'sin tipo')}</b> ($${fmt(x.ent)})`));
+  const filtrados = flFiltro ? l.filter(m => flFiltro.tipo === 'origen' ? flClave(m) === flFiltro.v : m.cuenta === flFiltro.v) : [];
+  $('flOut').innerHTML = `
+    <div class="hist-res"><div><b class="pos">+$${fmt(ent)}</b>Entró</div><div><b class="neg">−$${fmt(sal)}</b>Salió</div><div><b class="${ent - sal >= 0 ? 'pos' : 'neg'}">${ent - sal >= 0 ? '+' : '−'}$${fmt(Math.abs(ent - sal))}</b>Neto del período</div><div><b>${l.length}</b>Movimientos</div><div><b>${est.length}</b>Cuentas</div><div><b>$${fmt(total)}</b>En circulación hoy</div></div>
+    ${alertas.length ? `<div style="border:1px solid var(--neg);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:13.5px"><b class="neg">⚠️ Para revisar</b>${alertas.map(a => `<div>• ${a}</div>`).join('')}</div>` : '<div class="muted" style="margin:6px 0">Sin señales raras en este período.</div>'}
+    <div style="display:flex;align-items:flex-end;gap:2px;height:90px;margin:10px 0 2px;padding:0 2px;border-bottom:1px solid var(--line)" title="Entradas (verde) y salidas (rojo) por ${paso === 1 ? 'hora' : 'día'}">
+      ${barras.map((b, i) => `<div style="flex:1;display:flex;gap:1px;align-items:flex-end;height:100%" title="${fecha(d0 + i * paso * 3600e3)} · +$${fmt(b.ent)} / −$${fmt(b.sal)}"><i style="flex:1;background:var(--ok,#4bd08c);height:${b.ent / mx * 100}%;min-height:${b.ent ? 2 : 0}px"></i><i style="flex:1;background:var(--neg,#ff7a70);height:${b.sal / mx * 100}%;min-height:${b.sal ? 2 : 0}px"></i></div>`).join('')}
+    </div><div class="muted" style="font-size:12px;display:flex;justify-content:space-between"><span>${fecha(d0)}</span><span>por ${paso === 1 ? 'hora' : 'día'}</span><span>${fecha(d1)}</span></div>
+    <h4 style="margin:14px 0 6px">Por origen <span class="muted" style="font-weight:400;font-size:12px">(toca una fila para ver sus movimientos)</span></h4>
+    <div class="tabla-wrap"><table class="tabla"><thead><tr><th>Origen</th><th class="n">Mov.</th><th class="n">Cuentas</th><th class="n">Entró</th><th class="n">Salió</th><th class="n">Neto</th></tr></thead><tbody>
+      ${orig.map(x => `<tr data-fl-o="${esc(x.k)}" style="cursor:pointer${flFiltro && flFiltro.v === x.k ? ';outline:1px solid var(--acid)' : ''}"><td>${esc(nomTipo(x.tipo))}${$('flAgr').value === 'motivo' ? `<br><small class="muted">${esc(x.k.split(' · ').slice(1).join(' · '))}</small>` : ''}${x.profe ? ` <small class="muted">· ${x.profe} del profe</small>` : ''}</td>
+        <td class="n">${x.n}</td><td class="n">${x.cuentas.size}</td><td class="n pos">${x.ent ? '+$' + fmt(x.ent) : ''}</td><td class="n neg">${x.sal ? '−$' + fmt(x.sal) : ''}</td><td class="n"><b class="${x.ent - x.sal >= 0 ? 'pos' : 'neg'}">${x.ent - x.sal >= 0 ? '+' : '−'}$${fmt(Math.abs(x.ent - x.sal))}</b></td></tr>`).join('')}
+    </tbody></table></div>
+    <h4 style="margin:14px 0 6px">Quiénes ganaron más <span class="muted" style="font-weight:400;font-size:12px">(toca para ver sus movimientos · «Historial» abre su ficha)</span></h4>
+    <div class="tabla-wrap"><table class="tabla"><thead><tr><th>Estudiante</th><th>Curso</th><th class="n">Mov.</th><th class="n">Neto</th><th>Ganó sobre todo por</th><th></th></tr></thead><tbody>
+      ${est.slice(0, 25).map(x => { const top = Object.entries(x.por).sort((a, b) => b[1] - a[1]).slice(0, 2);
+        return `<tr data-fl-c="${esc(x.id)}" style="cursor:pointer${flFiltro && flFiltro.v === x.id ? ';outline:1px solid var(--acid)' : ''}"><td><b>${esc(nomC(x.id))}</b></td><td>${esc(cu(x.id).curso || '—')}</td><td class="n">${x.n}</td><td class="n"><b class="${x.neto >= 0 ? 'pos' : 'neg'}">${x.neto >= 0 ? '+' : '−'}$${fmt(Math.abs(x.neto))}</b></td>
+          <td><small>${top.map(([t, v]) => esc(nomTipo(t)) + ' $' + fmt(v)).join(' · ') || '—'}</small></td><td><button class="btn sm" data-fl-h="${esc(x.id)}">Historial</button></td></tr>`; }).join('')}
+    </tbody></table></div>
+    ${flFiltro ? `<h4 style="margin:14px 0 6px">Movimientos de «${esc(flFiltro.tipo === 'origen' ? nomTipo((flFiltro.v || '').split(' · ')[0]) : nomC(flFiltro.v))}» (${filtrados.length}) <button class="btn sm" data-fl-x>Quitar filtro</button></h4>
+      <div class="lista-movs" style="max-height:45vh">${filtrados.sort((a, b) => msT(b.fecha) - msT(a.fecha)).slice(0, 400).map(m => `<div class="m"><div class="t"><b class="${m.monto < 0 ? 'neg' : 'pos'}">${m.monto < 0 ? '−' : '+'}$${fmt(Math.abs(m.monto))}</b> · ${esc(nomC(m.cuenta))} <span class="pill">${esc(cu(m.cuenta).curso || '—')}</span>
+        <small>${fecha(m.fecha)} · ${esc(nomTipo(m.tipo))} · ${esc(m.motivo || '')}${m.profe ? ' · por ' + esc(m.profe) : ''} · saldo después $${fmt(m.saldoDespues)} · ${esc(m.id)}</small></div></div>`).join('')}</div>` : ''}`;
+}
+$('flOut').onclick = ev => {
+  const h = ev.target.closest('[data-fl-h]'); if (h) { ev.stopPropagation(); return abrirHistorial(h.dataset.flH); }
+  if (ev.target.closest('[data-fl-x]')) { flFiltro = null; return flujoPintar(); }
+  const o = ev.target.closest('[data-fl-o]'), c = ev.target.closest('[data-fl-c]');
+  if (o) { flFiltro = { tipo: 'origen', v: o.dataset.flO }; flujoPintar(); }
+  else if (c) { flFiltro = { tipo: 'cuenta', v: c.dataset.flC }; flujoPintar(); }
+};
+$('flAgr').onchange = () => { if (flMovs.length) { flFiltro = null; flujoPintar(); } };
+$('flCargar').onclick = flujoCargar;
+$('flCsv').onclick = () => {
+  const cu = id => cuentas.find(c => c.id === id) || {};
+  const filas = [['fecha', 'cuenta', 'nombre', 'curso', 'tipo', 'origen', 'monto', 'saldoDespues', 'motivo', 'profe', 'id']].concat(flMovs.map(m => [new Date(msT(m.fecha)).toISOString(), m.cuenta, ((cu(m.cuenta).nombre || '') + ' ' + (cu(m.cuenta).apellido || '')).trim(), cu(m.cuenta).curso || '', m.tipo || '', nomTipo(m.tipo), m.monto, m.saldoDespues, m.motivo || '', m.profe || '', m.id]));
+  const csv = '﻿' + filas.map(f => f.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'flujo-hipopesos-' + new Date().toISOString().slice(0, 16).replace(':', '') + '.csv'; a.click();
+};
+// Cuadratura: el saldo de cada cuenta debe ser igual al «saldo después» de su último movimiento.
+$('flCuadra').onclick = async () => {
+  if (!confirm('La cuadratura lee TODOS los movimientos del banco (puede tardar y usa lecturas de Firebase). ¿Seguir?')) return;
+  const { F, db } = FB; $('flOut').innerHTML = '<div class="muted">Leyendo todos los movimientos…</div>';
+  try {
+    const s = await F.getDocs(F.collection(db, 'banco_movs')), ult = {};
+    // el último movimiento de cada cuenta: por fecha y, si empatan, por el N° de operación (op-<cuenta>-<n>)
+    const opN = id => /^op-/.test(id) ? +id.split('-').pop() || 0 : 0;
+    s.docs.forEach(d => { const m = d.data(); if (typeof m.saldoDespues !== 'number') return; const t = msT(m.fecha), u = ult[m.cuenta];
+      if (!u || t > u.t || (t === u.t && opN(d.id) >= u.n)) ult[m.cuenta] = { t, n: opN(d.id), saldo: m.saldoDespues, id: d.id, motivo: m.motivo, tipo: m.tipo }; });
+    const malas = cuentas.filter(c => c.estado !== 'Cerrada').map(c => ({ c, u: ult[c.id] })).filter(x => (x.u ? x.u.saldo : 0) !== (x.c.saldo || 0))
+      .map(x => Object.assign(x, { dif: (x.c.saldo || 0) - (x.u ? x.u.saldo : 0) })).sort((a, b) => b.dif - a.dif);
+    const suma = malas.reduce((a, x) => a + x.dif, 0);
+    $('flOut').innerHTML = `<p><b>${s.docs.length}</b> movimientos revisados · <b>${malas.length}</b> cuenta${malas.length === 1 ? '' : 's'} no cuadra${malas.length === 1 ? '' : 'n'}${malas.length ? ` (diferencia total <b class="${suma > 0 ? 'neg' : ''}">${suma >= 0 ? '+' : '−'}$${fmt(Math.abs(suma))}</b>)` : ' ✓'}.</p>
+      <p class="muted" style="font-size:13px">Una diferencia <b>positiva</b> es dinero que apareció en la cuenta sin un movimiento que lo explique. Puede haber diferencias chicas por correcciones antiguas hechas a mano.</p>
+      ${malas.length ? `<div class="tabla-wrap"><table class="tabla"><thead><tr><th>Estudiante</th><th>Curso</th><th class="n">Saldo hoy</th><th class="n">Según su último mov.</th><th class="n">Diferencia</th><th>Último movimiento</th><th></th></tr></thead><tbody>
+        ${malas.slice(0, 60).map(x => `<tr><td><b>${esc(((x.c.nombre || '') + ' ' + (x.c.apellido || '')).trim())}</b></td><td>${esc(x.c.curso || '—')}</td><td class="n">$${fmt(x.c.saldo || 0)}</td><td class="n">${x.u ? '$' + fmt(x.u.saldo) : '— (sin movimientos)'}</td>
+          <td class="n"><b class="${x.dif > 0 ? 'neg' : ''}">${x.dif >= 0 ? '+' : '−'}$${fmt(Math.abs(x.dif))}</b></td><td><small>${x.u ? fecha(x.u.t) + ' · ' + esc(nomTipo(x.u.tipo)) : ''}</small></td><td><button class="btn sm" data-fl-h="${esc(x.c.id)}">Historial</button></td></tr>`).join('')}</tbody></table></div>` : ''}`;
+  } catch (e) { $('flOut').innerHTML = `<div class="neg">No se pudo: ${esc(e.message)}</div>`; }
+};
 /* ── Ruleta: resumen por jugador (colección «ruleta»: un documento por cuenta con los últimos tiros) ── */
 let ruletas = null;
 const ICO_RUL = { p: '🟢', n: '🔴', b: '🎟️', g: '🐱', m: '⚠️' };
