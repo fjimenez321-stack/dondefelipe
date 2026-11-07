@@ -949,7 +949,8 @@ const msT = t => t && t.toMillis ? t.toMillis() : (typeof t === 'number' ? t : 0
 function ahorroAlP(a, t) {
   if (!a || !a.monto) return 0;
   if (a.monto >= PREST.topeAhorro) return a.monto;
-  return Math.min(PREST.topeAhorro, Math.floor(a.monto * Math.pow(1 + PREST.tasaSemana, Math.floor((t - msT(a.desde)) / PREST.semanaMs))));
+  const k0 = Math.floor((t - msT(a.desde)) / PREST.semanaMs), p = (a.plazo || 0) / 7, k = p > 0 && k0 > p ? p : k0;   // depósito a plazo: crece hasta el plazo
+  return Math.min(PREST.topeAhorro, Math.floor(a.monto * Math.pow(1 + PREST.tasaSemana, k)));
 }
 function iniciarPrestamos() {
   const { F, db } = FB;

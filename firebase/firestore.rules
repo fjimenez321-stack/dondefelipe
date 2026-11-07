@@ -474,8 +474,12 @@ service cloud.firestore {
     // (deuda = monto + 30%, vence en 14 días; desde el 2° préstamo, interés al doble si no paga en 7 días y embargo total)
     // y el estudiante paga total o parcialmente con 'prestamo-pago'.
     // Si vence sin pagar, el profe embarga bienes desde su panel (saldo, ahorro, acciones, gatitos, beneficios).
-    // AHORRO (banco_ahorros/<cuenta>): 10% por cada semana completa, con tope de ₣500.000 (capital + intereses).
-    // Cada depósito o retiro capitaliza lo ganado y reinicia la semana. No se puede depositar con un préstamo.
+    // AHORRO (banco_ahorros/<cuenta>) = DEPÓSITO A PLAZO: al depositar se elige un plazo de 7, 14, 21 o 28 días
+    // (campo «plazo»). Gana 10% por cada semana completa HASTA el plazo (después deja de crecer hasta que se
+    // retire o se renueve depositando de nuevo), con tope de ₣500.000 (capital + intereses).
+    // Retirar es siempre TODO: si es antes del plazo, se pierden los intereses (se devuelve solo el capital).
+    // Mientras corre el plazo no se puede depositar más. No se puede depositar con un préstamo.
+    // Los ahorros antiguos (sin «plazo») siguen como antes hasta su próxima operación.
     function rutaPrestamo(c) { return /databases/$(database)/documents/banco_prestamos/$(c); }
     function rutaAhorro(c) { return /databases/$(database)/documents/banco_ahorros/$(c); }
     function topeAhorro() { return 500000; }
@@ -483,18 +487,29 @@ service cloud.firestore {
     function cerca(a, b) { return a - b <= 1 && b - a <= 1; }
     // Ahorro con los intereses de las semanas completas desde «desde» (mismo cálculo que banco.html).
     function ahorroAl(a) {
-      let k = math.floor((request.time.toMillis() - a.desde.toMillis()) / 604800000);
+      let k0 = math.floor((request.time.toMillis() - a.desde.toMillis()) / 604800000);
+      let p = a.get('plazo', 0) / 7;
+      let k = (p > 0 && k0 > p) ? p : k0;
       let v = math.floor(a.monto * math.pow(1.1, k));
       return a.monto >= topeAhorro() ? a.monto : (v > topeAhorro() ? topeAhorro() : v);
     }
+    function ahorroVencido(a) { return a.get('plazo', 0) == 0 || request.time.toMillis() >= a.desde.toMillis() + a.plazo * 86400000; }
     function opAhorro(d) {
-      let antes = exists(rutaAhorro(d.cuenta)) ? get(rutaAhorro(d.cuenta)).data : {'monto': 0, 'intereses': 0, 'desde': request.time};
+      let antes = exists(rutaAhorro(d.cuenta)) ? get(rutaAhorro(d.cuenta)).data : {'monto': 0, 'intereses': 0, 'desde': request.time, 'plazo': 0};
       let cap = ahorroAl(antes);
+      let venc = ahorroVencido(antes);
+      let valor = venc ? cap : antes.monto;
       let des = getAfter(rutaAhorro(d.cuenta)).data;
       return des.desde == request.time && des.monto >= 0 && des.monto <= topeAhorro()
-        && cerca(des.monto, cap - d.monto)
-        && des.intereses == antes.get('intereses', 0) + (des.monto + d.monto - antes.monto)
-        && (d.tipo == 'ahorro-deposito' ? (d.monto < 0 && sinPrestamo(d.cuenta)) : (d.monto > 0 && d.monto <= cap));
+        && (d.tipo == 'ahorro-deposito'
+          // depositar: sin depósito en curso (o ya cumplido su plazo, que se capitaliza) y eligiendo un plazo
+          ? (d.monto < 0 && sinPrestamo(d.cuenta) && (antes.monto == 0 || venc)
+              && des.get('plazo', 0) in [7, 14, 21, 28]
+              && cerca(des.monto, cap - d.monto)
+              && des.intereses == antes.get('intereses', 0) + (des.monto + d.monto - antes.monto))
+          // retirar: siempre todo; antes del plazo solo el capital (se pierden los intereses)
+          : (d.monto > 0 && cerca(d.monto, valor) && des.monto == 0
+              && des.intereses == antes.get('intereses', 0) + (d.monto - antes.monto)));
     }
     function opPagoPrestamo(d) {
       let p = get(rutaPrestamo(d.cuenta)).data;
@@ -507,7 +522,7 @@ service cloud.firestore {
       allow read: if esProfe() || (c == miCuentaBanco() && c != '');
       allow write: if esProfe();
       allow create, update: if esColegio() && c == miCuentaBanco() && c != ''
-        && request.resource.data.keys().hasOnly(['cuenta', 'monto', 'desde', 'intereses', 'actualizado'])
+        && request.resource.data.keys().hasOnly(['cuenta', 'monto', 'desde', 'intereses', 'plazo', 'actualizado'])
         && request.resource.data.cuenta == c && request.resource.data.monto is int && request.resource.data.intereses is int
         && request.resource.data.actualizado == request.time
         && opsDespues(c) == opsAntes(c) + 1

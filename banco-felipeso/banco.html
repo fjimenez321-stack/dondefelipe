@@ -63,7 +63,7 @@ ul.reglas li{margin:3px 0}
   <a class="crumb" href="../cuenta.html">← Mi cuenta</a>
   <p class="kick">Banco de Hipopesos</p>
   <h1>Préstamos <span>y ahorro</span></h1>
-  <p class="intro">Ahorra y gana <b>10% cada semana</b> (hasta ₣500.000), o pide un préstamo que el profe aprueba: devuelves lo pedido <b>más 30%</b> dentro de 14 días. Si no pagas a tiempo, el banco <b>embarga tus bienes</b>.</p>
+  <p class="intro">Haz un <b>depósito a plazo</b> (7 a 28 días, 10% por semana; si lo sacas antes, pierdes los intereses), o pide un préstamo que el profe aprueba: devuelves lo pedido <b>más 30%</b> dentro de 14 días. Si no pagas a tiempo, el banco <b>embarga tus bienes</b>.</p>
 
   <div id="avisos"></div>
 
@@ -84,7 +84,7 @@ ul.reglas li{margin:3px 0}
   <section class="card">
     <h2>Cómo funciona</h2>
     <ul class="reglas">
-      <li><b>Ahorro:</b> por cada semana completa, tu ahorro crece 10% (interés compuesto). El tope es ₣500.000 contando los intereses: al llegar ahí deja de crecer.</li>
+      <li><b>Depósito a plazo:</b> eliges 7, 14, 21 o 28 días y ganas 10% por cada semana del plazo (interés compuesto), con tope de ₣500.000 contando los intereses. Mientras corre el plazo no puedes agregar dinero. <b>Si lo retiras antes del plazo, pierdes los intereses</b> y recuperas solo lo depositado. Al cumplirse deja de crecer: lo retiras o lo renuevas.</li>
       <li>Cada depósito o retiro suma lo ganado hasta ese momento y <b>reinicia la semana</b> en curso.</li>
       <li>No puedes depositar mientras tengas un préstamo pedido o sin pagar (sí puedes retirar).</li>
       <li><b>Préstamo:</b> pides entre ₣10.000 y ₣1.000.000 y el profe lo aprueba o lo rechaza. Uno a la vez.</li>
@@ -116,9 +116,14 @@ const ahora = () => DF.ahora ? DF.ahora() : Date.now();
 const msDe = t => t && t.toMillis ? t.toMillis() : (typeof t === 'number' ? t : 0);
 const fechaLarga = ms => new Date(ms).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
 // Ahorro con intereses de las semanas completas (mismo cálculo que ahorroAl() en las reglas).
+// Depósito a plazo: crece solo hasta el plazo elegido (7, 14, 21 o 28 días). Los antiguos (sin plazo) crecen sin límite.
+const PLAZOS = [7, 14, 21, 28];
+const semanasAh = (a, t) => { const k0 = Math.floor((t - msDe(a.desde)) / BANCO.semanaMs), p = (a.plazo || 0) / 7; return p > 0 && k0 > p ? p : k0; };
+const venceAh = a => a && a.plazo ? msDe(a.desde) + a.plazo * 86400000 : 0;
+const vencidoAh = (a, t) => !a || !a.plazo || t >= venceAh(a);
 function ahorroAl(a, t) {
   if (!a || !a.monto) return 0;
-  const k = Math.floor((t - msDe(a.desde)) / BANCO.semanaMs);
+  const k = semanasAh(a, t);
   if (a.monto >= BANCO.topeAhorro) return a.monto;
   return Math.min(BANCO.topeAhorro, Math.floor(a.monto * Math.pow(1 + BANCO.tasaSemana, k)));
 }
@@ -166,21 +171,36 @@ function pintar() {
   pintarAhorro(ah, t); pintarPrestamo(t);
 }
 function pintarAhorro(ah, t) {
-  const a = ahorro, desde = a ? msDe(a.desde) : 0, k = a ? Math.floor((t - desde) / BANCO.semanaMs) : 0;
-  const prox = a && a.monto ? desde + (k + 1) * BANCO.semanaMs : 0, sig = Math.min(BANCO.topeAhorro, Math.floor(a ? a.monto * Math.pow(1 + BANCO.tasaSemana, k + 1) : 0));
-  const tope = ah >= BANCO.topeAhorro, bloqueo = enCurso();
-  const espacio = Math.max(0, BANCO.topeAhorro - ah);
-  $('cAhorro').innerHTML = `<h2>🐷 Ahorro</h2>
-    <div class="nums"><div style="color:var(--pos)">${fmt(ah)}<small>Ahorrado ahora</small></div>
-      <div style="color:var(--brass)">${fmt((a ? a.intereses || 0 : 0) + (ah - (a ? a.monto : 0)))}<small>Intereses ganados</small></div></div>
-    <div class="barra"><i style="width:${Math.min(100, ah / BANCO.topeAhorro * 100)}%"></i></div>
-    <p class="nota" style="margin-top:2px">${fmt(ah)} de ${fmt(BANCO.topeAhorro)} (tope).
-      ${tope ? '<b>Llegaste al tope: tu ahorro ya no crece.</b>' : ah > 0 ? `Próximo interés: <b>${fechaLarga(prox)}</b>, a las ${new Date(prox).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} → tendrás <b>${fmt(sig)}</b>.` : 'Deposita para empezar a ganar 10% por semana.'}</p>
-    <div class="fila"><input type="number" id="mAhorro" min="1" step="1000" placeholder="Monto" inputmode="numeric">
-      <button class="btn p" type="button" data-a="depositar" ${bloqueo || tope ? 'disabled' : ''}>Depositar</button>
-      <button class="btn" type="button" data-a="retirar" ${ah > 0 ? '' : 'disabled'}>Retirar</button>
-      <button class="btn" type="button" data-a="retirarTodo" ${ah > 0 ? '' : 'disabled'}>Retirar todo</button></div>
-    <p class="nota">${bloqueo ? '🔒 No puedes depositar mientras tengas un préstamo pedido o sin pagar.' : tope ? '' : `Puedes depositar hasta ${fmt(Math.min(espacio, cuenta.saldo || 0))}.`} Depositar o retirar reinicia la semana en curso.</p>`;
+  const a = ahorro, activo = a && a.monto > 0, venc = vencidoAh(a, t), bloqueo = enCurso();
+  const capital = activo ? a.monto : 0, interes = ah - capital, vence = venceAh(a);
+  const final = activo && a.plazo ? Math.min(BANCO.topeAhorro, Math.floor(a.monto * Math.pow(1 + BANCO.tasaSemana, a.plazo / 7))) : 0;
+  const espacio = Math.max(0, BANCO.topeAhorro - (activo && venc ? ah : 0));
+  const elegir = `<div class="fila" style="flex-wrap:wrap;gap:6px">${PLAZOS.map((d, i) => `<label class="pill" style="cursor:pointer;padding:6px 10px"><input type="radio" name="plazoAh" value="${d}" ${i === 0 ? 'checked' : ''}> ${d} días · +${Math.round((Math.pow(1 + BANCO.tasaSemana, d / 7) - 1) * 100)}%</label>`).join('')}</div>`;
+  let cuerpo;
+  if (!activo) {
+    cuerpo = `<p>Elige un <b>plazo</b> y deposita. Ganas <b>10% por cada semana</b> del plazo (interés compuesto). Si lo sacas <b>antes del plazo, pierdes los intereses</b> y recuperas solo lo que depositaste.</p>
+      ${elegir}
+      <div class="fila"><input type="number" id="mAhorro" min="1" step="1000" placeholder="Monto" inputmode="numeric">
+        <button class="btn p" type="button" data-a="depositar" ${bloqueo ? 'disabled' : ''}>Depositar a plazo</button></div>
+      <p class="nota">${bloqueo ? '🔒 No puedes depositar mientras tengas un préstamo pedido o sin pagar.' : `Puedes depositar hasta ${fmt(Math.min(espacio, cuenta.saldo || 0))} (tope ${fmt(BANCO.topeAhorro)} con intereses).`}</p>`;
+  } else if (!venc) {
+    const dias = Math.ceil((vence - t) / 86400000);
+    cuerpo = `<p><span class="pill b">Depósito a ${a.plazo} días · faltan ${dias} día${dias === 1 ? '' : 's'}</span></p>
+      <div class="nums"><div>${fmt(capital)}<small>Depositaste</small></div><div style="color:var(--pos)">${fmt(ah)}<small>Vale hoy</small></div><div style="color:var(--brass)">${fmt(final)}<small>Al cumplir el plazo</small></div></div>
+      <p class="nota">Vence el <b>${fechaLarga(vence)}</b>, a las ${new Date(vence).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}<br>Mientras corre el plazo no puedes depositar más.</p>
+      <div class="fila"><button class="btn" type="button" data-a="retirarTodo">Retirar antes de tiempo</button></div>
+      <p class="nota" style="border-left:3px solid var(--neg);padding-left:8px">⚠️ Si retiras ahora <b>pierdes los intereses</b> (${fmt(interes)} hasta hoy, ${fmt(final - capital)} al final): recibes solo ${fmt(capital)}.</p>`;
+  } else {
+    cuerpo = `<p><span class="pill g">${a.plazo ? 'Plazo cumplido' : 'Ahorro'}</span></p>
+      <div class="nums"><div style="color:var(--pos)">${fmt(ah)}<small>Puedes retirar</small></div><div>${fmt(capital)}<small>Depositaste</small></div><div style="color:var(--brass)">${fmt(interes)}<small>Intereses</small></div></div>
+      ${a.plazo ? '<p class="nota">Tu depósito ya no crece. Retíralo, o <b>renuévalo</b>: deposita de nuevo (aunque sea un poco) con un plazo nuevo y todo lo que tienes sigue ganando.</p>' : '<p class="nota">Este ahorro es del sistema antiguo: al depositar de nuevo pasa a ser un depósito a plazo.</p>'}
+      ${elegir}
+      <div class="fila"><input type="number" id="mAhorro" min="1" step="1000" placeholder="Monto" inputmode="numeric">
+        <button class="btn p" type="button" data-a="depositar" ${bloqueo ? 'disabled' : ''}>Depositar y renovar</button>
+        <button class="btn" type="button" data-a="retirarTodo">Retirar ${fmt(ah)}</button></div>
+      <p class="nota">${bloqueo ? '🔒 No puedes depositar mientras tengas un préstamo pedido o sin pagar.' : `Puedes depositar hasta ${fmt(Math.min(espacio, cuenta.saldo || 0))}.`}</p>`;
+  }
+  $('cAhorro').innerHTML = `<h2>🐷 Depósito a plazo</h2>${cuerpo}`;
 }
 // 4° Medio ya no puede pedir préstamos (también lo bloquean las reglas de Firebase).
 const sinPrestamo = c => /^\s*(4|iv|cuarto)\s*(to)?\s*[°º.]?\s*m/i.test(String(c || ''));
@@ -244,30 +264,37 @@ function cercaDelCambio(a, t) {
   const pasado = t - msDe(a.desde), r = pasado % BANCO.semanaMs;
   return BANCO.semanaMs - r < 60000 || (pasado > BANCO.semanaMs && r < 60000);
 }
-async function moverAhorro(monto) {   // monto > 0 deposita, < 0 retira
+async function moverAhorro(monto, plazo) {   // monto > 0 deposita (con plazo), < 0 retira todo
   const { F, db } = await DF.listo();
   const rc = F.doc(db, 'banco_cuentas', cuentaId), ra = F.doc(db, 'banco_ahorros', cuentaId);
   const res = await F.runTransaction(db, async tx => {
     const [sc, sa] = await Promise.all([tx.get(rc), tx.get(ra)]);
     const c = sc.data(), a = sa.exists() ? sa.data() : null, t = ahora();
     if (cercaDelCambio(a, t)) throw new Error('Tu ahorro está justo cumpliendo una semana: espera un minuto y vuelve a intentarlo.');
-    const cap = ahorroAl(a, t);
+    const cap = ahorroAl(a, t), venc = vencidoAh(a, t), activo = a && a.monto > 0;
+    // retirar es siempre todo: antes del plazo, solo el capital
+    if (monto < 0) monto = -(activo ? (venc ? cap : a.monto) : 0);
     if (monto > 0) {
+      if (activo && !venc) throw new Error('Tu depósito aún no cumple su plazo: no puedes agregarle dinero.');
+      if (!PLAZOS.includes(plazo)) throw new Error('Elige un plazo.');
       if (enCurso()) throw new Error('No puedes depositar mientras tengas un préstamo pedido o sin pagar.');
       if (monto > (c.saldo || 0)) throw new Error('No te alcanza: tienes ' + fmt(c.saldo));
       if (cap + monto > BANCO.topeAhorro) throw new Error('Con eso pasarías el tope: puedes depositar hasta ' + fmt(BANCO.topeAhorro - cap) + '.');
-    } else if (-monto > cap) throw new Error('Solo tienes ' + fmt(cap) + ' ahorrados.');
-    const saldo = (c.saldo || 0) - monto, ops = (c.ops || 0) + 1, nuevo = cap + monto;
+    } else if (!monto) throw new Error('No tienes nada ahorrado.');
+    const saldo = (c.saldo || 0) - monto, ops = (c.ops || 0) + 1, nuevo = monto > 0 ? cap + monto : 0;
     tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
-    const m = movBase(c, ops, -monto, saldo, monto > 0 ? 'Ahorro: depósito de ' + fmt(monto) : 'Ahorro: retiro de ' + fmt(-monto), monto > 0 ? 'ahorro-deposito' : 'ahorro-retiro');
+    const temprano = monto < 0 && activo && !venc;
+    const m = movBase(c, ops, -monto, saldo, monto > 0 ? 'Ahorro: depósito a ' + plazo + ' días de ' + fmt(monto) : 'Ahorro: retiro de ' + fmt(-monto) + (temprano ? ' (antes del plazo: sin intereses)' : ''), monto > 0 ? 'ahorro-deposito' : 'ahorro-retiro');
     delete m._ops; m.fecha = F.serverTimestamp();
     tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), m);
-    const intereses = (a ? a.intereses || 0 : 0) + (cap - (a ? a.monto : 0));
-    tx.set(ra, { cuenta: cuentaId, monto: nuevo, desde: F.serverTimestamp(), intereses, actualizado: F.serverTimestamp() });
-    return { saldo, nuevo, intereses, t };
+    // intereses ganados: lo que se capitaliza al depositar, o lo que se cobra al retirar (0 si fue antes del plazo)
+    const intereses = (a ? a.intereses || 0 : 0) + (monto > 0 ? cap - (a ? a.monto : 0) : -monto - (a ? a.monto : 0));
+    tx.set(ra, { cuenta: cuentaId, monto: nuevo, desde: F.serverTimestamp(), intereses, plazo: monto > 0 ? plazo : (a && a.plazo) || 7, actualizado: F.serverTimestamp() });
+    return { saldo, nuevo, intereses, t, monto, temprano, plazoN: monto > 0 ? plazo : 7 };
   });
-  cuenta.saldo = res.saldo; ahorro = { cuenta: cuentaId, monto: res.nuevo, desde: res.t, intereses: res.intereses };
-  return monto > 0 ? '✓ Depositaste ' + fmt(monto) + '. Tu ahorro: ' + fmt(res.nuevo) + '.' : '✓ Retiraste ' + fmt(-monto) + '. Quedan ' + fmt(res.nuevo) + ' ahorrados.';
+  cuenta.saldo = res.saldo; ahorro = { cuenta: cuentaId, monto: res.nuevo, desde: res.t, intereses: res.intereses, plazo: res.plazoN };
+  return res.monto > 0 ? '✓ Depositaste ' + fmt(res.monto) + ' a ' + plazo + ' días. Tu depósito: ' + fmt(res.nuevo) + '.'
+    : '✓ Retiraste ' + fmt(-res.monto) + (res.temprano ? ' (antes del plazo: sin intereses).' : '.');
 }
 async function pedirPrestamo() {
   const monto = Math.round(+$('mPrestamo').value || 0), motivo = $('motivoP').value.trim();
@@ -322,9 +349,12 @@ document.addEventListener('click', e => {
   const val = id => Math.round(+($(id) || {}).value || 0);
   if (a === 'entrar') DF.entrar().then(() => cargar()).catch(x => { if (!x.cancelado) aviso(esc(x.message), 'err'); });
   if (a === 'salir') DF.salir().then(() => cargar());
-  if (a === 'depositar') { const m = val('mAhorro'); if (m > 0) operar(() => moverAhorro(m)); else aviso('Escribe cuánto quieres depositar.', 'err'); }
-  if (a === 'retirar') { const m = val('mAhorro'); if (m > 0) operar(() => moverAhorro(-m)); else aviso('Escribe cuánto quieres retirar.', 'err'); }
-  if (a === 'retirarTodo') operar(() => moverAhorro(-ahorroAl(ahorro, ahora())));
+  if (a === 'depositar') { const m = val('mAhorro'), pz = +((document.querySelector('input[name="plazoAh"]:checked') || {}).value || 0); if (m > 0) operar(() => moverAhorro(m, pz)); else aviso('Escribe cuánto quieres depositar.', 'err'); }
+  if (a === 'retirarTodo') {
+    const t = ahora(), temprano = ahorro && ahorro.monto > 0 && !vencidoAh(ahorro, t);
+    if (temprano && !confirm(`Tu depósito aún no cumple el plazo.\n\nSi lo retiras ahora pierdes los intereses y recibes solo ${fmt(ahorro.monto)}. ¿Retirar igual?`)) return;
+    operar(() => moverAhorro(-1));
+  }
   if (a === 'pedir') operar(pedirPrestamo);
   if (a === 'cancelar') operar(cancelarPrestamo);
   if (a === 'pagar') { const m = val('mPago'); if (m > 0) operar(() => pagar(m)); else aviso('Escribe cuánto quieres pagar.', 'err'); }
