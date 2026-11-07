@@ -466,7 +466,7 @@ async function cargarMiBanco(cid, c) {
       <p class="muted" style="margin:0 0 12px">${venc ? '⛔ <b>Tu préstamo venció:</b> el banco está embargando tus bienes. Paga cuanto antes.'
         : vig ? 'Debes pagar antes del <b>' + new Date(p.venceMs).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' }) + '</b> o se embargan tus bienes.'
         : sol ? '⏳ Tu solicitud de préstamo está esperando al profe.'
-        : 'Ahorra y gana 10% cada semana (hasta ₣500.000), o pide un préstamo (devuelves lo pedido + 30% en 30 días).'}</p>
+        : 'Ahorra y gana 10% cada semana (hasta ₣500.000), o pide un préstamo (devuelves lo pedido + 30% en 14 días).'}</p>
       <div class="fila"><a class="btn p" href="banco-felipeso/banco.html">${vig ? '💸 Pagar préstamo' : '🐷 Ahorrar'}</a>${vig || sol ? '' : '<a class="btn" href="banco-felipeso/banco.html">🏦 Pedir préstamo</a>'}</div>`;
   } catch (e) { box.innerHTML = `<h2><i class="fa-solid fa-building-columns"></i> Préstamos y ahorro</h2><div class="vacio">No se pudo cargar: ${esc(e.message)}</div>`; }
 }

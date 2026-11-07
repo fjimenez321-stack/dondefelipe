@@ -471,7 +471,8 @@ service cloud.firestore {
 
     // ═════ Préstamos y ahorro ═════
     // PRÉSTAMOS (banco_prestamos/<cuenta>, uno a la vez): el estudiante lo pide, el profe lo aprueba
-    // (deuda = monto + 30%, vence en 30 días) y el estudiante paga total o parcialmente con 'prestamo-pago'.
+    // (deuda = monto + 30%, vence en 14 días; desde el 2° préstamo, interés al doble si no paga en 7 días y embargo total)
+    // y el estudiante paga total o parcialmente con 'prestamo-pago'.
     // Si vence sin pagar, el profe embarga bienes desde su panel (saldo, ahorro, acciones, gatitos, beneficios).
     // AHORRO (banco_ahorros/<cuenta>): 10% por cada semana completa, con tope de ₣500.000 (capital + intereses).
     // Cada depósito o retiro capitaliza lo ganado y reinicia la semana. No se puede depositar con un préstamo.
