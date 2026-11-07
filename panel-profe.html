@@ -186,7 +186,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
           </div>
           <div class="card porcanjear" id="cardPrest" style="margin-top:16px">
             <h3 style="margin:0 0 4px">🏦 Préstamos <span class="pill" id="nPrest">0</span></h3>
-            <p class="muted" style="margin:0 0 8px;font-size:13px">Solicitudes por aprobar y préstamos vigentes. Al aprobar, el estudiante recibe el dinero y debe devolver lo pedido + 30% en 30 días. Si vence con deuda, <b>al abrir este panel</b> se embarga automáticamente (saldo → ahorro → acciones → gatitos → beneficios); también puedes hacerlo con el botón.</p>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">Solicitudes por aprobar y préstamos vigentes. Al aprobar, el estudiante recibe el dinero y debe devolver lo pedido + 30% en 14 días. Si vence con deuda, <b>al abrir este panel</b> se embarga automáticamente (saldo → ahorro → acciones → gatitos → beneficios); también puedes hacerlo con el botón.</p>
             <div class="lista-movs" id="listaPrest"><div class="muted">—</div></div>
           </div>
           <div class="card porcanjear" style="margin-top:16px">
@@ -814,7 +814,13 @@ $('btnMasc').onclick = async () => {
    Embargo: si vence con deuda, se toma en orden saldo → ahorro (con intereses) → acciones (precio del día)
    → gatitos (precio de catálogo, más baratos primero) → beneficios por canjear. Lo que sobra de un bien
    que vale más que la deuda vuelve al saldo. Se ejecuta solo al abrir el panel (y con el botón). */
-const PREST = { recargo: 0.30, plazoMs: 30 * 86400000, tasaSemana: 0.10, topeAhorro: 500000, semanaMs: 604800000, valorBeneficio: 50000 };
+const PREST = { recargo: 0.30, plazoMs: 14 * 86400000, tasaSemana: 0.10, topeAhorro: 500000, semanaMs: 604800000, valorBeneficio: 50000,
+  // Quien ya pidió 2 o más préstamos: si no paga dentro de la semana, el interés sube al doble (30% → 60%)
+  // y, si vence, el embargo es TOTAL (todos sus bienes, sin vuelto). Los préstamos que ya estaban
+  // vigentes el 7 de noviembre tienen plazo para esa semana hasta el sábado 14 de noviembre.
+  avisoLimite: Date.parse('2026-11-15T02:59:59Z') };
+const reincidente = p => (p.n || 1) >= 2;
+const limiteDoble = p => Math.max(msT(p.otorgado) + PREST.semanaMs, PREST.avisoLimite);
 let prestamos = [], embargados = new Set();
 const msT = t => t && t.toMillis ? t.toMillis() : (typeof t === 'number' ? t : 0);
 function ahorroAlP(a, t) {
@@ -829,6 +835,8 @@ function iniciarPrestamos() {
     pintarPrestamos(); avisoPrestamos();
     // Embargo automático de los préstamos vencidos (una vez por apertura del panel y por deuda).
     prestamos.filter(vencido).forEach(p => { const k = p.id + ':' + p.deuda; if (!embargados.has(k)) { embargados.add(k); embargar(p, true); } });
+    // Interés al doble para quien ya pidió varios préstamos y no pagó dentro de la semana (una vez por préstamo).
+    prestamos.filter(p => p.estado === 'vigente' && reincidente(p) && !p.recargoDoble && p.deuda > 0 && Date.now() > limiteDoble(p)).forEach(subirInteres);
   }, e => {
     // Antes el error quedaba solo en la consola: ahora se ve en la tarjeta.
     $('listaPrest').innerHTML = `<div class="neg">No se pudieron leer los préstamos: ${esc(e.message)}${/permission|insufficient/i.test(e.message) ? '<br>Falta publicar las reglas nuevas de Firestore (sección «Préstamos y ahorro»).' : ''}</div>`;
@@ -848,12 +856,12 @@ function pintarPrestamos() {
   const sol = prestamos.filter(p => p.estado === 'solicitado'), vig = prestamos.filter(p => p.estado === 'vigente');
   $('nPrest').textContent = sol.length + vig.filter(vencido).length;
   $('listaPrest').innerHTML = (sol.length || vig.length) ? sol.map(p => `
-    <div class="m"><div class="t"><b>🏦 Pide ${'$' + fmt(p.monto)}</b> · ${esc(p.nombre)} <span class="pill">${esc(p.curso || '—')}</span>
+    <div class="m"><div class="t"><b>🏦 Pide ${'$' + fmt(p.monto)}</b> · ${esc(p.nombre)} <span class="pill">${esc(p.curso || '—')}</span>${reincidente(p) ? ` <span class="pill" style="color:var(--neg)">préstamo N° ${p.n}</span>` : ''}
       <small>Devolvería $${fmt(Math.round(p.monto * (1 + PREST.recargo)))} · ${fecha(p.solicitado)} · Motivo: ${esc(p.motivo)}</small></div>
       <div style="display:flex;gap:6px"><button class="btn sm" data-prest-no="${esc(p.id)}">Rechazar</button><button class="btn sm p" data-prest-si="${esc(p.id)}">Aprobar</button></div></div>`).join('')
     + vig.map(p => `
     <div class="m"><div class="t"><b>${vencido(p) ? '⛔ Vencido' : '⏳ Vigente'} · debe $${fmt(p.deuda)}</b> · ${esc(p.nombre)} <span class="pill">${esc(p.curso || '—')}</span>
-      <small>Pidió $${fmt(p.monto)} · pagado $${fmt(p.pagado || 0)}${p.embargado ? ' · embargado $' + fmt(p.embargado) : ''} · vence ${fecha(p.venceMs)}</small></div>
+      <small>Pidió $${fmt(p.monto)} · pagado $${fmt(p.pagado || 0)}${p.embargado ? ' · embargado $' + fmt(p.embargado) : ''} · vence ${fecha(p.venceMs)}${reincidente(p) ? ` · préstamo N° ${p.n} · ${p.recargoDoble ? '<b class="neg">interés al doble</b>' : 'interés al doble si no paga antes del ' + new Date(limiteDoble(p)).toLocaleDateString('es-CL')} · si vence: embargo total y retirar las décimas ya puestas en notas` : ''}</small></div>
       ${vencido(p) ? `<button class="btn sm" data-prest-emb="${esc(p.id)}">Embargar ahora</button>` : ''}</div>`).join('')
     : '<div class="muted">No hay préstamos pedidos ni vigentes.</div>';
 }
@@ -864,9 +872,22 @@ $('listaPrest').onclick = ev => {
   if (b.dataset.prestNo) rechazarPrestamo(p);
   if (b.dataset.prestEmb) embargar(p, false);
 };
+async function subirInteres(p) {
+  const { F, db } = FB, rp = F.doc(db, 'banco_prestamos', p.id);
+  try {
+    const r = await F.runTransaction(db, async tx => {
+      const s = await tx.get(rp), x = s.data();
+      if (!x || x.estado !== 'vigente' || x.recargoDoble || !(x.deuda > 0) || !reincidente(x) || Date.now() <= limiteDoble(x)) return 0;
+      const extra = Math.round(x.monto * PREST.recargo);
+      tx.update(rp, { deuda: x.deuda + extra, recargoDoble: true, actualizado: F.serverTimestamp() });
+      return extra;
+    });
+    if (r) toast(`${p.nombre} no pagó en la semana: su interés subió al doble (+$${fmt(r)})`);
+  } catch (e) { console.info(e); }
+}
 async function aprobarPrestamo(p) {
   const deuda = Math.round(p.monto * (1 + PREST.recargo)), vence = Date.now() + PREST.plazoMs;
-  if (!confirm(`Aprobar préstamo de $${fmt(p.monto)} a ${p.nombre}.\nDeberá devolver $${fmt(deuda)} antes del ${new Date(vence).toLocaleDateString('es-CL')}.`)) return;
+  if (!confirm(`Aprobar préstamo de $${fmt(p.monto)} a ${p.nombre}${reincidente(p) ? ' (su préstamo N° ' + p.n + ')' : ''}.\nDeberá devolver $${fmt(deuda)} antes del ${new Date(vence).toLocaleDateString('es-CL')}.${reincidente(p) ? '\n\nComo ya pidió otros préstamos: si no paga dentro de 7 días, el interés sube al doble, y si vence, se le embargan TODOS sus bienes.' : ''}`)) return;
   const { F, db } = FB, rc = F.doc(db, 'banco_cuentas', p.id), rp = F.doc(db, 'banco_prestamos', p.id);
   try {
     await F.runTransaction(db, async tx => {
@@ -888,7 +909,8 @@ async function rechazarPrestamo(p) {
   catch (e) { toast('Error: ' + e.message); }
 }
 async function embargar(p, auto) {
-  if (!auto && !confirm(`Embargar a ${p.nombre} por $${fmt(p.deuda)}: saldo, ahorro, acciones, gatitos y beneficios, en ese orden, hasta cubrir la deuda.`)) return;
+  if (!auto && !confirm(reincidente(p) ? `EMBARGO TOTAL a ${p.nombre} (préstamo N° ${p.n}): se retiran TODOS sus bienes (saldo, ahorro, acciones, gatitos y beneficios), aunque superen la deuda de $${fmt(p.deuda)}.\n\nRecuerda retirar a mano las décimas que ya le pusiste en las notas.`
+    : `Embargar a ${p.nombre} por $${fmt(p.deuda)}: saldo, ahorro, acciones, gatitos y beneficios, en ese orden, hasta cubrir la deuda.`)) return;
   const { F, db } = FB, c0 = p.id;
   try {
     // Lo que hay que mirar (fuera de la transacción: consultas)
@@ -911,31 +933,33 @@ async function embargar(p, auto) {
       const pr = sp.data();
       if (!pr || pr.estado !== 'vigente' || !(pr.deuda > 0) || Date.now() <= (pr.venceMs || Infinity)) return null;
       const c = sc.data(), t = Date.now();
+      // Embargo total (quien ya pidió 2 o más préstamos): se lleva todo y no hay vuelto.
+      const total = reincidente(pr), sigue = () => total || deuda > 0;
       let deuda = pr.deuda, saldo = c.saldo || 0, vuelto = 0;
       const partes = [];
       // 1. saldo
-      const s1 = Math.min(Math.max(0, saldo), deuda); if (s1) { saldo -= s1; deuda -= s1; partes.push('saldo $' + fmt(s1)); }
+      const s1 = total ? Math.max(0, saldo) : Math.min(Math.max(0, saldo), deuda); if (s1) { saldo -= s1; deuda = Math.max(0, deuda - s1); partes.push('saldo $' + fmt(s1)); }
       // 2. ahorro
-      if (deuda > 0 && sa.exists()) {
-        const a = sa.data(), cap = ahorroAlP(a, t), q = Math.min(cap, deuda);
-        if (q > 0) { deuda -= q; partes.push('ahorro $' + fmt(q)); tx.update(ra, { monto: cap - q, desde: F.serverTimestamp(), intereses: (a.intereses || 0) + (cap - a.monto), actualizado: F.serverTimestamp() }); }
+      if (sigue() && sa.exists()) {
+        const a = sa.data(), cap = ahorroAlP(a, t), q = total ? cap : Math.min(cap, deuda);
+        if (q > 0) { deuda = Math.max(0, deuda - q); partes.push('ahorro $' + fmt(q)); tx.update(ra, { monto: cap - q, desde: F.serverTimestamp(), intereses: (a.intereses || 0) + (cap - a.monto), actualizado: F.serverTimestamp() }); }
       }
       // 3. acciones (las de más valor primero), vendidas al precio del día
       pos.map(([sp2, se]) => ({ sp2, p: sp2.data(), e: se.exists() ? se.data() : null })).filter(x => x.p && x.p.acciones > 0 && x.e && x.e.precio > 0)
         .sort((a, b) => b.p.acciones * b.e.precio - a.p.acciones * a.e.precio).forEach(x => {
-          if (deuda <= 0) return;
-          const q = Math.min(x.p.acciones, Math.ceil(deuda / x.e.precio)), v = q * x.e.precio;
+          if (!sigue()) return;
+          const q = total ? x.p.acciones : Math.min(x.p.acciones, Math.ceil(deuda / x.e.precio)), v = q * x.e.precio;
           vuelto += Math.max(0, v - deuda); deuda = Math.max(0, deuda - v);
           tx.update(x.sp2.ref, { acciones: x.p.acciones - q, actualizado: F.serverTimestamp() });
           partes.push(q + ' × ' + x.p.ticker);
         });
       // 4. gatitos (más baratos primero, a precio de catálogo)
-      if (deuda > 0 && sg && sg.exists()) {
+      if (sigue() && sg && sg.exists()) {
         const col = sg.data(), cat = window.GATITOS || [];
         let ids = (col.ids || []).slice();
         const orden = ids.map(id => ({ id, g: cat.find(x => x.id === id) })).filter(x => x.g && x.g.precio > 0).sort((a, b) => a.g.precio - b.g.precio);
         for (const x of orden) {
-          if (deuda <= 0) break;
+          if (!sigue()) break;
           vuelto += Math.max(0, x.g.precio - deuda); deuda = Math.max(0, deuda - x.g.precio);
           ids = ids.filter(i => i !== x.id); partes.push('gatito ' + x.g.nombre);
         }
@@ -943,21 +967,22 @@ async function embargar(p, auto) {
       }
       // 5. beneficios por canjear (los más antiguos primero)
       bens.filter(s => s.exists() && s.data().canje === 'pendiente').sort((a, b) => msT(a.data().fecha) - msT(b.data().fecha)).forEach(s => {
-        if (deuda <= 0) return;
+        if (!sigue()) return;
         const m = s.data(), v = m.tipo === 'compra' && m.monto < 0 ? -m.monto : PREST.valorBeneficio;
         vuelto += Math.max(0, v - deuda); deuda = Math.max(0, deuda - v);
         tx.update(s.ref, { canje: 'embargada', canjeNota: 'Embargo por préstamo', canjeFecha: F.serverTimestamp(), canjeProfe: (DF.usuario() || {}).email || '' });
         partes.push('beneficio «' + String(m.item).replace(/^Ruleta: /, '') + '»');
       });
       const tomado = pr.deuda - deuda;
-      if (!tomado) return { nada: true };
+      if (!tomado && !partes.length) return { nada: true };
+      if (total) vuelto = 0;   // embargo total: lo que sobra no se devuelve
       saldo += vuelto;
       if (saldo !== (c.saldo || 0)) tx.update(rc, { saldo, actualizado: F.serverTimestamp() });
-      movProfe(F, db, tx, c0, c, saldo - (c.saldo || 0), saldo, ('Embargo por préstamo vencido: ' + partes.join(', ') + (vuelto ? ' · vuelto $' + fmt(vuelto) : '')), 'embargo');
+      movProfe(F, db, tx, c0, c, saldo - (c.saldo || 0), saldo, ((total ? 'Embargo TOTAL por préstamo vencido (préstamo N° ' + pr.n + '): ' : 'Embargo por préstamo vencido: ') + partes.join(', ') + (vuelto ? ' · vuelto $' + fmt(vuelto) : '')).slice(0, 200), 'embargo');
       tx.update(rp, { deuda, embargado: (pr.embargado || 0) + tomado, estado: deuda === 0 ? 'pagado' : 'vigente', actualizado: F.serverTimestamp() });
       return { tomado, deuda, partes };
     });
-    if (r && r.tomado) toast(`Embargo a ${p.nombre}: $${fmt(r.tomado)} (${r.partes.join(', ')})${r.deuda ? ' · aún debe $' + fmt(r.deuda) : ' · deuda saldada'}`);
+    if (r && (r.tomado || (r.partes && r.partes.length))) toast(`${reincidente(p) ? 'Embargo TOTAL' : 'Embargo'} a ${p.nombre}: $${fmt(r.tomado)} (${r.partes.join(', ')})${r.deuda ? ' · aún debe $' + fmt(r.deuda) : ' · deuda saldada'}${reincidente(p) ? ' · retira a mano sus décimas ya puestas en notas' : ''}`);
     else if (!auto) toast(r && r.nada ? `${p.nombre} no tiene bienes para embargar por ahora` : 'Ya no está vencido');
   } catch (e) { toast('Error en el embargo: ' + e.message); }
 }
