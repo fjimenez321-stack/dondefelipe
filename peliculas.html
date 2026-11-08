@@ -133,6 +133,43 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
 .reco .quien .del{margin-left:auto}
 .reco .mas{font-size:.72rem;background:rgba(255,255,255,.06);border-radius:999px;padding:1px 8px;color:var(--bone)}
 .recos-vacio{color:var(--mute);font-size:.9rem;margin-top:12px}
+/* vistas */
+.vistas{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 1.4rem;border-bottom:1px solid var(--line-2);padding-bottom:12px}
+.vista{background:transparent;border:1.5px solid var(--line-2);color:var(--mute);border-radius:999px;padding:9px 18px;font:800 .82rem var(--ff-body);letter-spacing:.5px}
+.vista.on{background:var(--acid);border-color:var(--acid);color:#0a0c00}
+.vista small{opacity:.75;margin-left:4px}
+#vForo.recos{margin-top:0;padding-top:0;border-top:0}
+/* tarjetas del foro */
+.reco{cursor:pointer;padding:0 !important;overflow:hidden;display:flex;flex-direction:column}
+.reco .ph{aspect-ratio:16/10;background:linear-gradient(160deg,color-mix(in srgb,var(--nc) 45%,#111),#0b0c12);display:flex;align-items:flex-end;padding:12px;position:relative}
+.reco .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reco .ph .tt{position:relative;font:900 1.6rem/.95 var(--ff-display);text-transform:uppercase;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.5)}
+.reco .bd{padding:12px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.reco h3:before{content:''}
+.reco .meta{display:flex;gap:8px;flex-wrap:wrap;font-size:.74rem;color:var(--mute)}
+.reco .meta .pt{color:var(--brass);font-weight:800}
+.reco p.res{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* detalle */
+.det{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:start}
+.det .fotoG{width:100%;border-radius:var(--r-md);border:1px solid var(--line-2);display:block;max-height:520px;object-fit:contain;background:#0b0c12}
+.det .posterG{aspect-ratio:3/4;border-radius:var(--r-md);background:linear-gradient(165deg,var(--nc),#0b0c12);display:flex;align-items:flex-end;padding:18px;font:900 2.4rem/.9 var(--ff-display);text-transform:uppercase;color:#fff}
+.det h2{font:900 clamp(2rem,5vw,3rem)/.95 var(--ff-display);text-transform:uppercase}
+.det .texto{font-size:.98rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;color:#d4d6e2;margin:10px 0}
+.volver{margin-bottom:14px}
+@media (max-width:760px){.det{grid-template-columns:1fr}}
+/* notas por categoría */
+.escalas{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.escalas label{display:flex;flex-direction:column;gap:4px;font-size:.74rem;color:var(--mute);background:var(--slab-2);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:8px 10px}
+.escalas select{background:var(--slab-3);border:1px solid var(--line-2);border-radius:6px;padding:6px;font-weight:700}
+.barras{display:grid;gap:7px;margin:10px 0}
+.barras .b{display:grid;grid-template-columns:110px 1fr 46px;gap:8px;align-items:center;font-size:.8rem}
+.barras .b i{display:block;height:9px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden}
+.barras .b i em{display:block;height:100%;background:linear-gradient(90deg,var(--brass),var(--acid));border-radius:9px}
+.barras .b b{text-align:right;color:var(--brass)}
+.chips-n{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 6px}
+.chips-n span{font-size:.7rem;font-weight:700;background:rgba(233,185,73,.12);color:var(--brass);border-radius:999px;padding:2px 8px}
+.foto-prev{display:flex;gap:8px;align-items:center}
+.foto-prev img{width:90px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--line-2)}
 </style>
 <link rel="stylesheet" href="assets/mc-sutil.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -149,20 +186,31 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
 
 <main><div class="tablet">
   <header class="cab">
-    <h1>Cine del curso</h1>
-    <div class="sub">Películas que vimos juntos/as · por curso</div>
-    <p class="intro">Después de cada película, aquí se conversa. Elige tu curso, lee la pregunta para pensar y deja tu comentario. Se escribe con respeto: se ve tu nombre y la inicial de tu apellido.</p>
+    <h1>Cine</h1>
+    <div class="sub">Foro de películas · películas del curso</div>
+    <p class="intro">Aquí se recomiendan y se conversan películas. Se escribe con respeto: se ve tu nombre y la inicial de tu apellido.</p>
   </header>
   <section class="mod" id="modpanel" hidden aria-label="Moderación"></section>
-  <div class="tabs" id="tabs" role="tablist" aria-label="Cursos"></div>
-  <div class="lista" id="lista"></div>
+  <div class="vistas" id="vistas" role="tablist" aria-label="Secciones del cine">
+    <button class="vista on" data-v="foro" role="tab">🍿 Foro de películas <small id="nForo"></small></button>
+    <button class="vista" data-v="curso" role="tab">🎬 Películas del curso</button>
+  </div>
 
-  <section class="recos" id="recomendaciones" aria-labelledby="recos-t">
-    <h2 class="recos-t" id="recos-t">🍿 Recomendación de películas</h2>
-    <p class="intro" style="margin-top:6px">¿Qué película vale la pena? Escribe el título y cuéntanos <b>por qué hay que verla</b>, sin contar el final. Cada persona puede tener hasta 3 recomendaciones.</p>
-    <div id="recoForm"></div>
-    <div class="recos-orden" id="recoOrden"></div>
-    <div class="recos-grid" id="recoLista"></div>
+  <section id="vForo" class="recos" aria-labelledby="recos-t">
+    <div id="foroInicio">
+      <h2 class="recos-t" id="recos-t">🍿 Foro de películas</h2>
+      <p class="intro" style="margin-top:6px">Abre un tema con una película que valga la pena: título, una foto (el afiche o una escena) y <b>por qué hay que verla</b>, sin contar el final. Los demás comentan y la evalúan de 0 a 10 en <b>fotografía, guion, sonido y actores</b>. Cada persona puede abrir hasta 3 temas.</p>
+      <div id="recoForm"></div>
+      <div class="recos-orden" id="recoOrden"></div>
+      <div class="recos-grid" id="recoLista"></div>
+    </div>
+    <div id="foroDetalle" hidden></div>
+  </section>
+
+  <section id="vCurso" hidden>
+    <p class="intro" style="margin:0 0 14px">Las películas que vimos en clases, por curso. Lee la pregunta para pensar, comenta y evalúa.</p>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Cursos"></div>
+    <div class="lista" id="lista"></div>
   </section>
 </div></main>
 <div class="pie">El Mundo de Felipe · Cine</div>
@@ -196,6 +244,28 @@ function limpiar(t){
     .replace(/https?:\/\/\S+|www\.\S+/gi,'[enlace]')
     .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g,'[correo]')
     .replace(/\+?\d[\d\s-]{7,}\d/g,'[número]');
+}
+
+/* ═════════ notas por categoría (0 a 10, cada una opcional) ═════════ */
+var CATS=[['fotografia','📷 Fotografía'],['guion','📝 Guion'],['sonido','🎵 Sonido'],['actuacion','🎭 Actores']];
+function escalasHTML(pre){
+  return '<div class="escalas">'+CATS.map(function(c){
+    return '<label>'+c[1]+'<select id="'+pre+'-'+c[0]+'"><option value="">— sin nota</option>'+[10,9,8,7,6,5,4,3,2,1,0].map(function(n){return '<option value="'+n+'">'+n+'</option>'}).join('')+'</select></label>';
+  }).join('')+'</div>';
+}
+function leerNotas(pre){var n={};CATS.forEach(function(c){var e=$(pre+'-'+c[0]);if(e&&e.value!=='')n[c[0]]=+e.value});return n}
+function chipsNotas(n){if(!n)return '';var l=CATS.filter(function(c){return typeof n[c[0]]==='number'});return l.length?'<div class="chips-n">'+l.map(function(c){return '<span>'+c[1]+' '+n[c[0]]+'</span>'}).join('')+'</div>':''}
+// promedios por categoría y general a partir de una lista de comentarios
+function promNotas(l){
+  var r={n:0,gen:null};
+  CATS.forEach(function(c){var v=l.map(function(x){return x.notas&&x.notas[c[0]]}).filter(function(v){return typeof v==='number'});r[c[0]]=v.length?v.reduce(function(a,b){return a+b},0)/v.length:null;});
+  var todas=[];l.forEach(function(x){if(x.notas)CATS.forEach(function(c){if(typeof x.notas[c[0]]==='number')todas.push(x.notas[c[0]])})});
+  r.n=l.filter(function(x){return x.notas&&Object.keys(x.notas).length}).length;r.gen=todas.length?todas.reduce(function(a,b){return a+b},0)/todas.length:null;return r;
+}
+function barrasHTML(p){
+  if(!p.n)return '<p class="nota">Aún nadie la evalúa.</p>';
+  return '<div class="barras">'+CATS.map(function(c){var v=p[c[0]];return '<div class="b"><span>'+c[1]+'</span><i><em style="width:'+(v==null?0:v*10)+'%"></em></i><b>'+(v==null?'—':v.toFixed(1).replace('.',','))+'</b></div>'}).join('')+
+    '</div><p class="nota">Nota general <b style="color:var(--brass);font-size:1rem">'+p.gen.toFixed(1).replace('.',',')+' / 10</b> · '+p.n+' evaluaci'+(p.n===1?'ón':'ones')+'</p>';
 }
 
 /* ═════════ estado ═════════ */
@@ -240,7 +310,7 @@ function pintaLista(){
       '<div class="datos"><span class="dato">'+esc(cn)+'</span><span class="dato">'+p.ano+'</span><span class="dato">'+esc(p.dir)+'</span><span class="dato">'+esc(p.dur)+'</span></div>'+
       '<p class="sinopsis">'+esc(p.sin)+'</p>'+
       pintaPreg(p)+
-      '<div class="prom">'+(pr!=null?'<span class="est" aria-label="Promedio '+pr.toFixed(1)+' de 5">'+estrellas(pr)+'</span><span>'+pr.toFixed(1).replace('.',',')+' / 5</span>':'<span>Aún sin notas</span>')+'</div>'+
+      (function(){var pn=promNotas(COM[p.id]||[]);return pn.n?barrasHTML(pn):'<div class="prom">'+(pr!=null?'<span class="est" aria-label="Promedio '+pr.toFixed(1)+' de 5">'+estrellas(pr)+'</span><span>'+pr.toFixed(1).replace('.',',')+' / 5</span>':'<span>Aún sin notas</span>')+'</div>'})()+
       '<div class="fila"><button class="btn" data-a="abrir" data-id="'+p.id+'">💬 Comentarios'+(DFok?' ('+n+')':'')+'</button></div>'+
       '<section class="com'+(abiertos[p.id]?' on':'')+'" id="c-'+p.id+'" aria-label="Comentarios de '+esc(p.titulo)+'"></section>'+
       '</div></article>';
@@ -287,9 +357,9 @@ function pintaCom(id){
   }else{
     var ne=nota[id]||0;
     h+='<div class="form"><label class="nota" for="t-'+id+'">Tu comentario</label>'+
-      '<textarea id="t-'+id+'" maxlength="500" placeholder="¿Qué te pareció? Responde la pregunta de arriba o cuenta qué escena te llamó la atención." data-id="'+id+'"></textarea>'+
-      '<div class="fila"><span class="nota">Tu nota:</span><span class="stars" data-id="'+id+'">'+[1,2,3,4,5].map(function(i){return '<button type="button" class="'+(i<=ne?'on':'')+'" data-a="nota" data-id="'+id+'" data-n="'+i+'" aria-label="'+i+' de 5">★</button>'}).join('')+'</span>'+
-      '<span class="esp"></span><span class="cont" id="n-'+id+'">0 / 500</span>'+
+      '<textarea id="t-'+id+'" maxlength="500" placeholder="'+(id.indexOf('r-')===0?'¿La viste? ¿Qué te pareció? Comparte una referencia: una escena, un actor, otra película parecida… sin spoilers.':'¿Qué te pareció? Responde la pregunta de arriba o cuenta qué escena te llamó la atención.')+'" data-id="'+id+'"></textarea>'+
+      '<span class="nota">Evalúa de 0 a 10 (opcional):</span>'+escalasHTML('e-'+id)+
+      '<div class="fila"><span class="esp"></span><span class="cont" id="n-'+id+'">0 / 500</span>'+
       '<button class="btn" data-a="enviar" data-id="'+id+'">Publicar</button></div>'+
       '<div id="m-'+id+'" role="status"></div></div>';
   }
@@ -299,7 +369,7 @@ function pintaCom(id){
     var puedeBorrar=esMod||c.uid===usuario.uid;
     return '<div class="cm" style="--nc:'+colorDe(c.uid||c.nombre)+'"><div class="quien"><b>'+esc(c.nombre)+'</b>'+(c.curso?'<span>'+esc(c.curso)+'</span>':'')+
       (c.estrellas?'<span class="est">'+estrellas(c.estrellas)+'</span>':'')+'<span>'+fechaTxt(c.fecha)+'</span>'+
-      (puedeBorrar?'<button class="lnk del" data-a="borrar" data-id="'+id+'" data-cid="'+esc(c._id)+'">borrar</button>':'')+'</div><p>'+esc(c.texto)+'</p></div>';
+      (puedeBorrar?'<button class="lnk del" data-a="borrar" data-id="'+id+'" data-cid="'+esc(c._id)+'">borrar</button>':'')+'</div>'+chipsNotas(c.notas)+'<p>'+esc(c.texto)+'</p></div>';
   }).join('');
   box.innerHTML=h;
 }
@@ -382,10 +452,11 @@ function enviar(id){
     var F=fb.F;
     return F.addDoc(F.collection(fb.db,'peliculas_comentarios'),{
       peli:id,uid:usuario.uid,nombre:DF.nombreCorto(usuario.displayName,usuario.email),curso:(perfil&&perfil.curso)||'',
-      texto:txt.slice(0,500),estrellas:nota[id]||0,fecha:F.serverTimestamp()});
+      texto:txt.slice(0,500),estrellas:0,notas:leerNotas('e-'+id),fecha:F.serverTimestamp()});
   }).then(function(){
     nota[id]=0;return cargarCom(id);
-  }).then(function(){pintaLista();var m=$('m-'+id);if(m)m.innerHTML='<span class="ok">✓ Comentario publicado.</span>'})
+  }).then(function(){if(id.indexOf('r-')===0){pintaDetalle();pintaRecos();var m2=$('m-'+id);if(m2)m2.innerHTML='<span class="ok">✓ Comentario publicado.</span>';return}
+    pintaLista();var m=$('m-'+id);if(m)m.innerHTML='<span class="ok">✓ Comentario publicado.</span>'})
   .catch(function(e){btn.disabled=false;msg.innerHTML='<span class="err">No se pudo publicar ('+esc(e.message||e)+').</span>'});
 }
 function borrar(id,cid){
@@ -393,45 +464,93 @@ function borrar(id,cid){
   var ajeno=c&&usuario&&c.uid!==usuario.uid;
   if(!confirm(ajeno?'¿Borrar el comentario de '+(c.nombre||'esta persona')+'? (moderación)':'¿Borrar este comentario?'))return;
   dfListo().then(function(fb){return fb.F.deleteDoc(fb.F.doc(fb.db,'peliculas_comentarios',cid))})
-    .then(function(){return cargarCom(id)}).then(pintaLista).catch(function(e){alert('No se pudo borrar: '+(e.message||e))});
+    .then(function(){return cargarCom(id)}).then(function(){if(id.indexOf('r-')===0){pintaDetalle();pintaRecos()}else pintaLista()}).catch(function(e){alert('No se pudo borrar: '+(e.message||e))});
 }
 
-/* ═════════ recomendaciones de películas ═════════ */
-var RECOS=[],recoOrden='nuevas',recoMsg='';
+/* ═════════ foro de películas (temas = peliculas_recomendaciones; comentarios con peli = 'r-<id>') ═════════ */
+var RECOS=[],recoOrden='nuevas',recoMsg='',fotoReco='',vista='foro',temaAct=null;
 function cargarRecos(){
   if(!usuario){RECOS=[];pintaRecos();return Promise.resolve()}
-  return dfListo().then(function(fb){return fb.F.getDocs(fb.F.collection(fb.db,'peliculas_recomendaciones'))})
-    .then(function(s){RECOS=s.docs.map(function(d){return Object.assign({_id:d.id},d.data())});pintaRecos()})
-    .catch(function(e){RECOS=[];recoMsg='<span class="err">No se pudieron cargar las recomendaciones ('+esc(e.message||e)+').</span>';pintaRecos()});
+  return dfListo().then(function(fb){var F=fb.F;
+    return Promise.all([F.getDocs(F.collection(fb.db,'peliculas_recomendaciones')),
+      F.getDocs(F.query(F.collection(fb.db,'peliculas_comentarios'),F.where('peli','>=','r-'),F.where('peli','<','r.'))).catch(function(){return {docs:[]}})]);
+  }).then(function(r){
+    RECOS=r[0].docs.map(function(d){return Object.assign({_id:d.id},d.data())});
+    var por={};r[1].docs.forEach(function(d){var o=d.data();o._id=d.id;(por[o.peli]=por[o.peli]||[]).push(o)});
+    RECOS.forEach(function(x){var k='r-'+x._id;COM[k]=(por[k]||[]).sort(function(a,b){return msF(b.fecha)-msF(a.fecha)})});
+    pintaRecos();pintaDetalle();
+  }).catch(function(e){RECOS=[];recoMsg='<span class="err">No se pudo cargar el foro ('+esc(e.message||e)+').</span>';pintaRecos()});
 }
+function msF(t){return t&&t.toMillis?t.toMillis():Date.now()}
 function claveTitulo(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ñ]+/g,' ').trim()}
+function fotoOk(f){return typeof f==='string'&&/^data:image\/(webp|jpeg|png);base64,/.test(f)}
+// Achica la foto en el navegador (máx. 900 px, WebP/JPEG) para guardarla junto al tema.
+function comprimir(file){
+  return new Promise(function(ok,no){
+    if(!file||!/^image\//.test(file.type))return no(new Error('Elige una imagen.'));
+    var img=new Image(),url=URL.createObjectURL(file);
+    img.onload=function(){
+      var k=Math.min(1,900/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+      var q=.8,d=c.toDataURL('image/webp',q);if(d.indexOf('data:image/webp')!==0)d=c.toDataURL('image/jpeg',q);
+      while(d.length>280000&&q>.3){q-=.1;d=c.toDataURL(d.indexOf('webp')>0?'image/webp':'image/jpeg',q)}
+      d.length>280000?no(new Error('La foto es muy pesada, prueba con otra.')):ok(d);
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);no(new Error('No se pudo leer la foto.'))};img.src=url;
+  });
+}
+function pintaVista(){
+  [].forEach.call(document.querySelectorAll('.vista'),function(b){b.classList.toggle('on',b.dataset.v===vista)});
+  $('vForo').hidden=vista!=='foro';$('vCurso').hidden=vista!=='curso';
+  $('foroInicio').hidden=!!temaAct;$('foroDetalle').hidden=!temaAct;
+  $('nForo').textContent=RECOS.length?'· '+RECOS.length:'';
+}
 function pintaRecos(){
+  pintaVista();
   var f=$('recoForm'),l=$('recoLista');if(!f)return;
-  if(!DFok){f.innerHTML='<p class="recos-vacio">Las recomendaciones no están disponibles ahora.</p>';l.innerHTML='';$('recoOrden').innerHTML='';return}
-  if(!usuario){f.innerHTML='<div class="reco-form"><p>Para ver y escribir recomendaciones, <button class="lnk" data-a="entrar" style="font-size:inherit">entra con tu cuenta</button>.</p></div>';l.innerHTML='';$('recoOrden').innerHTML='';return}
+  if(!DFok){f.innerHTML='<p class="recos-vacio">El foro no está disponible ahora.</p>';l.innerHTML='';$('recoOrden').innerHTML='';return}
+  if(!usuario){f.innerHTML='<div class="reco-form"><p>Para ver el foro y escribir, <button class="lnk" data-a="entrar" style="font-size:inherit">entra con tu cuenta</button>.</p></div>';l.innerHTML='';$('recoOrden').innerHTML='';return}
   var mias=RECOS.filter(function(r){return r.uid===usuario.uid}),libres=3-mias.length;
   var tTit=($('reco-tit')||{}).value||'',tPor=($('reco-por')||{}).value||'';
   f.innerHTML='<div class="reco-form">'+(libres>0
-    ?'<input id="reco-tit" maxlength="80" placeholder="Título de la película (ej.: Coco, Interestelar)" aria-label="Título de la película">'+
+    ?'<b>✍️ Abrir un tema</b><input id="reco-tit" maxlength="80" placeholder="Título de la película (ej.: Coco, Interestelar)" aria-label="Título de la película">'+
      '<textarea id="reco-por" maxlength="400" placeholder="¿Por qué hay que verla? Qué te hizo sentir, a quién se la recomendarías… sin spoilers." aria-label="Por qué hay que verla"></textarea>'+
-     '<div class="fila"><button class="btn" data-a="recoEnviar">Recomendar</button><span class="nota">Te quedan '+libres+' de 3</span><span class="cont" id="reco-n">'+tPor.length+' / 400</span></div>'
-    :'<p>Ya tienes 3 recomendaciones. Borra una de las tuyas para agregar otra.</p>')+
+     '<div class="fila"><label class="btn s" style="cursor:pointer">📷 '+(fotoReco?'Cambiar foto':'Agregar foto')+'<input type="file" id="reco-foto" accept="image/*" hidden></label>'+
+     (fotoReco?'<span class="foto-prev"><img src="'+fotoReco+'" alt="Vista previa"><button class="lnk" data-a="quitaFoto">quitar</button></span>':'<span class="nota">Opcional: el afiche o una escena.</span>')+'</div>'+
+     '<div class="fila"><button class="btn" data-a="recoEnviar">Publicar tema</button><span class="nota">Te quedan '+libres+' de 3</span><span class="cont" id="reco-n">'+tPor.length+' / 400</span></div>'
+    :'<p>Ya tienes 3 temas. Borra uno de los tuyos para abrir otro.</p>')+
     '<div id="reco-msg" role="status">'+recoMsg+'</div></div>';
   if($('reco-tit')){$('reco-tit').value=tTit;$('reco-por').value=tPor}
-  // cuántas personas recomiendan el mismo título
   var cuenta={};RECOS.forEach(function(r){var k=claveTitulo(r.titulo);cuenta[k]=(cuenta[k]||0)+1});
-  $('recoOrden').innerHTML=RECOS.length>1?['nuevas','populares','az'].map(function(k){return '<button class="'+(k===recoOrden?'on':'')+'" data-a="recoOrden" data-k="'+k+'">'+{nuevas:'Más nuevas',populares:'Más recomendadas',az:'A–Z'}[k]+'</button>'}).join(''):'';
-  var ms=function(r){return r.fecha&&r.fecha.toMillis?r.fecha.toMillis():Date.now()};
+  var prom=function(r){return promNotas(COM['r-'+r._id]||[])};
+  $('recoOrden').innerHTML=RECOS.length>1?['nuevas','comentadas','mejores','az'].map(function(k){return '<button class="'+(k===recoOrden?'on':'')+'" data-a="recoOrden" data-k="'+k+'">'+{nuevas:'Más nuevas',comentadas:'Más comentadas',mejores:'Mejor evaluadas',az:'A–Z'}[k]+'</button>'}).join(''):'';
+  var nc=function(r){return (COM['r-'+r._id]||[]).length},pg=function(r){var p=prom(r);return p.gen==null?-1:p.gen};
   var lista=RECOS.slice().sort(recoOrden==='az'?function(a,b){return claveTitulo(a.titulo).localeCompare(claveTitulo(b.titulo),'es')}
-    :recoOrden==='populares'?function(a,b){return cuenta[claveTitulo(b.titulo)]-cuenta[claveTitulo(a.titulo)]||ms(b)-ms(a)}:function(a,b){return ms(b)-ms(a)});
+    :recoOrden==='comentadas'?function(a,b){return nc(b)-nc(a)||msF(b.fecha)-msF(a.fecha)}
+    :recoOrden==='mejores'?function(a,b){return pg(b)-pg(a)||nc(b)-nc(a)}:function(a,b){return msF(b.fecha)-msF(a.fecha)});
   l.innerHTML=lista.length?lista.map(function(r){
-    var n=cuenta[claveTitulo(r.titulo)],puede=r.uid===usuario.uid||esMod;
-    return '<article class="reco" style="--nc:'+colorDe(r.uid||r.nombre||'')+'"><h3>'+esc(r.titulo)+'</h3><p>'+esc(r.porque)+'</p>'+
-      '<div class="quien"><b>'+esc(r.nombre)+'</b>'+(r.curso?'<span>· '+esc(r.curso)+'</span>':'')+'<span>· '+fechaTxt(r.fecha)+'</span>'+
-      (n>1?'<span class="mas">'+n+' la recomiendan</span>':'')+
-      (puede?'<button class="lnk del" data-a="recoBorrar" data-id="'+esc(r._id)+'">borrar</button>':'')+'</div></article>';
-  }).join(''):'<p class="recos-vacio">Todavía no hay recomendaciones. ¡Sé la primera persona en recomendar una película!</p>';
+    var p=prom(r),n=nc(r);
+    return '<article class="reco" data-a="tema" data-id="'+esc(r._id)+'" tabindex="0" style="--nc:'+colorDe(r.uid||r.nombre||'')+'"><div class="ph">'+(fotoOk(r.foto)?'<img src="'+r.foto+'" alt="" loading="lazy">':'<span class="tt">'+esc(r.titulo)+'</span>')+'</div>'+
+      '<div class="bd"><h3>'+esc(r.titulo)+'</h3><p class="res">'+esc(r.porque)+'</p>'+
+      '<div class="meta"><span>por <b style="color:var(--nc)">'+esc(r.nombre)+'</b></span>'+(p.gen!=null?'<span class="pt">★ '+p.gen.toFixed(1).replace('.',',')+'/10</span>':'')+'<span>💬 '+n+'</span>'+(cuenta[claveTitulo(r.titulo)]>1?'<span class="mas">'+cuenta[claveTitulo(r.titulo)]+' la recomiendan</span>':'')+'</div></div></article>';
+  }).join(''):'<p class="recos-vacio">Todavía no hay temas. ¡Abre el primero!</p>';
 }
+function pintaDetalle(){
+  pintaVista();
+  var box=$('foroDetalle');if(!temaAct){box.innerHTML='';return}
+  var r=RECOS.filter(function(x){return x._id===temaAct})[0];
+  if(!r){box.innerHTML=usuario?'<button class="btn s volver" data-a="volverForo">← Volver al foro</button><p class="recos-vacio">Este tema ya no existe.</p>':'<p class="recos-vacio">Entra con tu cuenta para ver el tema.</p>';return}
+  var k='r-'+r._id,puede=r.uid===usuario.uid||esMod;
+  box.innerHTML='<button class="btn s volver" data-a="volverForo">← Volver al foro</button>'+
+    '<div class="det" style="--nc:'+colorDe(r.uid||r.nombre||'')+'"><div>'+(fotoOk(r.foto)?'<img class="fotoG" src="'+r.foto+'" alt="Foto de '+esc(r.titulo)+'">':'<div class="posterG">'+esc(r.titulo)+'</div>')+'</div>'+
+    '<div><h2>'+esc(r.titulo)+'</h2><div class="nota">Tema de <b style="color:var(--nc)">'+esc(r.nombre)+'</b>'+(r.curso?' · '+esc(r.curso):'')+' · '+fechaTxt(r.fecha)+
+    (puede?' · <button class="lnk del" data-a="recoBorrar" data-id="'+esc(r._id)+'">borrar tema</button>':'')+'</div>'+
+    '<p class="texto">'+esc(r.porque)+'</p><h4 style="font:800 1rem var(--ff-display);letter-spacing:1px;text-transform:uppercase;margin-top:12px">Evaluación del foro</h4>'+barrasHTML(promNotas(COM[k]||[]))+'</div></div>'+
+    '<h3 style="font:900 1.6rem var(--ff-display);text-transform:uppercase;margin:22px 0 10px">💬 Comentarios ('+(COM[k]||[]).length+')</h3>'+
+    '<section class="com on" id="c-'+k+'"></section>';
+  pintaCom(k);
+}
+function abrirTema(id){temaAct=id;vista='foro';try{history.replaceState(null,'','#r-'+id)}catch(e){}pintaDetalle();window.scrollTo({top:0,behavior:'smooth'})}
 function enviarReco(){
   var tit=limpiar($('reco-tit').value).replace(/\s+/g,' ').slice(0,80),por=limpiar($('reco-por').value).slice(0,400);
   var msg=function(h){recoMsg=h;var m=$('reco-msg');if(m)m.innerHTML=h};
@@ -440,24 +559,30 @@ function enviarReco(){
   if(/\[(enlace|correo|número)\]|@/.test(tit+por))return msg('<span class="err">Sin enlaces, correos ni números de teléfono.</span>');
   var usados=RECOS.filter(function(r){return r.uid===usuario.uid}).map(function(r){return r._id});
   var slot=[1,2,3].map(function(n){return usuario.uid+'__'+n}).filter(function(id){return usados.indexOf(id)<0})[0];
-  if(!slot)return msg('<span class="err">Ya tienes 3 recomendaciones.</span>');
+  if(!slot)return msg('<span class="err">Ya tienes 3 temas.</span>');
   var b=document.querySelector('[data-a=recoEnviar]');if(b)b.disabled=true;
-  dfListo().then(function(fb){var F=fb.F;
-    return F.setDoc(F.doc(fb.db,'peliculas_recomendaciones',slot),{uid:usuario.uid,nombre:DF.nombreCorto(usuario.displayName,usuario.email).slice(0,80),
-      curso:String((perfil&&perfil.curso)||'').slice(0,40),titulo:tit,porque:por,fecha:F.serverTimestamp()});
-  }).then(function(){$('reco-tit').value='';$('reco-por').value='';recoMsg='<span class="ok">✓ ¡Gracias por tu recomendación!</span>';return cargarRecos()})
-  .catch(function(e){if(b)b.disabled=false;msg('<span class="err">No se pudo publicar ('+esc(e.message||e)+').</span>')});
+  dfListo().then(function(fb){var F=fb.F,d={uid:usuario.uid,nombre:DF.nombreCorto(usuario.displayName,usuario.email).slice(0,80),
+      curso:String((perfil&&perfil.curso)||'').slice(0,40),titulo:tit,porque:por,fecha:F.serverTimestamp()};
+    if(fotoReco)d.foto=fotoReco;
+    return F.setDoc(F.doc(fb.db,'peliculas_recomendaciones',slot),d);
+  }).then(function(){$('reco-tit').value='';$('reco-por').value='';fotoReco='';recoMsg='<span class="ok">✓ ¡Tema publicado!</span>';return cargarRecos()})
+  .catch(function(e){if(b)b.disabled=false;msg('<span class="err">No se pudo publicar ('+esc(/permission/i.test(e.message||'')?'el sitio lo rechazó: ¿el profe publicó las reglas nuevas?':(e.message||e))+').</span>')});
 }
 function borrarReco(id){
   var r=RECOS.filter(function(x){return x._id===id})[0];if(!r)return;
-  if(!confirm(r.uid===usuario.uid?'¿Borrar tu recomendación de «'+r.titulo+'»?':'¿Borrar la recomendación de '+r.nombre+'? (moderación)'))return;
+  if(!confirm(r.uid===usuario.uid?'¿Borrar tu tema «'+r.titulo+'»?':'¿Borrar el tema de '+r.nombre+'? (moderación)'))return;
   dfListo().then(function(fb){return fb.F.deleteDoc(fb.F.doc(fb.db,'peliculas_recomendaciones',id))})
-    .then(function(){recoMsg='';return cargarRecos()}).catch(function(e){alert('No se pudo borrar: '+(e.message||e))});
+    .then(function(){recoMsg='';temaAct=null;try{history.replaceState(null,'','#foro')}catch(e){}return cargarRecos()}).catch(function(e){alert('No se pudo borrar: '+(e.message||e))});
 }
+document.addEventListener('change',function(ev){
+  if(ev.target.id!=='reco-foto'||!ev.target.files[0])return;
+  comprimir(ev.target.files[0]).then(function(d){fotoReco=d;recoMsg='';pintaRecos()},function(e){recoMsg='<span class="err">'+esc(e.message)+'</span>';pintaRecos()});
+});
 
 /* ═════════ eventos ═════════ */
 document.addEventListener('click',function(ev){
-  var t=ev.target.closest('[data-a],.tab');if(!t)return;
+  var t=ev.target.closest('[data-a],.tab,.vista');if(!t)return;
+  if(t.classList.contains('vista')){vista=t.dataset.v;temaAct=null;try{history.replaceState(null,'','#'+(vista==='foro'?'foro':'curso'))}catch(e){}pintaVista();if(vista==='foro')pintaRecos();return}
   if(t.classList.contains('tab')){cursoAct=t.dataset.k;try{localStorage.setItem('cine_curso',cursoAct)}catch(e){}pintaTabs();pintaLista();cargarCurso();return}
   var a=t.dataset.a,id=t.dataset.id;
   if(a==='abrir'){abiertos[id]=!abiertos[id];$('c-'+id).classList.toggle('on',!!abiertos[id]);if(abiertos[id])pintaCom(id)}
@@ -475,15 +600,22 @@ document.addEventListener('click',function(ev){
   else if(a==='recoEnviar')enviarReco();
   else if(a==='recoBorrar')borrarReco(id);
   else if(a==='recoOrden'){recoOrden=t.dataset.k;pintaRecos()}
+  else if(a==='tema')abrirTema(id);
+  else if(a==='volverForo'){temaAct=null;try{history.replaceState(null,'','#foro')}catch(e){}pintaRecos()}
+  else if(a==='quitaFoto'){fotoReco='';pintaRecos()}
 });
+document.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target.matches&&ev.target.matches('.reco[data-a=tema]'))abrirTema(ev.target.dataset.id)});
 document.addEventListener('input',function(ev){
   var t=ev.target;if(t.tagName==='TEXTAREA'&&t.dataset.id){var c=$('n-'+t.dataset.id);if(c)c.textContent=t.value.length+' / 500'}
   if(t.id==='reco-por'){var rn=$('reco-n');if(rn)rn.textContent=t.value.length+' / 400'}
 });
 
 /* ═════════ arranque ═════════ */
-(function(){var h=(location.hash||'').slice(1),p=PELIS.filter(function(x){return x.id===h})[0];if(p){cursoAct=p.curso;abiertos[p.id]=true}})();
-pintaTabs();pintaLista();pintaYo();pintaRecos();
+(function(){var h=(location.hash||'').slice(1),p=PELIS.filter(function(x){return x.id===h})[0];
+  if(p){cursoAct=p.curso;abiertos[p.id]=true;vista='curso'}
+  else if(h==='curso')vista='curso';
+  else if(h.indexOf('r-')===0){vista='foro';temaAct=h.slice(2)}})();
+pintaTabs();pintaLista();pintaYo();pintaRecos();pintaDetalle();
 if(window.DF){
   dfListo().then(function(){
     DFok=true;
@@ -496,7 +628,7 @@ if(window.DF){
       revisarMod(u).then(function(m){esMod=m;pintaYo();return cargarMods()}).then(pintaMods)
         .then(function(){return DF.perfil()}).then(function(pf){perfil=pf},function(){})
         .then(function(){return Promise.all([cargarCurso(),cargarRecos()])})
-        .then(function(){if(location.hash==='#recomendaciones'){var r=$('recomendaciones');if(r)r.scrollIntoView()}});
+        .then(function(){pintaVista()});
     });
     pintaLista();
   },function(){DFok=false;pintaYo();pintaLista();pintaRecos()});
