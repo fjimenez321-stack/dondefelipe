@@ -193,12 +193,20 @@ service cloud.firestore {
     // ── Comentarios de la sección Cine (películas vistas por curso) ──
     // Solo con cuenta: se leen y se escriben con sesión iniciada. El profe, los
     // moderadores y quien escribió pueden borrar. Nadie puede editar un comentario ya publicado.
+    // Notas por categoría (0 a 10, cada una opcional): fotografía, guion, sonido y actores.
+    function notaCine(n, k) { return !(k in n) || (n[k] is int && n[k] >= 0 && n[k] <= 10); }
+    function notasCine(n) {
+      return n is map && n.keys().hasOnly(['fotografia', 'guion', 'sonido', 'actuacion'])
+        && notaCine(n, 'fotografia') && notaCine(n, 'guion') && notaCine(n, 'sonido') && notaCine(n, 'actuacion');
+    }
+    // peli: id de una película del curso (peliculas.html) o «r-<id de un tema del foro>».
     match /peliculas_comentarios/{id} {
       allow read: if esColegio();
       allow create: if esColegio()
-        && request.resource.data.keys().hasOnly(['peli', 'uid', 'nombre', 'curso', 'texto', 'estrellas', 'fecha'])
+        && request.resource.data.keys().hasOnly(['peli', 'uid', 'nombre', 'curso', 'texto', 'estrellas', 'notas', 'fecha'])
         && request.resource.data.uid == request.auth.uid
-        && idJuego(request.resource.data.peli)
+        && (idJuego(request.resource.data.peli) || request.resource.data.peli.matches('^r-[A-Za-z0-9_]{5,80}$'))
+        && (!('notas' in request.resource.data) || notasCine(request.resource.data.notas))
         && texto(request.resource.data.nombre, 80)
         && texto(request.resource.data.curso, 40)
         && texto(request.resource.data.texto, 500) && request.resource.data.texto.size() >= 2
@@ -208,13 +216,16 @@ service cloud.firestore {
       allow delete: if esMod() || esDueno();
     }
 
-    // ── Recomendación de películas (Cine): cada persona con cuenta recomienda hasta 3 ──
+    // ── Foro de películas (Cine): cada persona con cuenta abre hasta 3 temas (recomendación + foto opcional) ──
     // id = <uid>__1, __2 o __3 (así nadie publica más de 3). Sin enlaces ni correos. No se editan: se borran y se vuelven a escribir.
     match /peliculas_recomendaciones/{id} {
       allow read: if esColegio();
       allow create: if esColegio()
         && id.matches(request.auth.uid + '__[1-3]')
-        && request.resource.data.keys().hasOnly(['uid', 'nombre', 'curso', 'titulo', 'porque', 'fecha'])
+        && request.resource.data.keys().hasOnly(['uid', 'nombre', 'curso', 'titulo', 'porque', 'foto', 'fecha'])
+        // foto opcional: imagen comprimida en el navegador (data URL de menos de 300 KB)
+        && (!('foto' in request.resource.data) || (request.resource.data.foto is string
+            && request.resource.data.foto.size() < 300000 && request.resource.data.foto[0:11] == 'data:image/'))
         && request.resource.data.uid == request.auth.uid
         && texto(request.resource.data.nombre, 80) && texto(request.resource.data.curso, 40)
         && texto(request.resource.data.titulo, 80) && request.resource.data.titulo.size() >= 1
