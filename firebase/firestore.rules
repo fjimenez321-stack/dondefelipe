@@ -813,7 +813,7 @@ service cloud.firestore {
       return {'naranjo': 10000, 'gris': 12000, 'dormilon': 15000, 'patitas': 18000,
               'aseo': 25000, 'blanconegro': 30000, 'tricolor': 35000, 'comelon': 40000,
               'siames': 60000, 'negro': 70000, 'estirado': 80000, 'jugueton': 100000,
-              'caja': 150000, 'tronco': 200000, 'barril': 250000,
+              'caja': 150000, 'tronco': 200000, 'rick': 200000, 'barril': 250000,
               'muro': 400000, 'fantasma': 500000, 'masita': 500000, 'miauricio': 550000,
               'cosmico': 750000, 'dorado': 1000000, 'cesar': 1000000, 'grunona': 5000000}.get(g, 0);
     }
@@ -828,7 +828,7 @@ service cloud.firestore {
     function decimasPoder(uid) {
       let s = gatitosAntes(uid).toSet();
       let n = s.intersection(['naranjo', 'gris', 'dormilon', 'patitas', 'aseo', 'blanconegro', 'tricolor', 'comelon'].toSet()).size()
-        + 2 * s.intersection(['siames', 'negro', 'estirado', 'jugueton', 'caja', 'tronco', 'barril'].toSet()).size()
+        + 2 * s.intersection(['siames', 'negro', 'estirado', 'jugueton', 'caja', 'tronco', 'rick', 'barril'].toSet()).size()
         + 3 * s.intersection(['muro', 'fantasma', 'cosmico', 'dorado', 'masita', 'miauricio'].toSet()).size();
       return n > 3 ? 3 : n;
     }

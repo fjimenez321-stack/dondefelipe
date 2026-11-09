@@ -25,6 +25,8 @@ window.GATITOS = [
   { id: 'jugueton',    nombre: 'Juguetón',             precio: 100000,  rareza: 'raro',       txt: 'Un ovillo de lana y es feliz toda la tarde.', poderes: ['🤝 Elegir compañero/a en trabajos en pareja'] },
   { id: 'caja',        nombre: 'Gato en Caja',         precio: 150000,  rareza: 'epico',      txt: '¿Está dormido o despierto? Abre la caja y descúbrelo.', poderes: ['📦 Elegir su grupo de trabajo'] },
   { id: 'tronco',      nombre: 'Guardián del Bosque',  precio: 200000,  rareza: 'epico',      txt: 'Vigila el bosque nativo desde su tronco de coihue.', poderes: ['🔔 Salir primero al recreo'] },
+  // En memoria: Rick fue la mascota de Francisca L.
+  { id: 'rick',        nombre: 'Rick',                 precio: 200000,  rareza: 'epico',      txt: 'Rick ♂. Fue la mascota de Francisca L.; lo recordamos con cariño. 🤍 Su poder: pedir hacer la prueba en parejas en Biología, Física y Ciencias Naturales.', anim: true, poderes: ['👥 Pedir hacer la prueba en parejas (Biología, Física y Ciencias Naturales)'] },
   { id: 'barril',      nombre: 'Gato del Barril',      precio: 250000,  rareza: 'epico',      txt: 'Viajó de polizón en un barril desde Valparaíso.', poderes: ['🎤 Elegir el orden de su disertación'] },
   { id: 'muro',        nombre: 'Explorador del Muro',  precio: 400000,  rareza: 'legendario', txt: 'Ha recorrido todos los techos de Villa Alemana.', poderes: ['🚶 Permiso de paseo por el colegio en cada clase (cuando amerite)'] },
   { id: 'fantasma',    nombre: 'Gato Fantasma',        precio: 500000,  rareza: 'legendario', txt: 'Aparece en los pasillos cuando nadie mira.', poderes: ['📓 Uso del cuaderno 5 minutos en cada evaluación'] },
