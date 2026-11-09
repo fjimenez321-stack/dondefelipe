@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U4 · Sesión 2 · Estados de la materia</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f8fc; --panel:#ffffff; --panel2:#eef3fa; --line:#dbe3ef;
+  --navy:#1d3b72; --gold:#c98f12; --goldbg:#fff6df; --teal:#0f9e8e; --tealbg:#e6f7f4;
+  --coral:#e2574c; --txt:#1c2a44; --muted:#5f6f8c; --ok:#1f9d5a; --okbg:#e5f6ec; --bad:#d64545; --badbg:#fdeaea;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:'Nunito',system-ui,sans-serif;overflow:hidden}
+h1,h2,h3{font-family:'Baloo 2','Nunito',sans-serif;line-height:1.1;color:var(--navy)}
+button{font-family:inherit;cursor:pointer}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#fff;border-bottom:1px solid var(--line);z-index:20;gap:10px}
+.topbar .t{font-weight:800;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .t b{color:var(--navy)}
+.tb-right{display:flex;gap:8px;align-items:center}
+.badge{display:flex;align-items:center;gap:6px;background:var(--goldbg);border:1px solid #efd18a;color:#8a5f00;padding:5px 12px;border-radius:999px;font-weight:800;font-size:14px;transition:transform .2s}
+.badge.pop{transform:scale(1.25)}
+.coin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b8,#f2c14e 55%,#b8860b);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#5a3d00;font-weight:900}
+.iconbtn{background:#fff;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700}
+
+.deck{position:absolute;top:52px;bottom:64px;left:0;right:0}
+.slide{position:absolute;inset:0;padding:24px 28px;overflow-y:auto;display:none;animation:fade .3s ease}
+.slide.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.wrap{max-width:1050px;margin:0 auto}
+.kicker{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);background:var(--tealbg);padding:4px 10px;border-radius:999px;margin-bottom:10px}
+.slide h2{font-size:clamp(26px,3.4vw,38px);margin-bottom:6px}
+.lead{color:var(--muted);font-size:clamp(15px,1.6vw,18px);margin-bottom:16px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 3px rgba(29,59,114,.05)}
+.card h3{font-size:19px;margin-bottom:6px}
+.card p,.card li{font-size:15.5px;line-height:1.45}
+.card ol,.card ul{padding-left:20px}
+.te{display:inline-flex;align-items:center;gap:6px;background:var(--goldbg);color:#8a5f00;border:1px solid #efd18a;font-weight:800;font-size:13px;padding:3px 10px;border-radius:8px;margin-bottom:10px}
+.local{border-left:4px solid var(--teal);background:var(--tealbg);padding:10px 14px;border-radius:10px;font-size:15px;margin-top:12px}
+.local b{color:var(--teal)}
+.btn{background:var(--navy);color:#fff;border:none;border-radius:12px;padding:10px 16px;font-weight:800;font-size:15px}
+.btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn:disabled{opacity:.55}
+textarea{width:100%;min-height:64px;background:#fbfcfe;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px;font-family:inherit;font-size:15px;resize:vertical;margin-top:8px}
+.ans{display:none;margin-top:8px;background:var(--okbg);border:1px solid #b9e4cb;border-radius:10px;padding:8px 12px;font-size:14.5px}
+.ans.show{display:block}
+
+.cover{display:flex;flex-direction:column;justify-content:center;min-height:100%;text-align:center}
+.cover h1{font-size:clamp(38px,6.5vw,72px);margin:8px 0}
+.cover .sub{font-size:clamp(17px,2vw,22px);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+.floaters{position:relative;height:100px;margin:8px auto 0;width:min(480px,90%)}
+.floaters i{position:absolute;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#5fd3c4 60%,#0f9e8e)}
+.route{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px;font-size:14px;color:var(--muted);font-weight:700}
+.route span{background:var(--panel2);padding:4px 10px;border-radius:8px}
+
+.bigq{font-family:'Baloo 2';font-size:clamp(26px,4vw,44px);text-align:center;color:var(--navy);background:#fff;border:2px solid #efd18a;border-radius:20px;padding:20px;margin:6px 0 16px}
+.bigq em{color:var(--gold);font-style:normal}
+.vote{display:flex;gap:8px;flex-wrap:wrap}
+.vote button{flex:1;min-width:110px;padding:12px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:800;font-size:15px;color:var(--txt)}
+.vote button b{display:block;font-family:'Baloo 2';font-size:28px;color:var(--gold)}
+
+.flip{perspective:1000px;min-height:190px;cursor:pointer}
+.flip .in{position:relative;width:100%;min-height:190px;transition:transform .6s;transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip .f,.flip .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;padding:16px;border:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+.flip .f{background:#fff;text-align:center}
+.flip .f .ico{font-size:42px}
+.flip .f h3{font-size:28px;margin-top:4px}
+.flip .f p{color:var(--muted);font-size:13px}
+.flip .b{background:var(--panel2);transform:rotateY(180deg)}
+.flip .b p{font-size:15px;line-height:1.45;margin-bottom:4px}
+.flip .b .u{color:var(--teal);font-weight:800;font-size:14px}
+
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;transition:.25s}
+.item .nm{font-weight:800;font-size:16px;margin-bottom:8px}
+.item .row{display:flex;gap:6px}
+.item .row button{flex:1;padding:7px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-weight:800;font-size:13px}
+.item.good{border-color:var(--ok);background:var(--okbg)}
+.item.wrong{border-color:var(--bad);background:var(--badbg)}
+.item .fb{font-size:13px;color:var(--muted);margin-top:4px;display:none}
+.item.done .fb{display:block}.item.done .row{display:none}
+
+.sim{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(250px,1fr);gap:14px}
+@media(max-width:820px){.sim{grid-template-columns:1fr}}
+.canvasbox{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px}
+#simc{width:100%;height:320px;display:block;border-radius:10px;background:#f2f6fc}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.stbtn{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--txt);font-weight:800}
+.stbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.slider{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;font-weight:700}
+.slider input{flex:1;accent-color:var(--navy)}
+.thermo{font-family:'Baloo 2';font-size:24px;color:var(--coral);min-width:82px;text-align:right}
+.props{display:grid;gap:6px}
+.prop{display:flex;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:14px}
+.prop span:first-child{color:var(--muted)}
+.prop span:last-child{font-weight:800;text-align:right}
+.stname{font-family:'Baloo 2';font-size:30px;color:var(--navy)}
+.q{font-weight:800;font-size:15px;margin:10px 0 6px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts button{padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--txt);font-weight:700;font-size:14px;text-align:left}
+.opts button.ok{background:var(--okbg);border-color:var(--ok);color:#0d5c33}
+.opts button.no{background:var(--badbg);border-color:var(--bad);color:#8a1f1f}
+.opts.col{flex-direction:column}
+
+.philo .card{text-align:center}
+.philo .who{font-size:13px;color:var(--muted);margin-top:6px}
+.post{display:flex;gap:10px;align-items:flex-start}
+.post .n{flex:none;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+.ctab{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.ctab th,.ctab td{padding:9px;border-bottom:1px solid var(--line);font-size:14px;text-align:left}
+.ctab th{background:var(--panel2);color:var(--navy)}
+.ctab td:first-child{font-weight:800}
+.ctab select{width:100%;background:#fbfcfe;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px;font-family:inherit;font-size:14px}
+.ctab select.ok{border-color:var(--ok);background:var(--okbg)}
+.ctab select.no{border-color:var(--bad);background:var(--badbg)}
+.tscroll{overflow-x:auto}
+
+.acc{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:8px;background:#fff}
+.acc .h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;font-weight:800}
+.acc .lv{min-width:42px;text-align:center;border-radius:8px;padding:3px 6px;font-size:13px;background:var(--panel2);color:var(--navy)}
+.acc.boss{border-color:#f3b8b3}
+.acc.boss .lv{background:var(--coral);color:#fff}
+.acc .body{display:none;padding:0 14px 14px}
+.acc.open .body{display:block}
+.acc .qq{font-size:15px}
+.sm{font-size:12.5px;padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--teal);font-weight:800;margin-top:8px}
+
+.rub{width:100%;border-collapse:collapse;background:#fff}
+.rub th,.rub td{border:1px solid var(--line);padding:9px;font-size:13.5px;vertical-align:top}
+.rub th{background:var(--panel2);color:var(--navy)}
+.rub td:first-child{font-weight:800;width:20%}
+
+.nav{position:fixed;bottom:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:center;gap:14px;background:#fff;border-top:1px solid var(--line);z-index:20}
+.arrow{width:46px;height:46px;border-radius:50%;border:1px solid var(--navy);background:#fff;color:var(--navy);font-size:22px;font-weight:900}
+.arrow:disabled{opacity:.3}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);border:none;padding:0}
+.dot.on{background:var(--navy);transform:scale(1.3)}
+.toast{position:fixed;top:62px;right:16px;background:var(--gold);color:#fff;font-weight:900;padding:8px 14px;border-radius:12px;z-index:30;opacity:0;transform:translateY(-10px);transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+
+.print-only{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;overflow:visible;font-size:11pt}
+  .topbar,.nav,.toast,.noprint,.floaters,.canvasbox,.vote,.opts,.item .row,.sm,.ctab select{display:none!important}
+  .deck{position:static}
+  .slide{display:block!important;position:static;padding:0 0 10px;overflow:visible;border-bottom:1px solid #999;margin-bottom:12px;animation:none}
+  .card,.acc,.item,.prop,.local,.bigq{box-shadow:none;border:1px solid #888!important;background:#fff!important}
+  .flip{min-height:0}.flip .in{transform:none!important;min-height:0}
+  .flip .f,.flip .b{position:static;transform:none;backface-visibility:visible;margin-bottom:4px;background:#fff}
+  .ans,.item .fb,.acc .body{display:block!important}
+  .print-only{display:inline}
+  .cover{min-height:0;text-align:left}
+}
+.globos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.globo{text-align:center}.globo .g{font-size:46px}
+.steps{display:flex;flex-wrap:wrap;gap:8px}
+.steps .card{flex:1;min-width:180px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="t"><b>Ciencias Naturales 6°</b> · Unidad 4 · Sesión 2</div>
+  <div class="tb-right">
+    <button class="iconbtn noprint" onclick="window.print()">🖨️ Guía</button>
+    <div class="badge" id="badge"><span class="coin">F</span><span id="fp">0</span> Felipesos</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide active">
+  <div class="wrap cover">
+    <div><span class="kicker">Unidad 4 · La materia que nos rodea · Sesión 2</span></div>
+    <h1>Sólido, líquido, gas… ¿y plasma?</h1>
+    <p class="sub">Las partículas y el calor</p>
+    <div class="floaters" id="floaters"></div>
+    <div class="chips">
+      <span class="chip">🎯 OA12 · Modelo de partículas</span>
+      <span class="chip">🔬 OA a · OA f</span>
+      <span class="chip">📘 Texto pp. 163–167</span>
+    </div>
+    <div class="route"><span>1 · Pregunta</span><span>2 · Repaso</span><span>3 · Los tres globos</span><span>4 · Simulador</span><span>5 · Plasma</span><span>6 · Ticket de salida</span></div>
+    <p class="print-only" style="margin-top:10px">Nombre: ______________________________ Curso: 6° ___ Fecha: ___/___/2026</p>
+  </div>
+</section>
+
+<!-- 2 PREGUNTA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Inicio · Pregunta científica</span>
+    <div class="bigq">¿Qué le pasa a un <em>globo con aire</em> si lo metemos al <em>congelador</em>?</div>
+    <div class="card">
+      <h3>Predice</h3>
+      <div class="vote">
+        <button onclick="vote(this)">Se infla más<b>0</b></button>
+        <button onclick="vote(this)">Queda igual<b>0</b></button>
+        <button onclick="vote(this)">Se desinfla un poco<b>0</b></button>
+      </div>
+      <textarea placeholder="Creo que... porque las partículas del aire..."></textarea>
+      <p style="margin-top:8px;color:var(--muted);font-size:14px">Guarda tu predicción: la revisamos al final.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3 REPASO -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Repaso · Sesión 1</span>
+    <h2>¿Lo recuerdas?</h2>
+    <div class="grid g2">
+      <div class="card">
+        <p class="q">1. La materia es todo lo que tiene…</p>
+        <div class="opts" data-k="r1"><button data-ok="0">color y forma</button><button data-ok="1">masa y volumen</button><button data-ok="0">temperatura</button></div>
+      </div>
+      <div class="card">
+        <p class="q">2. Según el modelo corpuscular, las partículas…</p>
+        <div class="opts" data-k="r2"><button data-ok="0">están siempre quietas</button><button data-ok="1">están en constante movimiento</button><button data-ok="0">se pueden ver con lupa</button></div>
+      </div>
+      <div class="card">
+        <p class="q">3. ¿En qué estado la fuerza de atracción es intensa?</p>
+        <div class="opts" data-k="r3"><button data-ok="1">Sólido</button><button data-ok="0">Líquido</button><button data-ok="0">Gaseoso</button></div>
+      </div>
+      <div class="card">
+        <p class="q">4. ¿Qué hay entre las partículas?</p>
+        <div class="opts" data-k="r4"><button data-ok="0">Aire</button><button data-ok="1">Espacios vacíos</button><button data-ok="0">Agua</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 TRES GLOBOS -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Desarrollo · Texto escolar</span>
+    <h2>Los tres globos</h2>
+    <span class="te">📘 Texto p. 163 · Actividad 3</span>
+    <p class="lead">¿Cómo están las partículas dentro de cada globo? Elige y luego dibújalo en tu cuaderno.</p>
+    <div class="globos">
+      <div class="card globo"><div class="g">🎈💧</div><h3>Globo 1</h3><p>Agua</p>
+        <div class="opts col" data-k="g1" style="margin-top:8px"><button data-ok="0">Muy unidas, vibran</button><button data-ok="1">Con espacio, se mueven con libertad</button><button data-ok="0">Muy separadas, libres</button></div></div>
+      <div class="card globo"><div class="g">🎈🧊</div><h3>Globo 2</h3><p>Agua, 5 horas en el congelador</p>
+        <div class="opts col" data-k="g2" style="margin-top:8px"><button data-ok="1">Muy unidas, vibran</button><button data-ok="0">Con espacio, se mueven con libertad</button><button data-ok="0">Muy separadas, libres</button></div></div>
+      <div class="card globo"><div class="g">🎈💨</div><h3>Globo 3</h3><p>Aire</p>
+        <div class="opts col" data-k="g3" style="margin-top:8px"><button data-ok="0">Muy unidas, vibran</button><button data-ok="0">Con espacio, se mueven con libertad</button><button data-ok="1">Muy separadas, libres</button></div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <p><b>d.</b> ¿Qué ocurriría si metemos el globo 3 al congelador?</p>
+      <textarea></textarea>
+      <button class="sm" onclick="showAns(this)">Respuesta</button>
+      <div class="ans">Se desinfla un poco. Al perder calor, las partículas del aire se mueven más lento, chocan con menos fuerza contra las paredes y el gas ocupa menos volumen. Sigue siendo gas.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 SIMULADOR -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Simulador · Me conecto</span>
+    <h2>¿Qué hace el calor con las partículas?</h2>
+    <span class="te">📘 Texto p. 163 · Me conecto</span>
+    <div class="sim">
+      <div class="canvasbox">
+        <canvas id="simc"></canvas>
+        <div class="ctrls">
+          <button class="stbtn" onclick="setT(T-20)">❄️ Quitar calor</button>
+          <button class="stbtn" onclick="setT(T+20)">🔥 Dar calor</button>
+        </div>
+        <div class="slider">🌡️<input type="range" id="tSlider" min="-30" max="130" value="-15" oninput="setT(+this.value,true)"><div class="thermo" id="tRead">-15 °C</div></div>
+      </div>
+      <div>
+        <div class="stname" id="stName">Sólido</div>
+        <div class="props">
+          <div class="prop"><span>Fuerza de atracción</span><span id="pAtr"></span></div>
+          <div class="prop"><span>Movimiento</span><span id="pMov"></span></div>
+          <div class="prop"><span>Espacio entre partículas</span><span id="pDist"></span></div>
+        </div>
+        <div class="local" id="pLocal"></div>
+        <div id="simQs"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 PLASMA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Desarrollo · ¿Sabías qué?</span>
+    <h2>El cuarto estado: plasma</h2>
+    <span class="te">📘 Texto p. 164</span>
+    <div class="grid g2">
+      <div class="card">
+        <h3>⚡ ¿Qué es?</h3>
+        <ul>
+          <li>Partículas con carga eléctrica, muy dispersas y con mucha energía.</li>
+          <li>No tiene forma ni volumen fijos.</li>
+          <li>Conduce muy bien la electricidad.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🇨🇱 Ciencia en Chile</h3>
+        <p>En la Universidad Católica, un equipo de científicos y científicas produce plasma con equipos construidos en su propio laboratorio.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <p class="q">¿Dónde encontramos plasma?</p>
+      <div class="opts" data-k="pl"><button data-ok="0">En un cubo de hielo</button><button data-ok="1">En el Sol y en los rayos</button><button data-ok="0">En el vapor de una tetera</button></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b>Comenta en pareja:</b> producir plasma consume mucha electricidad. ¿Podría afectar al ambiente? ¿Por qué?</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 MODELO -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">¿Cómo voy?</span>
+    <h2>Modelo de los estados</h2>
+    <span class="te">📘 Texto p. 166 · Actividad 1</span>
+    <p class="lead">En parejas, modelen sólido, líquido y gas con lo que tengan: plasticina, porotos o papel.</p>
+    <div class="steps">
+      <div class="card"><h3>1</h3><p>Elijan materiales.</p></div>
+      <div class="card"><h3>2</h3><p>Armen los tres estados.</p></div>
+      <div class="card"><h3>3</h3><p>Expliquen en 30 segundos cómo está la materia en cada uno.</p></div>
+    </div>
+    <button class="btn" style="margin-top:14px" onclick="award(5,'modelo',this)">✅ Modelo presentado · +5</button>
+  </div>
+</section>
+
+<!-- 8 BLOOM -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Banco de preguntas · Bloom</span>
+    <h2>Sube de nivel</h2>
+    <p class="lead">N5 y N6 son el <b style="color:var(--coral)">Desafío Boss</b> (+10).</p>
+    <div id="bloom"></div>
+  </div>
+</section>
+
+<!-- 9 TICKET -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Cierre</span>
+    <h2>🎟️ Ticket de salida</h2>
+    <div class="grid" style="gap:12px">
+      <div class="card">
+        <p><b>1.</b> Vuelve a tu predicción: ¿qué le pasa al globo con aire en el congelador? Explica con las partículas.</p>
+        <textarea></textarea>
+        <button class="sm" onclick="showAns(this)">Respuesta</button>
+        <div class="ans">Se desinfla un poco: al perder calor, las partículas se mueven más lento y el aire ocupa menos volumen.</div>
+      </div>
+      <div class="card">
+        <p><b>2.</b> Al dar calor al agua, sus partículas…</p>
+        <div class="opts col" data-k="t2" style="margin-top:8px"><button data-ok="0">se mueven más lento y se juntan.</button><button data-ok="1">se mueven más rápido y se separan.</button><button data-ok="0">desaparecen.</button></div>
+      </div>
+      <div class="card">
+        <p><b>3.</b> ¿Qué estado no tiene forma ni volumen fijos y conduce la electricidad?</p>
+        <div class="opts" data-k="t3" style="margin-top:8px"><button data-ok="0">Sólido</button><button data-ok="0">Líquido</button><button data-ok="1">Plasma</button></div>
+      </div>
+      <div class="card">
+        <p><b>4.</b> Escalera del aprendizaje (p. 167): ¿qué aprendí hoy y para qué me sirve?</p>
+        <textarea></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 RUBRICA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Evaluación formativa</span>
+    <h2>Rúbrica</h2>
+    <div class="tscroll"><table class="rub">
+      <tr><th>Criterio</th><th>Logrado</th><th>En desarrollo</th><th>Por lograr</th></tr>
+      <tr><td>Partículas en los 3 globos</td><td>Dibuja y explica los tres estados correctamente.</td><td>Acierta en dos globos.</td><td>Acierta en uno o ninguno.</td></tr>
+      <tr><td>Efecto del calor</td><td>Explica que el calor aumenta el movimiento y la separación de las partículas.</td><td>Lo describe sin usar partículas.</td><td>No relaciona calor y movimiento.</td></tr>
+      <tr><td>Modelo de los estados</td><td>Representa y explica los tres estados.</td><td>Representa los estados sin explicarlos.</td><td>No diferencia los estados.</td></tr>
+      <tr><td>Ticket de salida</td><td>4/4 respondidas correctamente.</td><td>2–3.</td><td>0–1.</td></tr>
+    </table></div>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button class="arrow" id="prev" onclick="go(-1)" aria-label="Anterior">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="arrow" id="next" onclick="go(1)" aria-label="Siguiente">›</button>
+</div>
+
+<script>
+let AC=null;
+function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){} } return AC; }
+function tone(f,d,type,vol,delay){ const a=ac(); if(!a) return; const o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=f;
+  const t=a.currentTime+(delay||0); g.gain.setValueAtTime(vol||0.1,t); g.gain.exponentialRampToValueAtTime(0.001,t+d); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d); }
+function sfx(k){ if(k==='ok'){tone(660,.12,'triangle');tone(990,.18,'triangle',.1,.1)} else if(k==='bad'){tone(220,.25,'sawtooth',.05)} else if(k==='coin'){tone(988,.08,'square',.05);tone(1319,.25,'square',.05,.08)} else {tone(520,.05,'sine',.04)} }
+
+let FP=0; const got=new Set();
+function award(n,key,el){ if(got.has(key)) return; got.add(key); FP+=n; document.getElementById('fp').textContent=FP;
+  const b=document.getElementById('badge'); b.classList.add('pop'); setTimeout(()=>b.classList.remove('pop'),250);
+  const t=document.getElementById('toast'); t.textContent='+'+n+' Felipesos'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1100);
+  sfx('coin'); if(el&&el.tagName==='BUTTON') el.disabled=true; }
+
+const slides=[...document.querySelectorAll('.slide')]; let cur=0; const dots=document.getElementById('dots');
+slides.forEach((s,i)=>{ const d=document.createElement('button'); d.className='dot'; d.onclick=()=>show(i); dots.appendChild(d); });
+function show(i){ slides[cur].classList.remove('active'); cur=Math.max(0,Math.min(slides.length-1,i)); slides[cur].classList.add('active'); slides[cur].scrollTop=0;
+  [...dots.children].forEach((d,j)=>d.classList.toggle('on',j===cur)); document.getElementById('prev').disabled=cur===0; document.getElementById('next').disabled=cur===slides.length-1;
+  sfx('tap'); if(slides[cur].contains(cv)) resizeSim(); }
+function go(d){ show(cur+d); }
+
+(function(){ const box=document.getElementById('floaters'); const ps=[]; for(let i=0;i<12;i++){ const e=document.createElement('i'); box.appendChild(e);
+  ps.push({e,x:Math.random()*90,y:Math.random()*80,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25}); }
+  (function loop(){ ps.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>94) p.vx*=-1; if(p.y<0||p.y>82) p.vy*=-1; p.e.style.left=p.x+'%'; p.e.style.top=p.y+'%'; }); requestAnimationFrame(loop); })(); })();
+
+function vote(b){ const n=b.querySelector('b'); n.textContent=+n.textContent+1; sfx('tap'); }
+function showAns(btn){ btn.nextElementSibling.classList.toggle('show'); sfx('tap'); }
+
+document.querySelectorAll('.opts[data-k]').forEach(o=>o.querySelectorAll('button').forEach(b=>b.onclick=()=>{ if(o.dataset.done) return; o.dataset.done=1;
+  if(b.dataset.ok==='1'){ b.classList.add('ok'); sfx('ok'); award(3,o.dataset.k); } else { b.classList.add('no'); sfx('bad'); o.querySelector('[data-ok="1"]').classList.add('ok'); } }));
+
+/* simulator */
+const cv=document.getElementById('simc'), cx=cv.getContext('2d');
+let CW=600,CH=320,T=-15; const Wpct=80, N=48,R=8; let P=[];
+const INFO={
+ solid:{n:'Sólido',a:'Intensa',m:'Vibran en su lugar',d:'Muy poco',l:'<b>📍</b> Como el hielo del Glaciar Juncal'},
+ liquid:{n:'Líquido',a:'Más débil',m:'Se mueven con más libertad',d:'Más espacio',l:'<b>📍</b> Como el agua del Río Aconcagua'},
+ gas:{n:'Gaseoso',a:'Prácticamente nula',m:'Se mueven libremente',d:'Muy separadas',l:'<b>📍</b> Como el vapor de agua del aire'}
+};
+function state(){ return T<0?'solid':(T<100?'liquid':'gas'); }
+function box(){ const w=CW*Wpct/100; return {x:(CW-w)/2,y:12,w:w,h:CH-24}; }
+function resizeSim(){ const r=cv.getBoundingClientRect(); if(!r.width) return; const dpr=window.devicePixelRatio||1; CW=r.width; CH=r.height; cv.width=CW*dpr; cv.height=CH*dpr; cx.setTransform(dpr,0,0,dpr,0,0); if(!P.length) initP(); }
+function homes(){ const b=box(), sp=R*2.25, cols=8, rows=Math.ceil(N/cols); const x0=b.x+b.w/2-(cols-1)*sp/2, y0=b.y+b.h-R-2-(rows-1)*sp; const H=[];
+  for(let i=0;i<N;i++) H.push({x:x0+(i%cols)*sp, y:y0+Math.floor(i/cols)*sp}); return H; }
+function initP(){ P=homes().map(h=>({x:h.x,y:h.y,vx:Math.random()-.5,vy:Math.random()-.5,ph:Math.random()*6.28})); }
+function speed(){ return 0.25+((T+30)/160)*3.2; }
+function step(t){
+  const st=state(), b=box(), s=speed();
+  if(st==='solid'){ const H=homes(), amp=0.6+s*0.9;
+    P.forEach((p,i)=>{ const h=H[i]; const tx=h.x+Math.sin(t*0.02*(1+s)+p.ph)*amp, ty=h.y+Math.cos(t*0.023*(1+s)+p.ph*1.3)*amp; p.x+=(tx-p.x)*0.12; p.y+=(ty-p.y)*0.12; });
+    return; }
+  let top=b.y; const vmax=s*(st==='gas'?2.2:0.9);
+  if(st==='liquid'){ const sp=R*2.1, cols=Math.max(1,Math.floor(b.w/sp)); top=b.y+b.h-Math.ceil(N/cols)*sp-4; }
+  P.forEach(p=>{
+    p.vx+=(Math.random()-.5)*0.35*s; p.vy+=(Math.random()-.5)*0.35*s; if(st==='liquid') p.vy+=0.04;
+    const v=Math.hypot(p.vx,p.vy); if(v>vmax){p.vx*=vmax/v;p.vy*=vmax/v;} if(st==='gas'&&v<vmax*0.6){p.vx*=1.05;p.vy*=1.05;}
+    p.x+=p.vx; p.y+=p.vy;
+    const L=b.x+R, Rr=b.x+b.w-R, B=b.y+b.h-R, Tp=top+R;
+    if(p.x<L){p.x=L;p.vx=Math.abs(p.vx);} if(p.x>Rr){p.x=Rr;p.vx=-Math.abs(p.vx);} if(p.y>B){p.y=B;p.vy=-Math.abs(p.vy);}
+    if(p.y<Tp){ if(st==='liquid'){ p.vy+=0.25; if(p.y<b.y+R) p.y=b.y+R; } else { p.y=Tp; p.vy=Math.abs(p.vy);} }
+  });
+  for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){ const a=P[i],c=P[j], dx=c.x-a.x, dy=c.y-a.y, d=Math.hypot(dx,dy)||0.01, m=R*2;
+    if(d<m){ const o=(m-d)/2, ux=dx/d, uy=dy/d; a.x-=ux*o; a.y-=uy*o; c.x+=ux*o; c.y+=uy*o; if(st==='gas'){ [a.vx,c.vx]=[c.vx,a.vx]; [a.vy,c.vy]=[c.vy,a.vy]; } } }
+}
+function draw(){ const b=box(), st=state(); cx.clearRect(0,0,CW,CH);
+  cx.strokeStyle='#9fb2d1'; cx.lineWidth=3; cx.beginPath(); cx.moveTo(b.x,b.y); cx.lineTo(b.x,b.y+b.h); cx.lineTo(b.x+b.w,b.y+b.h); cx.lineTo(b.x+b.w,b.y); cx.stroke();
+  const col= st==='solid'?['#ffffff','#6fb6f2','#2b6fb3'] : st==='liquid'?['#ffffff','#3cc9b6','#0f8072'] : ['#ffffff','#ff9a7a','#c9533a'];
+  P.forEach(p=>{ const g=cx.createRadialGradient(p.x-R*.35,p.y-R*.35,1,p.x,p.y,R); g.addColorStop(0,col[0]); g.addColorStop(.6,col[1]); g.addColorStop(1,col[2]); cx.fillStyle=g; cx.beginPath(); cx.arc(p.x,p.y,R,0,6.283); cx.fill(); }); }
+let tick=0; (function loop(){ if(cv.offsetParent){ tick++; step(tick); draw(); } requestAnimationFrame(loop); })();
+function updInfo(){ const I=INFO[state()]; document.getElementById('stName').textContent=I.n;
+  ['Atr:a','Mov:m','Dist:d'].forEach(x=>{ const [id,k]=x.split(':'); document.getElementById('p'+id).textContent=I[k]; });
+  document.getElementById('pLocal').innerHTML=I.l; document.getElementById('tRead').textContent=T+' °C'; }
+function setT(v,fromSlider){ T=Math.max(-30,Math.min(130,v)); if(!fromSlider) document.getElementById('tSlider').value=T; updInfo(); }
+window.addEventListener('resize',resizeSim); updInfo();
+const SIMQ=[['a. Al dar calor, las partículas del agua…',['se mueven más lento','se mueven más rápido y se separan','no cambian'],1],
+            ['b. Al quitar calor, las partículas…',['se mueven más lento y se juntan','se separan más','desaparecen'],0]];
+(function(){ const box=document.getElementById('simQs'); SIMQ.forEach((q,i)=>{ const d=document.createElement('div'); d.innerHTML=`<div class="q">${q[0]}</div><div class="opts"></div>`;
+  const o=d.querySelector('.opts'); q[1].forEach((t,j)=>{ const b=document.createElement('button'); b.textContent=t; b.onclick=()=>{ if(o.dataset.done) return;
+    if(j===q[2]){ b.classList.add('ok'); o.dataset.done=1; sfx('ok'); award(5,'sim'+i);} else { b.classList.add('no'); sfx('bad'); } }; o.appendChild(b); }); box.appendChild(d); }); })();
+
+/* bloom */
+const BL=[
+ ['N1','Recordar',0,'Nombra los cuatro estados de la materia.','Sólido, líquido, gaseoso y plasma.'],
+ ['N2','Comprender',0,'¿Por qué el agua del globo 1 toma la forma del globo y el hielo del globo 2 no?','En el líquido la atracción es más débil y las partículas se mueven con libertad; en el sólido están muy unidas y solo vibran.'],
+ ['N3','Aplicar',0,'Al colgar ropa mojada al sol en Villa Alemana, se seca. Explica qué hace el calor con las partículas del agua.','El calor aumenta el movimiento de las partículas del agua; se separan y pasan al aire como vapor.'],
+ ['N4','Analizar',0,'Compara el gas y el plasma: ¿en qué se parecen y en qué se diferencian?','Ambos no tienen forma ni volumen fijos y sus partículas están muy separadas. El plasma tiene partículas con carga eléctrica, más energía y conduce la electricidad.'],
+ ['N5','Evaluar · Boss',1,'Un compañero dice: "En el congelador, el aire del globo 3 se vuelve hielo". ¿Tiene razón? Argumenta.','No. El congelador no enfría lo suficiente para solidificar el aire. Las partículas se mueven más lento y el globo se desinfla un poco, pero el aire sigue siendo gas.'],
+ ['N6','Crear · Boss',1,'Diseña un experimento para comprobar si el calor cambia el volumen de un gas. Indica pregunta, materiales y pasos.','Ejemplo: ¿el calor aumenta el volumen del aire? Pon un globo en el cuello de una botella vacía; sumerge la botella en agua tibia y luego en agua fría. El globo se infla con el calor y se desinfla con el frío.']
+];
+(function(){ const box=document.getElementById('bloom'); BL.forEach((b,i)=>{ const d=document.createElement('div'); d.className='acc'+(b[2]?' boss':'');
+  d.innerHTML=`<div class="h"><span class="lv">${b[0]}</span><span>${b[1]}</span><span style="margin-left:auto;color:var(--muted);font-size:13px">${b[2]?'👑 +10':'+3'}</span></div><div class="body"><p class="qq">${b[3]}</p><button class="sm">Respuesta</button> <button class="sm" style="color:var(--gold)">✔ Bien</button><div class="ans">${b[4]}</div></div>`;
+  d.querySelector('.h').onclick=()=>{ d.classList.toggle('open'); sfx('tap'); };
+  const [sa,ok]=d.querySelectorAll('.sm'); sa.onclick=()=>d.querySelector('.ans').classList.toggle('show'); ok.onclick=()=>award(b[2]?10:3,'bl'+i,ok); box.appendChild(d); }); })();
+
+show(0);
+</script>
+</body>
+</html>
