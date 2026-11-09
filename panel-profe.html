@@ -597,7 +597,7 @@ const NOM_TIPO = {
   ruleta: '🎡 Ruleta (resultado)', 'ruleta-apuesta': '🎡 Ruleta (apuesta retenida)', 'juego-envio': '🎮 Juegos (puntaje → Hipopesos)', 'bono-ingreso': '🎁 Bono de ingreso',
   'bolsa-compra': '📈 Bolsa: compra', 'bolsa-venta': '📈 Bolsa: venta', 'ahorro-deposito': '🐷 Ahorro: depósito', 'ahorro-retiro': '🐷 Ahorro: retiro (con intereses)',
   prestamo: '🏦 Préstamo otorgado', 'prestamo-pago': '🏦 Pago de préstamo', embargo: '🏦 Embargo',
-  'transferencia-envio': '🔁 Transferencia enviada', 'transferencia-recibida': '🔁 Transferencia recibida',
+  'transferencia-envio': '🔁 Transferencia enviada', 'transferencia-recibida': '🔁 Transferencia recibida', transferencia: '🔁 Transferencia autorizada por el profe',
   compra: '🛍️ Compra en el Mercado', devolucion: '🛍️ Devolución', reventa: '🤝 Venta entre estudiantes', 'gatito-compra': '🐱 Compra de gatito', 'gatito-reventa': '🐱 Venta de gatito',
   'subasta-oferta': '🔨 Subasta: oferta', 'subasta-devuelta': '🔨 Subasta: devolución', apuesta: '🎯 Apuesta', 'apuesta-premio': '🎯 Apuesta: premio', 'apuesta-devuelta': '🎯 Apuesta: devolución',
   giftcard: '💳 Gift card', mascota: '🐾 Mascota', articulo: '📦 Artículo de la Tienda', 'regalo-recibido': '🎁 Regalo recibido', 'poder-gatito': '🐱 Poder de gatito', 'poder-mensual': '🐱 Poder mensual', 'premio-gatito': '🐱 Premio de gatito'
@@ -643,7 +643,10 @@ function flujoPintar() {
   est.filter(x => x.neto >= 300000).slice(0, 8).forEach(x => { const top = Object.entries(x.por).sort((a, b) => b[1] - a[1])[0]; alertas.push(`<b>${esc(nomC(x.id))}</b> ganó <b>$${fmt(x.neto)}</b> neto (${x.n} mov.; sobre todo ${esc(nomTipo(top ? top[0] : ''))})`); });
   const porHora = {}; l.forEach(m => { const k = m.cuenta + '|' + Math.floor(msT(m.fecha) / 3600e3); porHora[k] = (porHora[k] || 0) + 1; });
   Object.entries(porHora).filter(([, n]) => n >= 25).sort((a, b) => b[1] - a[1]).slice(0, 5).forEach(([k, n]) => { const [id, h] = k.split('|'); alertas.push(`<b>${esc(nomC(id))}</b> hizo <b>${n} movimientos</b> en una hora (${fecha(+h * 3600e3)})`); });
-  orig.filter(x => !NOM_TIPO[x.tipo] && x.ent > 0).forEach(x => alertas.push(`Hay dinero entrando por un tipo desconocido: <b>${esc(x.tipo || 'sin tipo')}</b> ($${fmt(x.ent)})`));
+  orig.filter(x => !NOM_TIPO[x.tipo] && x.ent - x.sal > 0).forEach(x => alertas.push(`Hay dinero entrando por un tipo desconocido: <b>${esc(x.tipo || 'sin tipo')}</b> (neto $${fmt(x.ent - x.sal)})`));
+  // transferencias: cada entrada debería tener su salida (mismo N° de transferencia); si falta, avisar
+  const tr = {}; l.filter(m => m.transferencia && /transferencia/.test(m.tipo || '')).forEach(m => { const x = tr[m.transferencia] || (tr[m.transferencia] = { ent: 0, sal: 0 }); if (m.monto > 0) x.ent += m.monto; else x.sal -= m.monto; });
+  Object.entries(tr).filter(([, x]) => x.ent !== x.sal).forEach(([id, x]) => alertas.push(`La transferencia <b>${esc(id)}</b> no cuadra en este período (entró $${fmt(x.ent)}, salió $${fmt(x.sal)}); puede que la otra mitad esté fuera del rango de fechas.`));
   const filtrados = flFiltro ? l.filter(m => flFiltro.tipo === 'origen' ? flClave(m) === flFiltro.v : m.cuenta === flFiltro.v) : [];
   $('flOut').innerHTML = `
     <div class="hist-res"><div><b class="pos">+$${fmt(ent)}</b>Entró</div><div><b class="neg">−$${fmt(sal)}</b>Salió</div><div><b class="${ent - sal >= 0 ? 'pos' : 'neg'}">${ent - sal >= 0 ? '+' : '−'}$${fmt(Math.abs(ent - sal))}</b>Neto del período</div><div><b>${l.length}</b>Movimientos</div><div><b>${est.length}</b>Cuentas</div><div><b>$${fmt(total)}</b>En circulación hoy</div></div>
