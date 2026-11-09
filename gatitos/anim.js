@@ -16,6 +16,7 @@
     sombra:    { dir: 'gatitos/anim/sombra/',    n: { sentarse: 3, caminar: 4 } },
     luna:      { dir: 'gatitos/anim/luna/',      n: { sentarse: 3, caminar: 4, correr: 4 } },
     cesar:     { dir: 'gatitos/anim/cesar/',     n: { caminar: 4, bailar: 5, sentarse: 3, guitarra: 1, dormir: 2, girar: 9 } },
+    rick:      { dir: 'gatitos/anim/rick/',      n: { caminar: 4, girar: 8, sentarse: 4, jugar: 2, dormir: 4 } },
     grunona:   { dir: 'gatitos/anim/grunona/',   n: { contar: 10, operar: 5, estudiar: 8, sentarse: 3, girar: 6, jugar: 2, dormir: 2 } }
   };
   var RUTINAS = [['caminar'], ['correr'], ['jugar'], ['sentarse', 'dormir'], ['caminar', 'sentarse'], ['sentarse', 'sentarse'],
