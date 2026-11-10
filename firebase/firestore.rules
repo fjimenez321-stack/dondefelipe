@@ -1220,6 +1220,7 @@ service cloud.firestore {
 
     // ═════ Entradas a eventos (QR) ═════
     // El profe crea el evento (con su lista de porteros) y genera una entrada por asistente.
+    // Cada entrada tiene 'cupos' (personas que pueden entrar con ella; ej. 4) y cuenta sus 'usos'.
     // Igual que las gift cards: el QR lleva un código aleatorio (80 bits) y el documento se llama con su
     // sha256, así que nadie puede adivinar ni listar entradas. El código queda aparte (entradas_codigos),
     // solo para que el profe reimprima.
@@ -1240,12 +1241,18 @@ service cloud.firestore {
       allow list: if esProfe() || esPortero(resource.data.evento);
       allow create, delete: if esProfe();
       allow update: if esProfe();
+      // Cupos: cada lectura suma exactamente 1 a 'usos' (nunca más que 'cupos'); al llegar al último, la
+      // entrada pasa a 'usada'. 'usada' guarda la hora de la última lectura y 'primerIngreso' la de la primera.
       allow update: if esPortero(resource.data.evento)
         && get(rutaEvento(resource.data.evento)).data.estado == 'abierto'
         && resource.data.estado == 'valida'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'usada', 'usadaPor', 'metodo'])
-        && request.resource.data.estado == 'usada'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'usada', 'usadaPor', 'metodo', 'usos', 'primerIngreso'])
+        && request.resource.data.usos == resource.data.get('usos', 0) + 1
+        && request.resource.data.usos <= resource.data.get('cupos', 1)
+        && request.resource.data.estado == (request.resource.data.usos == resource.data.get('cupos', 1) ? 'usada' : 'valida')
         && request.resource.data.usada == request.time
+        && (('primerIngreso' in resource.data) ? request.resource.data.primerIngreso == resource.data.primerIngreso
+                                               : request.resource.data.primerIngreso == request.time)
         && request.resource.data.usadaPor == request.auth.token.email.lower()
         && request.resource.data.metodo in ['qr', 'manual'];
     }

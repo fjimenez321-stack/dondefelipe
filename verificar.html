@@ -57,6 +57,7 @@ select,input[type=search],input[type=text]{width:100%;background:var(--slab2);bo
 .res .obsv{margin-top:16px;background:rgba(0,0,0,.28);border:2px solid #ffe08a;color:#fff6d6;border-radius:14px;padding:10px 16px;font:700 19px/1.3 var(--ff);max-width:560px}
 .res .obsv.ing{border-color:#9be7ff}
 .res .anotar{margin-top:18px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;padding:12px 20px;font:800 16px var(--ff);cursor:pointer}
+.res .anotar.otro{display:block;margin:18px auto 0;background:#fff;color:#0f7a3a;border-color:#fff;font-size:20px;padding:14px 26px}
 .res .pie{position:absolute;bottom:22px;left:0;right:0;font:600 14px var(--ff);opacity:.8}
 .lista{margin-top:10px;max-height:340px;overflow:auto}
 .it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line)}
@@ -81,7 +82,7 @@ details summary{cursor:pointer;font-weight:800;color:var(--cyan)}
   <div id="app" hidden>
     <div class="card">
       <select id="selEvento" aria-label="Evento"></select>
-      <div class="cont"><div><b id="cIn" style="color:var(--acid)">0</b><span>Ingresaron</span></div><div><b id="cPend" style="color:var(--cyan)">0</b><span>Por llegar</span></div><div><b id="cTot">0</b><span>Entradas</span></div></div>
+      <div class="cont"><div><b id="cIn" style="color:var(--acid)">0</b><span>Personas adentro</span></div><div><b id="cPend" style="color:var(--cyan)">0</b><span>Cupos por llegar</span></div><div><b id="cTot">0</b><span>Cupos totales</span></div></div>
       <div class="barra"><i id="barra"></i></div>
       <div class="modo" id="modo"><button type="button" data-m="marcar" class="on"><i class="fa-solid fa-door-open"></i> Marcar ingreso</button><button type="button" data-m="consultar"><i class="fa-solid fa-magnifying-glass"></i> Solo consultar</button></div>
     </div>
@@ -134,6 +135,8 @@ async function sha256(t) {
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
   return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
 }
+const cuposDe = t => Math.max(1, Math.round(+t.cupos || 1));
+const usosDe = t => t.usos != null ? t.usos : (t.estado === 'usada' ? cuposDe(t) : 0);
 function aviso(t, k) { $('aviso').innerHTML = t ? `<div class="aviso ${k || ''}">${t}</div>` : ''; }
 
 let privMap = {}, unsubPriv = null, usuario = null, escuchando = null, eventos = [], evId = '', entradas = [], unsubEv = null, unsubEn = null, modo = 'marcar';
@@ -161,20 +164,22 @@ function obsBloque(o) {
   if (!o) return '';
   return (o.obs ? `<div class="obsv">📝 ${esc(o.obs)}</div>` : '') + (o.obsIngreso ? `<div class="obsv ing">🚪 ${esc(o.obsIngreso)}</div>` : '');
 }
-function mostrar(tipo, tit, t, extra, h, o) {
+function mostrar(tipo, tit, t, extra, h, o, quedan) {
   resActual = t && h ? { t, h } : null;
   const r = $('res'), ico = tipo === 'ok' ? 'fa-circle-check' : tipo === 'info' ? 'fa-circle-info' : 'fa-circle-xmark';
   r.className = 'res ' + tipo; r.hidden = false;
   r.innerHTML = `<i class="fa-solid ${ico} ico"></i><div class="tit">${esc(tit)}</div>
     ${t ? `<div class="nom">${esc(t.nombre) || 'Entrada general'}</div><div class="det">#${esc(t.n)}${t.curso ? ' · ' + esc(t.curso) : ''}${t.tipo ? ' · ' + esc(t.tipo) : ''}</div>${t.apoderado ? `<div class="det">Apoderado/a: ${esc(t.apoderado)}</div>` : ''}` : ''}
     ${extra ? `<div class="det">${extra}</div>` : ''}${obsBloque(o)}
+    ${quedan ? `<button class="anotar otro" data-otro="1"><i class="fa-solid fa-user-plus"></i> Entra 1 más con esta entrada</button>` : ''}
     ${resActual ? '<button class="anotar" data-anotar="1"><i class="fa-solid fa-pen"></i> Agregar observación</button>' : ''}<div class="pie">Toca para seguir</div>`;
   sonar(tipo === 'ok');
   // Con observaciones, la pantalla no se cierra sola: hay que leerla.
   clearTimeout(cierre); if (!(o && (o.obs || o.obsIngreso))) cierre = setTimeout(ocultar, tipo === 'ok' ? 2600 : 4500);
 }
-function ocultar() { clearTimeout(cierre); $('res').hidden = true; ocupado = false; }
+function ocultar() { clearTimeout(cierre); $('res').hidden = true; ocupado = false; if (ultimo.c) ultimo.t = Date.now(); }
 $('res').addEventListener('click', e => {
+  if (e.target.closest('[data-otro]')) { clearTimeout(cierre); const r = resActual; $('res').hidden = true; ocupado = true; verificar('', 'qr', r.h); return; }
   if (e.target.closest('[data-anotar]')) { clearTimeout(cierre); const r = resActual; anotarObs(r.h, r.t).finally(ocultar); return; }
   ocultar();
 });
@@ -234,13 +239,21 @@ async function verificar(texto, metodo, huellaDirecta) {
       if (t.estado === 'usada') return { k: 'usada', t };
       if (!marcar) return { k: 'valida', t };
       if (ev.estado === 'cerrado') return { k: 'cerrado', t };
-      tx.update(ref, { estado: 'usada', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: metodo || 'qr' });
-      return { k: 'pasa', t };
+      // Cada lectura deja pasar a 1 persona; con el último cupo la entrada queda 'usada'.
+      const u = usosDe(t) + 1, c = cuposDe(t);
+      const up = { usos: u, estado: u >= c ? 'usada' : 'valida', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: metodo || 'qr' };
+      if (!t.primerIngreso) up.primerIngreso = F.serverTimestamp();
+      tx.update(ref, up);
+      return { k: 'pasa', t: Object.assign({}, t, { usos: u }), u, c };
     });
     const t = r.t, o = t && t.evento === evId ? await leerPriv(h) : null, hh = t && t.evento === evId ? h : null;
-    if (r.k === 'pasa') { mostrar('ok', 'Pasa', t, '', hh, o); anotar('ok', 'Ingresó' + (metodo === 'manual' ? ' (a mano)' : ''), t, hh); }
-    else if (r.k === 'valida') { mostrar('info', 'Válida', t, 'Sin usar · modo «Solo consultar»: no se marcó.', hh, o); anotar('info', 'Consultada: válida', t, hh); }
-    else if (r.k === 'usada') { mostrar('mal', 'Ya ingresó', t, `A las ${esc(horaTxt(t.usada))}${t.usadaPor ? ' · verificó ' + esc(t.usadaPor) : ''}`, hh, o); anotar('mal', 'Repetida: ya había ingresado ' + horaTxt(t.usada), t, hh); }
+    if (r.k === 'pasa') {
+      const quedan = r.c - r.u;
+      mostrar('ok', 'Pasa', t, r.c > 1 ? `<b style="font-size:26px">Persona ${r.u} de ${r.c}</b><br>${quedan ? `Quedan ${quedan} cupo${quedan === 1 ? '' : 's'}` : 'Era el último cupo: entrada completa'}` : '', hh, o, quedan);
+      anotar('ok', `Ingresó ${r.u}/${r.c}` + (metodo === 'manual' ? ' (a mano)' : ''), t, hh);
+    }
+    else if (r.k === 'valida') { const q = cuposDe(t) - usosDe(t); mostrar('info', 'Válida', t, `Quedan ${q} de ${cuposDe(t)} cupos · modo «Solo consultar»: no se marcó.`, hh, o); anotar('info', `Consultada: quedan ${q}/${cuposDe(t)}`, t, hh); }
+    else if (r.k === 'usada') { const c = cuposDe(t); mostrar('mal', c > 1 ? 'Sin cupos' : 'Ya ingresó', t, `${c > 1 ? `Ya entraron las ${c} personas · último a las ` : 'A las '}${esc(horaTxt(t.usada))}${t.usadaPor ? ' · verificó ' + esc(t.usadaPor) : ''}`, hh, o); anotar('mal', c > 1 ? `Sin cupos (${c}/${c})` : 'Repetida: ya había ingresado ' + horaTxt(t.usada), t, hh); }
     else if (r.k === 'anulada') { mostrar('mal', 'Anulada', t, 'Esta entrada fue anulada por el profe.', hh, o); anotar('mal', 'Anulada', t, hh); }
     else if (r.k === 'otro') { mostrar('mal', 'Otro evento', t, 'Es para «' + esc(t.eventoNombre) + '».'); anotar('mal', 'De otro evento: ' + t.eventoNombre, t); }
     else if (r.k === 'cerrado') { mostrar('mal', 'Evento cerrado', t, 'El profe cerró el ingreso de este evento.', hh, o); anotar('mal', 'Evento cerrado', t, hh); }
@@ -302,8 +315,10 @@ async function bucle() {
     let txt = '';
     try { txt = await leerCuadro(v); } catch (e) {}
     if (!txt) continue;
-    // El mismo QR frente a la cámara no se vuelve a procesar por 5 s.
-    if (txt === ultimo.c && Date.now() - ultimo.t < 5000) continue;
+    // El mismo QR no se vuelve a contar mientras siga frente a la cámara: tiene que salir de cuadro
+    // al menos 4 s (cada lectura gasta un cupo). Para dejar pasar a otra persona con la misma entrada
+    // está el botón «Entra 1 más».
+    if (txt === ultimo.c && Date.now() - ultimo.t < 4000) { ultimo.t = Date.now(); continue; }
     ultimo = { c: txt, t: Date.now() }; ocupado = true;
     await verificar(txt, 'qr');
   }
@@ -315,9 +330,9 @@ function pintarSelector() {
   $('selEvento').innerHTML = eventos.map(e => `<option value="${esc(e.id)}"${e.id === evId ? ' selected' : ''}>${esc(e.nombre)}${e.fecha ? ' · ' + new Date(ms(e.fecha)).toLocaleDateString('es-CL') : ''}${e.estado === 'cerrado' ? ' (cerrado)' : ''}</option>`).join('');
 }
 function pintarCont() {
-  const val = entradas.filter(t => t.estado !== 'anulada'), us = val.filter(t => t.estado === 'usada').length;
-  $('cIn').textContent = us; $('cPend').textContent = val.length - us; $('cTot').textContent = val.length;
-  $('barra').style.width = val.length ? (100 * us / val.length) + '%' : '0';
+  const val = entradas.filter(t => t.estado !== 'anulada'), us = val.reduce((a, t) => a + usosDe(t), 0), cup = val.reduce((a, t) => a + cuposDe(t), 0);
+  $('cIn').textContent = us; $('cPend').textContent = cup - us; $('cTot').textContent = cup;
+  $('barra').style.width = cup ? (100 * us / cup) + '%' : '0';
   pintarBusqueda();
 }
 function pintarBusqueda() {
@@ -325,14 +340,14 @@ function pintarBusqueda() {
   if (!q) { $('resBuscar').innerHTML = ''; return; }
   const l = entradas.filter(t => [t.nombre, t.curso, t.tipo, t.apoderado, '#' + t.n, String(t.n)].some(v => String(v || '').toLowerCase().includes(q))).slice(0, 30);
   $('resBuscar').innerHTML = l.map(t => `<div class="it"><div class="q"><b>${esc(t.nombre) || 'Entrada general'}</b><small>#${esc(t.n)}${t.curso ? ' · ' + esc(t.curso) : ''}${t.tipo ? ' · ' + esc(t.tipo) : ''}${t.apoderado ? ' · Apod.: ' + esc(t.apoderado) : ''}${(privMap[t.id] || {}).obs ? '<br>📝 ' + esc(privMap[t.id].obs) : ''}</small></div>
-    ${t.estado === 'usada' ? `<span class="chip ok">Ingresó ${esc(horaTxt(t.usada))}</span>` : t.estado === 'anulada' ? '<span class="chip mal">Anulada</span>'
-      : `<button class="btn ok sm" data-pasar="${esc(t.id)}">Dejar pasar</button>`}</div>`).join('') || '<p class="muted">Nadie con ese nombre en este evento.</p>';
+    ${t.estado === 'usada' ? `<span class="chip ok">Completa ${cuposDe(t)}/${cuposDe(t)}</span>` : t.estado === 'anulada' ? '<span class="chip mal">Anulada</span>'
+      : `<span class="chip">${usosDe(t)}/${cuposDe(t)}</span> <button class="btn ok sm" data-pasar="${esc(t.id)}">Dejar pasar 1</button>`}</div>`).join('') || '<p class="muted">Nadie con ese nombre en este evento.</p>';
 }
 $('buscar').addEventListener('input', pintarBusqueda);
 $('resBuscar').addEventListener('click', e => {
   const b = e.target.closest('[data-pasar]'); if (!b) return;
   const t = entradas.find(x => x.id === b.dataset.pasar); if (!t) return;
-  if (!confirm(`¿Dejar pasar a ${t.nombre || 'la entrada #' + t.n} sin escanear? Revisa su identidad.`)) return;
+  if (!confirm(`¿Dejar pasar a 1 persona con la entrada de ${t.nombre || '#' + t.n} sin escanear? (${usosDe(t) + 1} de ${cuposDe(t)}) Revisa su identidad.`)) return;
   const m = modo; modo = 'marcar'; ocupado = true;
   verificar('', 'manual', t.id).finally(() => { modo = m; });
 });
