@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Ruta Estelar · Misión Voyager</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#05060d;color:#e9edf5;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+  #marco{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  @media (orientation:portrait){#marco{align-items:flex-start;padding-top:8vh}}
+  canvas{display:block;background:#05060d}
+  #ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,6,14,.82);overflow:auto;z-index:5}
+  #ov[hidden]{display:none}
+  .panel{width:min(640px,100%);background:#0e1324;border:1px solid #27304d;border-radius:14px;padding:24px 22px;max-height:100%;overflow:auto}
+  .panel h1{font-size:clamp(28px,6vw,44px);letter-spacing:.12em;font-weight:800;color:#ffc857}
+  .panel h2{font-size:22px;color:#ffc857;margin-bottom:6px}
+  .panel p{line-height:1.5;color:#b9c2d8;margin:8px 0;font-size:15px}
+  .panel .sub{color:#7fb6ff;letter-spacing:.08em;font-size:14px;margin-top:4px}
+  .ruta{display:flex;align-items:center;gap:8px;margin:14px 0;flex-wrap:wrap}
+  .ruta span{padding:5px 12px;border-radius:99px;border:1px solid #33406a;font-size:13px;color:#8d98b5}
+  .ruta span.ok{background:#1c3a2c;border-color:#3fa66b;color:#bff0d2}
+  .ruta span.sig{background:#3a2c12;border-color:#ffc857;color:#ffe2a0}
+  .ruta i{color:#4a5680;font-style:normal}
+  .tienda{display:grid;gap:8px;margin:12px 0}
+  .item{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;background:#131a30;border:1px solid #232c48;border-radius:10px;padding:10px 12px}
+  .item b{font-size:15px}
+  .item small{color:#8d98b5;font-size:13px;grid-column:1}
+  .item .niv{color:#ffc857;letter-spacing:3px;font-size:12px}
+  .item button{grid-row:1 / span 2;grid-column:2}
+  button{font:inherit;color:#0b0f1c;background:#ffc857;border:0;border-radius:9px;padding:9px 14px;font-weight:700;cursor:pointer}
+  button:disabled{background:#2a3350;color:#6b7694;cursor:default}
+  button.gr{width:100%;padding:14px;font-size:17px;margin-top:10px}
+  button.sec{background:#1b2440;color:#b9c2d8;border:1px solid #33406a}
+  .saldo{display:inline-block;background:#3a2c12;border:1px solid #ffc857;color:#ffe2a0;border-radius:8px;padding:3px 10px;font-weight:700}
+  kbd{background:#1b2440;border:1px solid #33406a;border-radius:5px;padding:1px 6px;font-size:13px;color:#e9edf5}
+  #tactil{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:0 14px 22px;z-index:4;pointer-events:none}
+  #tactil[hidden]{display:none}
+  #tactil div{display:flex;gap:12px}
+  #tactil button{pointer-events:auto;width:72px;height:72px;border-radius:50%;font-size:28px;background:rgba(255,255,255,.14);color:#fff;border:2px solid rgba(255,255,255,.4)}
+  #tactil button.s{width:92px;height:92px;background:rgba(255,200,87,.3);border-color:#ffc857;font-size:16px}
+  .voy{display:block;width:min(220px,55%);margin:0 auto 6px;filter:drop-shadow(0 6px 18px rgba(127,182,255,.25))}
+  .volver{display:inline-block;color:#7fb6ff;font-size:13px;text-decoration:none;margin-bottom:6px}
+  .volver:hover{text-decoration:underline}
+  .historia,.dato{background:#131a30;border-left:3px solid #7fb6ff;border-radius:6px;padding:10px 12px;margin:12px 0;line-height:1.5;color:#c9d1e4;font-size:14px}
+  .dato{border-left-color:#ffc857}
+  #son{position:fixed;top:8px;right:8px;z-index:6;background:rgba(20,26,48,.8);color:#b9c2d8;border:1px solid #33406a;padding:5px 10px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
+<div id="marco"><canvas id="c"></canvas></div>
+<div id="tactil" hidden>
+  <div><button data-k="izq" aria-label="Izquierda">◀</button><button data-k="der" aria-label="Derecha">▶</button></div>
+  <div><button class="s" data-k="salto">SALTAR</button></div>
+</div>
+<button id="son">Sonido: sí</button>
+<div id="ov"><div class="panel" id="panel"></div></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   RUTA ESTELAR · Misión Voyager — motor de dos modos (plataformas + vuelo)
+   ---------------------------------------------------------------------
+   1. DATOS      -> cuerpos celestes, ruta, tramos de vuelo, mejoras
+   2. FÁBRICA    -> obstáculos disponibles para armar niveles
+   3. MOTOR      -> estado, entrada, bucle
+   4. PLATAFORMA -> física y dibujo del astronauta
+   5. VUELO      -> nave vista desde arriba
+   6. PANTALLAS  -> título, hangar/tienda, final
+   Para agregar un destino: añade una entrada en CUERPOS, súmala a RUTA
+   y define su tramo en TRAMOS. Nada más.
+   ===================================================================== */
+
+/* ---------- 1. DATOS ---------- */
+const CUERPOS = {
+  tierra:{ nombre:'Tierra', art:'la Tierra', g:9.81, color:'#3f86d8', color2:'#3fa66b', semilla:11, largo:6800,
+    cielo:['#5aa9e6','#d6eefb'], suelo:'#4a4f57', borde:'#c9ccd1', fondo:'ciudad',
+    obst:['casa','auto','atasco','bus','hoyo','cono','dron','casa','atasco'],
+    lema:'Cruza la ciudad y llega a la nave' },
+  luna:{ nombre:'Luna', art:'la Luna', g:1.62, color:'#b9bcc6', color2:'#8d909b', semilla:23, largo:9000,
+    cielo:['#03040a','#12162a'], suelo:'#7d808a', borde:'#b4b7c0', fondo:'luna',
+    obst:['roca','rocaAlta','hoyo','modulo','rover','hoyo','roca'],
+    lema:'Gravedad baja: saltos largos y lentos' },
+  marte:{ nombre:'Marte', art:'Marte', g:3.71, color:'#c9603a', color2:'#8f3d22', semilla:37, largo:8500,
+    cielo:['#b9774d','#f1cfa6'], suelo:'#8e4326', borde:'#c8704a', fondo:'marte',
+    obst:['roca','rocaAlta','hoyo','remolino','modulo','rover','hoyo','remolino'],
+    lema:'Cuidado con los remolinos de polvo' }
+};
+const RUTA = ['tierra','luna','marte'];
+const TRAMOS = {
+  'tierra>luna':{ dur:40, dens:1.0, basura:.6,  vel:250 },   // órbita baja: mucha basura espacial
+  'luna>marte': { dur:55, dens:1.3, basura:.12, vel:300 }    // espacio profundo: meteoritos
+};
+const MEJORAS = {
+  salto:    { nombre:'Botas de impulso',  desc:'+7 % de velocidad de salto por nivel' },
+  velocidad:{ nombre:'Traje ligero',      desc:'+8 % de velocidad al correr por nivel' },
+  iman:     { nombre:'Imán de monedas',   desc:'Atrae monedas cercanas (a pie y en la nave)' },
+  escudo:   { nombre:'Escudo de la nave', desc:'+1 impacto resistido en vuelo por nivel' },
+  maniobra: { nombre:'Propulsores',       desc:'+12 % de maniobra de la nave por nivel' }
+};
+const COSTOS = [25,50,80];              // costo de cada nivel de mejora
+const H = 540, SUELO = 440;             // alto lógico y línea de suelo
+const G0 = 1800, V_SALTO = 650, V_CARRERA = 250;
+const EXP_G = 0.5;                      // 1 = gravedad real; 0.5 la suaviza para que el salto lunar quepa en pantalla
+
+/* ---------- utilidades ---------- */
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+let W = 960, esc = 1;
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+function semilla(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hash(n){const x=Math.sin(n*127.1+3.7)*43758.5453;return x-Math.floor(x);}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+function circ(x,y,r){ctx.beginPath();ctx.arc(x,y,r,0,7);}
+const coma = n=>String(n).replace('.',',');
+
+function gJuego(c){return G0*Math.pow(c.g/9.81,EXP_G);}
+function salto(c,nivel){const v=V_SALTO*(1+.07*nivel),g=gJuego(c);return{v,h:v*v/(2*g),d:V_CARRERA*2*v/g};}
+
+/* ---------- 2. FÁBRICA DE OBSTÁCULOS ----------
+   Cada función coloca piezas a partir de x y devuelve el ancho ocupado.
+   s.h = altura de salto base en ese cuerpo, s.d = distancia de salto. */
+function caja(N,x,y,w,h,tipo,r){N.cajas.push({x,y,w,h,tipo,sem:r()});}
+function mon(N,x,y){N.items.push({x,y,tipo:'moneda'});}
+function filaMon(N,x,y,ancho){const n=Math.max(1,Math.floor(ancho/38));for(let i=0;i<n;i++)mon(N,x+(ancho-(n-1)*38)/2+i*38,y);}
+function arco(N,x,w,s){const n=Math.max(3,Math.min(7,Math.round(w/45)));for(let i=0;i<n;i++){const u=(i+.5)/n;mon(N,x+w*u,SUELO-40-Math.sin(u*Math.PI)*s.h*.5);}}
+function peligro(N,tipo,x,y,w,h,amp,vel,r){N.pel.push({x,x0:x,y,w,h,tipo,amp,vel,fase:r()*6});}
+const FAB = {
+  casa(N,x,r,s){const w=120+(r()*40|0),h=Math.min(96,s.h*.8);caja(N,x,SUELO-h,w,h,'casa',r);filaMon(N,x+16,SUELO-h-28,w-32);return w;},
+  auto(N,x,r){caja(N,x,SUELO-38,86,38,'auto',r);mon(N,x+43,SUELO-70);return 86;},
+  bus(N,x,r){caja(N,x,SUELO-66,160,66,'bus',r);filaMon(N,x+16,SUELO-96,128);return 160;},
+  atasco(N,x,r){const x0=x,n=3+(r()*3|0);for(let i=0;i<n;i++){if(i>0&&r()<.3){caja(N,x,SUELO-66,160,66,'bus',r);x+=172;}else{caja(N,x,SUELO-38,86,38,'auto',r);x+=98;}}filaMon(N,x0+30,SUELO-112,x-x0-72);return x-x0-12;},
+  hoyo(N,x,r,s){const w=s.d*(.4+.3*r());N.hoyos.push({x,w});arco(N,x,w,s);return w;},
+  cono(N,x,r,s){peligro(N,'cono',x,SUELO-30,24,30,0,0,r);mon(N,x+12,SUELO-30-s.h*.55);return 24;},
+  dron(N,x,r){peligro(N,'dron',x+90,SUELO-62,40,20,90,1.6,r);return 220;},
+  roca(N,x,r,s){const w=70+(r()*60|0),h=s.h*(.3+.25*r());caja(N,x,SUELO-h,w,h,'roca',r);filaMon(N,x+10,SUELO-h-28,w-20);return w;},
+  rocaAlta(N,x,r,s){const w=90+(r()*40|0),h=s.h*.78;caja(N,x,SUELO-h,w,h,'roca',r);filaMon(N,x+10,SUELO-h-28,w-20);return w;},
+  modulo(N,x,r,s){const h=s.h*.45;caja(N,x,SUELO-h,200,h,'modulo',r);N.items.push({x:x+100,y:SUELO-h-34,tipo:'gema'});return 200;},
+  rover(N,x,r){peligro(N,'rover',x+110,SUELO-30,52,30,110,1.1,r);return 270;},
+  remolino(N,x,r,s){const h=s.h*.45;peligro(N,'remolino',x+120,SUELO-h,36,h,120,.9,r);return 280;}
+};
+function generarNivel(id){
+  const c=CUERPOS[id],r=semilla(c.semilla),s=salto(c,0);
+  const N={id,c,cajas:[],hoyos:[],pel:[],items:[],meta:0,largo:0};
+  let x=720,previo='';
+  while(x<c.largo){
+    let t;do{t=c.obst[r()*c.obst.length|0];}while(t===previo);
+    previo=t;
+    x+=FAB[t](N,x,r,s);
+    const hueco=s.d*(1.2+r());
+    if(r()<.55)arco(N,x+hueco*.3,hueco*.4,s);
+    if(r()<.2)N.items.push({x:x+hueco*.5,y:SUELO-s.h*.92,tipo:'gema'});
+    else if(r()<.09)N.items.push({x:x+hueco*.5,y:SUELO-s.h*.92,tipo:'vida'});
+    x+=hueco;
+  }
+  N.meta=x+260;N.largo=N.meta+420;
+  for(const it of N.items)it.ok=true;
+  return N;
+}
+
+/* ---------- 3. MOTOR: estado, entrada, sonido ---------- */
+const E={modo:'titulo',etapa:0,dinero:0,mej:{salto:0,velocidad:0,iman:0,escudo:0,maniobra:0},t:0,aviso:null};
+let N=null,P=null,V=null,cam=0;
+const K={izq:0,der:0,arr:0,aba:0,salto:0};
+const TECLAS={ArrowLeft:'izq',KeyA:'izq',ArrowRight:'der',KeyD:'der',ArrowUp:'arr',KeyW:'arr',ArrowDown:'aba',KeyS:'aba',Space:'salto'};
+addEventListener('keydown',e=>{const k=TECLAS[e.code];if(k){K[k]=1;e.preventDefault();}});
+addEventListener('keyup',e=>{const k=TECLAS[e.code];if(k){K[k]=0;e.preventDefault();}});
+addEventListener('blur',()=>{for(const k in K)K[k]=0;});
+const tactil=document.getElementById('tactil');
+const esTactil=matchMedia('(pointer:coarse)').matches;
+tactil.querySelectorAll('button').forEach(b=>{
+  const k=b.dataset.k;
+  b.addEventListener('pointerdown',e=>{K[k]=1;e.preventDefault();});
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{K[k]=0;}));
+});
+let arrastre=null;                       // en vuelo: arrastrar mueve la nave
+cv.addEventListener('pointerdown',e=>{arrastre={x:e.clientX,y:e.clientY};});
+cv.addEventListener('pointermove',e=>{
+  if(!arrastre||E.modo!=='vuelo'||!V)return;
+  const k=(1.1+.12*E.mej.maniobra)/esc;
+  V.x+=(e.clientX-arrastre.x)*k;V.y+=(e.clientY-arrastre.y)*k;
+  arrastre={x:e.clientX,y:e.clientY};
+});
+['pointerup','pointercancel'].forEach(ev=>addEventListener(ev,()=>{arrastre=null;}));
+
+let ac=null,son=true;
+function bip(f,d,tipo,v,f2){
+  if(!son||!ac)return;
+  try{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime;o.type=tipo||'square';
+    o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+    g.gain.setValueAtTime(v||.04,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d);}catch(e){}
+}
+const botonSon=document.getElementById('son');
+botonSon.addEventListener('click',()=>{son=!son;botonSon.textContent='Sonido: '+(son?'sí':'no');});
+
+function ajustar(){
+  const ww=innerWidth,wh=innerHeight,dpr=Math.min(2,devicePixelRatio||1);
+  W=clamp(Math.round(H*ww/wh),720,1280);
+  esc=Math.min(ww/W,wh/H);
+  cv.style.width=Math.floor(W*esc)+'px';cv.style.height=Math.floor(H*esc)+'px';
+  cv.width=Math.floor(W*esc*dpr);cv.height=Math.floor(H*esc*dpr);
+  ctx.setTransform(esc*dpr,0,0,esc*dpr,0,0);
+}
+addEventListener('resize',ajustar);
+
+function aviso(a,b){E.aviso={a,b,t:3.2};}
+function modo(m){E.modo=m;tactil.hidden=!(esTactil&&m==='plat');}
+
+/* ---------- 4. PLATAFORMA ---------- */
+function iniciarPlat(i){
+  E.etapa=i;N=generarNivel(RUTA[i]);
+  P={x:170,y:SUELO-44,w:26,h:44,vx:0,vy:0,suelo:true,dir:1,vidas:3,inv:0,coy:0,buf:0,previo:0,seg:{x:170,y:SUELO-44},monedas:0,fin:0,paso:0};
+  cam=0;modo('plat');
+  aviso(N.c.nombre+' · g = '+coma(N.c.g)+' m/s²',N.c.lema);
+}
+function solapa(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+function danio(){
+  if(P.inv>0||P.fin)return;
+  P.vidas--;P.inv=1.4;P.vy=-320;P.vx=-P.dir*220;bip(180,.25,'sawtooth',.06,60);
+  if(P.vidas<=0)fallo();
+}
+function recoger(it){
+  it.ok=false;
+  if(it.tipo==='moneda'){P.monedas++;bip(990,.07,'square',.03,1480);}
+  else if(it.tipo==='gema'){P.monedas+=10;bip(660,.2,'triangle',.06,1760);}
+  else{P.vidas=Math.min(5,P.vidas+1);bip(440,.25,'triangle',.06,880);}
+}
+function actualizarPlat(dt){
+  const c=N.c,g=gJuego(c),m=E.mej;
+  if(P.fin){                               // despegue
+    P.fin+=dt;
+    if(P.fin>2.2){E.dinero+=P.monedas;E.ultimas=P.monedas;if(E.etapa>=RUTA.length-1)pantallaFin();else pantallaHangar();}
+    return;
+  }
+  const vmax=V_CARRERA*(1+.08*m.velocidad);
+  const dir=(K.der?1:0)-(K.izq?1:0);
+  if(dir)P.dir=dir;
+  P.vx+=(dir*vmax-P.vx)*Math.min(1,dt*(P.suelo?12:5));
+  const quiere=K.salto||K.arr;
+  if(quiere&&!P.previo)P.buf=.13;
+  P.previo=quiere;P.buf-=dt;P.coy-=dt;P.inv-=dt;
+  if(P.buf>0&&P.coy>0){P.vy=-V_SALTO*(1+.07*m.salto);P.buf=0;P.coy=0;P.suelo=false;bip(320,.14,'square',.03,640);}
+  if(!quiere&&P.vy<0)P.vy+=g*dt*1.6;       // soltar el botón acorta el salto
+  P.vy=Math.min(P.vy+g*dt,1400);
+
+  P.x+=P.vx*dt;
+  for(const b of N.cajas)if(solapa(P,b)){if(P.vx>0)P.x=b.x-P.w;else if(P.vx<0)P.x=b.x+b.w;P.vx=0;}
+  P.x=clamp(P.x,0,N.largo-P.w);
+  P.y+=P.vy*dt;
+  let enSuelo=false;
+  for(const b of N.cajas)if(solapa(P,b)){if(P.vy>0){P.y=b.y-P.h;enSuelo=true;}else P.y=b.y+b.h;P.vy=0;}
+  const cx=P.x+P.w/2;
+  const hoyo=N.hoyos.find(h=>cx>h.x&&cx<h.x+h.w);
+  if(!hoyo){if(P.y+P.h>=SUELO){P.y=SUELO-P.h;P.vy=0;enSuelo=true;}}
+  else if(P.y+P.h>SUELO+4)P.x=clamp(P.x,hoyo.x-P.w/2+1,hoyo.x+hoyo.w-P.w/2-1);
+  P.suelo=enSuelo;
+  if(enSuelo){P.coy=.1;P.seg.x=P.x;P.seg.y=P.y;if(Math.abs(P.vx)>20)P.paso+=dt;}
+  if(P.y>H+80){                            // cayó a un hoyo
+    P.vidas--;bip(200,.4,'sawtooth',.06,50);
+    if(P.vidas<=0){fallo();return;}
+    P.x=P.seg.x;P.y=P.seg.y;P.vx=P.vy=0;P.inv=1.6;
+  }
+  for(const q of N.pel){
+    q.x=q.x0+Math.sin(E.t*q.vel+q.fase)*q.amp;
+    if(solapa(P,{x:q.x+5,y:q.y+5,w:q.w-10,h:q.h-5}))danio();
+  }
+  const radio=m.iman*60,py=P.y+P.h/2;
+  for(const it of N.items){
+    if(!it.ok)continue;
+    const dx=cx-it.x,dy=py-it.y,d=Math.hypot(dx,dy);
+    if(d<30)recoger(it);
+    else if(d<radio&&it.tipo!=='vida'){it.x+=dx/d*420*dt;it.y+=dy/d*420*dt;}
+  }
+  if(P.x>N.meta-10&&!P.fin){P.fin=.001;bip(90,2,'sawtooth',.06,400);}
+  cam=clamp(P.x-W*.35,0,N.largo-W);
+}
+
+/* --- dibujo de fondos --- */
+function colinas(par,base,amp,lon,color,sem){
+  ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,H);
+  for(let x=0;x<=W+24;x+=24){const wx=x+cam*par;ctx.lineTo(x,base-amp*(.5+.5*Math.sin(wx/lon+sem))-amp*.35*Math.sin(wx/(lon*.37)+sem*2));}
+  ctx.lineTo(W+24,H);ctx.fill();
+}
+function estrellas(n,dy){
+  for(let i=0;i<n;i++){const z=hash(i*3+2);ctx.fillStyle='rgba(255,255,255,'+(.3+z*.7)+')';
+    const y=(hash(i*3+1)*H+(dy||0)*(.2+z))%H;ctx.fillRect(hash(i*3)*W,y,1+z*1.6,1+z*1.6);}
+}
+function fondo(c){
+  const gr=ctx.createLinearGradient(0,0,0,SUELO);gr.addColorStop(0,c.cielo[0]);gr.addColorStop(1,c.cielo[1]);
+  ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);
+  if(c.fondo==='ciudad'){
+    ctx.fillStyle='#fff3c4';circ(W*.82,90,38);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    for(let i=0;i<6;i++){const x=((i*310-cam*.08)%(W+300)+W+300)%(W+300)-150,y=60+hash(i)*110;
+      circ(x,y,22);ctx.fill();circ(x+26,y+6,28);ctx.fill();circ(x+58,y,20);ctx.fill();}
+    colinas(.12,330,90,260,'#7cc08a',1);
+    const an=92,i0=Math.floor(cam*.35/an);
+    for(let i=i0-1;i<i0+W/an+2;i++){
+      const x=i*an-cam*.35,h=90+hash(i)*170,w=an-14;
+      ctx.fillStyle=['#7f93ad','#8fa3bb','#6f839e'][((i%3)+3)%3];ctx.fillRect(x,SUELO-h,w,h);
+      ctx.fillStyle='rgba(255,255,255,.35)';
+      for(let yy=SUELO-h+12;yy<SUELO-16;yy+=22)for(let xx=x+10;xx<x+w-12;xx+=20)if(hash(i*31+yy+xx)>.3)ctx.fillRect(xx,yy,9,11);
+    }
+  }else if(c.fondo==='luna'){
+    estrellas(110);
+    ctx.fillStyle='#3f86d8';circ(W*.76,96,36);ctx.fill();
+    ctx.fillStyle='#3fa66b';circ(W*.76-10,88,13);ctx.fill();circ(W*.76+14,108,9);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.7)';circ(W*.76+8,80,8);ctx.fill();
+    ctx.fillStyle='rgba(3,4,10,.45)';ctx.beginPath();ctx.arc(W*.76,96,36,-1.2,1.9);ctx.arc(W*.76-22,96,40,1.4,-1,true);ctx.fill();
+    colinas(.1,380,110,330,'#4b4e59',2);colinas(.3,420,70,190,'#63667180',5);
+  }else{
+    ctx.fillStyle='rgba(255,244,220,.9)';circ(W*.7,110,16);ctx.fill();
+    colinas(.1,350,140,420,'#a05a3a',3);colinas(.28,410,80,230,'#93482b',7);
+  }
+}
+function suelo(c){
+  ctx.fillStyle='#0a0b10';ctx.fillRect(0,SUELO,W,H-SUELO);     // interior de los hoyos
+  let x=cam-10;const fin=cam+W+10;
+  const hs=N.hoyos.filter(h=>h.x+h.w>cam&&h.x<fin).sort((a,b)=>a.x-b.x);
+  const tramo=(a,b)=>{if(b<=a)return;ctx.fillStyle=c.suelo;ctx.fillRect(a-cam,SUELO,b-a,H-SUELO);ctx.fillStyle=c.borde;ctx.fillRect(a-cam,SUELO,b-a,6);};
+  for(const h of hs){tramo(x,h.x);x=h.x+h.w;}
+  tramo(x,fin);
+  const paso=70,i0=Math.floor(cam/paso);
+  for(let i=i0;i<i0+W/paso+2;i++){
+    const wx=i*paso,sx=wx-cam;
+    if(N.hoyos.some(h=>wx+40>h.x&&wx<h.x+h.w))continue;
+    if(c.fondo==='ciudad'){ctx.fillStyle='#f2d14b';ctx.fillRect(sx,SUELO+46,36,5);}
+    else{ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(sx+hash(i)*40,SUELO+24+hash(i+9)*50,10+hash(i+5)*16,4+hash(i+7)*4,0,0,7);ctx.fill();}
+  }
+}
+/* --- dibujo de piezas --- */
+const PINT=['#d8452e','#2f7fd1','#e8b53a','#3fa66b','#8a5fc9','#e9edf2'];
+function dibCaja(b){
+  const x=b.x-cam,y=b.y,w=b.w,h=b.h,col=PINT[b.sem*PINT.length|0];
+  if(b.tipo==='casa'){
+    ctx.fillStyle=['#f1e3c6','#e8d2b0','#dfe6ee'][b.sem*3|0];ctx.fillRect(x+6,y+20,w-12,h-20);
+    ctx.fillStyle=col==='#e9edf2'?'#a6492f':col;ctx.beginPath();ctx.moveTo(x,y+22);ctx.lineTo(x+14,y);ctx.lineTo(x+w-14,y);ctx.lineTo(x+w,y+22);ctx.fill();
+    ctx.fillStyle='#6b4a32';ctx.fillRect(x+w*.5-9,y+h-34,18,34);
+    ctx.fillStyle='#8fd0f5';ctx.fillRect(x+16,y+34,20,18);ctx.fillRect(x+w-36,y+34,20,18);
+  }else if(b.tipo==='auto'){
+    ctx.fillStyle=col;rr(x,y+14,w,h-22,7);ctx.fill();rr(x+16,y,w-36,22,8);ctx.fill();
+    ctx.fillStyle='#cfe9f7';rr(x+21,y+4,w-46,13,4);ctx.fill();
+    ctx.fillStyle='#1c1f26';circ(x+19,y+h-8,8);ctx.fill();circ(x+w-19,y+h-8,8);ctx.fill();
+    ctx.fillStyle='#fff7c2';ctx.fillRect(x+w-5,y+18,5,6);
+  }else if(b.tipo==='bus'){
+    ctx.fillStyle='#e8b53a';rr(x,y,w,h-10,8);ctx.fill();
+    ctx.fillStyle='#cfe9f7';for(let i=0;i<5;i++)ctx.fillRect(x+10+i*29,y+10,22,18);
+    ctx.fillStyle='#b98a1f';ctx.fillRect(x,y+36,w,5);
+    ctx.fillStyle='#1c1f26';circ(x+28,y+h-10,10);ctx.fill();circ(x+w-28,y+h-10,10);ctx.fill();
+  }else if(b.tipo==='roca'){
+    ctx.fillStyle=N.c.color2;ctx.beginPath();ctx.moveTo(x,y+h);
+    ctx.lineTo(x,y+h*.25);ctx.lineTo(x+w*.12,y);ctx.lineTo(x+w*.9,y);ctx.lineTo(x+w,y+h*.3);ctx.lineTo(x+w,y+h);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.13)';ctx.beginPath();ctx.moveTo(x+w*.12,y);ctx.lineTo(x+w*.9,y);ctx.lineTo(x+w*.7,y+h*.3);ctx.lineTo(x+w*.2,y+h*.22);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.18)';circ(x+w*(.3+b.sem*.4),y+h*.6,Math.min(w,h)*.12);ctx.fill();
+  }else{ // módulo de hábitat
+    ctx.fillStyle='#6c7480';ctx.fillRect(x+20,y+h-14,8,14);ctx.fillRect(x+w-28,y+h-14,8,14);
+    ctx.fillStyle='#e9edf2';rr(x,y,w,h-12,Math.min(18,(h-12)/2));ctx.fill();
+    ctx.fillStyle='#e0672a';ctx.fillRect(x+10,y+(h-12)*.62,w-20,4);
+    ctx.fillStyle='#1d2b4a';for(let i=0;i<4;i++){circ(x+34+i*44,y+(h-12)*.36,8);ctx.fill();}
+  }
+}
+function dibPeligro(q){
+  const x=q.x-cam,y=q.y,t=E.t;
+  if(q.tipo==='cono'){
+    ctx.fillStyle='#e0672a';ctx.beginPath();ctx.moveTo(x+12,y);ctx.lineTo(x+22,y+26);ctx.lineTo(x+2,y+26);ctx.fill();
+    ctx.fillRect(x-2,y+26,28,4);ctx.fillStyle='#fff';ctx.fillRect(x+7,y+12,10,4);
+  }else if(q.tipo==='dron'){
+    ctx.fillStyle='#2b303b';rr(x+8,y+6,24,12,4);ctx.fill();ctx.fillRect(x,y+4,40,3);
+    ctx.fillStyle='rgba(40,44,54,.5)';const a=12+6*Math.sin(t*40);ctx.fillRect(x+2-a/2,y,a+4,3);ctx.fillRect(x+34-a/2,y,a+4,3);
+    ctx.fillStyle='#ff4d4d';circ(x+20,y+18,3);ctx.fill();
+  }else if(q.tipo==='rover'){
+    ctx.fillStyle='#d9dde5';rr(x+4,y+6,44,14,4);ctx.fill();
+    ctx.fillStyle='#1d2b4a';ctx.fillRect(x+30,y,14,7);
+    ctx.fillStyle='#2b303b';for(let i=0;i<3;i++){circ(x+9+i*17,y+24,6);ctx.fill();}
+    ctx.fillStyle='#ff4d4d';circ(x+8,y+4,3);ctx.fill();
+  }else{ // remolino de polvo
+    for(let i=0;i<7;i++){const u=i/6,yy=y+q.h*(1-u),an=8+u*q.w*.8;
+      ctx.fillStyle='rgba(235,190,150,'+(.35+.3*u)+')';ctx.beginPath();ctx.ellipse(x+q.w/2+Math.sin(t*9+i)*5*u,yy,an,5,0,0,7);ctx.fill();}
+  }
+}
+function dibItem(tipo,x,y,t){
+  if(tipo==='moneda'){
+    const s=Math.abs(Math.cos(t*4+x*.02));
+    ctx.fillStyle='#b98a1f';ctx.beginPath();ctx.ellipse(x,y,10*s+1.5,10,0,0,7);ctx.fill();
+    ctx.fillStyle='#ffd257';ctx.beginPath();ctx.ellipse(x,y,7.5*s+1,8,0,0,7);ctx.fill();
+  }else if(tipo==='gema'){
+    const b=Math.sin(t*3+x)*3;
+    ctx.fillStyle='#3fd4e8';ctx.beginPath();ctx.moveTo(x,y-13+b);ctx.lineTo(x+11,y+b);ctx.lineTo(x,y+13+b);ctx.lineTo(x-11,y+b);ctx.fill();
+    ctx.fillStyle='#c9f6ff';ctx.beginPath();ctx.moveTo(x,y-13+b);ctx.lineTo(x+5,y+b);ctx.lineTo(x,y+2+b);ctx.lineTo(x-5,y+b);ctx.fill();
+  }else corazon(x,y+Math.sin(t*3)*3,11,'#ff4d6d');
+}
+function corazon(x,y,r,col){
+  ctx.fillStyle=col;circ(x-r*.5,y-r*.25,r*.55);ctx.fill();circ(x+r*.5,y-r*.25,r*.55);ctx.fill();
+  ctx.beginPath();ctx.moveTo(x-r,y);ctx.lineTo(x,y+r);ctx.lineTo(x+r,y);ctx.fill();
+}
+function dibCohete(cx,by,k,llama){
+  ctx.save();ctx.translate(cx,by);ctx.scale(k,k);
+  if(llama){const f=60+Math.random()*40;
+    ctx.fillStyle='#ff8a2b';ctx.beginPath();ctx.moveTo(-14,0);ctx.lineTo(0,f);ctx.lineTo(14,0);ctx.fill();
+    ctx.fillStyle='#ffe27a';ctx.beginPath();ctx.moveTo(-7,0);ctx.lineTo(0,f*.55);ctx.lineTo(7,0);ctx.fill();}
+  ctx.fillStyle='#d8452e';
+  ctx.beginPath();ctx.moveTo(-22,-70);ctx.lineTo(-46,-36);ctx.lineTo(-46,0);ctx.lineTo(-22,-12);ctx.fill();
+  ctx.beginPath();ctx.moveTo(22,-70);ctx.lineTo(46,-36);ctx.lineTo(46,0);ctx.lineTo(22,-12);ctx.fill();
+  ctx.fillStyle='#eef1f5';ctx.beginPath();ctx.moveTo(-24,-10);ctx.lineTo(-24,-110);ctx.quadraticCurveTo(-24,-160,0,-186);ctx.quadraticCurveTo(24,-160,24,-110);ctx.lineTo(24,-10);ctx.fill();
+  ctx.fillStyle='#d8452e';ctx.beginPath();ctx.moveTo(-19,-142);ctx.quadraticCurveTo(-12,-170,0,-186);ctx.quadraticCurveTo(12,-170,19,-142);ctx.fill();
+  ctx.fillStyle='#9aa3b0';circ(0,-104,13);ctx.fill();ctx.fillStyle='#1d2b4a';circ(0,-104,9.5);ctx.fill();
+  ctx.fillStyle='#6c7480';ctx.fillRect(-14,-10,28,10);
+  ctx.restore();
+}
+function dibAstro(){
+  const x=P.x-cam+13,y=P.y;
+  if(P.inv>0&&Math.floor(P.inv*14)%2)return;
+  const s=P.suelo?Math.sin(P.paso*16)*(Math.abs(P.vx)>20?1:0):.7;
+  ctx.save();ctx.translate(x,y);ctx.scale(P.dir,1);
+  ctx.fillStyle='#aeb6c4';rr(-16,13,8,19,3);ctx.fill();
+  ctx.fillStyle='#e3e8ef';rr(-8+s*4,29,7,12,3);ctx.fill();rr(1-s*4,29,7,12,3);ctx.fill();
+  ctx.fillStyle='#e0672a';ctx.fillRect(-9+s*4,40,10,4);ctx.fillRect(0-s*4,40,10,4);
+  ctx.fillStyle='#f4f6f9';rr(-10,15,20,18,5);ctx.fill();
+  ctx.fillStyle='#e0672a';ctx.fillRect(-10,24,20,3);
+  ctx.fillStyle='#f4f6f9';circ(0,9,10);ctx.fill();
+  ctx.fillStyle='#1d2b4a';rr(-2,4,11,9,4);ctx.fill();
+  ctx.fillStyle='rgba(160,205,255,.7)';ctx.fillRect(4,6,3,3);
+  ctx.restore();
+}
+/* --- Sprites de la Voyager ---
+   voyager.png: 3 cuadros de 155×119 (0 reposo, 1 transmisión azul, 2 alerta roja)
+   portada.png: vista frontal, usada cuando la nave está posada.
+   Si no cargan, el juego sigue con el cohete dibujado a mano. */
+const SPR={hoja:new Image(),frente:new Image()};
+SPR.hoja.src='voyager.png';SPR.frente.src='portada.png';
+const listo=img=>img.complete&&img.naturalWidth>0;
+const CUADRO={w:155,h:119};
+function propulsores(x,y,k){               // chorros de hidracina: pequeños y azulados
+  for(let i=0;i<3;i++){const u=(E.t*7+i/3)%1;
+    ctx.fillStyle='rgba(150,200,255,'+(.5*(1-u))+')';circ(x+(i-1)*14*k,y+u*34*k,(5-3*u)*k);ctx.fill();}
+}
+function dibVoyager(x,y,ancho,estado,giro){  // x,y = centro del cuerpo
+  if(!listo(SPR.hoja)){dibCohete(x,y+40,.45,true);return;}
+  const h=ancho*CUADRO.h/CUADRO.w;
+  propulsores(x,y+h*.38,ancho/100);
+  ctx.save();ctx.translate(x,y);ctx.rotate(giro||0);
+  ctx.drawImage(SPR.hoja,estado*CUADRO.w,0,CUADRO.w,CUADRO.h,-ancho/2,-h/2,ancho,h);
+  ctx.restore();
+}
+function dibVoyagerPosada(cx,by,ancho,despega){  // cx = centro, by = base
+  if(!listo(SPR.frente)){dibCohete(cx,by,.85,despega);return;}
+  const w=SPR.frente.naturalWidth,h=SPR.frente.naturalHeight,alto=ancho*h/w;
+  if(despega)propulsores(cx,by-6,ancho/80);
+  ctx.drawImage(SPR.frente,cx-ancho/2,by-alto,ancho,alto);
+}
+function dibujarPlat(){
+  const c=N.c;
+  fondo(c);suelo(c);
+  // plataforma y nave de salida: en la Tierra, el cohete que lleva la Voyager; afuera, la Voyager misma
+  const mx=N.meta+70-cam,sube=P.fin?Math.pow(P.fin,2.4)*120:0,tierra=E.etapa===0;
+  ctx.fillStyle='#6c7480';ctx.fillRect(mx-70,SUELO-6,140,6);
+  if(tierra){
+    ctx.fillStyle='#8a93a3';ctx.fillRect(mx+50,SUELO-150,6,150);ctx.fillRect(mx+30,SUELO-120,24,4);
+    dibCohete(mx,SUELO-6-sube,.85,!!P.fin);
+  }else dibVoyagerPosada(mx,SUELO-6-sube,150,!!P.fin);
+  if(!P.fin){ctx.fillStyle='#ffc857';ctx.font='700 13px system-ui';ctx.textAlign='center';
+    ctx.fillText(tierra?'LANZADOR · VOYAGER':'VOYAGER',mx,SUELO-(tierra?176:140)+Math.sin(E.t*4)*3);}
+  for(const b of N.cajas)if(b.x+b.w>cam-20&&b.x<cam+W+20)dibCaja(b);
+  for(const q of N.pel)if(q.x+q.w>cam-40&&q.x<cam+W+40)dibPeligro(q);
+  for(const it of N.items)if(it.ok&&it.x>cam-20&&it.x<cam+W+20)dibItem(it.tipo,it.x-cam,it.y,E.t);
+  if(!P.fin)dibAstro();
+  hud(P.vidas,E.dinero+P.monedas,clamp(P.x/N.meta,0,1),'Inicio','Nave');
+}
+
+/* ---------- 5. VUELO ---------- */
+function iniciarVuelo(i){
+  E.etapa=i;const de=RUTA[i],a=RUTA[i+1];
+  V={x:W/2,px:W/2,giro:0,brillo:0,y:H-110,t:0,objs:[],esc:3+E.mej.escudo,inv:0,prox:1.2,proxMon:2,monedas:0,fin:0,tr:TRAMOS[de+'>'+a],de:CUERPOS[de],a:CUERPOS[a]};
+  modo('vuelo');
+  aviso(V.de.nombre+' → '+V.a.nombre,esTactil?'Arrastra el dedo para mover la nave':'Esquiva meteoritos y basura espacial');
+}
+function nuevoObj(tipo,x,r,vy){
+  const o={tipo,x,y:-r-10,r,vy,vx:0,rot:Math.random()*6,vr:(Math.random()-.5)*3};
+  if(tipo==='meteoro'){o.forma=[];for(let i=0;i<9;i++)o.forma.push(.72+Math.random()*.36);}
+  if(tipo==='basura'){o.vx=(Math.random()-.5)*110;o.var=Math.random()*3|0;}
+  V.objs.push(o);
+}
+function actualizarVuelo(dt){
+  const tr=V.tr,m=E.mej;
+  V.t+=dt;V.inv-=dt;
+  const vel=340*(1+.12*m.maniobra);
+  V.x+=((K.der?1:0)-(K.izq?1:0))*vel*dt;
+  V.y+=((K.aba?1:0)-(K.arr?1:0))*vel*.8*dt;
+  V.x=clamp(V.x,46,W-46);V.y=clamp(V.y,70,H-50);
+  const ladeo=clamp((V.x-V.px)/Math.max(dt,.001)/340,-1,1)*.32;   // se inclina al moverse de lado
+  V.giro+=(ladeo-V.giro)*Math.min(1,dt*8);V.px=V.x;V.brillo-=dt;
+  const prog=clamp(V.t/tr.dur,0,1);
+  if(prog<1){
+    V.prox-=dt;V.proxMon-=dt;
+    if(V.prox<=0){
+      V.prox=(.62/tr.dens/(1+prog*.9))*(720/W)*(.6+Math.random()*.8);
+      const vy=tr.vel*(.8+Math.random()*.6)*(1+prog*.5);
+      if(Math.random()<tr.basura)nuevoObj('basura',Math.random()*W,16+Math.random()*8,vy*.85);
+      else nuevoObj('meteoro',Math.random()*W,14+Math.random()*26,vy);
+    }
+    if(V.proxMon<=0){
+      V.proxMon=1.6+Math.random()*1.6;
+      const x=40+Math.random()*(W-80);
+      if(Math.random()<.1)nuevoObj('vida',x,12,tr.vel*.8);
+      else for(let i=0;i<4;i++){nuevoObj('moneda',x,10,tr.vel*.8);V.objs[V.objs.length-1].y-=i*42;}
+    }
+  }else{
+    V.fin+=dt;
+    if(V.fin>3){E.dinero+=V.monedas;iniciarPlat(E.etapa+1);return;}
+  }
+  const radio=45+m.iman*55;
+  for(const o of V.objs){
+    o.y+=o.vy*dt;o.x+=o.vx*dt;o.rot+=o.vr*dt;
+    const dx=V.x-o.x,dy=V.y-o.y,d=Math.hypot(dx,dy)||1;
+    if(o.tipo==='moneda'||o.tipo==='vida'){
+      if(d<radio){o.x+=dx/d*380*dt;o.y+=dy/d*380*dt;}
+      if(d<o.r+20){o.fuera=true;
+        V.brillo=.35;
+        if(o.tipo==='moneda'){V.monedas++;bip(990,.07,'square',.03,1480);}
+        else{V.esc=Math.min(6,V.esc+1);bip(440,.25,'triangle',.06,880);}}
+    }else if(d<o.r*.85+15&&V.inv<=0&&!V.fin){
+      V.esc--;V.inv=1.3;o.fuera=true;bip(160,.3,'sawtooth',.07,50);
+      if(V.esc<=0){fallo();return;}
+    }
+    if(o.y>H+60)o.fuera=true;
+  }
+  V.objs=V.objs.filter(o=>!o.fuera);
+}
+function planeta(c,cy,R){
+  ctx.fillStyle=c.color;circ(W/2,cy,R);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.arc(W/2,cy,R,0,7);ctx.clip();
+  ctx.fillStyle=c.color2;
+  for(let i=0;i<9;i++){const a=hash(i+c.semilla)*6.3,d=R*(.55+hash(i*2+c.semilla)*.42);
+    circ(W/2+Math.cos(a)*d,cy+Math.sin(a)*d,R*(.06+hash(i*5+c.semilla)*.12));ctx.fill();}
+  ctx.restore();
+  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=5;circ(W/2,cy,R+2);ctx.stroke();
+}
+function dibujarVuelo(){
+  const gr=ctx.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#03040a');gr.addColorStop(1,'#0f1430');
+  ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);
+  estrellas(120,V.t*140);
+  const R=W*.75;
+  if(V.t<7)planeta(V.de,H+R-150+V.t*70,R);
+  const falta=V.tr.dur-V.t;
+  if(falta<5)planeta(V.a,-R+20+(5-falta)*26,R);
+  for(const o of V.objs){
+    if(o.tipo==='moneda'||o.tipo==='vida'){dibItem(o.tipo,o.x,o.y,E.t);continue;}
+    ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.rot);
+    if(o.tipo==='meteoro'){
+      ctx.fillStyle='#7a6a5d';ctx.beginPath();
+      for(let i=0;i<9;i++){const a=i/9*6.283,r=o.r*o.forma[i];ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}
+      ctx.fill();
+      ctx.fillStyle='rgba(0,0,0,.22)';circ(o.r*.25,-o.r*.2,o.r*.22);ctx.fill();circ(-o.r*.3,o.r*.25,o.r*.14);ctx.fill();
+    }else if(o.var===0){               // satélite muerto
+      ctx.fillStyle='#3d6fb8';ctx.fillRect(-o.r*1.5,-o.r*.3,o.r,o.r*.6);ctx.fillRect(o.r*.5,-o.r*.3,o.r,o.r*.6);
+      ctx.fillStyle='#c9ccd1';ctx.fillRect(-o.r*.5,-o.r*.5,o.r,o.r);
+      ctx.fillStyle='#e8b53a';circ(0,0,o.r*.2);ctx.fill();
+    }else if(o.var===1){               // panel roto
+      ctx.fillStyle='#3d6fb8';ctx.beginPath();ctx.moveTo(-o.r,-o.r*.5);ctx.lineTo(o.r,-o.r*.7);ctx.lineTo(o.r*.6,o.r*.6);ctx.lineTo(-o.r*.7,o.r*.4);ctx.fill();
+      ctx.strokeStyle='#9cc2f0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-o.r*.1,-o.r*.6);ctx.lineTo(-o.r*.05,o.r*.5);ctx.stroke();
+    }else{                             // etapa de cohete
+      ctx.fillStyle='#b9c0cc';rr(-o.r*.45,-o.r,o.r*.9,o.r*2,4);ctx.fill();
+      ctx.fillStyle='#6c7480';ctx.fillRect(-o.r*.45,o.r*.5,o.r*.9,o.r*.2);
+    }
+    ctx.restore();
+  }
+  if(!(V.inv>0&&Math.floor(V.inv*14)%2)){
+    if(V.esc>1){ctx.strokeStyle='rgba(127,182,255,'+(.25+.1*Math.sin(E.t*6))+')';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(V.x,V.y,58,40,0,0,7);ctx.stroke();}
+    // luz: roja si acaba de recibir un golpe o le queda un impacto; azul al recoger algo
+    const estado=(V.inv>0||(V.esc===1&&Math.sin(E.t*8)>0))?2:V.brillo>0?1:0;
+    dibVoyager(V.x,V.y,104,estado,V.giro);
+  }
+  hud(V.esc,E.dinero+V.monedas,clamp(V.t/V.tr.dur,0,1),V.de.nombre,V.a.nombre);
+}
+
+/* ---------- HUD y avisos ---------- */
+function hud(vidas,monedas,prog,izq,der){
+  for(let i=0;i<vidas;i++)corazon(26+i*26,28,10,'#ff4d6d');
+  ctx.fillStyle='#b98a1f';circ(26,58,10);ctx.fill();ctx.fillStyle='#ffd257';circ(26,58,7.5);ctx.fill();
+  ctx.font='700 18px system-ui';ctx.textAlign='left';ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.55)';
+  ctx.strokeText(monedas,44,64);ctx.fillStyle='#fff';ctx.fillText(monedas,44,64);
+  const bw=Math.min(300,W*.34),bx=(W-bw)/2;
+  ctx.fillStyle='rgba(0,0,0,.45)';rr(bx,20,bw,10,5);ctx.fill();
+  ctx.fillStyle='#ffc857';rr(bx,20,Math.max(10,bw*prog),10,5);ctx.fill();
+  ctx.font='600 12px system-ui';
+  ctx.textAlign='right';ctx.strokeText(izq,bx-8,30);ctx.fillStyle='#fff';ctx.fillText(izq,bx-8,30);
+  ctx.textAlign='left';ctx.strokeText(der,bx+bw+8,30);ctx.fillText(der,bx+bw+8,30);
+  const a=E.aviso;
+  if(a&&a.t>0){
+    ctx.globalAlpha=clamp(a.t,0,1);ctx.textAlign='center';
+    ctx.font='800 34px system-ui';ctx.lineWidth=6;ctx.strokeText(a.a,W/2,150);ctx.fillStyle='#ffc857';ctx.fillText(a.a,W/2,150);
+    ctx.font='600 18px system-ui';ctx.lineWidth=4;ctx.strokeText(a.b,W/2,182);ctx.fillStyle='#fff';ctx.fillText(a.b,W/2,182);
+    ctx.globalAlpha=1;
+  }
+}
+
+/* ---------- 6. PANTALLAS ---------- */
+const ov=document.getElementById('ov'),panel=document.getElementById('panel');
+function mostrar(html){panel.innerHTML=html;ov.hidden=false;tactil.hidden=true;}
+function chipsRuta(hechas){
+  return '<div class="ruta">'+RUTA.map((id,i)=>'<span class="'+(i<hechas?'ok':i===hechas?'sig':'')+'">'+CUERPOS[id].nombre+'</span>').join('<i>→</i>')+'</div>';
+}
+/* Datos reales que aparecen en el hangar (uno por etapa) y al final. */
+const DATOS=[
+  'La antena de la Voyager mide unos 3,7 m de diámetro. Con ella las sondas reales siguen enviando datos a la Tierra desde más allá del Sol.',
+  'La Luna está, en promedio, a 384.400 km. La luz recorre esa distancia en poco más de un segundo; hasta Marte tarda entre 3 y 22 minutos, según dónde estén ambos planetas.'
+];
+function pantallaTitulo(){
+  modo('titulo');
+  mostrar('<a class="volver" href="../../">← El Mundo de Felipe</a>'+
+    '<img class="voy" src="portada.png" alt="Sonda Voyager">'+
+    '<h1>RUTA ESTELAR</h1><p class="sub">MISIÓN VOYAGER · MAPA 1: SISTEMA SOLAR INTERIOR</p>'+chipsRuta(-1)+
+    '<div class="historia"><b>La historia.</b> En 1977 la NASA lanzó las sondas Voyager 1 y 2, sin tripulación, rumbo a Júpiter y Saturno. '+
+    'En este juego imaginamos otra cosa: una Voyager reconstruida y tripulada, y tú eres quien la pilota. Primero tienes que llegar a la plataforma de lanzamiento cruzando la ciudad.</div>'+
+    '<p><b>A pie:</b> <kbd>←</kbd> <kbd>→</kbd> para moverte, <kbd>Espacio</kbd> o <kbd>↑</kbd> para saltar (mantén para saltar más alto). En celular, los botones de la pantalla.</p>'+
+    '<p><b>En vuelo:</b> esquiva meteoritos y basura espacial con las flechas, o arrastrando el dedo. La luz de la Voyager se pone roja cuando recibe un golpe.</p>'+
+    '<p>Las monedas y gemas compran mejoras en el hangar antes de cada despegue.</p>'+
+    '<button class="gr" data-acc="empezar">Comenzar misión</button>');
+}
+function pantallaHangar(){
+  modo('hangar');
+  const sig=CUERPOS[RUTA[E.etapa+1]],act=CUERPOS[RUTA[E.etapa]];
+  let h='<h2>Hangar · saliendo de '+act.art+'</h2><p>Recolectaste '+(E.ultimas||0)+' en esta etapa. Saldo: <span class="saldo">'+E.dinero+' monedas</span></p>'+chipsRuta(E.etapa+1)+'<div class="tienda">';
+  for(const k in MEJORAS){
+    const n=E.mej[k],max=n>=COSTOS.length,costo=COSTOS[n];
+    h+='<div class="item"><b>'+MEJORAS[k].nombre+' <span class="niv">'+'●'.repeat(n)+'○'.repeat(COSTOS.length-n)+'</span></b>'+
+      '<button data-acc="comprar" data-k="'+k+'"'+(max||E.dinero<costo?' disabled':'')+'>'+(max?'Máximo':costo+' monedas')+'</button>'+
+      '<small>'+MEJORAS[k].desc+'</small></div>';
+  }
+  h+='</div>'+(DATOS[E.etapa]?'<div class="dato"><b>Dato real.</b> '+DATOS[E.etapa]+'</div>':'')+
+    '<button class="gr" data-acc="despegar">Despegar hacia '+sig.art+'</button>';
+  mostrar(h);
+}
+function pantallaFin(){
+  modo('fin');
+  mostrar('<h2>Primer mapa completado</h2>'+chipsRuta(RUTA.length)+
+    '<p>Tierra, Luna y Marte recorridos. Terminaste con <span class="saldo">'+E.dinero+' monedas</span>.</p>'+
+    '<div class="dato"><b>Lo que pasó en la realidad.</b> Las Voyager nunca fueron a la Luna ni a Marte: pasaron por Júpiter y Saturno, y la Voyager 2 siguió a Urano y Neptuno. '+
+    'En 2012 la Voyager 1 se convirtió en el primer objeto hecho por humanos en llegar al espacio interestelar; la Voyager 2 lo logró en 2018. '+
+    'Cada una lleva un Disco de Oro con sonidos e imágenes de la Tierra.</div>'+
+    '<button class="gr" data-acc="reiniciar">Jugar de nuevo</button>');
+}
+function fallo(){
+  const enVuelo=E.modo==='vuelo';
+  modo('fallo');
+  mostrar('<h2>Misión interrumpida</h2><p>'+(enVuelo?'La nave no resistió más impactos.':'El astronauta se quedó sin vidas.')+
+    ' Conservas tu saldo de <span class="saldo">'+E.dinero+' monedas</span> y tus mejoras.</p>'+
+    '<button class="gr" data-acc="'+(enVuelo?'revuelo':'replat')+'">Reintentar etapa</button>');
+}
+panel.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const acc=b.dataset.acc;
+  if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(err){}}
+  if(acc==='comprar'){
+    const k=b.dataset.k,costo=COSTOS[E.mej[k]];
+    if(costo!==undefined&&E.dinero>=costo){E.dinero-=costo;E.mej[k]++;bip(520,.2,'triangle',.06,1040);pantallaHangar();}
+    return;
+  }
+  ov.hidden=true;
+  if(acc==='empezar')iniciarPlat(0);
+  else if(acc==='despegar'||acc==='revuelo')iniciarVuelo(E.etapa);
+  else if(acc==='replat')iniciarPlat(E.etapa);
+  else if(acc==='reiniciar'){E.dinero=0;for(const k in E.mej)E.mej[k]=0;iniciarPlat(0);}
+});
+
+/* ---------- bucle principal ---------- */
+let antes=0;
+function cuadro(ms){
+  const dt=Math.min(.033,(ms-antes)/1000||0);antes=ms;E.t+=dt;
+  if(E.aviso)E.aviso.t-=dt;
+  if(E.modo==='plat'){actualizarPlat(dt);if(E.modo==='plat')dibujarPlat();}
+  else if(E.modo==='vuelo'){actualizarVuelo(dt);if(E.modo==='vuelo')dibujarVuelo();}
+  else if(E.modo==='titulo'){
+    ctx.fillStyle='#05060d';ctx.fillRect(0,0,W,H);estrellas(120,E.t*30);
+  }
+  requestAnimationFrame(cuadro);
+}
+ajustar();pantallaTitulo();requestAnimationFrame(cuadro);
+</script>
+</body>
+</html>
