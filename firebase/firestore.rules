@@ -1252,6 +1252,25 @@ service cloud.firestore {
     match /entradas_codigos/{h} {
       allow read, write: if esProfe();
     }
+    // Observaciones de cada entrada (del Excel o anotadas en la puerta). Aparte de la entrada para que
+    // quien tiene el QR (el apoderado) no las vea: solo el profe y los porteros del evento.
+    // Los porteros solo escriben la observación de la puerta (obsIngreso), con su correo y la hora del servidor.
+    function obsPuertaOk() {
+      return texto(request.resource.data.obsIngreso, 300)
+        && request.resource.data.obsPor == request.auth.token.email.lower()
+        && request.resource.data.obsFecha == request.time;
+    }
+    match /entradas_privado/{h} {
+      allow read: if esProfe() || esPortero(resource.data.evento);
+      allow write: if esProfe();
+      allow create: if esPortero(request.resource.data.evento)
+        && get(/databases/$(database)/documents/entradas/$(h)).data.evento == request.resource.data.evento
+        && request.resource.data.keys().hasOnly(['evento', 'obsIngreso', 'obsPor', 'obsFecha'])
+        && obsPuertaOk();
+      allow update: if esPortero(resource.data.evento)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['obsIngreso', 'obsPor', 'obsFecha'])
+        && obsPuertaOk();
+    }
 
     // ═════ Tienda: artículos físicos (cartas, juegos, etc.) ═════
     // Solo el profe publica (nombre, descripción, foto o emoji, precio, unidades). Al comprar se crea un
