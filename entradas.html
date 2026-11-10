@@ -135,13 +135,13 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
   <!-- ═════ asistentes ═════ -->
   <section class="card" id="secAgregar" hidden>
     <h2><i class="fa-solid fa-user-plus"></i> Generar entradas</h2>
-    <p class="muted" style="margin:0">Pega la lista desde Excel o Google Sheets (columnas: <b>Nombre</b> · <b>Curso o grupo</b> · <b>Tipo</b>). Las columnas 2 y 3 son opcionales. También puedes generar entradas sin nombre.</p>
+    <p class="muted" style="margin:0">Sube el Excel o pega la lista desde Excel o Google Sheets. Si la primera fila tiene encabezados (<b>Nombre</b>, <b>Apellido</b>, <b>Curso</b>, <b>Tipo</b>) se usan esas columnas en cualquier orden; si no, se toma Nombre · Curso · Tipo. Cada QR sale con el nombre del titular. También puedes generar entradas sin nombre.</p>
     <div class="form">
       <label class="ancho">Lista de asistentes
         <textarea id="lista" placeholder="Ana Pérez&#9;3° Medio&#9;Estudiante&#10;Luis Soto&#9;Apoderado&#10;María Rojas"></textarea>
         <small id="listaInfo">Una persona por línea. Separa columnas con tabulación (al pegar desde una planilla), punto y coma o coma.</small>
       </label>
-      <label>O cargar un archivo CSV<input id="archivo" type="file" accept=".csv,.txt,text/csv,text/plain"></label>
+      <label>O subir el Excel<input id="archivo" type="file" accept=".xlsx,.xls,.ods,.csv,.txt"><small>Excel (.xlsx), CSV o texto. Se lee la primera hoja.</small></label>
       <label>Tipo por defecto<input id="tipoDef" maxlength="30" value="General"></label>
       <label>Entradas sin nombre (cantidad)<input id="sinNombre" type="number" min="0" max="500" value="0"><small>Para vender o regalar en mano.</small></label>
     </div>
@@ -276,22 +276,50 @@ async function borrarEvento() {
 }
 
 /* ═════════ generar ═════════ */
+const sinTilde = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+// Encabezados reconocidos (sin importar mayúsculas ni tildes).
+const COLS = { nombre: /^(nombres?|nombre completo|titular|asistente|estudiante|alumno|alumna|invitado)$/, apellido: /^(apellidos?|apellido paterno|ap\.? paterno)$/,
+  apellido2: /^(apellido materno|ap\.? materno|segundo apellido)$/, curso: /^(curso|grupo|nivel|cargo|seccion)$/, tipo: /^(tipo|tipo de entrada|categoria|entrada|ubicacion|zona)$/ };
 function leerLista() {
-  const txt = $('lista').value.replace(/\r/g, ''), lineas = txt.split('\n').map(l => l.trim()).filter(Boolean);
+  const txt = $('lista').value.replace(/\r/g, ''), lineas = txt.split('\n').filter(l => l.trim());
   const sep = /\t/.test(txt) ? '\t' : /;/.test(txt) ? ';' : ',';
   const tipoDef = $('tipoDef').value.trim().slice(0, 30) || 'General';
-  const filas = lineas.map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '')));
-  if (filas.length && /^nombre/i.test(filas[0][0] || '')) filas.shift();   // encabezado
-  return filas.filter(f => f[0]).map(f => ({ nombre: f[0].slice(0, 80), curso: (f[1] || '').slice(0, 40), tipo: (f[2] || tipoDef).slice(0, 30) }));
+  const filas = lineas.map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '').replace(/\s+/g, ' ')));
+  let col = { nombre: 0, curso: 1, tipo: 2 };
+  if (filas.length) {
+    const cab = filas[0].map(sinTilde), enc = {};
+    cab.forEach((c, i) => { for (const k in COLS) if (enc[k] == null && COLS[k].test(c)) enc[k] = i; });
+    if (enc.nombre != null || enc.apellido != null) { col = enc; filas.shift(); }
+  }
+  const v = (f, k) => col[k] == null ? '' : (f[col[k]] || '');
+  return filas.map(f => {
+    const nombre = [v(f, 'nombre'), v(f, 'apellido'), v(f, 'apellido2')].filter(Boolean).join(' ').trim();
+    return { nombre: nombre.slice(0, 80), curso: v(f, 'curso').slice(0, 40), tipo: (v(f, 'tipo') || tipoDef).slice(0, 30) };
+  }).filter(p => p.nombre);
 }
 function infoLista() {
   const l = leerLista(), sn = Math.max(0, Math.round(+$('sinNombre').value || 0));
   $('listaInfo').textContent = l.length || sn ? `Se generarán ${l.length + sn} entradas (${l.length} con nombre${sn ? ', ' + sn + ' sin nombre' : ''}).` : 'Una persona por línea. Separa columnas con tabulación (al pegar desde una planilla), punto y coma o coma.';
 }
 $('lista').addEventListener('input', infoLista); $('sinNombre').addEventListener('input', infoLista); $('tipoDef').addEventListener('input', infoLista);
-$('archivo').addEventListener('change', e => {
+function cargarXLSX() {
+  if (window.XLSX) return Promise.resolve();
+  return new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = ok; s.onerror = () => mal(new Error('no se pudo cargar el lector de Excel; revisa tu conexión')); document.head.appendChild(s); });
+}
+$('archivo').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader(); r.onload = () => { $('lista').value = String(r.result || ''); infoLista(); }; r.readAsText(f, 'utf-8');
+  try {
+    if (/\.(xlsx|xls|ods)$/i.test(f.name)) {
+      await cargarXLSX();
+      const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }), hoja = wb.Sheets[wb.SheetNames[0]];
+      const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, raw: false, defval: '' });
+      $('lista').value = filas.filter(r => r.some(c => String(c).trim())).map(r => r.map(c => String(c).replace(/[\t\n\r]+/g, ' ').trim()).join('\t')).join('\n');
+    } else $('lista').value = await f.text();
+    infoLista();
+    const l = leerLista();
+    msg('genMsg', l.length ? `✓ ${esc(f.name)}: ${l.length} titulares leídos (ej.: ${esc(l.slice(0, 3).map(p => p.nombre).join(', '))}). Revisa la lista y presiona «Generar entradas».` : 'No encontré nombres en el archivo. Revisa que tenga una columna «Nombre».', l.length ? '' : 'err');
+  } catch (err) { msg('genMsg', 'No se pudo leer el archivo: ' + esc(err.message), 'err'); }
+  e.target.value = '';
 });
 async function generar() {
   if (!ev) return;
@@ -442,13 +470,21 @@ async function pngEntrada(t) {
   x.fillText((t.nota ? t.nota + ' · ' : '') + 'Válida para un ingreso. No compartas este QR.', W / 2, H - 50);
   return new Promise(ok => c.toBlob(ok, 'image/png'));
 }
-const nombreArchivo = t => `entrada-${String(t.n).padStart(3, '0')}${t.nombre ? '-' + t.nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase().slice(0, 40) : ''}.png`;
+// El archivo de cada QR se llama como su titular (ej.: «Ana Pérez.png»); sin nombre: «Entrada 004.png».
+const nombreArchivo = t => (t.nombre ? t.nombre.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) : 'Entrada ' + String(t.n).padStart(3, '0')) + '.png';
 function descargar(blob, nombre) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
 async function zipSel() {
   if (typeof JSZip === 'undefined') return aviso('No se pudo cargar el compresor ZIP. Revisa tu conexión.', 'err');
   const lista = await conCodigos(elegidas()); if (!lista.length) return;
   $('pngSel').disabled = true; const z = new JSZip();
-  for (let i = 0; i < lista.length; i++) { $('nSel').textContent = `Preparando imágenes ${i + 1} / ${lista.length}…`; z.file(nombreArchivo(lista[i]), await pngEntrada(lista[i])); }
+  const usados = {};
+  for (let i = 0; i < lista.length; i++) {
+    $('nSel').textContent = `Preparando imágenes ${i + 1} / ${lista.length}…`;
+    let n = nombreArchivo(lista[i]); const k = n.toLowerCase();
+    if (usados[k]) n = n.replace(/\.png$/, ` (#${lista[i].n}).png`);   // dos titulares con el mismo nombre
+    usados[k] = 1;
+    z.file(n, await pngEntrada(lista[i]));
+  }
   descargar(await z.generateAsync({ type: 'blob' }), `entradas-${ev.nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase().slice(0, 40)}.zip`);
   pintarLista();
 }
