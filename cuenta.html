@@ -458,10 +458,13 @@ async function cargarMiBanco(cid, c) {
     const [sa, sp] = await Promise.all([F.getDoc(F.doc(db, 'banco_ahorros', cid)), F.getDoc(F.doc(db, 'banco_prestamos', cid))]);
     const a = sa.exists() ? sa.data() : null, p = sp.exists() ? sp.data() : null, t = DF.ahora ? DF.ahora() : Date.now();
     const msD = x => x && x.toMillis ? x.toMillis() : 0;
-    const ah = !a || !a.monto ? 0 : a.monto >= 500000 ? a.monto : Math.min(500000, Math.floor(a.monto * Math.pow(1.1, Math.floor((t - msD(a.desde)) / 604800000))));
+    // Mismo cálculo que banco.html: el depósito a plazo crece solo hasta su plazo (antes se mostraba creciendo sin límite).
+    const sem = a && a.monto ? Math.floor((t - msD(a.desde)) / 604800000) : 0, pz = a && a.plazo ? a.plazo / 7 : 0, k = pz > 0 && sem > pz ? pz : sem;
+    const ah = !a || !a.monto ? 0 : a.monto >= 500000 ? a.monto : Math.min(500000, Math.floor(a.monto * Math.pow(1.1, k)));
+    const vencAh = !a || !a.plazo || t >= msD(a.desde) + a.plazo * 86400000;
     const vig = p && p.estado === 'vigente', sol = p && p.estado === 'solicitado', venc = vig && t > (p.venceMs || Infinity);
     box.innerHTML = `<h2><i class="fa-solid fa-building-columns"></i> Préstamos y ahorro</h2>
-      <div class="bk"><div style="color:var(--acid)">₣${fmt(c.saldo)}<small>Saldo</small></div><div style="color:var(--pos)">₣${fmt(ah)}<small>Ahorro (+10%/semana)</small></div>
+      <div class="bk"><div style="color:var(--acid)">₣${fmt(c.saldo)}<small>Saldo</small></div><div style="color:var(--pos)">₣${fmt(ah)}<small>${a && a.monto && !vencAh ? 'Depósito a plazo (vence el ' + new Date(msD(a.desde) + a.plazo * 86400000).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }) + ')' : a && a.monto && a.plazo ? 'Ahorro (plazo cumplido)' : 'Ahorro (+10%/semana)'}</small></div>
         ${vig ? `<div style="color:var(--neg)">₣${fmt(p.deuda)}<small>${venc ? 'Deuda vencida' : 'Deuda'}</small></div>` : ''}</div>
       <p class="muted" style="margin:0 0 12px">${venc ? '⛔ <b>Tu préstamo venció:</b> el banco está embargando tus bienes. Paga cuanto antes.'
         : vig ? 'Debes pagar antes del <b>' + new Date(p.venceMs).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' }) + '</b> o se embargan tus bienes.'
@@ -702,11 +705,11 @@ document.addEventListener('click', async ev => {
 function pintarProductos(compras) {
   const CAT = window.CATALOGO_BENEFICIOS || [], grupos = {};
   const ico = m => m.item === 'Ruleta: disertación' ? '🎤' : m.tipo === 'poder-gatito' ? '⚡' : m.tipo === 'poder-mensual' ? '📜' : m.tipo === 'premio-gatito' ? '💎' : m.tipo === 'ruleta' ? '🎡' : ((CAT.find(c => c.nombre === m.item) || {}).ico || '🎟️');
-  compras.filter(m => ['pendiente', 'retenida', 'en-venta'].includes(m.canje)).forEach(m => {
+  compras.filter(m => ['pendiente', 'retenida', 'en-venta', 'en-compra'].includes(m.canje)).forEach(m => {
     const k = m.canje + '|' + (m.item || m.motivo);
     (grupos[k] = grupos[k] || { m, n: 0 }).n++;
   });
-  const est = { pendiente: 'Por usar', retenida: 'Esperando al profe', 'en-venta': 'A la venta (congelado)' };
+  const est = { pendiente: 'Por usar', retenida: 'Esperando al profe', 'en-venta': 'A la venta (congelado)', 'en-compra': 'Usándose en una compra de la Tienda' };
   const l = Object.values(grupos).sort((a, b) => (a.m.canje === 'pendiente' ? 0 : 1) - (b.m.canje === 'pendiente' ? 0 : 1));
   $('prodCont').innerHTML = (l.length ? `<div class="prod">${l.map(({ m, n }) => `<div class="${m.canje === 'pendiente' ? '' : 'cong'}"><span class="ic">${esc(ico(m))}</span><span><b>${esc(m.item || m.motivo)}</b><small>${est[m.canje]}</small></span>${n > 1 ? `<span class="n">×${n}</span>` : ''}</div>`).join('')}</div>`
     : '<div class="vacio">No tienes productos por usar. Mira el <a href="gatitos.html#beneficios">Mercado</a>.</div>')
@@ -731,7 +734,7 @@ function cargarBanco() {
     $('rUsar').textContent = porUsar.length;
     pintarProductos(compras);
     const estado = m => m.canje === 'usada' ? `<span class="can usada">Usada</span>${m.canjeNota ? ' <small class="muted">' + esc(m.canjeNota) + '</small>' : ''}`
-      : m.canje === 'anulada' ? '<span class="can anul">Anulada</span>' : m.canje === 'perdida' ? '<span class="can anul">Perdida en la ruleta</span>' : m.canje === 'embargada' ? '<span class="can anul">Embargada (préstamo)</span>' : m.item === 'Ruleta: disertación' && m.canje === 'pendiente' ? `<span class="can pend">Por hacer · tema: ${esc(m.tema || '—')}</span> <button class="btn" style="padding:4px 10px;font-size:12px" type="button" data-tema="${esc(m._id)}" data-actual="${esc(m.tema || '')}">Cambiar tema</button>` : m.canje === 'retenida' ? '<span class="can pend">Retenida · esperando al profe</span>' : m.canje === 'en-venta' ? '<span class="can pend">En venta (congelada)</span>' : m.canje === 'entregada' ? '<span class="can usada">Entregada</span>' : m.canje === 'traspasada' ? `<span class="can anul">Vendida</span> <small class="muted">${esc(m.canjeNota || '')}</small>` : '<span class="can pend">Por usar</span>';
+      : m.canje === 'anulada' ? '<span class="can anul">Anulada</span>' : m.canje === 'perdida' ? '<span class="can anul">Perdida en la ruleta</span>' : m.canje === 'embargada' ? '<span class="can anul">Embargada (préstamo)</span>' : m.item === 'Ruleta: disertación' && m.canje === 'pendiente' ? `<span class="can pend">Por hacer · tema: ${esc(m.tema || '—')}</span> <button class="btn" style="padding:4px 10px;font-size:12px" type="button" data-tema="${esc(m._id)}" data-actual="${esc(m.tema || '')}">Cambiar tema</button>` : m.canje === 'retenida' ? '<span class="can pend">Retenida · esperando al profe</span>' : m.canje === 'en-venta' ? '<span class="can pend">En venta (congelada)</span>' : m.canje === 'en-compra' ? '<span class="can pend">Usándose en una compra de la Tienda</span>' : m.item === 'Ruleta: 20% de descuento en un artículo de la Tienda' && m.canje === 'pendiente' ? '<span class="can pend">Por usar</span> <a class="btn" style="padding:4px 10px;font-size:12px" href="gatitos.html">Usar en la Tienda</a>' : m.canje === 'entregada' ? '<span class="can usada">Entregada</span>' : m.canje === 'traspasada' ? `<span class="can anul">Vendida</span> <small class="muted">${esc(m.canjeNota || '')}</small>` : '<span class="can pend">Por usar</span>';
     $('bCont').innerHTML = `
       <div class="saldo"><b class="${(c.saldo || 0) < 0 ? 'neg' : ''}">${fmt(c.saldo)} ₣</b><span class="muted">Cuenta N° ${esc(c.numero)}${c.curso ? ' · ' + esc(c.curso) : ''}</span></div>
       <p class="sub">Por usar (${porUsar.length})</p>

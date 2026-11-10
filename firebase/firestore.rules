@@ -637,6 +637,8 @@ service cloud.firestore {
     // Los únicos que se pueden escapar: comunes y poco comunes.
     function escapables() { return ['naranjo', 'gris', 'dormilon', 'patitas', 'aseo', 'blanconegro', 'tricolor', 'comelon']; }
     function itemDisertacion() { return 'Ruleta: disertación'; }
+    // Cupón de la ruleta: −20% en un artículo de la Tienda (se usa al comprar; ver mercado_pedidos).
+    function cuponTienda() { return 'Ruleta: 20% de descuento en un artículo de la Tienda'; }
     // Claves de «cosas» que puede llevar un movimiento de la ruleta; cada casilla permite solo las suyas.
     function soloCosas(d, ks) {
       return d.keys().toSet().intersection(['item', 'canje', 'tema', 'gatito', 'escapa', 'pierde', 'ticker', 'acciones', 'precio'].toSet())
@@ -1517,7 +1519,8 @@ service cloud.firestore {
         || (miCuentaBanco() != '' && (resource.data.comprador == miCuentaBanco() || resource.data.get('vendedor', '') == miCuentaBanco()));
       allow create: if esColegio() && miCuentaBanco() != ''
         && request.resource.data.keys().hasOnly(['tipo', 'comprador', 'compradorNombre', 'compradorNumero', 'uid', 'item', 'ico', 'precio',
-             'publicacion', 'vendedor', 'vendedorNombre', 'gatito', 'estado', 'creada', 'mov', 'articulo'])
+             'publicacion', 'vendedor', 'vendedorNombre', 'gatito', 'estado', 'creada', 'mov', 'articulo', 'cupon'])
+        && (!request.resource.data.keys().hasAny(['cupon']) || request.resource.data.tipo == 'articulo')
         && request.resource.data.comprador == miCuentaBanco()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.precio is int && request.resource.data.precio >= 100
@@ -1532,7 +1535,15 @@ service cloud.firestore {
             // artículo físico de la Tienda: precio y nombre del artículo, y una unidad menos en la misma escritura
             || (request.resource.data.tipo == 'articulo' && request.resource.data.articulo is string
                 && get(rutaArticulo(request.resource.data.articulo)).data.activa == true
-                && get(rutaArticulo(request.resource.data.articulo)).data.precio == request.resource.data.precio
+                && (!request.resource.data.keys().hasAny(['cupon'])
+                    ? get(rutaArticulo(request.resource.data.articulo)).data.precio == request.resource.data.precio
+                    // con el cupón de la ruleta paga el 80% (redondeado) y el cupón queda «en-compra» en la misma escritura
+                    : (request.resource.data.precio == math.round(get(rutaArticulo(request.resource.data.articulo)).data.precio * 0.8)
+                       && request.resource.data.cupon is string
+                       && get(rutaMov(request.resource.data.cupon)).data.cuenta == miCuentaBanco()
+                       && get(rutaMov(request.resource.data.cupon)).data.get('item', '') == cuponTienda()
+                       && get(rutaMov(request.resource.data.cupon)).data.get('canje', '') == 'pendiente'
+                       && getAfter(rutaMov(request.resource.data.cupon)).data.canje == 'en-compra'))
                 && get(rutaArticulo(request.resource.data.articulo)).data.nombre == request.resource.data.item
                 && getAfter(rutaArticulo(request.resource.data.articulo)).data.ultimoPedido == pid)
             || (request.resource.data.tipo == 'reventa'
@@ -1825,6 +1836,20 @@ service cloud.firestore {
           // cancelar un pedido: la compra retenida se anula (el dinero vuelve con un movimiento «devolucion»)
           || (resource.data.get('canje', '') == 'retenida' && request.resource.data.canje == 'anulada'
             && getAfter(rutaPedido(resource.data.pedido)).data.estado == 'cancelada'));
+      // Cupón de la ruleta (−20% en la Tienda): queda «en-compra» mientras el pedido espera; vuelve si el estudiante lo cancela.
+      // (Al entregar, el profe lo marca «usada»; si rechaza la compra, lo devuelve a «pendiente».)
+      allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
+        && resource.data.get('item', '') == cuponTienda()
+        && ((resource.data.get('canje', '') == 'pendiente' && request.resource.data.canje == 'en-compra'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['canje', 'pedido'])
+              && request.resource.data.pedido is string
+              && !exists(rutaPedido(request.resource.data.pedido))
+              && getAfter(rutaPedido(request.resource.data.pedido)).data.get('cupon', '') == id
+              && getAfter(rutaPedido(request.resource.data.pedido)).data.comprador == miCuentaBanco())
+          || (resource.data.get('canje', '') == 'en-compra' && request.resource.data.canje == 'pendiente'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['canje'])
+              && get(rutaPedido(resource.data.pedido)).data.estado == 'pendiente'
+              && getAfter(rutaPedido(resource.data.pedido)).data.estado == 'cancelada'));
       // Disertación de la ruleta: mientras no se haga, el estudiante puede cambiar el tema.
       allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
         && resource.data.get('item', '') == itemDisertacion() && resource.data.get('canje', '') == 'pendiente'

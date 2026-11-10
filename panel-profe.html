@@ -861,7 +861,7 @@ function notaPrecio(t) {
 function descSol(t) {
   if (t.clase === 'transferencia') return `<b>$${fmt(t.monto)}</b> · N° ${esc(t.deNumero)} ${esc(t.deNombre)} → N° ${esc(t.aNumero)} ${esc(t.aNombre)}`;
   if (t.clase === 'beneficio') return `<b>${esc(t.ico || '')} ${esc(t.item)}</b> · $${fmt(t.precio)}${notaPrecio(t)} · lo compra N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}`;
-  if (t.clase === 'articulo') return `<b>${esc(t.ico || '📦')} ${esc(t.item)}</b> (artículo físico) · $${fmt(t.precio)} · para N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}${t.curso ? ' · ' + esc(t.curso) : ''}`;
+  if (t.clase === 'articulo') return `<b>${esc(t.ico || '📦')} ${esc(t.item)}</b> (artículo físico) · $${fmt(t.precio)}${t.cupon ? ' <span class="pill" title="Cupón de la ruleta">🛍️ con cupón −20%</span>' : ''} · para N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}${t.curso ? ' · ' + esc(t.curso) : ''}`;
   return `<b>${esc(t.ico || '')} ${esc(t.item)}</b> · $${fmt(t.precio)} · ${esc(t.vendedorNombre)} se lo vende a N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}`;
 }
 function pintarTransferencias() {
@@ -1176,6 +1176,7 @@ async function autorizarPedido(p) {
       if (!sp.exists() || sp.data().estado !== 'pendiente') throw new Error('la solicitud ya no está pendiente');
       if (!smc.exists() || smc.data().canje !== 'retenida') throw new Error('no se encontró el pago retenido');
       if (p.tipo === 'articulo') {
+        if (p.cupon) tx.update(F.doc(db, 'banco_movs', p.cupon), { canje: 'usada', canjeNota: 'Usado en la Tienda: ' + String(p.item).slice(0, 150), canjeFecha: F.serverTimestamp(), canjeProfe: profe });
         tx.update(rmc, { canje: 'entregada', canjeNota: 'Artículo entregado', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
         tx.update(rp, { estado: 'aprobada', resuelta: F.serverTimestamp(), profe });
         return;
@@ -1235,6 +1236,7 @@ async function rechazarPedido(p) {
       const rart = p.tipo === 'articulo' && p.articulo ? F.doc(db, 'tienda_articulos', p.articulo) : null, sart = rart ? await tx.get(rart) : null;
       if (p.mov) { const escribir = await devolver(F, db, tx, p.comprador, sp.data().precio, `Devolución: el profe rechazó la compra de ${p.item}`, { pedido: p.id }); escribir(); }
       if (smc.exists()) tx.update(rmc, { canje: 'anulada', canjeNota: 'Rechazada por el profe', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
+      if (p.cupon) tx.update(F.doc(db, 'banco_movs', p.cupon), { canje: 'pendiente', canjeNota: 'El cupón vuelve: el profe rechazó la compra', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
       if (spub && spub.exists() && spub.data().estado === 'reservado' && spub.data().reservadoPor === p.id) tx.update(rpub, { estado: 'venta', actualizado: F.serverTimestamp() });
       if (sart && sart.exists()) { const a = sart.data(); tx.update(rart, { stock: a.stock === -1 ? -1 : (a.stock || 0) + 1, vendidos: Math.max(0, (a.vendidos || 0) - 1) }); }
       tx.update(rp, { estado: 'rechazada', nota: nota.trim().slice(0, 160), resuelta: F.serverTimestamp(), profe });
