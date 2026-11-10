@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#08080c">
+<meta name="robots" content="noindex">
+<title>Verificador de entradas · El Mundo de Felipe</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 60px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}
+h1{font:900 clamp(34px,10vw,52px)/.9 var(--ff-d);text-transform:uppercase;margin:14px 0 0}
+h1 span{color:var(--cyan)}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin-top:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:10px 18px;font:700 15px var(--ff);cursor:pointer;text-decoration:none}
+.btn.p{background:var(--cyan);color:#001a1f;border-color:var(--cyan);font-weight:800}
+.btn.ok{background:var(--acid);color:#141a00;border-color:var(--acid);font-weight:900}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:14px}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.muted{color:var(--mute);font-size:14px}
+select,input[type=search],input[type=text]{width:100%;background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:11px 14px;font:600 15px var(--ff)}
+.cont{display:flex;gap:10px;margin-top:10px}
+.cont div{flex:1;background:var(--slab2);border-radius:14px;padding:8px 12px;text-align:center}
+.cont b{display:block;font:900 32px/1 var(--ff-d)}
+.cont span{font:700 10.5px var(--ff);letter-spacing:1.4px;text-transform:uppercase;color:var(--mute)}
+.barra{height:6px;border-radius:99px;background:var(--slab2);overflow:hidden;margin-top:10px}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--acid));width:0;transition:width .4s}
+.camara{position:relative;margin-top:14px;border-radius:20px;overflow:hidden;background:#000;aspect-ratio:1;border:1px solid var(--line2)}
+.camara video{width:100%;height:100%;object-fit:cover;display:block}
+.camara .mira{position:absolute;inset:16%;border:3px solid rgba(34,227,255,.85);border-radius:18px;box-shadow:0 0 0 999px rgba(0,0,0,.35);pointer-events:none}
+.camara .mira::after{content:'';position:absolute;left:6%;right:6%;top:50%;height:2px;background:var(--acid);box-shadow:0 0 12px var(--acid);animation:barre 1.8s ease-in-out infinite alternate}
+@keyframes barre{from{top:8%}to{top:92%}}
+.camara .apagada{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;text-align:center;padding:20px}
+.modo{display:flex;gap:6px;margin-top:10px}
+.modo button{flex:1;border:1px solid var(--line2);background:transparent;color:var(--mute);border-radius:999px;padding:8px;font:700 13px var(--ff);cursor:pointer}
+.modo button.on{background:var(--cyan);color:#001a1f;border-color:var(--cyan)}
+.res{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;cursor:pointer;animation:entra .18s ease-out}
+@keyframes entra{from{transform:scale(1.06);opacity:0}}
+.res.ok{background:#0f7a3a;color:#fff}.res.mal{background:#a3162a;color:#fff}.res.info{background:#0b4d66;color:#fff}
+.res i.ico{font-size:110px;line-height:1}
+.res .tit{font:900 clamp(56px,17vw,110px)/.9 var(--ff-d);text-transform:uppercase;margin-top:14px}
+.res .nom{font:800 clamp(24px,7vw,36px)/1.15 var(--ff);margin-top:14px}
+.res .det{font:600 18px var(--ff);opacity:.9;margin-top:6px}
+.res .pie{position:absolute;bottom:22px;left:0;right:0;font:600 14px var(--ff);opacity:.8}
+.lista{margin-top:10px;max-height:340px;overflow:auto}
+.it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line)}
+.it .q{flex:1;min-width:0}
+.it .q b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .q small{color:var(--mute)}
+.chip{font:700 11px var(--ff);border-radius:999px;padding:2px 8px;border:1px solid var(--line2);color:var(--mute);white-space:nowrap}
+.chip.ok{border-color:var(--acid);color:var(--acid)}.chip.mal{border-color:var(--neg);color:var(--neg)}
+details summary{cursor:pointer;font-weight:800;color:var(--cyan)}
+.manual{display:flex;gap:8px;margin-top:10px}
+.manual input{font-family:ui-monospace,Menlo,monospace;letter-spacing:1px}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261105">
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="index.html"><i class="fa-solid fa-arrow-left"></i> El Mundo de Felipe</a>
+  <h1>Verificador <span>de entradas</span></h1>
+  <div id="aviso"></div>
+
+  <div id="app" hidden>
+    <div class="card">
+      <select id="selEvento" aria-label="Evento"></select>
+      <div class="cont"><div><b id="cIn" style="color:var(--acid)">0</b><span>Ingresaron</span></div><div><b id="cPend" style="color:var(--cyan)">0</b><span>Por llegar</span></div><div><b id="cTot">0</b><span>Entradas</span></div></div>
+      <div class="barra"><i id="barra"></i></div>
+      <div class="modo" id="modo"><button type="button" data-m="marcar" class="on"><i class="fa-solid fa-door-open"></i> Marcar ingreso</button><button type="button" data-m="consultar"><i class="fa-solid fa-magnifying-glass"></i> Solo consultar</button></div>
+    </div>
+
+    <div class="camara" id="camara">
+      <video id="video" playsinline muted></video>
+      <div class="mira" id="mira" hidden></div>
+      <div class="apagada" id="apagada">
+        <i class="fa-solid fa-qrcode" style="font-size:64px;color:var(--cyan)"></i>
+        <button class="btn p" id="encender"><i class="fa-solid fa-camera"></i> Encender cámara</button>
+        <span class="muted">Apunta al QR de la entrada (impresa o en la pantalla del celular).</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn sm" id="apagar" hidden><i class="fa-solid fa-power-off"></i> Apagar cámara</button>
+      <button class="btn sm" id="cambiarCam" hidden><i class="fa-solid fa-camera-rotate"></i> Cambiar cámara</button>
+    </div>
+
+    <div class="card">
+      <details>
+        <summary>¿No lee el QR? Escribe el código</summary>
+        <div class="manual"><input id="manual" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"><button class="btn p" id="usarManual">Verificar</button></div>
+      </details>
+    </div>
+    <div class="card" id="buscarBox">
+      <details>
+        <summary>Buscar por nombre (si no trae la entrada)</summary>
+        <input id="buscar" type="search" placeholder="Nombre, curso o N°…" style="margin-top:10px">
+        <div class="lista" id="resBuscar"></div>
+      </details>
+    </div>
+    <div class="card">
+      <b>Últimos escaneos</b>
+      <div class="lista" id="log"><p class="muted" style="margin:6px 0 0">Aún nada.</p></div>
+    </div>
+  </div>
+</div>
+<div id="res" hidden></div>
+
+<script src="firebase/df.js?v=20261104e"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ms = t => (t && t.toMillis ? t.toMillis() : 0);
+const limpiar = c => String(c || '').toUpperCase().replace(/[IL]/g, '1').replace(/[^A-Z0-9]/g, '').slice(0, 40);
+const horaTxt = t => { const m = typeof t === 'number' ? t : ms(t); return m ? new Date(m).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : ''; };
+async function sha256(t) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+function aviso(t, k) { $('aviso').innerHTML = t ? `<div class="aviso ${k || ''}">${t}</div>` : ''; }
+
+let usuario = null, escuchando = null, eventos = [], evId = '', entradas = [], unsubEv = null, unsubEn = null, modo = 'marcar';
+let stream = null, camaras = [], camIdx = 0, detector = null, lienzo = null, ocupado = false, ultimo = { c: '', t: 0 }, wake = null, log = [];
+
+/* ═════════ sonido y vibración ═════════ */
+let audio = null;
+function sonar(ok) {
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const notas = ok ? [[880, 0, .09], [1320, .1, .14]] : [[220, 0, .5]];
+    notas.forEach(([f, ini, dur]) => {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = ok ? 'sine' : 'square'; o.frequency.value = f; g.gain.value = .18;
+      o.connect(g); g.connect(audio.destination); o.start(audio.currentTime + ini); o.stop(audio.currentTime + ini + dur);
+    });
+  } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate(ok ? 120 : [90, 60, 90, 60, 220]);
+}
+
+/* ═════════ resultado a pantalla completa ═════════ */
+let cierre = null;
+function mostrar(tipo, tit, t, extra) {
+  const r = $('res'), ico = tipo === 'ok' ? 'fa-circle-check' : tipo === 'info' ? 'fa-circle-info' : 'fa-circle-xmark';
+  r.className = 'res ' + tipo; r.hidden = false;
+  r.innerHTML = `<i class="fa-solid ${ico} ico"></i><div class="tit">${esc(tit)}</div>
+    ${t ? `<div class="nom">${esc(t.nombre) || 'Entrada general'}</div><div class="det">#${esc(t.n)}${t.curso ? ' · ' + esc(t.curso) : ''}${t.tipo ? ' · ' + esc(t.tipo) : ''}</div>` : ''}
+    ${extra ? `<div class="det">${extra}</div>` : ''}<div class="pie">Toca para seguir</div>`;
+  sonar(tipo === 'ok');
+  clearTimeout(cierre); cierre = setTimeout(ocultar, tipo === 'ok' ? 2200 : 4500);
+}
+function ocultar() { clearTimeout(cierre); $('res').hidden = true; ocupado = false; }
+$('res').addEventListener('click', ocultar);
+function anotar(tipo, txt, t) {
+  log.unshift({ tipo, txt, t, h: Date.now() }); log = log.slice(0, 15);
+  $('log').innerHTML = log.map(l => `<div class="it"><span class="chip ${l.tipo === 'ok' ? 'ok' : l.tipo === 'mal' ? 'mal' : ''}">${esc(horaTxt(l.h))}</span>
+    <div class="q"><b>${l.t ? esc(l.t.nombre || 'Entrada general') + ' · #' + esc(l.t.n) : 'Código desconocido'}</b><small>${esc(l.txt)}</small></div></div>`).join('');
+}
+
+/* ═════════ verificar ═════════ */
+function codigoDe(texto) {
+  const m = String(texto || '').match(/[#&]c=([A-Za-z0-9-]+)/);
+  if (m) return limpiar(m[1]);
+  const c = limpiar(texto);
+  return /^[A-Z0-9]{12,40}$/.test(c) ? c : '';
+}
+async function verificar(texto, metodo, huellaDirecta) {
+  const ev = eventos.find(e => e.id === evId);
+  if (!ev) { ocupado = false; return aviso('Elige un evento primero.', 'err'); }
+  let h = huellaDirecta;
+  if (!h) {
+    const codigo = codigoDe(texto);
+    if (!codigo) { mostrar('mal', 'QR no válido', null, 'Ese QR no es una entrada de El Mundo de Felipe.'); anotar('mal', 'QR no válido'); return; }
+    h = await sha256(codigo);
+  }
+  const marcar = modo === 'marcar';
+  try {
+    const { F, db } = await DF.listo(), ref = F.doc(db, 'entradas', h);
+    const r = await F.runTransaction(db, async tx => {
+      const s = await tx.get(ref);
+      if (!s.exists()) return { k: 'noexiste' };
+      const t = s.data();
+      if (t.evento !== evId) return { k: 'otro', t };
+      if (t.estado === 'anulada') return { k: 'anulada', t };
+      if (t.estado === 'usada') return { k: 'usada', t };
+      if (!marcar) return { k: 'valida', t };
+      if (ev.estado === 'cerrado') return { k: 'cerrado', t };
+      tx.update(ref, { estado: 'usada', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: metodo || 'qr' });
+      return { k: 'pasa', t };
+    });
+    const t = r.t;
+    if (r.k === 'pasa') { mostrar('ok', 'Pasa', t); anotar('ok', 'Ingresó' + (metodo === 'manual' ? ' (a mano)' : ''), t); }
+    else if (r.k === 'valida') { mostrar('info', 'Válida', t, 'Sin usar · modo «Solo consultar»: no se marcó.'); anotar('info', 'Consultada: válida', t); }
+    else if (r.k === 'usada') { mostrar('mal', 'Ya ingresó', t, `A las ${esc(horaTxt(t.usada))}${t.usadaPor ? ' · verificó ' + esc(t.usadaPor) : ''}`); anotar('mal', 'Repetida: ya había ingresado ' + horaTxt(t.usada), t); }
+    else if (r.k === 'anulada') { mostrar('mal', 'Anulada', t, 'Esta entrada fue anulada por el profe.'); anotar('mal', 'Anulada', t); }
+    else if (r.k === 'otro') { mostrar('mal', 'Otro evento', t, 'Es para «' + esc(t.eventoNombre) + '».'); anotar('mal', 'De otro evento: ' + t.eventoNombre, t); }
+    else if (r.k === 'cerrado') { mostrar('mal', 'Evento cerrado', t, 'El profe cerró el ingreso de este evento.'); anotar('mal', 'Evento cerrado', t); }
+    else { mostrar('mal', 'No existe', null, 'No hay ninguna entrada con ese código. ¿Es falsa o fue borrada?'); anotar('mal', 'No existe'); }
+  } catch (e) {
+    const txt = /permission/i.test(e.message) ? 'Firebase lo rechazó: revisa que tu correo esté en la lista de porteros.' : /offline|unavailable|network/i.test(e.message) ? 'Sin conexión a internet. Revisa los datos o el wifi y vuelve a escanear.' : e.message;
+    mostrar('mal', 'Error', null, esc(txt)); anotar('mal', 'Error: ' + txt);
+  }
+}
+
+/* ═════════ cámara ═════════ */
+function cargarJsQR() {
+  if (window.jsQR) return Promise.resolve();
+  return new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; s.onload = ok; s.onerror = () => mal(new Error('no se pudo cargar el lector de QR')); document.head.appendChild(s); });
+}
+async function prepararLector() {
+  if ('BarcodeDetector' in window) {
+    try { const f = await BarcodeDetector.getSupportedFormats(); if (f.includes('qr_code')) { detector = new BarcodeDetector({ formats: ['qr_code'] }); return; } } catch (e) {}
+  }
+  await cargarJsQR();
+}
+async function encender() {
+  if (!evId) return aviso('Elige un evento primero.', 'err');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return aviso('Este navegador no permite usar la cámara. Abre la página en Chrome o Safari (con https).', 'err');
+  try {
+    await prepararLector();
+    apagar(true);
+    const vid = camaras[camIdx] ? { deviceId: { exact: camaras[camIdx].deviceId } } : { facingMode: { ideal: 'environment' } };
+    stream = await navigator.mediaDevices.getUserMedia({ video: Object.assign(vid, { width: { ideal: 1280 }, height: { ideal: 720 } }), audio: false });
+    const v = $('video'); v.srcObject = stream; await v.play();
+    try { camaras = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); } catch (e) {}
+    $('apagada').hidden = true; $('mira').hidden = false; $('apagar').hidden = false; $('cambiarCam').hidden = camaras.length < 2;
+    try { if ('wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
+    aviso(''); bucle();
+  } catch (e) {
+    aviso('No se pudo encender la cámara: ' + esc(/denied|permission|NotAllowed/i.test(e.name + e.message) ? 'diste «no permitir». Actívala en los permisos del sitio (candado junto a la dirección).' : e.message), 'err');
+  }
+}
+function apagar(silencio) {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null;
+  if (!silencio) { $('apagada').hidden = false; $('mira').hidden = true; $('apagar').hidden = true; $('cambiarCam').hidden = true; }
+  if (wake) { try { wake.release(); } catch (e) {} wake = null; }
+}
+async function leerCuadro(v) {
+  if (detector) { const r = await detector.detect(v); return r.length ? r[0].rawValue : ''; }
+  const W = 640, H = Math.round(W * v.videoHeight / v.videoWidth) || 480;
+  lienzo = lienzo || document.createElement('canvas'); lienzo.width = W; lienzo.height = H;
+  const x = lienzo.getContext('2d', { willReadFrequently: true }); x.drawImage(v, 0, 0, W, H);
+  const r = window.jsQR(x.getImageData(0, 0, W, H).data, W, H, { inversionAttempts: 'dontInvert' });
+  return r ? r.data : '';
+}
+async function bucle() {
+  const v = $('video');
+  while (stream) {
+    await new Promise(r => setTimeout(r, 140));
+    if (ocupado || !stream || v.readyState < 2 || document.hidden) continue;
+    let txt = '';
+    try { txt = await leerCuadro(v); } catch (e) {}
+    if (!txt) continue;
+    // El mismo QR frente a la cámara no se vuelve a procesar por 5 s.
+    if (txt === ultimo.c && Date.now() - ultimo.t < 5000) continue;
+    ultimo = { c: txt, t: Date.now() }; ocupado = true;
+    await verificar(txt, 'qr');
+  }
+}
+document.addEventListener('visibilitychange', async () => { if (!document.hidden && stream && !wake && 'wakeLock' in navigator) { try { wake = await navigator.wakeLock.request('screen'); } catch (e) {} } });
+
+/* ═════════ evento, contadores y búsqueda ═════════ */
+function pintarSelector() {
+  $('selEvento').innerHTML = eventos.map(e => `<option value="${esc(e.id)}"${e.id === evId ? ' selected' : ''}>${esc(e.nombre)}${e.fecha ? ' · ' + new Date(ms(e.fecha)).toLocaleDateString('es-CL') : ''}${e.estado === 'cerrado' ? ' (cerrado)' : ''}</option>`).join('');
+}
+function pintarCont() {
+  const val = entradas.filter(t => t.estado !== 'anulada'), us = val.filter(t => t.estado === 'usada').length;
+  $('cIn').textContent = us; $('cPend').textContent = val.length - us; $('cTot').textContent = val.length;
+  $('barra').style.width = val.length ? (100 * us / val.length) + '%' : '0';
+  pintarBusqueda();
+}
+function pintarBusqueda() {
+  const q = $('buscar').value.trim().toLowerCase();
+  if (!q) { $('resBuscar').innerHTML = ''; return; }
+  const l = entradas.filter(t => [t.nombre, t.curso, t.tipo, '#' + t.n, String(t.n)].some(v => String(v || '').toLowerCase().includes(q))).slice(0, 30);
+  $('resBuscar').innerHTML = l.map(t => `<div class="it"><div class="q"><b>${esc(t.nombre) || 'Entrada general'}</b><small>#${esc(t.n)}${t.curso ? ' · ' + esc(t.curso) : ''}${t.tipo ? ' · ' + esc(t.tipo) : ''}</small></div>
+    ${t.estado === 'usada' ? `<span class="chip ok">Ingresó ${esc(horaTxt(t.usada))}</span>` : t.estado === 'anulada' ? '<span class="chip mal">Anulada</span>'
+      : `<button class="btn ok sm" data-pasar="${esc(t.id)}">Dejar pasar</button>`}</div>`).join('') || '<p class="muted">Nadie con ese nombre en este evento.</p>';
+}
+$('buscar').addEventListener('input', pintarBusqueda);
+$('resBuscar').addEventListener('click', e => {
+  const b = e.target.closest('[data-pasar]'); if (!b) return;
+  const t = entradas.find(x => x.id === b.dataset.pasar); if (!t) return;
+  if (!confirm(`¿Dejar pasar a ${t.nombre || 'la entrada #' + t.n} sin escanear? Revisa su identidad.`)) return;
+  const m = modo; modo = 'marcar'; ocupado = true;
+  verificar('', 'manual', t.id).finally(() => { modo = m; });
+});
+async function escuchar() {
+  escuchando = evId;
+  if (unsubEn) { try { unsubEn(); } catch (e) {} unsubEn = null; }
+  entradas = []; pintarCont();
+  try { localStorage.setItem('verificar-evento', evId); } catch (e) {}
+  if (!evId) return;
+  const { F, db } = await DF.listo();
+  unsubEn = F.onSnapshot(F.query(F.collection(db, 'entradas'), F.where('evento', '==', evId)), s => {
+    entradas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); $('buscarBox').hidden = false; pintarCont();
+  }, () => { $('buscarBox').hidden = true; });   // si no se puede listar, el escáner igual funciona
+}
+$('selEvento').addEventListener('change', e => { evId = e.target.value; escuchar(); });
+$('modo').addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  modo = b.dataset.m; [...$('modo').children].forEach(x => x.classList.toggle('on', x === b));
+});
+$('encender').addEventListener('click', encender);
+$('apagar').addEventListener('click', () => apagar());
+$('cambiarCam').addEventListener('click', () => { camIdx = (camIdx + 1) % Math.max(1, camaras.length); encender(); });
+$('usarManual').addEventListener('click', () => { const c = $('manual').value; if (!limpiar(c)) return; ocupado = true; verificar(c, 'manual'); $('manual').value = ''; });
+$('manual').addEventListener('keydown', e => { if (e.key === 'Enter') $('usarManual').click(); });
+
+/* ═════════ arranque ═════════ */
+async function cargar() {
+  usuario = DF.usuario();
+  [unsubEv, unsubEn].forEach(u => { if (u) try { u(); } catch (e) {} }); unsubEv = unsubEn = null; escuchando = null;
+  $('app').hidden = true;
+  if (!usuario) { apagar(); return aviso('Entra con la cuenta que el profe anotó como portero del evento. <button class="btn sm" id="entrar">Entrar</button>'); }
+  const { F, db } = await DF.listo();
+  const profe = DF.esProfe(usuario);
+  const q = profe ? F.collection(db, 'eventos') : F.query(F.collection(db, 'eventos'), F.where('porteros', 'array-contains', usuario.email.toLowerCase()));
+  unsubEv = F.onSnapshot(q, s => {
+    eventos = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (ms(b.fecha) || ms(b.creado)) - (ms(a.fecha) || ms(a.creado)));
+    if (!eventos.length) { $('app').hidden = true; apagar(); return aviso(profe ? 'Aún no hay eventos. Créalos en <a href="entradas.html">Entradas</a>.' : `Tu correo (${esc(usuario.email)}) no está en la lista de porteros de ningún evento. Pídele al profe que lo agregue.`); }
+    aviso(''); $('app').hidden = false;
+    const antes = evId;
+    if (!eventos.find(e => e.id === evId)) {
+      let pref = ''; try { pref = new URLSearchParams(location.search).get('e') || localStorage.getItem('verificar-evento') || ''; } catch (e) {}
+      evId = eventos.find(e => e.id === pref) ? pref : eventos[0].id;
+    }
+    pintarSelector();
+    if (antes !== evId || escuchando !== evId) escuchar();
+  }, e => aviso('No se pudieron leer los eventos: ' + esc(/permission/i.test(e.message) ? 'Firebase lo rechazó (¿el profe publicó las reglas nuevas?).' : e.message), 'err'));
+}
+document.addEventListener('click', e => { if (e.target.id === 'entrar') DF.entrar().catch(() => {}); });
+DF.listo().then(() => DF.alCambiarUsuario(() => cargar()), e => aviso('Sin conexión con Firebase: ' + esc(e.message), 'err'));
+})();
+</script>
+</body>
+</html>

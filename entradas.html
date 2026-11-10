@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08080c">
+<meta name="robots" content="noindex">
+<title>Entradas a eventos · Panel del profe</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 70px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}
+.kick{font:700 12px var(--ff);letter-spacing:4px;text-transform:uppercase;color:var(--cyan);margin:26px 0 6px}
+h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(42px,9vw,76px);line-height:.9;text-transform:uppercase;margin:0}
+h1 span{color:var(--cyan)}
+h2{font:900 26px/1 var(--ff-d);text-transform:uppercase;margin:0 0 6px;color:var(--cyan)}
+.intro{color:var(--mute);max-width:70ch;margin:10px 0 0}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:18px clamp(16px,3vw,24px);margin-top:18px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.form label{display:flex;flex-direction:column;gap:5px;font:700 12px var(--ff);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+.form .ancho{grid-column:1/-1}
+.form input,.form select,.form textarea{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:9px 11px;font:500 15px var(--ff);letter-spacing:0;text-transform:none}
+.form textarea{min-height:140px;font:500 14px/1.45 ui-monospace,Menlo,monospace;resize:vertical}
+.form small{font:500 12px var(--ff);letter-spacing:0;text-transform:none;color:var(--mute)}
+.fila{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line2);background:transparent;color:var(--mute);border-radius:999px;padding:7px 13px;font:700 13px var(--ff);cursor:pointer}
+.seg button.on{background:var(--cyan);color:#001a1f;border-color:var(--cyan)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:9px 16px;font:600 14px var(--ff);cursor:pointer;text-decoration:none}
+.btn.p{background:var(--cyan);color:#001a1f;border-color:var(--cyan);font-weight:800}
+.btn.peligro{border-color:#5c2228;color:var(--neg)}
+.btn.sm{padding:5px 11px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.aviso.ok{background:#14301f;border-color:#2c6b44;color:#c9f7d9}
+.selector{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.selector select{flex:1;min-width:220px;background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:10px 14px;font:600 15px var(--ff)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px}
+.stat{background:var(--slab2);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.stat b{display:block;font:900 34px/1 var(--ff-d)}
+.stat span{font:700 11px var(--ff);letter-spacing:1.5px;text-transform:uppercase;color:var(--mute)}
+.barra{height:8px;border-radius:99px;background:var(--slab2);overflow:hidden;margin-top:10px}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--acid));width:0;transition:width .4s}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.filtros input{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:7px 12px;font:500 14px var(--ff);min-width:200px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font:700 11px var(--ff);letter-spacing:1.5px;text-transform:uppercase;color:var(--mute)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+td.acc{white-space:nowrap;text-align:right}
+.chip{font:700 11px var(--ff);border-radius:999px;padding:2px 8px;border:1px solid var(--line2);color:var(--mute);white-space:nowrap}
+.chip.ok{border-color:var(--acid);color:var(--acid)}.chip.val{border-color:var(--cyan);color:var(--cyan)}.chip.hot{border-color:var(--pink);color:var(--pink)}
+.tabla-scroll{overflow-x:auto}
+.muted{color:var(--mute);font-size:13px}
+details summary{cursor:pointer;color:var(--cyan);font-weight:700}
+/* hoja para imprimir */
+#hoja{display:none}
+.en{width:90mm;height:55mm;border-radius:3mm;padding:3.5mm 4mm;display:grid;grid-template-columns:1fr 32mm;gap:3mm;
+  background:#fff;color:#111;font-family:var(--ff);break-inside:avoid;page-break-inside:avoid;border:.35mm dashed #999;position:relative;overflow:hidden;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.en::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2.2mm;background:linear-gradient(#22e3ff,#ccff00)}
+.en .izq{display:flex;flex-direction:column;justify-content:space-between;min-width:0;padding-left:1.5mm}
+.en .marca{font:800 1.9mm var(--ff);letter-spacing:.35mm;text-transform:uppercase;color:#666}
+.en .ev{font:900 5.4mm/1 var(--ff-d);text-transform:uppercase;margin-top:.8mm;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.en .cuando{font:600 2.4mm/1.25 var(--ff);color:#333;margin-top:1mm}
+.en .quien{font:800 3.4mm/1.15 var(--ff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.en .det{font:600 2.3mm var(--ff);color:#444}
+.en .inst{font:500 1.8mm/1.25 var(--ff);color:#666;margin-top:.6mm}
+.en .der{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1mm}
+.en .qr{width:31mm;height:31mm}
+.en .qr img,.en .qr canvas{width:100%!important;height:100%!important;display:block;image-rendering:pixelated}
+.en .cod{font:700 2.1mm/1.2 ui-monospace,Menlo,monospace;text-align:center;letter-spacing:.15mm}
+.en .num{font:900 3.2mm var(--ff-d)}
+@media print{
+  @page{size:A4;margin:8mm}
+  body{background:#fff}
+  .wrap > *:not(#hoja){display:none!important}
+  #hoja{display:grid!important;grid-template-columns:repeat(2,90mm);gap:4mm 6mm;justify-content:center}
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261105">
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="panel-profe.html"><i class="fa-solid fa-arrow-left"></i> Panel del profe</a>
+  <p class="kick">Eventos · Solo profe</p>
+  <h1>Entradas <span>QR</span></h1>
+  <p class="intro">Crea el evento, pega la lista de asistentes y se genera una entrada con QR para cada uno. En la puerta, quien controla escanea con <a href="verificar.html" id="linkEscaner">el verificador</a>: cada entrada deja pasar una sola vez.</p>
+  <div id="aviso"></div>
+
+  <!-- ═════ evento ═════ -->
+  <section class="card" id="secEvento" hidden>
+    <h2><i class="fa-solid fa-calendar-days"></i> Evento</h2>
+    <div class="selector">
+      <select id="selEvento" aria-label="Evento"></select>
+      <button class="btn" id="nuevoEv"><i class="fa-solid fa-plus"></i> Nuevo evento</button>
+      <a class="btn p" id="abrirEscaner" href="verificar.html"><i class="fa-solid fa-qrcode"></i> Abrir verificador</a>
+    </div>
+    <div id="formEv" hidden>
+      <div class="form">
+        <label class="ancho">Nombre del evento<input id="eNombre" maxlength="80" placeholder="Ej.: Gala de fin de año 2026"></label>
+        <label>Fecha y hora<input id="eFecha" type="datetime-local"></label>
+        <label>Lugar<input id="eLugar" maxlength="80" placeholder="Ej.: Gimnasio del colegio"></label>
+        <label>Estado
+          <select id="eEstado"><option value="abierto">Abierto (se puede ingresar)</option><option value="cerrado">Cerrado (el verificador no deja pasar)</option></select>
+        </label>
+        <label class="ancho">Porteros (correos de quienes controlan la entrada)
+          <textarea id="ePorteros" style="min-height:70px" placeholder="colega@gmail.com&#10;otra.persona@gmail.com"></textarea>
+          <small>Un correo por línea. Entran con ese correo al verificador. Tú (profe) siempre puedes verificar.</small>
+        </label>
+        <label class="ancho">Nota en la entrada (opcional)<input id="eNota" maxlength="90" placeholder="Ej.: Presentar junto a la cédula · Ingreso por calle Baquedano"></label>
+      </div>
+      <div class="fila">
+        <button class="btn p" id="guardarEv"><i class="fa-solid fa-floppy-disk"></i> Guardar evento</button>
+        <button class="btn" id="cancelarEv">Cancelar</button>
+        <button class="btn peligro" id="borrarEv" hidden><i class="fa-solid fa-trash"></i> Borrar evento y sus entradas</button>
+        <span id="evMsg" style="font-size:14px"></span>
+      </div>
+    </div>
+    <div id="resumenEv"></div>
+  </section>
+
+  <!-- ═════ asistentes ═════ -->
+  <section class="card" id="secAgregar" hidden>
+    <h2><i class="fa-solid fa-user-plus"></i> Generar entradas</h2>
+    <p class="muted" style="margin:0">Pega la lista desde Excel o Google Sheets (columnas: <b>Nombre</b> · <b>Curso o grupo</b> · <b>Tipo</b>). Las columnas 2 y 3 son opcionales. También puedes generar entradas sin nombre.</p>
+    <div class="form">
+      <label class="ancho">Lista de asistentes
+        <textarea id="lista" placeholder="Ana Pérez&#9;3° Medio&#9;Estudiante&#10;Luis Soto&#9;Apoderado&#10;María Rojas"></textarea>
+        <small id="listaInfo">Una persona por línea. Separa columnas con tabulación (al pegar desde una planilla), punto y coma o coma.</small>
+      </label>
+      <label>O cargar un archivo CSV<input id="archivo" type="file" accept=".csv,.txt,text/csv,text/plain"></label>
+      <label>Tipo por defecto<input id="tipoDef" maxlength="30" value="General"></label>
+      <label>Entradas sin nombre (cantidad)<input id="sinNombre" type="number" min="0" max="500" value="0"><small>Para vender o regalar en mano.</small></label>
+    </div>
+    <div class="fila">
+      <button class="btn p" id="generar"><i class="fa-solid fa-ticket"></i> Generar entradas</button>
+      <span id="genMsg" style="font-size:14px"></span>
+    </div>
+  </section>
+
+  <!-- ═════ listado ═════ -->
+  <section class="card" id="secLista" hidden>
+    <h2><i class="fa-solid fa-list-check"></i> Entradas</h2>
+    <div class="stats" id="stats"></div>
+    <div class="barra"><i id="barra"></i></div>
+    <div class="filtros">
+      <span class="seg" id="filtroSeg"><button type="button" data-f="" class="on">Todas</button><button type="button" data-f="valida">Sin usar</button><button type="button" data-f="usada">Ingresaron</button><button type="button" data-f="anulada">Anuladas</button></span>
+      <input id="buscar" type="search" placeholder="Buscar nombre, curso, tipo o N°…">
+    </div>
+    <div class="filtros">
+      <button class="btn sm" id="impSel" disabled><i class="fa-solid fa-print"></i> Imprimir seleccionadas</button>
+      <button class="btn sm" id="pngSel" disabled><i class="fa-solid fa-file-zipper"></i> Imágenes (ZIP) para enviar</button>
+      <button class="btn sm" id="csv"><i class="fa-solid fa-file-csv"></i> Exportar asistencia (CSV)</button>
+      <span id="nSel" class="muted"></span>
+    </div>
+    <div class="tabla-scroll"><table><thead><tr><th><input type="checkbox" id="todas" aria-label="Seleccionar todas las visibles"></th><th>N°</th><th>Nombre</th><th>Curso / grupo</th><th>Tipo</th><th>Estado</th><th></th></tr></thead><tbody id="filas"></tbody></table></div>
+  </section>
+
+  <div id="hoja"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="firebase/df.js?v=20261104e"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ms = t => (t && t.toMillis ? t.toMillis() : 0);
+// Sin letras que se confunden (sin I, L, O ni 0): 32 símbolos × 16 = 80 bits de azar (imposible de adivinar).
+const ALFA = 'ABCDEFGHJKMNPQRSTUVWXYZ123456789', LARGO = 16;
+const POR_LOTE = 200;   // 2 escrituras por entrada; Firestore acepta 500 por lote
+let usuario = null, eventos = [], evId = '', ev = null, entradas = [], codigos = {}, filtro = '', sel = new Set(), unsubEv = null, unsubEn = null, editando = false;
+
+function aviso(t, k) { $('aviso').innerHTML = t ? `<div class="aviso ${k || ''}">${t}</div>` : ''; }
+function msg(id, t, k) { $(id).innerHTML = t ? `<span style="color:${k === 'err' ? 'var(--neg)' : 'var(--acid)'}">${t}</span>` : ''; }
+function nuevoCodigo() { const r = new Uint8Array(LARGO); crypto.getRandomValues(r); return Array.from(r, b => ALFA[b % 32]).join(''); }
+const agrupado = c => c.match(/.{1,4}/g).join('-');
+async function sha256(t) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+const urlEntrada = c => new URL('entrada.html', location.href).href.split('#')[0] + '#c=' + c;
+const fechaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleString('es-CL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''; };
+const horaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : ''; };
+const correos = txt => [...new Set(String(txt || '').toLowerCase().split(/[\s,;]+/).map(s => s.trim()).filter(s => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)))].slice(0, 30);
+
+/* ═════════ eventos ═════════ */
+function pintarSelector() {
+  const s = $('selEvento');
+  s.innerHTML = eventos.length ? eventos.map(e => `<option value="${esc(e.id)}"${e.id === evId ? ' selected' : ''}>${esc(e.nombre)}${e.fecha ? ' · ' + new Date(ms(e.fecha)).toLocaleDateString('es-CL') : ''}${e.estado === 'cerrado' ? ' (cerrado)' : ''}</option>`).join('')
+    : '<option value="">— Aún no hay eventos —</option>';
+  s.disabled = !eventos.length;
+}
+function elegirEvento(id) {
+  evId = id || ''; ev = eventos.find(e => e.id === evId) || null; sel.clear();
+  try { localStorage.setItem('entradas-evento', evId); } catch (e) {}
+  $('abrirEscaner').href = $('linkEscaner').href = 'verificar.html' + (evId ? '?e=' + encodeURIComponent(evId) : '');
+  $('secAgregar').hidden = $('secLista').hidden = !ev;
+  pintarResumenEv(); escucharEntradas();
+}
+function pintarResumenEv() {
+  if (!ev) { $('resumenEv').innerHTML = eventos.length ? '' : '<p class="muted">Crea tu primer evento con «Nuevo evento».</p>'; return; }
+  $('resumenEv').innerHTML = editando ? '' : `<p style="margin:12px 0 0">${ev.estado === 'cerrado' ? '<span class="chip hot">Cerrado</span> ' : '<span class="chip ok">Abierto</span> '}
+    <b>${esc(ev.nombre)}</b>${ev.fecha ? ' · ' + esc(fechaTxt(ev.fecha)) : ''}${ev.lugar ? ' · ' + esc(ev.lugar) : ''}
+    <br><span class="muted">Porteros: ${(ev.porteros || []).length ? esc(ev.porteros.join(', ')) : 'solo tú'}</span>
+    <br><button class="btn sm" id="editarEv" style="margin-top:8px"><i class="fa-solid fa-pen"></i> Editar evento</button></p>`;
+}
+function abrirForm(nuevo) {
+  editando = true;
+  const e = nuevo ? null : ev;
+  $('eNombre').value = e ? e.nombre || '' : '';
+  $('eLugar').value = e ? e.lugar || '' : '';
+  $('eNota').value = e ? e.nota || '' : '';
+  $('eEstado').value = e ? e.estado || 'abierto' : 'abierto';
+  $('ePorteros').value = e ? (e.porteros || []).join('\n') : '';
+  if (e && e.fecha) { const d = new Date(ms(e.fecha)); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('eFecha').value = d.toISOString().slice(0, 16); } else $('eFecha').value = '';
+  $('formEv').hidden = false; $('formEv').dataset.nuevo = nuevo ? '1' : '';
+  $('borrarEv').hidden = nuevo; msg('evMsg', ''); pintarResumenEv(); $('eNombre').focus();
+}
+function cerrarForm() { editando = false; $('formEv').hidden = true; pintarResumenEv(); }
+async function guardarEvento() {
+  const nombre = $('eNombre').value.trim().slice(0, 80);
+  if (!nombre) return msg('evMsg', 'Escribe el nombre del evento.', 'err');
+  const { F, db } = await DF.listo(), nuevo = !!$('formEv').dataset.nuevo;
+  const fecha = $('eFecha').value ? F.Timestamp.fromDate(new Date($('eFecha').value)) : null;
+  const d = { nombre, fecha, lugar: $('eLugar').value.trim().slice(0, 80), nota: $('eNota').value.trim().slice(0, 90),
+    estado: $('eEstado').value === 'cerrado' ? 'cerrado' : 'abierto', porteros: correos($('ePorteros').value), actualizado: F.serverTimestamp() };
+  try {
+    if (nuevo) {
+      const ref = F.doc(F.collection(db, 'eventos'));
+      await F.setDoc(ref, Object.assign(d, { profe: usuario.email, creado: F.serverTimestamp() }));
+      evId = ref.id; pintarSelector(); elegirEvento(evId);
+    } else {
+      await F.updateDoc(F.doc(db, 'eventos', evId), d);
+      // Las entradas guardan una copia del nombre, fecha, lugar y nota: se actualizan para que el QR muestre lo nuevo.
+      const cambiar = entradas.filter(t => t.eventoNombre !== d.nombre || ms(t.eventoFecha) !== ms(d.fecha) || (t.lugar || '') !== d.lugar || (t.nota || '') !== d.nota);
+      for (let i = 0; i < cambiar.length; i += 450) {
+        const b = F.writeBatch(db);
+        cambiar.slice(i, i + 450).forEach(t => b.update(F.doc(db, 'entradas', t.id), { eventoNombre: d.nombre, eventoFecha: d.fecha, lugar: d.lugar, nota: d.nota }));
+        await b.commit();
+      }
+    }
+    cerrarForm(); aviso('✓ Evento guardado.', 'ok'); setTimeout(() => aviso(''), 2500);
+  } catch (e) { msg('evMsg', 'No se pudo guardar: ' + esc(/permission/i.test(e.message) ? 'Firebase lo rechazó (¿publicaste las reglas nuevas?)' : e.message), 'err'); }
+}
+async function borrarEvento() {
+  if (!ev) return;
+  const n = entradas.length;
+  if (!confirm(`¿Borrar «${ev.nombre}»${n ? ` y sus ${n} entradas` : ''}? No se puede deshacer.`)) return;
+  if (n && prompt(`Escribe BORRAR para confirmar que quieres eliminar ${n} entradas.`) !== 'BORRAR') return;
+  const { F, db } = await DF.listo();
+  try {
+    for (let i = 0; i < n; i += 240) {
+      const b = F.writeBatch(db);
+      entradas.slice(i, i + 240).forEach(t => { b.delete(F.doc(db, 'entradas', t.id)); b.delete(F.doc(db, 'entradas_codigos', t.id)); });
+      await b.commit();
+    }
+    await F.deleteDoc(F.doc(db, 'eventos', evId));
+    evId = ''; cerrarForm();
+  } catch (e) { msg('evMsg', 'No se pudo borrar: ' + esc(e.message), 'err'); }
+}
+
+/* ═════════ generar ═════════ */
+function leerLista() {
+  const txt = $('lista').value.replace(/\r/g, ''), lineas = txt.split('\n').map(l => l.trim()).filter(Boolean);
+  const sep = /\t/.test(txt) ? '\t' : /;/.test(txt) ? ';' : ',';
+  const tipoDef = $('tipoDef').value.trim().slice(0, 30) || 'General';
+  const filas = lineas.map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '')));
+  if (filas.length && /^nombre/i.test(filas[0][0] || '')) filas.shift();   // encabezado
+  return filas.filter(f => f[0]).map(f => ({ nombre: f[0].slice(0, 80), curso: (f[1] || '').slice(0, 40), tipo: (f[2] || tipoDef).slice(0, 30) }));
+}
+function infoLista() {
+  const l = leerLista(), sn = Math.max(0, Math.round(+$('sinNombre').value || 0));
+  $('listaInfo').textContent = l.length || sn ? `Se generarán ${l.length + sn} entradas (${l.length} con nombre${sn ? ', ' + sn + ' sin nombre' : ''}).` : 'Una persona por línea. Separa columnas con tabulación (al pegar desde una planilla), punto y coma o coma.';
+}
+$('lista').addEventListener('input', infoLista); $('sinNombre').addEventListener('input', infoLista); $('tipoDef').addEventListener('input', infoLista);
+$('archivo').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = () => { $('lista').value = String(r.result || ''); infoLista(); }; r.readAsText(f, 'utf-8');
+});
+async function generar() {
+  if (!ev) return;
+  const personas = leerLista(), sn = Math.max(0, Math.round(+$('sinNombre').value || 0));
+  const tipoDef = $('tipoDef').value.trim().slice(0, 30) || 'General';
+  for (let i = 0; i < sn; i++) personas.push({ nombre: '', curso: '', tipo: tipoDef });
+  if (!personas.length) return msg('genMsg', 'Pega al menos un nombre o indica entradas sin nombre.', 'err');
+  if (personas.length > 1000) return msg('genMsg', 'Máximo 1.000 entradas por vez.', 'err');
+  // Aviso de posibles duplicados (mismo nombre ya con entrada en este evento).
+  const ya = new Set(entradas.filter(t => t.estado !== 'anulada' && t.nombre).map(t => t.nombre.toLowerCase()));
+  const dup = personas.filter(p => p.nombre && ya.has(p.nombre.toLowerCase())).map(p => p.nombre);
+  if (!confirm(`¿Generar ${personas.length} entradas para «${ev.nombre}»?` + (dup.length ? `\n\nOjo: ${dup.length} ya tienen entrada (${dup.slice(0, 5).join(', ')}${dup.length > 5 ? '…' : ''}). Se creará otra.` : ''))) return;
+  const { F, db } = await DF.listo(), lote = Date.now().toString(36), nuevas = [];
+  let n = entradas.reduce((a, t) => Math.max(a, t.n || 0), 0);
+  $('generar').disabled = true;
+  try {
+    for (let i = 0; i < personas.length; i += POR_LOTE) {
+      const b = F.writeBatch(db);
+      for (const p of personas.slice(i, i + POR_LOTE)) {
+        const codigo = nuevoCodigo(), h = await sha256(codigo);
+        const d = { evento: evId, eventoNombre: ev.nombre, eventoFecha: ev.fecha || null, lugar: ev.lugar || '', nota: ev.nota || '',
+          nombre: p.nombre, curso: p.curso, tipo: p.tipo, n: ++n, estado: 'valida', lote, profe: usuario.email, creada: F.serverTimestamp() };
+        b.set(F.doc(db, 'entradas', h), d);
+        b.set(F.doc(db, 'entradas_codigos', h), { codigo, evento: evId });
+        codigos[h] = codigo; nuevas.push(Object.assign({ id: h, codigo }, d));
+      }
+      await b.commit();
+      msg('genMsg', `Guardando… ${Math.min(i + POR_LOTE, personas.length)} / ${personas.length}`);
+    }
+    $('lista').value = ''; $('sinNombre').value = 0; infoLista();
+    nuevas.forEach(t => sel.add(t.id)); pintarLista();
+    msg('genMsg', `✓ ${nuevas.length} entradas creadas y seleccionadas abajo. Imprímelas o descarga las imágenes para enviarlas.`);
+  } catch (e) { msg('genMsg', 'No se pudieron crear: ' + esc(/permission/i.test(e.message) ? 'Firebase lo rechazó (¿publicaste las reglas nuevas?)' : e.message), 'err'); }
+  $('generar').disabled = false;
+}
+
+/* ═════════ listado ═════════ */
+function visibles() {
+  const q = $('buscar').value.trim().toLowerCase();
+  return entradas.filter(t => (!filtro || t.estado === filtro)
+    && (!q || [t.nombre, t.curso, t.tipo, '#' + t.n, String(t.n)].some(v => String(v || '').toLowerCase().includes(q))))
+    .sort((a, b) => (a.n || 0) - (b.n || 0));
+}
+function pintarStats() {
+  const val = entradas.filter(t => t.estado !== 'anulada'), us = entradas.filter(t => t.estado === 'usada').length;
+  const an = entradas.length - val.length, pend = val.length - us;
+  $('stats').innerHTML = `<div class="stat"><b>${val.length}</b><span>Entradas</span></div><div class="stat"><b style="color:var(--acid)">${us}</b><span>Ingresaron</span></div>
+    <div class="stat"><b style="color:var(--cyan)">${pend}</b><span>Por llegar</span></div><div class="stat"><b style="color:var(--mute)">${an}</b><span>Anuladas</span></div>`;
+  $('barra').style.width = val.length ? (100 * us / val.length) + '%' : '0';
+}
+function pintarLista() {
+  pintarStats();
+  const l = visibles();
+  $('filas').innerHTML = l.map(t => {
+    const est = t.estado === 'usada' ? `<span class="chip ok">Ingresó ${esc(horaTxt(t.usada))}</span><br><small class="muted">${esc(t.usadaPor || '')}${t.metodo === 'manual' ? ' · a mano' : ''}</small>`
+      : t.estado === 'anulada' ? '<span class="chip">Anulada</span>' : '<span class="chip val">Sin usar</span>';
+    const acc = t.estado === 'valida' ? `<button class="btn sm" data-a="png" data-id="${esc(t.id)}" title="Descargar imagen"><i class="fa-solid fa-image"></i></button> <button class="btn sm" data-a="manual" data-id="${esc(t.id)}" title="Marcar ingreso a mano"><i class="fa-solid fa-check"></i></button> <button class="btn sm" data-a="anular" data-id="${esc(t.id)}">Anular</button>`
+      : t.estado === 'usada' ? `<button class="btn sm" data-a="deshacer" data-id="${esc(t.id)}">Deshacer ingreso</button>`
+      : `<button class="btn sm" data-a="reactivar" data-id="${esc(t.id)}">Reactivar</button>`;
+    return `<tr><td>${t.estado === 'valida' ? `<input type="checkbox" data-sel="${esc(t.id)}"${sel.has(t.id) ? ' checked' : ''}>` : ''}</td>
+      <td class="num">#${t.n || ''}</td><td><b>${esc(t.nombre) || '<span class="muted">Sin nombre</span>'}</b></td><td>${esc(t.curso)}</td><td>${esc(t.tipo)}</td><td>${est}</td><td class="acc">${acc}</td></tr>`;
+  }).join('') || '<tr><td colspan="7" class="muted">No hay entradas en esta vista.</td></tr>';
+  for (const id of [...sel]) { const t = entradas.find(x => x.id === id); if (!t || t.estado !== 'valida') sel.delete(id); }
+  $('impSel').disabled = $('pngSel').disabled = !sel.size;
+  $('nSel').textContent = sel.size ? `${sel.size} seleccionada${sel.size === 1 ? '' : 's'}` : '';
+  $('todas').checked = false;
+}
+$('filtroSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-f]'); if (!b) return;
+  filtro = b.dataset.f; [...$('filtroSeg').children].forEach(x => x.classList.toggle('on', x === b)); pintarLista();
+});
+$('buscar').addEventListener('input', pintarLista);
+$('filas').addEventListener('change', e => { const id = e.target.dataset.sel; if (!id) return; e.target.checked ? sel.add(id) : sel.delete(id); pintarLista(); });
+$('todas').addEventListener('change', e => { const on = e.target.checked; visibles().filter(t => t.estado === 'valida').forEach(t => on ? sel.add(t.id) : sel.delete(t.id)); pintarLista(); });
+$('filas').addEventListener('click', async e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const t = entradas.find(x => x.id === b.dataset.id); if (!t) return;
+  const { F, db } = await DF.listo(), ref = F.doc(db, 'entradas', t.id), quien = t.nombre || 'entrada #' + t.n;
+  try {
+    if (b.dataset.a === 'png') { const c = await conCodigos([t]); if (c[0]) descargar(await pngEntrada(c[0]), nombreArchivo(c[0])); return; }
+    if (b.dataset.a === 'anular') { if (!confirm(`¿Anular la entrada de ${quien}? Ya no servirá para ingresar.`)) return; await F.updateDoc(ref, { estado: 'anulada', anulada: F.serverTimestamp() }); }
+    if (b.dataset.a === 'reactivar') await F.updateDoc(ref, { estado: 'valida' });
+    if (b.dataset.a === 'manual') { if (!confirm(`¿Marcar que ${quien} ya ingresó?`)) return; await F.updateDoc(ref, { estado: 'usada', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'manual' }); }
+    if (b.dataset.a === 'deshacer') { if (!confirm(`¿Deshacer el ingreso de ${quien}? La entrada volverá a servir.`)) return; await F.updateDoc(ref, { estado: 'valida', usada: F.deleteField(), usadaPor: F.deleteField(), metodo: F.deleteField() }); }
+  } catch (err) { alert('No se pudo: ' + err.message); }
+});
+
+/* ═════════ códigos, impresión, imágenes ═════════ */
+async function conCodigos(lista) {
+  const { F, db } = await DF.listo(), out = [];
+  for (const t of lista) {
+    if (!codigos[t.id]) { try { const s = await F.getDoc(F.doc(db, 'entradas_codigos', t.id)); if (s.exists()) codigos[t.id] = s.data().codigo; } catch (e) {} }
+    if (codigos[t.id]) out.push(Object.assign({ codigo: codigos[t.id] }, t));
+  }
+  return out;
+}
+const elegidas = () => entradas.filter(t => sel.has(t.id) && t.estado === 'valida').sort((a, b) => (a.n || 0) - (b.n || 0));
+function entradaHTML(t, i) {
+  return `<div class="en"><div class="izq">
+      <div><div class="marca">El Mundo de Felipe · Entrada</div><div class="ev">${esc(t.eventoNombre)}</div>
+      <div class="cuando">${esc(fechaTxt(t.eventoFecha))}${t.lugar ? '<br>' + esc(t.lugar) : ''}</div></div>
+      <div><div class="quien">${esc(t.nombre) || 'Entrada general'}</div><div class="det">${esc([t.curso, t.tipo].filter(Boolean).join(' · '))}</div>
+      <div class="inst">${t.nota ? esc(t.nota) + ' · ' : ''}Válida para un ingreso. No compartas el QR.</div></div>
+    </div><div class="der"><div class="num">#${t.n}</div><div class="qr" id="qr${i}"></div><div class="cod">${esc(agrupado(t.codigo))}</div></div></div>`;
+}
+async function imprimir() {
+  if (typeof QRCode === 'undefined') return aviso('No se pudo cargar el generador de QR. Revisa tu conexión.', 'err');
+  const lista = await conCodigos(elegidas());
+  if (!lista.length) return aviso('Selecciona entradas sin usar para imprimir.', 'err');
+  $('hoja').innerHTML = lista.map(entradaHTML).join('');
+  lista.forEach((t, i) => new QRCode($('qr' + i), { text: urlEntrada(t.codigo), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M }));
+  setTimeout(() => window.print(), 450);
+}
+function qrCanvas(texto) {
+  const d = document.createElement('div');
+  new QRCode(d, { text: texto, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
+  return d.querySelector('canvas');
+}
+function envolver(ctx, txt, max) {
+  const pal = String(txt).split(/\s+/), lineas = []; let l = '';
+  for (const p of pal) { const t = l ? l + ' ' + p : p; if (ctx.measureText(t).width > max && l) { lineas.push(l); l = p; } else l = t; }
+  if (l) lineas.push(l); return lineas;
+}
+// Imagen vertical para enviar por WhatsApp o correo (1080×1500).
+async function pngEntrada(t) {
+  try { await document.fonts.load('900 80px "Big Shoulders Display"'); } catch (e) {}
+  const W = 1080, H = 1500, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#08080c'; x.fillRect(0, 0, W, H);
+  const g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#22e3ff'); g.addColorStop(1, '#ccff00');
+  x.fillStyle = g; x.fillRect(0, 0, W, 16);
+  x.fillStyle = '#9b9aab'; x.font = '700 30px system-ui,sans-serif'; x.fillText('EL MUNDO DE FELIPE · ENTRADA', 70, 100);
+  x.fillStyle = '#22e3ff'; x.textAlign = 'right'; x.font = '900 64px "Big Shoulders Display",Impact,sans-serif'; x.fillText('#' + t.n, W - 70, 110); x.textAlign = 'left';
+  x.fillStyle = '#f2f1ec'; x.font = '900 92px "Big Shoulders Display",Impact,sans-serif';
+  let y = 210; for (const l of envolver(x, String(t.eventoNombre).toUpperCase(), W - 140).slice(0, 2)) { x.fillText(l, 70, y); y += 88; }
+  x.fillStyle = '#c9c8d4'; x.font = '600 34px system-ui,sans-serif';
+  if (t.eventoFecha) { x.fillText(fechaTxt(t.eventoFecha), 70, y + 10); y += 50; }
+  if (t.lugar) { x.fillText(t.lugar, 70, y + 10); y += 50; }
+  // QR sobre fondo blanco
+  const q = qrCanvas(urlEntrada(t.codigo)), Q = 640, qx = (W - Q) / 2, qy = Math.max(y + 40, 470);
+  x.fillStyle = '#fff'; x.beginPath(); x.roundRect ? x.roundRect(qx - 36, qy - 36, Q + 72, Q + 72, 36) : x.rect(qx - 36, qy - 36, Q + 72, Q + 72); x.fill();
+  x.imageSmoothingEnabled = false; if (q) x.drawImage(q, qx, qy, Q, Q);
+  x.textAlign = 'center';
+  x.fillStyle = '#f2f1ec'; x.font = '800 54px system-ui,sans-serif'; x.fillText(t.nombre || 'Entrada general', W / 2, qy + Q + 120);
+  x.fillStyle = '#9b9aab'; x.font = '600 34px system-ui,sans-serif'; x.fillText([t.curso, t.tipo].filter(Boolean).join(' · '), W / 2, qy + Q + 172);
+  x.fillStyle = '#22e3ff'; x.font = '700 34px ui-monospace,Menlo,monospace'; x.fillText(agrupado(t.codigo), W / 2, qy + Q + 232);
+  x.fillStyle = '#9b9aab'; x.font = '500 26px system-ui,sans-serif';
+  x.fillText((t.nota ? t.nota + ' · ' : '') + 'Válida para un ingreso. No compartas este QR.', W / 2, H - 50);
+  return new Promise(ok => c.toBlob(ok, 'image/png'));
+}
+const nombreArchivo = t => `entrada-${String(t.n).padStart(3, '0')}${t.nombre ? '-' + t.nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase().slice(0, 40) : ''}.png`;
+function descargar(blob, nombre) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+async function zipSel() {
+  if (typeof JSZip === 'undefined') return aviso('No se pudo cargar el compresor ZIP. Revisa tu conexión.', 'err');
+  const lista = await conCodigos(elegidas()); if (!lista.length) return;
+  $('pngSel').disabled = true; const z = new JSZip();
+  for (let i = 0; i < lista.length; i++) { $('nSel').textContent = `Preparando imágenes ${i + 1} / ${lista.length}…`; z.file(nombreArchivo(lista[i]), await pngEntrada(lista[i])); }
+  descargar(await z.generateAsync({ type: 'blob' }), `entradas-${ev.nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase().slice(0, 40)}.zip`);
+  pintarLista();
+}
+function exportarCSV() {
+  const c = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const filas = [['N°', 'Nombre', 'Curso/grupo', 'Tipo', 'Estado', 'Hora de ingreso', 'Verificó', 'Método']].concat(
+    entradas.slice().sort((a, b) => a.n - b.n).map(t => [t.n, t.nombre, t.curso, t.tipo, t.estado === 'usada' ? 'Ingresó' : t.estado === 'anulada' ? 'Anulada' : 'No ingresó',
+      t.usada ? new Date(ms(t.usada)).toLocaleString('es-CL') : '', t.usadaPor || '', t.metodo || '']));
+  descargar(new Blob(['﻿' + filas.map(f => f.map(c).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'asistencia-' + (ev ? ev.nombre.replace(/[^\w]+/g, '-').toLowerCase() : 'evento') + '.csv');
+}
+$('impSel').addEventListener('click', imprimir);
+$('pngSel').addEventListener('click', zipSel);
+$('csv').addEventListener('click', exportarCSV);
+$('generar').addEventListener('click', generar);
+$('nuevoEv').addEventListener('click', () => abrirForm(true));
+$('cancelarEv').addEventListener('click', cerrarForm);
+$('guardarEv').addEventListener('click', guardarEvento);
+$('borrarEv').addEventListener('click', borrarEvento);
+$('selEvento').addEventListener('change', e => { cerrarForm(); elegirEvento(e.target.value); });
+document.addEventListener('click', e => { if (e.target.closest('#editarEv')) abrirForm(false); if (e.target.id === 'entrar') DF.entrar().catch(() => {}); });
+
+/* ═════════ arranque ═════════ */
+async function escucharEntradas() {
+  if (unsubEn) { try { unsubEn(); } catch (e) {} unsubEn = null; }
+  entradas = []; pintarLista();
+  if (!ev) return;
+  const { F, db } = await DF.listo();
+  unsubEn = F.onSnapshot(F.query(F.collection(db, 'entradas'), F.where('evento', '==', evId)), s => {
+    entradas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintarLista();
+  }, e => aviso('No se pudieron leer las entradas: ' + esc(/permission/i.test(e.message) ? 'publica primero las reglas nuevas en Firebase.' : e.message), 'err'));
+}
+async function cargar() {
+  usuario = DF.usuario(); ev = null;
+  [unsubEv, unsubEn].forEach(u => { if (u) try { u(); } catch (e) {} }); unsubEv = unsubEn = null;
+  const profe = !!(usuario && DF.esProfe(usuario));
+  $('secEvento').hidden = !profe; if (!profe) $('secAgregar').hidden = $('secLista').hidden = true;
+  if (!usuario) return aviso('Esta página es solo para el profe. <button class="btn sm" id="entrar">Entrar</button>');
+  if (!profe) return aviso('Esta página es solo para el profe. Si te tocó controlar la entrada de un evento, ve al <a href="verificar.html">verificador</a>.');
+  aviso('');
+  const { F, db } = await DF.listo();
+  try { evId = evId || new URLSearchParams(location.search).get('e') || localStorage.getItem('entradas-evento') || ''; } catch (e) {}
+  unsubEv = F.onSnapshot(F.collection(db, 'eventos'), s => {
+    eventos = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (ms(b.fecha) || ms(b.creado)) - (ms(a.fecha) || ms(a.creado)));
+    if (!eventos.find(e => e.id === evId)) evId = eventos.length ? eventos[0].id : '';
+    const antes = ev && ev.id;
+    pintarSelector();
+    if (antes !== evId) elegirEvento(evId); else { ev = eventos.find(e => e.id === evId); pintarResumenEv(); }
+  }, e => aviso('No se pudieron leer los eventos: ' + esc(/permission/i.test(e.message) ? 'publica primero las reglas nuevas en Firebase (colecciones eventos y entradas).' : e.message), 'err'));
+}
+DF.listo().then(() => DF.alCambiarUsuario(() => cargar()), e => aviso('Sin conexión con Firebase: ' + esc(e.message), 'err'));
+})();
+</script>
+</body>
+</html>

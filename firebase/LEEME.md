@@ -68,6 +68,16 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 - Canje en una sola escritura: la tarjeta pasa a «canjeada» (las reglas comprueban que el sha256 del código coincide) y el monto entra con un movimiento `giftcard`. Una sola vez; las vencidas y anuladas no se pueden canjear.
 - Requiere publicar el `firestore.rules` actualizado.
 
+## Entradas a eventos con QR (`entradas.html`, `entrada.html` y `verificar.html`)
+- **`entradas.html`** (solo profe, enlazada en el Panel del profe): crea el evento (nombre, fecha, lugar, nota, estado abierto/cerrado y **porteros**: los correos de quienes controlan la puerta).
+  Pega la lista de asistentes desde Excel o Sheets (Nombre · Curso o grupo · Tipo) o carga un CSV; también puedes generar entradas sin nombre. Cada entrada recibe un N° correlativo.
+  Desde la lista: imprimir (10 por hoja A4), descargar imágenes PNG en un ZIP para enviarlas por WhatsApp, exportar la asistencia en CSV, anular, reactivar, marcar a mano o deshacer un ingreso.
+- **El QR** lleva a `entrada.html#c=<código>` (16 caracteres aleatorios, 80 bits). Quien la recibe ve su entrada con el QR para mostrarla en la puerta. Si la abre un portero con su cuenta, aparece el botón «Dejar pasar».
+- **`verificar.html`** (profe y porteros): escáner con la cámara del celular, pantalla verde «PASA» o roja («YA INGRESÓ a las…», «Anulada», «Otro evento», «No existe»), sonido y vibración, contador en vivo, búsqueda por nombre y código escrito a mano. Modo «Solo consultar» para revisar sin marcar.
+- La base guarda cada entrada con el **sha256 del código** como nombre (`entradas`); el código queda en `entradas_codigos`, solo para el profe. Los porteros solo pueden pasar una entrada de «válida» a «usada», una vez, con su correo y la hora del servidor, y con el evento abierto.
+- Necesita internet en la puerta (la marca se hace en el servidor para que dos porteros no dejen pasar la misma entrada).
+- Requiere publicar el `firestore.rules` actualizado (colecciones `eventos`, `entradas` y `entradas_codigos`).
+
 ## Tienda de artículos físicos (Mercado → 🛍️ Tienda)
 - El profe publica artículos reales (cartas, juegos, útiles…) desde la pestaña Tienda del Mercado: nombre, descripción, emoji, hasta 2 fotos, precio y unidades (o sin límite). Puede cambiar precio, unidades y fotos, ocultar o borrar.
 - Las fotos se achican y comprimen en el navegador (máx. 640 px, WebP, ~50 KB) y se guardan dentro del artículo: no se usa Firebase Storage.
