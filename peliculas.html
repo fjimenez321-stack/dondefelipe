@@ -12,8 +12,8 @@
 <style>
 :root{
   --void:#08080c; --ink:#0e0f16; --slab:#14161f; --slab-2:#1b1e2b; --slab-3:#232739;
-  --acid:#ccff00; --acid-deep:#5e7a00; --tyrian:#ff2e7e; --cyan:#22e3ff; --brass:#e9b949;
-  --bone:#f2f0e9; --mute:#9498ab; --line:rgba(204,255,0,.16); --line-2:rgba(255,255,255,.08);
+  --acid:#ffd60a; --acid-deep:#7a5c00; --tyrian:#ff2b3d; --cyan:#1fdd6c; --brass:#e9b949;
+  --bone:#f2f0e9; --mute:#9498ab; --line:rgba(255,214,10,.16); --line-2:rgba(255,255,255,.08);
   --ff-display:'Big Shoulders Display','Impact',sans-serif;
   --ff-body:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;
   --r-sm:6px; --r-md:10px; --r-lg:14px;
@@ -57,8 +57,8 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
 .cuerpo{padding:1.4rem 1.6rem;display:flex;flex-direction:column;gap:12px;min-width:0}
 .cuerpo h2{font:800 1.5rem/1.1 var(--ff-display);text-transform:uppercase;letter-spacing:.5px}
 .datos{display:flex;gap:8px;flex-wrap:wrap}
-.dato{font-size:.62rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:4px 10px;border-radius:2px;background:rgba(204,255,0,.12);color:var(--acid)}
-.dato.r{background:rgba(255,46,126,.14);color:var(--tyrian)}
+.dato{font-size:.62rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:4px 10px;border-radius:2px;background:rgba(255,214,10,.12);color:var(--acid)}
+.dato.r{background:rgba(255,43,61,.14);color:var(--tyrian)}
 .sinopsis{font-size:.92rem;color:#c6c9d6;line-height:1.6}
 .pregunta{border-left:4px solid var(--brass);background:rgba(233,185,73,.07);padding:10px 14px;font-size:.88rem;line-height:1.55}
 .pregunta b{color:var(--brass);display:block;font-size:.64rem;letter-spacing:1.8px;text-transform:uppercase;margin-bottom:3px}
@@ -67,8 +67,8 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--r-sm);padding:.75rem 1.3rem;font-size:.74rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;background:var(--acid);color:#0a0c00}
 .btn:hover:not(:disabled){background:var(--cyan)}
 .btn:disabled{opacity:.5;cursor:wait}
-.btn.s{background:transparent;color:var(--acid);border:1.5px solid rgba(204,255,0,.4)}
-.btn.s:hover{background:rgba(204,255,0,.1)}
+.btn.s{background:transparent;color:var(--acid);border:1.5px solid rgba(255,214,10,.4)}
+.btn.s:hover{background:rgba(255,214,10,.1)}
 .com{border-top:1px solid var(--line-2);margin-top:4px;padding-top:14px;display:none}
 .com.on{display:block}
 .form{display:grid;gap:10px;margin-bottom:16px}
@@ -173,7 +173,7 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
 </style>
 <link rel="stylesheet" href="assets/mc-sutil.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="fuentes/fuentes.css?v=20261105">
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261110">
 </head>
 <body>
 <div class="frieze"></div>
@@ -235,7 +235,7 @@ var PELIS=[
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function estrellas(n){n=Math.round(n||0);return '★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n)}
-var COLS=['#ccff00','#22e3ff','#ff2e7e','#e9b949','#a78bfa','#34d399'];
+var COLS=['#ffd60a','#1fdd6c','#ff2b3d','#e9b949','#a78bfa','#34d399'];
 function colorDe(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return COLS[h%COLS.length]}
 function fechaTxt(ts){try{var d=ts&&ts.toDate?ts.toDate():new Date();return d.toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'})}catch(e){return ''}}
 /* Filtro simple: sin enlaces, correos ni teléfonos (los profes además pueden borrar). */

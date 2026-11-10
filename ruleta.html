@@ -10,12 +10,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
---ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--brass2:#8a6514;--neg:#ff7a70;--pos:#4bd08c;
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ffd60a;--cyan:#1fdd6c;--pink:#ff2b3d;--brass:#e9b949;--brass2:#8a6514;--neg:#ff7a70;--pos:#4bd08c;
 --ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 --r-size:min(86vw,460px)}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;color:var(--ink);font:15px/1.5 var(--ff);
-  background:radial-gradient(900px 420px at 85% -120px,rgba(233,185,73,.14),transparent),radial-gradient(700px 380px at 0% 0%,rgba(204,255,0,.07),transparent),var(--bg)}
+  background:radial-gradient(900px 420px at 85% -120px,rgba(233,185,73,.14),transparent),radial-gradient(700px 380px at 0% 0%,rgba(255,214,10,.07),transparent),var(--bg)}
 a{color:var(--cyan)}
 .wrap{max-width:980px;margin:0 auto;padding:22px 16px 70px}
 .crumb{color:var(--mute);text-decoration:none;font-size:14px}.crumb:hover{color:var(--ink)}
@@ -114,7 +114,7 @@ h1 span{color:var(--acid)}
   .comprobante{margin:6px 0 12px;font-size:12.5px;text-align:left;opacity:.9}.comprobante summary{cursor:pointer;font-weight:600}.comprobante code{font-size:12px;word-break:break-all}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="fuentes/fuentes.css?v=20261105">
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261110">
 </head>
 <body>
 <div class="wrap">
@@ -238,7 +238,7 @@ const CASILLA = i => {
   switch (t[0]) {
     case 'b': return { tipo: 'beneficio', emoji: BENEF[t[1]][0], txt: BENEF[t[1]][1], color: /décima/.test(t[1]) ? '#3b7be0' : '#1f9fd0', beneficio: t[1] };
     case 'D': return { tipo: 'disertacion', emoji: '🎤', txt: 'Disertar', color: '#8e2bd1', castigo: true };
-    case 'g': return { tipo: 'gatito', emoji: '🐱', txt: 'Gatito', color: '#ff2e7e' };
+    case 'g': return { tipo: 'gatito', emoji: '🐱', txt: 'Gatito', color: '#ff2b3d' };
     case 'G': return { tipo: 'sorpresa', emoji: '🎁', txt: 'Sorpresa', color: '#e0457b' };
     case 'A': return { tipo: 'acciones', emoji: '📈', txt: 'Acciones', color: '#0f8f9e', v: t[1] };
     case 'V': return { tipo: 'pierdeAcciones', emoji: '📉', txt: '−Acciones', color: '#b23a48', v: t[1], castigo: true };
@@ -398,7 +398,7 @@ function pintarHistorial() {
   const ul = $('hist');
   if (!cuentaId || !hist) { ul.innerHTML = '<li class="vacio">' + (!usuario ? 'Entra con tu cuenta para ver tus tiros.' : cuentaId ? 'Cargando…' : 'Sin cuenta del banco vinculada.') + '</li>'; return; }
   if (hist.error) { ul.innerHTML = '<li class="vacio">No se pudo cargar el historial.</li>'; return; }
-  const COL = { m: 'var(--neg)', b: '#1f9fd0', g: '#ff2e7e', p: 'var(--pos)', n: 'var(--neg)' };
+  const COL = { m: 'var(--neg)', b: '#1f9fd0', g: '#ff2b3d', p: 'var(--pos)', n: 'var(--neg)' };
   const l = hist.ult || [];
   ul.innerHTML = (l.length && typeof hist.neto === 'number' ? `<li class="vacio" style="--c:transparent">Balance en Hipopesos de tus ${hist.nres} tiros: <b style="color:${hist.neto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${hist.neto >= 0 ? '+' : '−'}${fmt(Math.abs(hist.neto))}</b></li>` : '') +
     (l.length ? l.map(m => `<li style="--c:${COL[m.k] || 'var(--line2)'}"><span>#${esc(m.t)} · ${esc(m.x)}</span><b style="color:${m.e >= 0 ? 'var(--pos)' : 'var(--neg)'}">${m.e >= 0 ? '+' : '−'}${fmt(Math.abs(m.e))}</b></li>`).join('')
@@ -849,7 +849,7 @@ function sonCastigo() {
 function confeti(cant) {
   const cv = $('confeti'), cx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
   const w = innerWidth, h = innerHeight; cv.width = w * dpr; cv.height = h * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const cols = ['#ccff00', '#22e3ff', '#ff2e7e', '#e9b949', '#ffffff'];
+  const cols = ['#ffd60a', '#1fdd6c', '#ff2b3d', '#e9b949', '#ffffff'];
   const ps = Array.from({ length: cant }, () => ({ x: w / 2, y: h * .4, vx: (Math.random() - .5) * 16, vy: -Math.random() * 14 - 4,
     s: 5 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[Math.floor(Math.random() * cols.length)] }));
   const t0 = performance.now();

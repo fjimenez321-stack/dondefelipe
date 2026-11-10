@@ -41,7 +41,7 @@
     var fav = G.find(function (g) { return col && g.id === col.favorito && ids.indexOf(g.id) >= 0; }) || mios[mios.length - 1];
     var pelis = (p.peliculas || []).filter(Boolean);
     return '<article class="pp">'
-      + '<header class="pp-cab"' + (fav ? ' style="--rc:' + ((R[fav.rareza] || {}).color || '#ccff00') + '"' : '') + '>'
+      + '<header class="pp-cab"' + (fav ? ' style="--rc:' + ((R[fav.rareza] || {}).color || '#ffd60a') + '"' : '') + '>'
       + (fav ? '<img class="pp-fav" src="' + raiz() + 'gatitos/img/' + esc(fav.id) + '.webp" alt="' + esc(fav.nombre) + '">' : '<div class="pp-ini">' + esc((p.nombre || '?').charAt(0)) + '</div>')
       + '<div><h2>' + esc(p.nombre) + '</h2>' + (fav ? '<small>Gatito favorito: ' + esc(fav.nombre) + '</small>' : '') + '</div></header>'
       + (p.descripcion ? '<p class="pp-desc">' + esc(p.descripcion) + '</p>' : '')
@@ -58,11 +58,11 @@
   // Estilos del perfil (se agregan una vez a la página).
   var st = document.createElement('style');
   st.textContent = '.pp{display:grid;gap:12px}'
-    + '.pp-cab{display:flex;gap:16px;align-items:center;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:radial-gradient(320px 150px at 15% 50%,color-mix(in srgb,var(--rc,#22e3ff) 26%,transparent),transparent 75%)}'
+    + '.pp-cab{display:flex;gap:16px;align-items:center;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:radial-gradient(320px 150px at 15% 50%,color-mix(in srgb,var(--rc,#1fdd6c) 26%,transparent),transparent 75%)}'
     + '.pp-cab h2{margin:0;font:900 clamp(28px,7vw,40px)/1 "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase}'
     + '.pp-cab small{color:#9b9aab;font-size:13px}'
     + '.pp-fav{height:110px;filter:drop-shadow(0 10px 14px rgba(0,0,0,.5))}'
-    + '.pp-ini{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:#22e3ff;color:#041014;font:900 34px "Big Shoulders Display",Impact,sans-serif}'
+    + '.pp-ini{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:#1fdd6c;color:#041014;font:900 34px "Big Shoulders Display",Impact,sans-serif}'
     + '.pp-desc{margin:0;font-size:16px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}'
     + '.pp h3{margin:6px 0 0;font:800 20px "Big Shoulders Display",Impact,sans-serif;text-transform:uppercase;letter-spacing:.5px}'
     + '.pp h3 span{font:700 12px system-ui,sans-serif;color:#9b9aab;margin-left:6px}'

@@ -60,21 +60,21 @@
   const CSS = `
     #${ID}{position:relative;z-index:200;font-family:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;
       background:linear-gradient(90deg,#1a0a14,#0e0f16 45%,#121a05);color:#f2f0e9;
-      border-bottom:2px solid #ccff00;box-shadow:0 6px 24px -10px rgba(204,255,0,.55)}
+      border-bottom:2px solid #ffd60a;box-shadow:0 6px 24px -10px rgba(255,214,10,.55)}
     #${ID} .pwa-row{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 16px}
-    #${ID} .pwa-logo{width:44px;height:44px;border-radius:12px;flex-shrink:0;box-shadow:0 0 0 1px rgba(204,255,0,.35)}
+    #${ID} .pwa-logo{width:44px;height:44px;border-radius:12px;flex-shrink:0;box-shadow:0 0 0 1px rgba(255,214,10,.35)}
     #${ID} .pwa-txt{flex:1;min-width:0;line-height:1.3}
     #${ID} .pwa-txt b{display:block;font-size:15px;font-weight:700;letter-spacing:.2px}
     #${ID} .pwa-txt span{font-size:12.5px;color:#9498ab}
     #${ID} .pwa-btn{flex-shrink:0;border:0;cursor:pointer;font:inherit;font-weight:800;font-size:14px;letter-spacing:.4px;
-      color:#08080c;background:#ccff00;border-radius:999px;padding:11px 20px;white-space:nowrap;
-      box-shadow:0 0 0 0 rgba(204,255,0,.7);animation:pwaPulse 2.2s infinite}
+      color:#08080c;background:#ffd60a;border-radius:999px;padding:11px 20px;white-space:nowrap;
+      box-shadow:0 0 0 0 rgba(255,214,10,.7);animation:pwaPulse 2.2s infinite}
     #${ID} .pwa-btn:hover{filter:brightness(1.08)}
     #${ID} .pwa-btn:focus-visible,#${ID} .pwa-x:focus-visible{outline:2px solid #fff;outline-offset:2px}
     #${ID} .pwa-x{flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);
       background:transparent;color:#9498ab;font-size:16px;cursor:pointer;line-height:1}
     #${ID} .pwa-x:hover{color:#f2f0e9;border-color:rgba(255,255,255,.4)}
-    @keyframes pwaPulse{0%{box-shadow:0 0 0 0 rgba(204,255,0,.6)}70%{box-shadow:0 0 0 12px rgba(204,255,0,0)}100%{box-shadow:0 0 0 0 rgba(204,255,0,0)}}
+    @keyframes pwaPulse{0%{box-shadow:0 0 0 0 rgba(255,214,10,.6)}70%{box-shadow:0 0 0 12px rgba(255,214,10,0)}100%{box-shadow:0 0 0 0 rgba(255,214,10,0)}}
     @media (prefers-reduced-motion:reduce){#${ID} .pwa-btn{animation:none}}
     @media (max-width:520px){
       #${ID} .pwa-row{gap:10px;padding:10px 12px}
@@ -85,18 +85,18 @@
     }
     #${ID}-modal{position:fixed;inset:0;z-index:2147483000;font-family:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;display:flex;align-items:flex-end;justify-content:center;
       background:rgba(0,0,0,.65);padding:16px}
-    #${ID}-modal .pwa-card{width:100%;max-width:420px;background:#13151e;border:1px solid rgba(204,255,0,.35);border-radius:18px;
+    #${ID}-modal .pwa-card{width:100%;max-width:420px;background:#13151e;border:1px solid rgba(255,214,10,.35);border-radius:18px;
       padding:22px 20px 18px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
     #${ID}-modal .pwa-card h3{font-size:18px;margin:0 0 14px;font-weight:800}
     #${ID}-modal .pwa-card ol{margin:0;padding:0;list-style:none;counter-reset:s}
     #${ID}-modal .pwa-card li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;font-size:14.5px;line-height:1.45;
       color:#d8d6cf;margin-bottom:12px}
     #${ID}-modal .pwa-card li::before{content:counter(s);flex-shrink:0;width:26px;height:26px;border-radius:50%;
-      background:#ccff00;color:#08080c;font-weight:800;font-size:13px;display:grid;place-items:center}
+      background:#ffd60a;color:#08080c;font-weight:800;font-size:13px;display:grid;place-items:center}
     #${ID}-modal .pwa-card b{color:#f2f0e9}
     #${ID}-modal .pwa-ico{font-size:15px}
     #${ID}-modal .pwa-ok{width:100%;margin-top:6px;border:0;border-radius:12px;padding:12px;font:inherit;font-weight:800;
-      background:#ccff00;color:#08080c;cursor:pointer}
+      background:#ffd60a;color:#08080c;cursor:pointer}
     @media (min-width:700px){#${ID}-modal{align-items:center}}
   `;
 

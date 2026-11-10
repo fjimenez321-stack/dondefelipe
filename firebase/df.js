@@ -246,7 +246,7 @@
         '<form id="df-e-form" novalidate>' +
           '<input id="df-e-correo" type="email" autocomplete="email" required placeholder="' + (d ? 'tu.nombre@' + esc(d) : 'tu correo') + '" ' +
             'style="width:100%;box-sizing:border-box;background:#0e0f16;color:#f2f1ec;border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 14px;font:500 15px system-ui,sans-serif;margin-bottom:8px">' +
-          '<button type="submit" style="' + bt + 'background:#ccff00;color:#101400;border:0">Enviarme un enlace para entrar</button>' +
+          '<button type="submit" style="' + bt + 'background:#ffd60a;color:#101400;border:0">Enviarme un enlace para entrar</button>' +
           '<div id="df-e-msg" style="font-size:13px;color:#9b9aab;margin-top:8px">Te llega un correo con un enlace: lo abres y quedas dentro, sin contraseña.</div>' +
         '</form>' +
         '<button type="button" id="df-e-cerrar" style="' + bt + 'background:transparent;color:#9b9aab;border:0;margin-top:6px;font-weight:600">Cancelar</button>' +
@@ -309,7 +309,7 @@
   function aviso(html) {
     var go = function () {
       var a = document.createElement('div');
-      a.setAttribute('style', 'position:fixed;left:16px;right:16px;bottom:20px;margin:0 auto;z-index:2147483001;max-width:520px;box-sizing:border-box;background:#14161f;color:#f2f1ec;border:1px solid rgba(204,255,0,.4);border-radius:14px;padding:12px 16px;font:500 14px/1.4 system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.5)');
+      a.setAttribute('style', 'position:fixed;left:16px;right:16px;bottom:20px;margin:0 auto;z-index:2147483001;max-width:520px;box-sizing:border-box;background:#14161f;color:#f2f1ec;border:1px solid rgba(255,214,10,.4);border-radius:14px;padding:12px 16px;font:500 14px/1.4 system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.5)');
       a.innerHTML = html + ' <button type="button" style="margin-left:8px;background:none;border:0;color:#9b9aab;cursor:pointer;font-size:16px" aria-label="Cerrar">✕</button>';
       a.querySelector('button').onclick = function () { a.remove(); };
       document.body.appendChild(a); setTimeout(function () { a.remove(); }, 12000);
@@ -656,7 +656,7 @@
     '.dfc .pie{margin-top:10px;font-size:12px;color:#9d98c2}' +
     '.dfc .pie button{background:none;border:0;color:#9d98c2;text-decoration:underline;cursor:pointer;font:inherit;padding:0}' +
     '.dfa{position:fixed;left:50%;bottom:16px;z-index:2147482999;width:min(720px,calc(100vw - 24px));transform:translate(-50%,20px);opacity:0;transition:.3s ease;' +
-    'background:#12101c;border:1px solid rgba(255,255,255,.14);border-left:4px solid #22e3ff;border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.5);padding:14px 16px}' +
+    'background:#12101c;border:1px solid rgba(255,255,255,.14);border-left:4px solid #1fdd6c;border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.5);padding:14px 16px}' +
     '.dfa.in{transform:translate(-50%,0)}' +
     '.dfa b.t{display:block;font-size:15px;color:#fff;margin-bottom:4px}' +
     '.dfa p{margin:0 0 10px;color:#cfcae8}' +

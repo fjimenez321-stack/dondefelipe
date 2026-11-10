@@ -12,10 +12,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
 :root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
---ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ffd60a;--cyan:#1fdd6c;--pink:#ff2b3d;--brass:#e9b949;--neg:#ff7a70;
 --ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(900px 420px at 85% -120px,rgba(255,46,126,.14),transparent),radial-gradient(700px 380px at 0% 0%,rgba(204,255,0,.07),transparent),var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 420px at 85% -120px,rgba(255,43,61,.14),transparent),radial-gradient(700px 380px at 0% 0%,rgba(255,214,10,.07),transparent),var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
 a{color:var(--cyan)}
 .wrap{max-width:1100px;margin:0 auto;padding:22px 16px 70px}
 .crumb{color:var(--mute);text-decoration:none;font-size:14px}.crumb:hover{color:var(--ink)}
@@ -177,7 +177,7 @@ h1 span{color:var(--acid)}
 .puesto{position:relative;flex:1;max-width:180px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:none;border:0;padding:0;cursor:pointer;color:var(--mute)}
 .puesto img{max-height:120px;max-width:100%;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.45)) saturate(.75) brightness(.8);transition:transform .25s,filter .25s}
 .puesto:hover img{filter:drop-shadow(0 8px 10px rgba(0,0,0,.45));transform:translateY(-3px)}
-.puesto.on img{filter:drop-shadow(0 0 14px rgba(204,255,0,.35)) drop-shadow(0 8px 10px rgba(0,0,0,.45));transform:translateY(-6px) scale(1.06)}
+.puesto.on img{filter:drop-shadow(0 0 14px rgba(255,214,10,.35)) drop-shadow(0 8px 10px rgba(0,0,0,.45));transform:translateY(-6px) scale(1.06)}
 .puesto .rot{position:absolute;top:6px;font:800 13px var(--ff-d);letter-spacing:1px;text-transform:uppercase;background:rgba(0,0,0,.55);border-radius:999px;padding:2px 9px;white-space:nowrap;opacity:.8}
 .puesto.on .rot{background:var(--acid);color:#101400;opacity:1}
 .paseante{position:absolute;bottom:16px;left:0;height:66px;width:60px;z-index:3;pointer-events:none}
@@ -203,7 +203,7 @@ h1 span{color:var(--acid)}
 .gato .adq{font-size:12.5px;color:var(--mute);margin:6px 0 2px}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="fuentes/fuentes.css?v=20261105">
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261110">
 </head>
 <body>
 <div class="wrap">
@@ -401,7 +401,7 @@ function aviso(html, tipo) {
   if (html && tipo === 'err') animo('llora', html, 6000);
   else if (html && tipo === 'ok') animo(/retirad|cancelad/i.test(html) ? 'caja' : 'carro', html, 5000);
 }
-function confeti(n) { const cs = ['#ccff00', '#22e3ff', '#ff2e7e', '#e9b949', '#fff']; for (let i = 0; i < n; i++) { const d = document.createElement('div'); d.className = 'confeti'; if (i % 4 === 0) { d.classList.add('mon'); d.innerHTML = '<img src="mercado/sprites/moneda.webp" alt="" style="width:100%">'; } d.style.left = Math.random() * 100 + 'vw'; d.style.background = cs[i % cs.length]; d.style.animationDuration = (1.8 + Math.random() * 1.8) + 's'; document.body.appendChild(d); setTimeout(() => d.remove(), 4000); } }
+function confeti(n) { const cs = ['#ffd60a', '#1fdd6c', '#ff2b3d', '#e9b949', '#fff']; for (let i = 0; i < n; i++) { const d = document.createElement('div'); d.className = 'confeti'; if (i % 4 === 0) { d.classList.add('mon'); d.innerHTML = '<img src="mercado/sprites/moneda.webp" alt="" style="width:100%">'; } d.style.left = Math.random() * 100 + 'vw'; d.style.background = cs[i % cs.length]; d.style.animationDuration = (1.8 + Math.random() * 1.8) + 's'; document.body.appendChild(d); setTimeout(() => d.remove(), 4000); } }
 function quedaTiempo(o) {
   const h = ms(o.hasta); if (!h) return '';
   const d = h - Date.now(); if (d <= 0) return 'terminó';
