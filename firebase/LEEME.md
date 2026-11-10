@@ -70,7 +70,8 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 
 ## Entradas a eventos con QR (`entradas.html`, `entrada.html` y `verificar.html`)
 - **`entradas.html`** (solo profe, enlazada en el Panel del profe): crea el evento (nombre, fecha, lugar, nota, estado abierto/cerrado y **porteros**: los correos de quienes controlan la puerta).
-  Pega la lista de asistentes desde Excel o Sheets (Nombre · Curso o grupo · Tipo) o carga un CSV; también puedes generar entradas sin nombre. Cada entrada recibe un N° correlativo.
+  Sube el Excel (.xlsx) o pega la lista. Si la primera fila tiene encabezados (Nombre, Apellido, Curso, Tipo…) se usan en cualquier orden y Nombre + Apellido se juntan; si no, se toma Nombre · Curso · Tipo. También puedes generar entradas sin nombre. Cada entrada recibe un N° correlativo.
+  Cada QR sale con el nombre del titular: impreso en la entrada y como nombre del archivo (`Ana Pérez.png`; si dos se llaman igual, `Ana Pérez (#12).png`).
   Desde la lista: imprimir (10 por hoja A4), descargar imágenes PNG en un ZIP para enviarlas por WhatsApp, exportar la asistencia en CSV, anular, reactivar, marcar a mano o deshacer un ingreso.
 - **El QR** lleva a `entrada.html#c=<código>` (16 caracteres aleatorios, 80 bits). Quien la recibe ve su entrada con el QR para mostrarla en la puerta. Si la abre un portero con su cuenta, aparece el botón «Dejar pasar».
 - **`verificar.html`** (profe y porteros): escáner con la cámara del celular, pantalla verde «PASA» o roja («YA INGRESÓ a las…», «Anulada», «Otro evento», «No existe»), sonido y vibración, contador en vivo, búsqueda por nombre y código escrito a mano. Modo «Solo consultar» para revisar sin marcar.
