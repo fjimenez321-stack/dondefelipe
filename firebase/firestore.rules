@@ -1235,6 +1235,19 @@ service cloud.firestore {
       allow get, list: if esProfe() || (conCuenta() && request.auth.token.email.lower() in resource.data.porteros);
       allow write: if esProfe();
     }
+    // Entradas nominadas: 'invitados' es la lista de nombres y 'entraron' los índices de quienes ya pasaron.
+    // Cada lectura agrega exactamente un invitado que aún no había entrado, o bien usa un cupo sin nombre
+    // (solo si la entrada tiene más cupos que invitados).
+    function ingresoNominadoOk() {
+      let antes = resource.data.get('entraron', []);
+      let desp = request.resource.data.get('entraron', []);
+      let inv = resource.data.get('invitados', []);
+      return (desp == antes
+              && request.resource.data.usos - antes.size() <= resource.data.get('cupos', 1) - inv.size())
+          || (desp.size() == antes.size() + 1 && desp[0:antes.size()] == antes
+              && desp[antes.size()] is int && desp[antes.size()] >= 0 && desp[antes.size()] < inv.size()
+              && !(desp[antes.size()] in antes));
+    }
     match /entradas/{h} {
       // Quien tiene el QR puede ver su entrada; listar (para contar y buscar por nombre): profe y porteros del evento.
       allow get: if true;
@@ -1246,7 +1259,8 @@ service cloud.firestore {
       allow update: if esPortero(resource.data.evento)
         && get(rutaEvento(resource.data.evento)).data.estado == 'abierto'
         && resource.data.estado == 'valida'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'usada', 'usadaPor', 'metodo', 'usos', 'primerIngreso'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'usada', 'usadaPor', 'metodo', 'usos', 'primerIngreso', 'entraron'])
+        && ingresoNominadoOk()
         && request.resource.data.usos == resource.data.get('usos', 0) + 1
         && request.resource.data.usos <= resource.data.get('cupos', 1)
         && request.resource.data.estado == (request.resource.data.usos == resource.data.get('cupos', 1) ? 'usada' : 'valida')

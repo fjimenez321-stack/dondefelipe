@@ -37,6 +37,12 @@ a{color:var(--cyan)}
 .ticket .det{text-align:center;color:#123a8f;font:16px/1.4 Arial,Helvetica,sans-serif;padding:2px 20px 0}
 .ticket .cod{text-align:center;font:700 15px ui-monospace,Menlo,monospace;letter-spacing:1px;color:#8a6d0f;padding:10px 20px 18px}
 .ticket .pie{text-align:center;color:#555;font:13px/1.4 Arial,Helvetica,sans-serif;margin:0 20px 18px}
+.ticket .invs{margin:12px 20px 0;padding:10px 14px;border-top:2px solid #c9a227;text-align:center;font:15px/1.6 Arial,Helvetica,sans-serif;color:#0b2559}
+.ticket .invs b{display:block;font-size:11px;letter-spacing:2px;color:#8a6d0f;margin-bottom:2px}
+.ticket .invs .si{color:#1d7a3a;font-weight:700}
+.staff .ivb{display:block;width:100%;margin:8px 0 0;padding:14px;border-radius:14px;border:2px solid #c9a227;background:#fff;color:#0b2559;font:800 18px Arial,Helvetica,sans-serif;cursor:pointer;text-align:left}
+.staff .ivb.ya{background:transparent;color:var(--acid);border-color:rgba(204,255,0,.35);cursor:default}
+.staff .ivb.sn{background:transparent;color:var(--ink);border-style:dashed}
 .ticket.no .qrbox{filter:grayscale(1) opacity(.35)}
 .sello{margin:0 20px 18px;text-align:center;border-radius:14px;padding:12px;font:900 26px/1 var(--ff-d);text-transform:uppercase;letter-spacing:1px}
 .sello.ok{background:#14301f;color:var(--acid);border:1px solid #2c6b44}
@@ -89,6 +95,9 @@ const horaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleString('e
 const cuposDe = t => Math.max(1, Math.round(+t.cupos || 1));
 const usosDe = t => t.usos != null ? t.usos : (t.estado === 'usada' ? cuposDe(t) : 0);
 const personas = n => n + (n === 1 ? ' persona' : ' personas');
+const invDe = t => Array.isArray(t.invitados) ? t.invitados : [];
+const entDe = t => Array.isArray(t.entraron) ? t.entraron : [];
+const libresSinNombre = t => cuposDe(t) - invDe(t).length - (usosDe(t) - entDe(t).length);
 async function sha256(t) {
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
   return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
@@ -116,6 +125,7 @@ function pintar() {
     <div class="quien">${esc(t.nombre) || 'Entrada general'}</div>
     <div class="det">${esc([t.curso, t.tipo, personas(cuposDe(t))].filter(Boolean).join(' · '))}</div>
     ${t.apoderado ? `<div class="det">Apoderado/a: ${esc(t.apoderado)}</div>` : ''}
+    ${invDe(t).length ? `<div class="invs"><b>INVITADOS</b>${invDe(t).map((x, i) => entDe(t).includes(i) ? `<span class="si">✓ ${esc(x)}</span>` : esc(x)).join(' · ')}</div>` : ''}
     <div class="cod">${esc(agrupado(codigo))}</div>
     ${sello}
     ${!evento ? `<p class="pie">${t.estado === 'valida' ? 'Muestra este QR en la entrada. ' : ''}${t.nota ? esc(t.nota) + ' · ' : ''}Válida para ${personas(cuposDe(t))}: no la compartas.</p>` : ''}
@@ -134,6 +144,14 @@ function pintarStaff() {
     s.innerHTML = `<div class="card staff"><p class="kick">Modo portero · ${esc(evento.nombre)}</p>${obs}${caja}
       <button class="btn" data-a="guardarObs" style="margin-bottom:10px"><i class="fa-solid fa-floppy-disk"></i> Guardar observación</button><br>
       <a class="btn" href="verificar.html?e=${encodeURIComponent(t.evento)}"><i class="fa-solid fa-camera"></i> Escanear la siguiente</a></div>`;
+    return;
+  }
+  if (invDe(t).length) {   // entrada nominada: un botón por invitado
+    const libres = libresSinNombre(t);
+    s.innerHTML = `<div class="card staff"><p class="kick">Modo portero · ${esc(evento.nombre)} · ${usosDe(t)} de ${cuposDe(t)} adentro</p>${obs}${caja}
+      <p class="muted" style="margin:0">Toca a cada persona que entra:</p>
+      ${invDe(t).map((x, i) => entDe(t).includes(i) ? `<div class="ivb ya">✓ ${esc(x)} · ya entró</div>` : `<button class="ivb" data-a="pasar" data-i="${i}"${marcando ? ' disabled' : ''}>${esc(x)}</button>`).join('')}
+      ${libres > 0 ? `<button class="ivb sn" data-a="pasar" data-i="-1"${marcando ? ' disabled' : ''}>+ Otra persona (sin nombre) · quedan ${libres}</button>` : ''}</div>`;
     return;
   }
   s.innerHTML = `<div class="card staff"><p class="kick">Modo portero · ${esc(evento.nombre)}</p>${obs}${caja}
@@ -174,8 +192,9 @@ async function guardarObs(silencio) {
     if (!silencio) aviso('✓ Observación guardada.');
   } catch (e) { aviso('No se guardó la observación: ' + esc(/permission/i.test(e.message) ? 'Firebase lo rechazó.' : e.message), 'err'); }
 }
-async function pasar() {
+async function pasar(idx) {
   if (marcando || !t) return;
+  if (idx == null) idx = -1;
   await guardarObs(true);
   marcando = true; pintarStaff(); aviso('');
   try {
@@ -187,7 +206,10 @@ async function pasar() {
       if (d.estado === 'usada') throw new Error('esta entrada YA USÓ SUS ' + cuposDe(d) + ' CUPOS (último ingreso ' + horaTxt(d.usada) + ')');
       if (d.estado !== 'valida') throw new Error('esta entrada está anulada');
       const u = usosDe(d) + 1, c = cuposDe(d);
+      if (idx >= 0 && entDe(d).includes(idx)) throw new Error(invDe(d)[idx] + ' ya había entrado');
+      if (idx < 0 && invDe(d).length && libresSinNombre(d) <= 0) throw new Error('no quedan cupos sin nombre');
       const up = { usos: u, estado: u >= c ? 'usada' : 'valida', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'qr' };
+      if (idx >= 0) up.entraron = entDe(d).concat([idx]);
       if (!d.primerIngreso) up.primerIngreso = F.serverTimestamp();
       tx.update(ref, up);
     });
@@ -203,7 +225,7 @@ async function pasar() {
 document.addEventListener('click', ev => {
   const b = ev.target.closest('[data-a], #usarManual'); if (!b) return;
   if (b.dataset.a === 'entrar') { ev.preventDefault(); DF.entrar().catch(e => { if (!e.cancelado) aviso('No se pudo entrar: ' + esc(e.message), 'err'); }); }
-  if (b.dataset.a === 'pasar') pasar();
+  if (b.dataset.a === 'pasar') pasar(b.dataset.i != null ? +b.dataset.i : -1);
   if (b.dataset.a === 'guardarObs') guardarObs().then(cargarEvento);
   if (b.id === 'usarManual') { codigo = limpiar($('manual').value); if (codigo) history.replaceState(null, '', location.pathname + '#c=' + codigo); aviso(''); cargarEntrada(); }
 });
