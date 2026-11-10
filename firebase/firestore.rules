@@ -691,7 +691,7 @@ service cloud.firestore {
     function accionesRegalo(d, v) {
       let e = get(rutaEmpresa(d.ticker)).data;
       return e.activa == true && d.precio == e.precio
-        && d.acciones == (e.precio >= v ? 1 : math.floor(v * 1.0 / e.precio))
+        && ((e.precio >= v && d.acciones == 1) || (e.precio < v && d.acciones == math.floor(v * 1.0 / e.precio)))
         && getAfter(rutaPos(d.cuenta, d.ticker)).data.acciones == accAntes(d.cuenta, d.ticker) + d.acciones;
     }
     // Acciones perdidas: ⌈v / precio⌉ acciones (o todas, si tiene menos) de una empresa donde tiene.
@@ -832,7 +832,7 @@ service cloud.firestore {
         + 3 * s.intersection(['muro', 'fantasma', 'cosmico', 'dorado', 'masita', 'miauricio'].toSet()).size();
       return n > 3 ? 3 : n;
     }
-    function sumativasPoder(uid) { return 0; }   // (ningún gatito da sumativas diarias por ahora)
+    function sumativasPoder() { return 0; }   // (ningún gatito da sumativas diarias por ahora)
     function textoDecimas(n, m) {
       return (n == 1 ? 'Gatitos: 1 décima formativa' : 'Gatitos: ' + string(n) + ' décimas formativas')
         + (m == 0 ? '' : (m == 1 ? ' y 1 décima sumativa' : ' y ' + string(m) + ' décimas sumativas'));
@@ -840,7 +840,7 @@ service cloud.firestore {
     // El movimiento no mueve dinero: deja las décimas «por usar» (el profe las aplica en el panel).
     function opPoder(d) {
       let n = decimasPoder(request.auth.uid);
-      return n > 0 && d.monto == 0 && d.canje == 'pendiente' && d.item == textoDecimas(n, sumativasPoder(request.auth.uid))
+      return n > 0 && d.monto == 0 && d.canje == 'pendiente' && d.item == textoDecimas(n, sumativasPoder())
         && !d.keys().hasAny(['gatito', 'oferta', 'precio', 'pedido', 'transferencia'])
         && !exists(rutaPoder(d.cuenta, semanaHoy()))
         && getAfter(rutaPoder(d.cuenta, semanaHoy())).data.decimas == n;
@@ -920,7 +920,7 @@ service cloud.firestore {
       allow create: if esColegio()
         && request.resource.data.cuenta == miCuentaBanco() && miCuentaBanco() != ''
         && request.resource.data.keys().hasOnly(['cuenta', 'uid', 'semana', 'decimas', 'sumativas', 'fecha'])
-        && request.resource.data.get('sumativas', 0) == sumativasPoder(request.auth.uid)
+        && request.resource.data.get('sumativas', 0) == sumativasPoder()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.semana == semanaHoy()
         && pid == request.resource.data.cuenta + '__s' + string(semanaHoy())
@@ -1601,7 +1601,7 @@ service cloud.firestore {
         && request.resource.data.ids == gatitosAntes(uid).concat([getAfter(rutaOp(c, opsDespues(c))).data.gatito]);
     }
     // Castigo de la ruleta: se escapa el gatito que indica el movimiento de la misma escritura.
-    function gatitoEscapado(uid) {
+    function gatitoEscapado() {
       let c = miCuentaBanco();
       return resource != null && c != '' && opsDespues(c) == opsAntes(c) + 1
         && getAfter(rutaOp(c, opsDespues(c))).data.tipo == 'ruleta'
@@ -1637,7 +1637,7 @@ service cloud.firestore {
             || (request.resource.data.ids.size() == 0 && request.resource.data.favorito == null))
         && request.resource.data.actualizado == request.time
         && ((resource != null && request.resource.data.ids == resource.data.ids)   // solo cambia el favorito
-            || compraDeGatito(uid) || gatitoACustodia(uid) || gatitoDeVuelta(uid) || gatitoEscapado(uid)
+            || compraDeGatito(uid) || gatitoACustodia(uid) || gatitoDeVuelta(uid) || gatitoEscapado()
             || gatitoARegalo(uid) || gatitoRegaloRecibido(uid) || gatitoRegaloDevuelto(uid));
       // El profe traspasa gatitos al autorizar una venta entre estudiantes.
       allow create, update, delete: if esProfe();
