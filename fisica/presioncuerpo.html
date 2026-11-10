@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Presión y Cuerpo Humano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: dossier técnico NERV (serie presión) — ficha arriba, una lámina por vista, navegación abajo */
+:root{
+  --bg:#f3f1ea; --paper:#fbfaf5; --ink:#1c1a24; --muted:#5e5a6c; --line:#d3cedc;
+  --violet:#5a33a0; --orange:#d9600c; --lime:#5f8f14; --cyan:#0d7482; --danger:#c22f2f; --blood:#b3203a;
+  --lcd-bg:#d5e2b4; --lcd-ink:#1d2a0e;
+  --f-display:"IBM Plex Mono",Consolas,"Courier New",monospace;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-lcd:"Share Tech Mono","IBM Plex Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d0c11; --paper:#15131c; --ink:#ebe8f3; --muted:#a29db4; --line:#302c3e;
+  --violet:#a98af0; --orange:#ff8a3a; --lime:#a4dc4a; --cyan:#43cfdc; --danger:#ff6464; --blood:#ff5c7a;
+  --lcd-bg:#0c180a; --lcd-ink:#a8f24c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d0c11; --paper:#15131c; --ink:#ebe8f3; --muted:#a29db4; --line:#302c3e;
+  --violet:#a98af0; --orange:#ff8a3a; --lime:#a4dc4a; --cyan:#43cfdc; --danger:#ff6464; --blood:#ff5c7a;
+  --lcd-bg:#0c180a; --lcd-ink:#a8f24c; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;display:flex;flex-direction:column}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
+.bar{display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);font-family:var(--f-display);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex-wrap:wrap}
+.bar .tag{color:var(--paper);background:var(--violet);padding:3px 8px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%)}
+.bar .kanji{color:var(--orange);letter-spacing:.2em}
+.bar .sp{flex:1}
+
+main{flex:1;min-height:0;position:relative;overflow:hidden}
+.slide{position:absolute;inset:0;overflow-y:auto;padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.slide>.in{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px;min-height:100%}
+.slide.anim>.in{animation:enter .35s ease-out}
+@keyframes enter{from{transform:translateY(10px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.slide.anim>.in{animation:none}}
+
+.eyebrow{font-family:var(--f-display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);display:flex;gap:10px;align-items:center}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--line);max-width:240px}
+h1,h2{font-family:var(--f-display);font-weight:700;letter-spacing:-.02em;text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(40px,7vw,84px)}
+h2{font-size:clamp(28px,4vw,46px)}
+p{margin:0;max-width:65ch}
+.lead{font-size:clamp(18px,2.2vw,24px);color:var(--muted);max-width:52ch}
+.big{font-size:clamp(20px,2.6vw,28px);line-height:1.4}
+.hl{color:var(--orange);font-weight:600}
+.vi{color:var(--violet);font-weight:600}
+.bl{color:var(--blood);font-weight:600}
+
+.panel{background:var(--paper);border:1px solid var(--line);padding:20px;position:relative;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.panel .lbl,.lbl{font-family:var(--f-display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.grid2>*,.grid3>*{min-width:0}
+.stack{display:flex;flex-direction:column;gap:12px}
+
+.cover{justify-content:center}
+.cover .num{font-family:var(--f-lcd);font-size:clamp(56px,11vw,140px);color:var(--blood);line-height:1}
+.cover .num small{font-size:.35em;color:var(--muted)}
+
+.opts{display:grid;gap:12px}
+.opt{display:flex;gap:14px;align-items:flex-start;text-align:left;background:var(--paper);border:1px solid var(--line);padding:14px 16px;cursor:pointer}
+.opt b{font-family:var(--f-display);color:var(--violet);min-width:1.4em}
+.opt[aria-pressed="true"]{border-color:var(--orange);box-shadow:inset 4px 0 0 var(--orange)}
+.opt.ok{border-color:var(--lime);box-shadow:inset 4px 0 0 var(--lime)}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--orange);padding-left:10px}
+
+.formula{font-family:var(--f-display);font-size:clamp(40px,7vw,80px);font-weight:700;color:var(--violet);line-height:1}
+.formula .fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin-left:.25em}
+.formula .fr span:first-child{border-bottom:4px solid currentColor;padding:0 .15em}
+
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-size:15px}
+th{font-family:var(--f-display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.tw{overflow-x:auto}
+
+.lab{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px}
+@media (max-width:900px){.lab{grid-template-columns:1fr}}
+.ctrl{display:flex;flex-direction:column;gap:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:transparent;padding:5px 10px;font-size:13px;cursor:pointer;font-family:var(--f-body)}
+.chip[aria-pressed="true"]{background:var(--violet);color:var(--paper);border-color:var(--violet)}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.rng{display:flex;flex-direction:column;gap:4px}
+.rng .row{display:flex;justify-content:space-between;font-family:var(--f-display);font-size:13px}
+.rng .row output{color:var(--orange);font-weight:700;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--violet)}
+
+.lcd{background:var(--lcd-bg);color:var(--lcd-ink);font-family:var(--f-lcd);padding:14px 16px;border:3px solid var(--ink)}
+.lcd .main{font-size:clamp(42px,6vw,68px);line-height:1;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lcd .main small{font-size:20px}
+.lcd .sub{display:flex;gap:14px;flex-wrap:wrap;font-size:15px;margin-top:6px}
+.lcd .flag{font-size:13px;letter-spacing:.1em;min-height:1.3em}
+.lcd .bp{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;align-items:baseline}
+.lcd .bp .k{font-size:14px;letter-spacing:.08em}
+.lcd .bp .v{font-size:clamp(38px,5.4vw,58px);line-height:1.05;font-variant-numeric:tabular-nums}
+
+.calc{font-family:var(--f-display);font-size:15px;display:grid;gap:4px;font-variant-numeric:tabular-nums}
+.calc b{color:var(--orange)}
+
+.scale{position:relative;height:74px;margin-top:6px}
+.scale .track{position:absolute;left:0;right:0;top:30px;height:10px;background:linear-gradient(90deg,color-mix(in srgb,var(--lime) 55%,transparent),color-mix(in srgb,var(--orange) 55%,transparent),color-mix(in srgb,var(--danger) 65%,transparent))}
+.scale .mk{position:absolute;top:22px;width:2px;height:26px;background:var(--ink)}
+.scale .mk span{position:absolute;top:28px;left:50%;transform:translateX(-50%);font-size:10px;font-family:var(--f-display);color:var(--muted);white-space:nowrap}
+.scale .mk.up span{top:-20px}
+.scale .cur{position:absolute;top:8px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:14px solid var(--violet);transform:translateX(-9px);transition:left .4s}
+.verdict{font-family:var(--f-display);font-weight:700;font-size:15px}
+
+.dialwrap{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.dialwrap svg{width:min(240px,100%);height:auto;flex:none}
+.steth{position:relative;height:56px;border:1px solid var(--line);background:var(--bg);margin-top:6px;overflow:hidden}
+.steth .tk{position:absolute;bottom:0;width:3px;height:16px;background:var(--line)}
+.steth .tk.on{height:40px;background:var(--blood)}
+.steth .ax{position:absolute;top:2px;font-size:10px;font-family:var(--f-display);color:var(--muted)}
+.heart{display:inline-block;color:var(--blood);font-size:26px;transition:transform .08s}
+.heart.beat{transform:scale(1.45)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:9px 14px;cursor:pointer;font-family:var(--f-display);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.cls{display:flex;margin-top:10px;font-family:var(--f-display);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.cls span{flex:1;text-align:center;padding:4px 0;border-top:4px solid var(--line);color:var(--muted)}
+.cls span.on{border-top-color:var(--blood);color:var(--ink);font-weight:700}
+
+.missions{counter-reset:m;display:grid;gap:12px;padding:0;margin:0;list-style:none}
+.missions li{counter-increment:m;display:grid;grid-template-columns:auto 1fr;gap:14px;background:var(--paper);border:1px solid var(--line);padding:14px 16px}
+.missions li::before{content:"M" counter(m,decimal-leading-zero);font-family:var(--f-display);font-weight:700;color:var(--violet)}
+
+.sema{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.sema div{padding:14px;border:1px solid var(--line);display:flex;gap:10px;align-items:center;background:var(--paper)}
+.dot{width:22px;height:22px;border-radius:50%;flex:none}
+
+.fig svg{width:100%;height:auto;display:block}
+
+nav.foot{display:flex;align-items:center;gap:10px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-top:1px solid var(--line);font-family:var(--f-display);font-size:13px}
+nav.foot .dots{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+nav.foot .dots button{width:22px;height:6px;border:0;background:var(--line);cursor:pointer;padding:0}
+nav.foot .dots button[aria-current="true"]{background:var(--orange)}
+.nb{border:1px solid var(--line);background:var(--paper);padding:7px 12px;cursor:pointer}
+.count{font-variant-numeric:tabular-nums;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="bar">
+  <span class="tag">Sesión 08</span>
+  <span>Unidad 2 · Fuerza y presión · 7° básico · OA 8</span>
+  <span class="sp"></span>
+  <span class="kanji">人体圧</span>
+  <span id="slideName">—</span>
+</header>
+
+<main id="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide" data-name="Portada">
+<div class="in cover">
+  <div class="eyebrow">Ficha 08 · Cuerpo humano</div>
+  <h1>La presión<br>y tu cuerpo</h1>
+  <p class="lead">Tus pies, tu mochila, una aguja, tu sangre y tus oídos: todos son problemas de presión. Hoy los medimos.</p>
+  <div class="num">120/80 <small>mmHg · presión arterial de referencia en un adulto</small></div>
+</div>
+</section>
+
+<!-- 2 PREGUNTA -->
+<section class="slide" data-name="Pregunta">
+<div class="in">
+  <div class="eyebrow">Inicio · Predice</div>
+  <h2>¿Qué te dolería más en el pie?</h2>
+  <p class="big">Que te pise un elefante de 4 toneladas, o que te pise una persona de 50 kg con taco aguja.</p>
+  <div class="opts" id="opts">
+    <button class="opt" data-k="a" aria-pressed="false"><b>A</b><span>El elefante: pesa 80 veces más.</span></button>
+    <button class="opt" data-k="b" aria-pressed="false"><b>B</b><span>El taco aguja.</span></button>
+    <button class="opt" data-k="c" aria-pressed="false"><b>C</b><span>Dolería lo mismo.</span></button>
+  </div>
+  <p class="note">Guardamos tu respuesta. La comprobamos en el laboratorio.</p>
+</div>
+</section>
+
+<!-- 3 REPASO -->
+<section class="slide" data-name="Fuerza y área">
+<div class="in">
+  <div class="eyebrow">Desarrollo · Repaso</div>
+  <h2>La presión depende de la fuerza y del área</h2>
+  <div class="grid2">
+    <div class="panel stack">
+      <span class="lbl">Fórmula</span>
+      <div class="formula">P =<span class="fr"><span>F</span><span>A</span></span></div>
+      <p>F en newtons (N), A en metros cuadrados (m²), P en pascales (Pa). 1 kPa = 1000 Pa.</p>
+    </div>
+    <div class="panel stack">
+      <span class="lbl">Dos reglas</span>
+      <p class="big">Más <span class="hl">fuerza</span> → más presión.</p>
+      <p class="big">Menos <span class="vi">área</span> → más presión.</p>
+      <p>Por eso un cuchillo afilado corta y uno sin filo no: la fuerza es la misma, pero el filo tiene un área diminuta.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 4 LAB 1 -->
+<section class="slide" data-name="Lab: huella">
+<div class="in">
+  <div class="eyebrow">Laboratorio 1 · Presión sobre el cuerpo</div>
+  <div class="lab">
+    <div class="panel ctrl">
+      <div><span class="lbl">Situación</span><div class="chips" id="scen"></div></div>
+      <div class="rng">
+        <div class="row"><label for="mass">Tu masa corporal</label><output id="massO">45 kg</output></div>
+        <input type="range" id="mass" min="25" max="100" step="1" value="45">
+      </div>
+      <div class="rng">
+        <div class="row"><label for="pack">Masa de la mochila</label><output id="packO">8 kg</output></div>
+        <input type="range" id="pack" min="2" max="15" step="1" value="8">
+      </div>
+      <p class="note" id="scNote"></p>
+    </div>
+    <div class="stack" style="min-width:0;gap:18px">
+      <div class="grid2">
+        <div class="panel">
+          <span class="lbl">Medidor de presión de contacto</span>
+          <div class="lcd">
+            <div class="flag" id="pFlag"></div>
+            <div class="main"><span id="pVal">0</span><small>kPa</small></div>
+            <div class="sub"><span id="pNcm">0 N/cm²</span><span id="pAtm">0 atm</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <span class="lbl">Cálculo paso a paso</span>
+          <div class="calc" id="calc"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <span class="lbl">Escala de comparación (logarítmica)</span>
+        <div class="scale" id="scale"><div class="track"></div><div class="cur" id="cur"></div></div>
+        <p class="verdict" id="verdict" style="margin-top:6px"></p>
+      </div>
+      <div class="panel">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+          <span class="lbl" style="margin:0;flex:1">Bitácora</span>
+          <button class="btn" id="rec1">Registrar</button>
+          <button class="btn ghost" id="clr1">Borrar</button>
+        </div>
+        <div class="tw"><table><thead><tr><th>#</th><th>Situación</th><th>Fuerza</th><th>Área</th><th>Presión</th></tr></thead><tbody id="log1"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--muted)">Áreas y umbrales aproximados, pensados para comparar órdenes de magnitud.</p>
+</div>
+</section>
+
+<!-- 5 APLICACIONES SÓLIDOS -->
+<section class="slide" data-name="Área a tu favor">
+<div class="in">
+  <div class="eyebrow">Desarrollo · Aplicaciones</div>
+  <h2>Cambiar el área protege o daña el cuerpo</h2>
+  <div class="grid3">
+    <div class="panel"><span class="lbl">Agujas</span><p>La punta tiene un área minúscula. Con poca fuerza se logra una presión enorme y la aguja atraviesa la piel con poco dolor.</p></div>
+    <div class="panel"><span class="lbl">Mochilas</span><p>Las tiras anchas y acolchadas reparten el peso en más área. La misma mochila presiona hasta 4 veces menos sobre tus hombros.</p></div>
+    <div class="panel"><span class="lbl">Escaras</span><p>Una persona que pasa días en cama sin moverse recibe presión constante en talones y caderas. Si supera unos 4 kPa, la sangre deja de llegar a la piel y se forman heridas.</p></div>
+    <div class="panel"><span class="lbl">Colchones especiales</span><p>Los colchones de aire o espuma se amoldan al cuerpo, aumentan el área de contacto y bajan la presión sobre los huesos.</p></div>
+    <div class="panel"><span class="lbl">Zapatos</span><p>Un taco aguja concentra el peso en 1 cm². Una zapatilla lo reparte en toda la planta y cuida tus pies y rodillas.</p></div>
+    <div class="panel"><span class="lbl">Camillas de rescate</span><p>Para rescatar a alguien sobre hielo delgado, los rescatistas se acuestan: repartiendo el peso, el hielo no se rompe.</p></div>
+  </div>
+</div>
+</section>
+
+<!-- 6 PRESIÓN SANGUÍNEA -->
+<section class="slide" data-name="Presión arterial">
+<div class="in">
+  <div class="eyebrow">Desarrollo · Fluidos en el cuerpo</div>
+  <h2>Tu corazón es una bomba de presión</h2>
+  <div class="grid2">
+    <div class="panel fig">
+      <span class="lbl">Un latido</span>
+      <svg viewBox="0 0 420 220" role="img" aria-label="Gráfico de la presión en una arteria durante dos latidos: sube hasta 120 mmHg (sistólica) y baja hasta 80 mmHg (diastólica)">
+        <line x1="50" y1="190" x2="410" y2="190" stroke-width="1.5" style="stroke:var(--ink)"/>
+        <line x1="50" y1="20" x2="50" y2="190" stroke-width="1.5" style="stroke:var(--ink)"/>
+        <line x1="50" y1="50" x2="410" y2="50" stroke-dasharray="4 4" style="stroke:var(--blood)"/>
+        <line x1="50" y1="110" x2="410" y2="110" stroke-dasharray="4 4" style="stroke:var(--cyan)"/>
+        <text x="44" y="54" text-anchor="end" font-size="12" font-family="IBM Plex Mono,monospace" style="fill:var(--muted)">120</text>
+        <text x="44" y="114" text-anchor="end" font-size="12" font-family="IBM Plex Mono,monospace" style="fill:var(--muted)">80</text>
+        <path d="M50 110 C70 110 80 50 105 50 C130 50 140 95 160 95 C170 95 175 88 185 92 C215 105 230 110 240 110 C260 110 270 50 295 50 C320 50 330 95 350 95 C360 95 365 88 375 92 C395 102 405 108 410 110" fill="none" stroke-width="3" style="stroke:var(--blood)"/>
+        <text x="300" y="40" font-size="13" font-family="IBM Plex Mono,monospace" font-weight="700" style="fill:var(--blood)">SISTÓLICA</text>
+        <text x="300" y="132" font-size="13" font-family="IBM Plex Mono,monospace" font-weight="700" style="fill:var(--cyan)">DIASTÓLICA</text>
+        <text x="230" y="210" text-anchor="middle" font-size="12" font-family="IBM Plex Sans,sans-serif" style="fill:var(--muted)">tiempo →  (cada latido ≈ 0,8 s)</text>
+        <text x="16" y="105" font-size="12" font-family="IBM Plex Sans,sans-serif" transform="rotate(-90 16 105)" text-anchor="middle" style="fill:var(--muted)">mmHg</text>
+      </svg>
+    </div>
+    <div class="panel stack">
+      <span class="lbl">Dos números</span>
+      <p><span class="bl">Sistólica</span>: la presión máxima, cuando el corazón se contrae y empuja la sangre.</p>
+      <p><span class="vi" style="color:var(--cyan)">Diastólica</span>: la presión mínima, cuando el corazón se relaja y se vuelve a llenar.</p>
+      <p>Se escribe <b>120/80 mmHg</b> y se lee "120 sobre 80". Son milímetros de mercurio, la misma unidad del barómetro de Torricelli.</p>
+      <p>Se mide con un <span class="hl">esfigmomanómetro</span>: un manguito que aprieta el brazo y un manómetro.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 7 LAB 2 -->
+<section class="slide" data-name="Lab: tensiómetro">
+<div class="in">
+  <div class="eyebrow">Laboratorio 2 · Toma la presión arterial</div>
+  <div class="lab">
+    <div class="panel ctrl">
+      <div><span class="lbl">Paciente</span><div class="chips" id="prof"></div></div>
+      <div><span class="lbl">Actividad previa</span><div class="chips" id="act"></div></div>
+      <div><span class="lbl">Estado</span><div class="chips" id="emo"></div></div>
+      <div><span class="lbl">Posición del cuerpo</span><div class="chips" id="pos"></div></div>
+      <div><span class="lbl">Altura del brazo</span><div class="chips" id="arm"></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="measure">Medir</button>
+        <button class="btn ghost" id="snd" aria-pressed="true">Sonido: sí</button>
+        <button class="btn ghost" id="spd" aria-pressed="false">Velocidad ×1</button>
+      </div>
+      <p class="note" id="bpNote"></p>
+    </div>
+    <div class="stack" style="min-width:0;gap:18px">
+      <div class="grid2">
+        <div class="panel">
+          <span class="lbl">Esfigmomanómetro · presión del manguito</span>
+          <div class="dialwrap">
+            <svg viewBox="0 0 220 200" role="img" aria-label="Manómetro del manguito, de 0 a 300 mmHg">
+              <circle cx="110" cy="105" r="92" stroke-width="3" style="fill:var(--paper);stroke:var(--ink)"/>
+              <g id="bpTicks"></g>
+              <line id="bpNeedle" x1="110" y1="105" x2="110" y2="30" stroke-width="3.5" stroke-linecap="round" style="stroke:var(--blood);transform-origin:110px 105px"/>
+              <circle cx="110" cy="105" r="7" style="fill:var(--ink)"/>
+              <text x="110" y="160" text-anchor="middle" font-family="Share Tech Mono,IBM Plex Mono,monospace" font-size="24" id="cuffVal" style="fill:var(--ink)">0</text>
+              <text x="110" y="178" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" style="fill:var(--muted)">mmHg</text>
+            </svg>
+            <div class="stack" style="gap:6px;min-width:0;flex:1">
+              <span class="heart" id="heart" aria-hidden="true">♥</span>
+              <span class="verdict" id="phase">LISTO</span>
+              <span style="font-size:14px;color:var(--muted)" id="hearTxt">Presiona "Medir".</span>
+            </div>
+          </div>
+          <span class="lbl" style="margin-top:12px">Estetoscopio · latidos escuchados mientras baja el manguito</span>
+          <div class="steth" id="steth"></div>
+        </div>
+        <div class="panel">
+          <span class="lbl">Tensiómetro digital</span>
+          <div class="lcd">
+            <div class="flag" id="dFlag">— — —</div>
+            <div class="bp">
+              <span class="k">SIS</span><span class="v" id="dSys">---</span>
+              <span class="k">DIA</span><span class="v" id="dDia">---</span>
+              <span class="k">PULSO</span><span class="v" id="dPul" style="font-size:clamp(26px,3.4vw,36px)">--</span>
+            </div>
+          </div>
+          <div class="cls" id="cls" aria-label="Referencia aproximada para adultos"><span>Normal</span><span>Normal alta</span><span>Alta</span></div>
+          <p style="font-size:13px;color:var(--muted);margin-top:8px" id="clsNote">Referencia aproximada para adultos: normal bajo 120/80, alta desde 140/90.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+          <span class="lbl" style="margin:0;flex:1">Bitácora de mediciones</span>
+          <button class="btn ghost" id="clr2">Borrar</button>
+        </div>
+        <div class="tw"><table><thead><tr><th>#</th><th>Paciente</th><th>Condiciones</th><th>Estetoscopio</th><th>Digital</th><th>Pulso</th></tr></thead><tbody id="log2"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--muted)">Simulación con fines educativos. No sirve para evaluar la salud de una persona real: eso lo hace un profesional de la salud.</p>
+</div>
+</section>
+
+<!-- 8 MISIONES -->
+<section class="slide" data-name="Misiones">
+<div class="in">
+  <div class="eyebrow">Laboratorio · Misiones</div>
+  <h2>Usa los dos laboratorios y anota en tu bitácora</h2>
+  <ol class="missions">
+    <li><span><b>Elefante contra taco aguja.</b> En el laboratorio 1, mide ambas situaciones. ¿Cuántas veces mayor es una presión que la otra? ¿Acertaste en tu predicción?</span></li>
+    <li><span><b>Mochila.</b> Compara tiras delgadas y tiras anchas con la misma mochila. ¿Qué cambió: la fuerza o el área?</span></li>
+    <li><span><b>Cama dura.</b> Compara acostarte en un colchón y en el suelo. ¿Cuál supera la presión que cierra los capilares de la piel?</span></li>
+    <li><span><b>Ejercicio.</b> En el laboratorio 2, mide a un estudiante en reposo y después de correr. ¿Qué número cambió más: la sistólica o la diastólica?</span></li>
+    <li><span><b>El brazo engaña.</b> Mide con el brazo a la altura del corazón, colgando y levantado. ¿Por qué cambia la lectura si el corazón no cambió?</span></li>
+  </ol>
+</div>
+</section>
+
+<!-- 9 FLUIDOS -->
+<section class="slide" data-name="Oídos y buceo">
+<div class="in">
+  <div class="eyebrow">Desarrollo · El cuerpo dentro de fluidos</div>
+  <h2>Tu cuerpo vive sumergido en aire, y a veces en agua</h2>
+  <div class="grid3">
+    <div class="panel"><span class="lbl">Oídos</span><p>El tímpano separa el aire de afuera del aire del oído medio. Si la presión cambia rápido (avión, cordillera, piscina), el tímpano se curva y sientes los oídos tapados. Tragar o bostezar abre la trompa de Eustaquio y equilibra.</p></div>
+    <div class="panel"><span class="lbl">Buceo</span><p>Cada 10 m bajo el agua la presión aumenta 1 atmósfera. A 10 m tus pulmones soportan el doble de presión que en la superficie. Por eso los buzos suben lento.</p></div>
+    <div class="panel"><span class="lbl">Respirar</span><p>El diafragma baja, los pulmones se expanden y la presión dentro baja un poco. El aire de afuera, con más presión, entra solo.</p></div>
+    <div class="panel"><span class="lbl">Pies hinchados</span><p>De pie, la columna de sangre sobre tus pies agrega unos 90 mmHg. Por eso los pies se hinchan después de estar muchas horas parado.</p></div>
+    <div class="panel"><span class="lbl">Altura</span><p>En el altiplano hay menos presión del aire y entra menos oxígeno en cada respiración. Lo vimos en la clase anterior: la puna.</p></div>
+    <div class="panel"><span class="lbl">Ojos</span><p>Dentro del ojo hay un líquido a presión (unos 15 mmHg) que mantiene su forma redonda. Los oftalmólogos la miden con un soplido de aire.</p></div>
+  </div>
+</div>
+</section>
+
+<!-- 10 CIERRE -->
+<section class="slide" data-name="Cierre">
+<div class="in">
+  <div class="eyebrow">Cierre · Ticket de salida</div>
+  <h2>¿Elefante o taco aguja?</h2>
+  <div class="panel stack">
+    <p id="yourPred" class="big">Tu predicción: —</p>
+    <button class="btn" id="revealBtn" style="align-self:flex-start">Revelar respuesta</button>
+    <p id="answer" hidden class="big"><b class="hl">Respuesta B.</b> El elefante reparte 4 toneladas en cuatro patas enormes: unos 80 kPa. El taco aguja pone 50 kg sobre 1 cm²: unos 4900 kPa, ¡60 veces más! Lo que importa no es solo la fuerza, sino el área sobre la que se reparte.</p>
+  </div>
+  <div class="panel">
+    <span class="lbl">Ticket de salida</span>
+    <p class="big">Da un ejemplo del cuerpo humano donde aumentar el área disminuye la presión, y explica qué significan los números de 120/80.</p>
+  </div>
+  <div class="sema">
+    <div><span class="dot" style="background:var(--lime)"></span>Lo entendí y puedo explicarlo</div>
+    <div><span class="dot" style="background:var(--orange)"></span>Lo entiendo a medias</div>
+    <div><span class="dot" style="background:var(--danger)"></span>Necesito ayuda</div>
+  </div>
+</div>
+</section>
+
+</main>
+
+<nav class="foot" aria-label="Navegación de láminas">
+  <button class="nb" id="prev" aria-label="Lámina anterior">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="count" id="count">1 / 10</span>
+  <button class="nb" id="next" aria-label="Lámina siguiente">→</button>
+  <button class="nb" id="fs" aria-label="Pantalla completa">⛶</button>
+</nav>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const fmt=(n,d=1)=>n.toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d});
+const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const G=9.8;
+
+/* ---------- Navegación ---------- */
+const slides=[...document.querySelectorAll('.slide')];
+let cur=0;
+slides.forEach((s,i)=>{const b=document.createElement('button');b.setAttribute('aria-label','Ir a lámina '+(i+1)+': '+s.dataset.name);b.onclick=()=>go(i);$('dots').appendChild(b)});
+function go(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,j)=>{s.hidden=j!==cur;s.classList.toggle('anim',j===cur)});
+  [...$('dots').children].forEach((b,j)=>b.setAttribute('aria-current',j===cur));
+  $('count').textContent=(cur+1)+' / '+slides.length;
+  $('slideName').textContent=slides[cur].dataset.name;
+  slides[cur].scrollTop=0;
+  if(location.hash!=='#s'+(cur+1)) history.replaceState(null,'','#s'+(cur+1));
+}
+$('prev').onclick=()=>go(cur-1);$('next').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{
+  const t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA')) return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){go(cur+1);e.preventDefault()}
+  if(e.key==='ArrowLeft'||e.key==='PageUp'){go(cur-1);e.preventDefault()}
+});
+$('fs').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
+go(parseInt((location.hash.match(/^#s(\d+)$/)||[])[1]||'1',10)-1);
+
+/* ---------- Predicción ---------- */
+const predTxt={a:'A · el elefante',b:'B · el taco aguja',c:'C · lo mismo'};
+let pred=store.get('pc-pred',null);
+function paintPred(){
+  document.querySelectorAll('#opts .opt').forEach(o=>o.setAttribute('aria-pressed',o.dataset.k===pred));
+  $('yourPred').textContent='Tu predicción: '+(pred?predTxt[pred]:'no elegiste ninguna');
+}
+document.querySelectorAll('#opts .opt').forEach(o=>o.onclick=()=>{pred=o.dataset.k;store.set('pc-pred',pred);paintPred()});
+paintPred();
+$('revealBtn').onclick=()=>{$('answer').hidden=false;document.querySelector('#opts .opt[data-k="b"]').classList.add('ok')};
+
+/* =========================================================
+   LAB 1 · presión de contacto  (src: body | pack | fixed)
+   ========================================================= */
+const SCEN=[
+  {n:'De pie, descalzo',src:'body',a:300,t:'Todo tu peso se reparte en las plantas de los dos pies (unos 150 cm² cada una).'},
+  {n:'En un pie',src:'body',a:150,t:'Mismo peso, la mitad del área: la presión se duplica.'},
+  {n:'En puntillas',src:'body',a:50,t:'Solo apoyas la parte delantera de los pies. Por eso cansa tanto.'},
+  {n:'Taco aguja',src:'body',a:1,t:'Al caminar hay un instante en que todo tu peso cae sobre el talón del zapato: alrededor de 1 cm².'},
+  {n:'Esquíes',src:'body',a:3000,t:'Dos esquíes largos reparten el peso en mucha área: no te hundes en la nieve.'},
+  {n:'Acostado en colchón',src:'body',a:2500,t:'El colchón se amolda al cuerpo y aumenta el área de contacto.'},
+  {n:'Acostado en el suelo',src:'body',a:500,t:'El suelo duro solo toca la cabeza, omóplatos, caderas y talones. Por eso molesta, y por eso aparecen escaras en personas que no se pueden mover.'},
+  {n:'Cama de faquir (1500 clavos)',src:'body',a:15,t:'Cada clavo tiene una punta de 0,01 cm². Muchos clavos juntos suman 15 cm²: duele, pero no perfora la piel.'},
+  {n:'Mochila, tiras delgadas',src:'pack',a:32,t:'Dos tiras de 2 cm de ancho apoyadas en 8 cm del hombro.'},
+  {n:'Mochila, tiras anchas',src:'pack',a:120,t:'Dos tiras acolchadas de 6 cm de ancho apoyadas en 10 cm del hombro.'},
+  {n:'Aguja de inyección',src:'fixed',f:2,a:0.0005,t:'Solo 2 N de fuerza (como sostener una manzana chica), pero la punta mide 0,05 mm². La presión es gigante.'},
+  {n:'Pata de elefante',src:'fixed',f:4000*G,a:4800,t:'Un elefante de 4000 kg sobre cuatro patas de unos 1200 cm² cada una.'}
+];
+const MARKS=[
+  {v:4.3,l:'cierra capilares',up:true},
+  {v:20,l:'incómodo'},
+  {v:101.3,l:'1 atm',up:true},
+  {v:400,l:'dolor (aprox.)'},
+  {v:5000,l:'taco aguja',up:true}
+];
+const LMIN=Math.log10(0.5),LMAX=Math.log10(1e6);
+const lpos=v=>Math.max(0,Math.min(100,(Math.log10(v)-LMIN)/(LMAX-LMIN)*100));
+MARKS.forEach(m=>{const d=document.createElement('div');d.className='mk'+(m.up?' up':'');d.style.left=lpos(m.v)+'%';d.innerHTML='<span>'+m.l+'</span>';$('scale').appendChild(d)});
+const l1={i:0,mass:45,pack:8};
+SCEN.forEach((s,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=s.n;b.onclick=()=>{l1.i=i;upd1()};$('scen').appendChild(b)});
+$('mass').oninput=e=>{l1.mass=+e.target.value;upd1()};
+$('pack').oninput=e=>{l1.pack=+e.target.value;upd1()};
+function calc1(){
+  const s=SCEN[l1.i];
+  const F=s.src==='body'?l1.mass*G:s.src==='pack'?l1.pack*G:s.f;
+  const Am=s.a/1e4;
+  const P=F/Am/1000; // kPa
+  return {s,F,Am,P};
+}
+function fmtArea(cm2){return cm2>=1?fmt(cm2,0)+' cm²':cm2>=0.01?fmt(cm2,2)+' cm²':fmt(cm2*100,2)+' mm²'}
+function fmtP(P){return P>=1000?fmt(P,0):P>=10?fmt(P,1):fmt(P,2)}
+function upd1(){
+  const {s,F,Am,P}=calc1();
+  document.querySelectorAll('#scen .chip').forEach((b,i)=>b.setAttribute('aria-pressed',i===l1.i));
+  $('massO').textContent=l1.mass+' kg';$('packO').textContent=l1.pack+' kg';
+  $('mass').disabled=s.src!=='body';$('pack').disabled=s.src!=='pack';
+  $('scNote').textContent=s.t;
+  $('pVal').textContent=fmtP(P);
+  $('pNcm').textContent=fmt(F/s.a,2)+' N/cm²';
+  $('pAtm').textContent=fmt(P/101.325,P>101?0:2)+' atm';
+  $('pFlag').textContent=s.n.toUpperCase();
+  const src=s.src==='body'?'masa corporal '+l1.mass+' kg × 9,8':s.src==='pack'?'mochila '+l1.pack+' kg × 9,8':'fuerza dada';
+  $('calc').innerHTML='<div>F = '+src+' = <b>'+fmt(F,F<10?1:0)+' N</b></div><div>A = '+fmtArea(s.a)+' = <b>'+(Am<0.001?Am.toExponential(1).replace('.',','):fmt(Am,4))+' m²</b></div><div>P = F ÷ A = <b>'+fmtP(P)+' kPa</b></div>';
+  $('cur').style.left='calc('+lpos(P)+'% )';
+  let v,c;
+  if(P<4.3){v='Muy suave: la sangre circula bien en la piel.';c='var(--lime)'}
+  else if(P<20){v='Suave, pero si dura horas sin moverse puede dañar la piel.';c='var(--lime)'}
+  else if(P<400){v='Se siente: presión incómoda.';c='var(--orange)'}
+  else if(P<20000){v='Duele: supera el umbral de dolor aproximado.';c='var(--danger)'}
+  else {v='Atraviesa la piel: así funciona una aguja.';c='var(--danger)'}
+  $('verdict').textContent=v;$('verdict').style.color=c;
+}
+let log1=store.get('pc-log1',[]);
+function paintLog1(){
+  $('log1').innerHTML=log1.length?log1.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.n+'</td><td>'+r.f+'</td><td>'+r.a+'</td><td><b>'+r.p+' kPa</b></td></tr>').join(''):'<tr><td colspan="5" style="color:var(--muted)">Elige una situación y presiona "Registrar".</td></tr>';
+}
+$('rec1').onclick=()=>{const {s,F,P}=calc1();log1.push({n:s.n,f:fmt(F,F<10?1:0)+' N',a:fmtArea(s.a),p:fmtP(P)});if(log1.length>15)log1.shift();store.set('pc-log1',log1);paintLog1()};
+$('clr1').onclick=()=>{log1=[];store.set('pc-log1',log1);paintLog1()};
+paintLog1();upd1();
+
+/* =========================================================
+   LAB 2 · tensiómetro
+   ========================================================= */
+const PROF=[
+  {n:'Estudiante 12 años',s:106,d:66,p:82,kid:true},
+  {n:'Adulto 35 años',s:118,d:76,p:72},
+  {n:'Deportista',s:112,d:68,p:54},
+  {n:'Adulto mayor 72 años',s:138,d:82,p:70}
+];
+const ACT=[{n:'Reposo',s:0,d:0,p:0},{n:'Caminó',s:10,d:2,p:22},{n:'Trotó',s:28,d:3,p:55},{n:'Corrió fuerte',s:50,d:5,p:95}];
+const EMO=[{n:'Tranquilo',s:0,d:0,p:0},{n:'Nervioso',s:12,d:6,p:14},{n:'Tomó café',s:7,d:4,p:4}];
+const POS=[{n:'Acostado',s:-2,d:-3,p:-5},{n:'Sentado',s:0,d:0,p:0},{n:'De pie',s:0,d:4,p:8}];
+const ARM=[{n:'Levantado',h:-30,t:'El manguito queda 30 cm sobre el corazón. La sangre tiene que subir esa columna: la lectura baja unos 23 mmHg.'},{n:'A la altura del corazón',h:0,t:'Posición correcta: el manguito a la altura del corazón.'},{n:'Colgando',h:20,t:'El manguito queda 20 cm bajo el corazón. Se suma el peso de esa columna de sangre: la lectura sube unos 16 mmHg.'}];
+const l2={pf:1,ac:0,em:0,po:1,ar:1,sound:true,speed:1};
+function mk(id,arr,key){arr.forEach((o,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=o.n;b.onclick=()=>{if(run)return;l2[key]=i;paint2()};$(id).appendChild(b)})}
+mk('prof',PROF,'pf');mk('act',ACT,'ac');mk('emo',EMO,'em');mk('pos',POS,'po');mk('arm',ARM,'ar');
+function paint2(){
+  [['prof','pf'],['act','ac'],['emo','em'],['pos','po'],['arm','ar']].forEach(([id,k])=>[...$(id).children].forEach((b,i)=>{b.setAttribute('aria-pressed',i===l2[k]);b.disabled=!!run&&i!==l2[k]}));
+  $('bpNote').textContent=ARM[l2.ar].t;
+  $('clsNote').textContent=PROF[l2.pf].kid?'En niños y adolescentes los valores normales son más bajos y dependen de la edad y la estatura. La barra de colores es solo para adultos.':'Referencia aproximada para adultos: normal bajo 120/80, alta desde 140/90.';
+}
+function truth(){
+  const P=PROF[l2.pf],A=ACT[l2.ac],E=EMO[l2.em],O=POS[l2.po],h=ARM[l2.ar].h*0.78;
+  const j=()=>Math.round((Math.random()-.5)*4);
+  return {s:Math.round(P.s+A.s+E.s+O.s+h)+j(),d:Math.round(P.d+A.d+E.d+O.d+h)+j(),p:Math.max(40,P.p+A.p+E.p+O.p+j())};
+}
+// dial 0–300 mmHg en 270°
+(function(){
+  let s='';
+  for(let v=0;v<=300;v+=10){
+    const a=(-135+v/300*270)*Math.PI/180,L=v%50===0?14:7;
+    const x1=110+Math.sin(a)*86,y1=105-Math.cos(a)*86,x2=110+Math.sin(a)*(86-L),y2=105-Math.cos(a)*(86-L);
+    s+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke-width="'+(v%50===0?2.2:1)+'" style="stroke:var(--ink)"/>';
+    if(v%50===0){const tx=110+Math.sin(a)*60,ty=105-Math.cos(a)*60+4;s+='<text x="'+tx+'" y="'+ty+'" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" style="fill:var(--muted)">'+v+'</text>'}
+  }
+  $('bpTicks').innerHTML=s;
+})();
+function setCuff(p){$('bpNeedle').style.transform='rotate('+(-135+Math.min(300,p)/300*270)+'deg)';$('cuffVal').textContent=Math.round(p)}
+setCuff(0);
+
+let actx=null;
+function thump(){
+  if(!l2.sound) return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime;
+    o.type='sine';o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(45,t+.12);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.6,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.16);
+    o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.18);
+  }catch(e){}
+}
+$('snd').onclick=()=>{l2.sound=!l2.sound;$('snd').textContent='Sonido: '+(l2.sound?'sí':'no');$('snd').setAttribute('aria-pressed',l2.sound)};
+$('spd').onclick=()=>{l2.speed=l2.speed===1?2:1;$('spd').textContent='Velocidad ×'+l2.speed;$('spd').setAttribute('aria-pressed',l2.speed===2)};
+
+let run=null;
+const PMAX=220,PMIN=30;
+function tickPos(p){return (PMAX-p)/(PMAX-PMIN)*100}
+function resetSteth(){
+  const st=$('steth');st.innerHTML='';
+  [200,160,120,80,40].forEach(v=>{const a=document.createElement('span');a.className='ax';a.style.left='calc('+tickPos(v)+'% - 8px)';a.textContent=v;st.appendChild(a)});
+}
+resetSteth();
+$('measure').onclick=()=>{
+  if(run) return;
+  try{if(l2.sound){actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}}catch(e){}
+  const T=truth();
+  const target=Math.min(PMAX,Math.max(T.s+30,160));
+  run={T,p:0,phase:'in',target,beatAcc:0,first:null,last:null,t0:performance.now(),lt:performance.now()};
+  resetSteth();
+  $('dSys').textContent='---';$('dDia').textContent='---';$('dPul').textContent='--';$('dFlag').textContent='MIDIENDO…';
+  [...$('cls').children].forEach(s=>s.classList.remove('on'));
+  $('measure').disabled=true;paint2();
+  requestAnimationFrame(step);
+};
+function step(now){
+  const r=run; if(!r) return;
+  const dt=Math.min(.1,(now-r.lt)/1000)*l2.speed; r.lt=now;
+  if(r.phase==='in'){
+    r.p+=70*dt; $('phase').textContent='INFLANDO'; $('hearTxt').textContent='El manguito aprieta el brazo y detiene el paso de la sangre.';
+    if(r.p>=r.target){r.p=r.target;r.phase='out'}
+  }else if(r.phase==='out'){
+    r.p-=5*dt; $('phase').textContent='DESINFLANDO';
+    r.beatAcc+=dt;
+    const per=60/r.T.p;
+    if(r.beatAcc>=per){
+      r.beatAcc-=per;
+      const heard=r.p<=r.T.s&&r.p>=r.T.d;
+      const tk=document.createElement('span');tk.className='tk'+(heard?' on':'');tk.style.left=tickPos(r.p)+'%';$('steth').appendChild(tk);
+      if(heard){
+        if(r.first===null) r.first=Math.round(r.p);
+        r.last=Math.round(r.p);
+        thump();const h=$('heart');h.classList.add('beat');setTimeout(()=>h.classList.remove('beat'),120);
+        $('hearTxt').textContent='Se escucha el latido: la sangre logra pasar a golpes. Primer latido a '+r.first+' mmHg.';
+      }else if(r.first===null){$('hearTxt').textContent='Silencio: el manguito todavía aprieta más que el corazón.'}
+      else {$('hearTxt').textContent='Silencio otra vez: la sangre fluye sin obstáculo.'}
+    }
+    if(r.p<r.T.d-12||r.p<PMIN){r.phase='rel'}
+  }else{
+    r.p-=120*dt; $('phase').textContent='LIBERANDO';
+    if(r.p<=0){r.p=0;finish();return}
+  }
+  setCuff(r.p);
+  requestAnimationFrame(step);
+}
+function finish(){
+  const r=run;run=null;
+  $('phase').textContent='LISTO';
+  $('dSys').textContent=r.T.s;$('dDia').textContent=r.T.d;$('dPul').textContent=r.T.p;$('dFlag').textContent='MEDICIÓN COMPLETA';
+  $('hearTxt').textContent=r.first!==null?'Estetoscopio: '+r.first+'/'+r.last+' mmHg. Compáralo con el digital.':'No se escucharon latidos.';
+  const k=(r.T.s>=140||r.T.d>=90)?2:(r.T.s>=120||r.T.d>=80)?1:0;
+  if(!PROF[l2.pf].kid)[...$('cls').children].forEach((s,i)=>s.classList.toggle('on',i===k));
+  log2.push({pf:PROF[l2.pf].n,c:[ACT[l2.ac].n,EMO[l2.em].n,POS[l2.po].n,'brazo '+ARM[l2.ar].n.toLowerCase()].join(' · '),st:r.first!==null?r.first+'/'+r.last:'—',dg:r.T.s+'/'+r.T.d,p:r.T.p});
+  if(log2.length>15) log2.shift();
+  store.set('pc-log2',log2);paintLog2();
+  $('measure').disabled=false;paint2();
+}
+let log2=store.get('pc-log2',[]);
+function paintLog2(){
+  $('log2').innerHTML=log2.length?log2.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.pf+'</td><td>'+r.c+'</td><td>'+r.st+'</td><td><b>'+r.dg+'</b></td><td>'+r.p+'</td></tr>').join(''):'<tr><td colspan="6" style="color:var(--muted)">Cada medición se registra sola al terminar.</td></tr>';
+}
+$('clr2').onclick=()=>{log2=[];store.set('pc-log2',log2);paintLog2()};
+paintLog2();paint2();
+})();
+</script>
+
+</body>
+</html>
