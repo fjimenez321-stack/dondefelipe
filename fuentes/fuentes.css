@@ -50,3 +50,48 @@ html::before {
   background: linear-gradient(90deg, #12b85a 0 33.33%, #ffd60a 33.33% 66.66%, #ff2b3d 66.66% 100%);
 }
 ::selection { background: #ffd60a; color: #0b0b0f; }
+
+/* Tarjetas reggae (nov 2026): las tarjetas de recursos y cursos usan las ilustraciones de papel con franjas
+   verde·amarillo·rojo, león y palmeras (estilo/tarjeta-reggae-1/2.webp) con background:cover.
+   Como el fondo es claro, el texto pasa a tonos oscuros. Para volver a las tarjetas oscuras, borra este bloque. */
+html body .card.c-sea, html body .card.c-laurel, html body .card.c-gold, html body .card.c-fem {
+  background: #f1e6cc url('../estilo/tarjeta-reggae-1.webp') center / cover no-repeat;
+  border: 0; border-radius: 18px; color: #2b2418;
+  box-shadow: 0 10px 26px rgba(0,0,0,.45);
+  padding-left: 1.7rem; padding-right: 1.7rem;
+}
+html body .card.c-sea:nth-child(even), html body .card.c-laurel:nth-child(even),
+html body .card.c-gold:nth-child(even), html body .card.c-fem:nth-child(even) {
+  background-image: url('../estilo/tarjeta-reggae-2.webp');
+}
+html body .card.c-sea:hover, html body .card.c-laurel:hover, html body .card.c-gold:hover, html body .card.c-fem:hover {
+  box-shadow: 0 20px 44px rgba(0,0,0,.6), 0 0 0 3px rgba(255,214,10,.55);
+}
+html body .card.c-sea h3 { color: #12753b; }
+html body .card.c-laurel h3 { color: #9c6f00; }
+html body .card.c-gold h3 { color: #8a5a00; }
+html body .card.c-fem h3 { color: #b0101f; }
+html body .card.c-sea p, html body .card.c-laurel p, html body .card.c-gold p, html body .card.c-fem p { color: #4a3f2c; }
+html body .card.c-sea p strong, html body .card.c-laurel p strong, html body .card.c-gold p strong, html body .card.c-fem p strong { color: #1d170c; }
+html body .card.c-sea .res-tag, html body .card.c-laurel .res-tag, html body .card.c-gold .res-tag, html body .card.c-fem .res-tag {
+  background: rgba(18,117,59,.14); color: #12753b; border-radius: 999px;
+}
+html body .card.c-sea .res-date-badge, html body .card.c-laurel .res-date-badge, html body .card.c-gold .res-date-badge, html body .card.c-fem .res-date-badge {
+  background: rgba(176,16,31,.1); color: #b0101f; border-color: rgba(176,16,31,.35); border-radius: 999px;
+}
+html body .card.c-sea .res-icon-badge, html body .card.c-laurel .res-icon-badge, html body .card.c-gold .res-icon-badge, html body .card.c-fem .res-icon-badge {
+  background: rgba(255,255,255,.55); box-shadow: none;
+}
+html body .card.c-sea .res-icon-badge { color: #12753b; border-color: rgba(18,117,59,.45); }
+html body .card.c-laurel .res-icon-badge { color: #9c6f00; border-color: rgba(156,111,0,.45); }
+html body .card.c-gold .res-icon-badge { color: #8a5a00; border-color: rgba(138,90,0,.45); }
+html body .card.c-fem .res-icon-badge { color: #b0101f; border-color: rgba(176,16,31,.45); }
+html body .card.c-sea .btn-p, html body .card.c-laurel .btn-p, html body .card.c-gold .btn-p, html body .card.c-fem .btn-p {
+  background: #12753b; color: #fff8e1; border-radius: 999px; box-shadow: 0 4px 0 #0b4d26;
+}
+html body .card.course-box i { filter: drop-shadow(0 1px 0 rgba(255,255,255,.6)); }
+html body .card.course-box.c-sea i { color: #12753b !important; }
+html body .card.course-box.c-laurel i { color: #9c6f00 !important; }
+html body .card.course-box.c-gold i { color: #8a5a00 !important; }
+html body .card.course-box.c-fem i { color: #b0101f !important; }
+html body .card.c-sea h3, html body .card.c-laurel h3, html body .card.c-gold h3, html body .card.c-fem h3 { text-shadow: 0 1px 0 rgba(255,255,255,.55); }
