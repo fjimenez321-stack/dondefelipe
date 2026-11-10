@@ -37,13 +37,14 @@
   #tactil{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:0 14px 22px;z-index:4;pointer-events:none}
   #tactil[hidden]{display:none}
   #tactil div{display:flex;gap:12px}
-  #tactil button{pointer-events:auto;width:72px;height:72px;border-radius:50%;font-size:28px;background:rgba(255,255,255,.14);color:#fff;border:2px solid rgba(255,255,255,.4)}
-  #tactil button.s{width:92px;height:92px;background:rgba(255,200,87,.3);border-color:#ffc857;font-size:16px}
+  #tactil button{pointer-events:auto;width:64px;height:64px;border-radius:50%;font-size:24px;background:rgba(255,255,255,.1);color:#fff;border:2px solid rgba(255,255,255,.4)}
+  #tactil button.s{width:84px;height:84px;background:rgba(255,200,87,.3);border-color:#ffc857;font-size:16px}
   .voy{display:block;width:min(220px,55%);margin:0 auto 6px;filter:drop-shadow(0 6px 18px rgba(127,182,255,.25))}
   .volver{display:inline-block;color:#7fb6ff;font-size:13px;text-decoration:none;margin-bottom:6px}
   .volver:hover{text-decoration:underline}
   .historia,.dato{background:#131a30;border-left:3px solid #7fb6ff;border-radius:6px;padding:10px 12px;margin:12px 0;line-height:1.5;color:#c9d1e4;font-size:14px}
   .dato{border-left-color:#ffc857}
+  .relato{color:#e9edf5;font-style:italic}
   #son{position:fixed;top:8px;right:8px;z-index:6;background:rgba(20,26,48,.8);color:#b9c2d8;border:1px solid #33406a;padding:5px 10px;font-size:12px;font-weight:600}
 </style>
 </head>
@@ -56,6 +57,14 @@
 <button id="son">Sonido: sí</button>
 <div id="ov"><div class="panel" id="panel"></div></div>
 
+<script>
+/* Sprites de la Voyager incrustados (PNG de 128 colores), para que carguen siempre,
+   sin depender de rutas ni de la caché. hoja: 3 cuadros de 155×119; frente: vista frontal. */
+window.SPRITES={
+  hoja:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAdEAAAB3CAMAAABrL4ruAAABgFBMVEUhHSAoFxEiU5mdZSEoHhugLBzZrWDvXhhtUCJZWmCqj2QrkvEhdtZLrPnY4NjmmCAwTHaopJrp26FRJQ9qKCIdLEahdU2a2/r63VkgBQBHZI3QLxXKs427hx4ZKUgUIlsQPYh2yPv9zC2PKxBBIRy8u8HKekgUJkA9QT58gXsAGLMZQ2xBQViHQS68w7QAAABNSUksKChIOjE3NTOIh40oGRZ4eoRVUlJ1dHhQQzgwJBoYFxeWlJdtaWsvOUkYJDNMJxiFeXFoWU9yZFY7Q08VKUmopqloSC5OGxRQNhlxVTB9gIpNV2ozFhFJKiMrRWwWHCgbM1aPg3ZuRxkODA1tGxObm6FrOCsZOWuOZjCseC0oiOptJBculfOPdVErKSrxNhIvKSopKSojPGUwFxTOKBMoJymIaku3hC7MljSvJhiOJBeBfoS1tLbDiiv1+vuHWietlXSkm5I0IxtCPkLWpkyvh06gnqP5RRBoOhgXKUGydxiJVxeNGhPLmUntKgyW16JEAAAAgHRSTlOaW///5///////////////////KP//////Mf////9PLv///xFC//+F//8PHR8T/wD//v////7//////v/////+/////////////////3D////////+/////////////5L/crD/jf/O////////////////bf///////2///////z+OBF8AAC3qSURBVHjazZ2JQxPJ1vaDiQi44jY6+71z733f99vo6krTS9JNOh0ICXuiYhCDgAIqetnEcRnnX/+ec6o76bCJkMxNqWyiVOpXZz9VnRjq3OgZ6tYhRNdO7fnz1PNzLVyic3OT8laXrpocHKxYXQk1ZeTm6/vrelcStbd/3M4vd+GqTVrBj3X/ptZ9M1tK6fXB7bu9vUWj64hKy63c3dofcLpv2X5JD27f3K/f9L1um9nuVGJ68NrNheSPA/lEtxG1dvwfe3tv3tyWXQfUc+u9vbX6tWs/ml0G9LmuFwdu9ibv3rx5s57oLqIyqxW392u9P94c6DKg3vBkf75eqxYH6j9WumxuzvbA+t395OfPydqXm3pXEb0/mS2vD2xVt2q9vbvdtWrDg/2WlS+W8WvA7zIvNzdQqdVqW8nk5+RCb1cRFdL1i/v7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',
+  frente:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAK4AAACBCAMAAABuKHE/AAABgFBMVEVTJg7l2aowEAnPplmXjpQmICFUWlyUZhSYd0uhkm3GrYguLCYBAgNbUzufq8Dox3M8S0JiTHB/kIy7kTu7xrrb4d4AAADn5uwXFhUqJyYuJBnZ2eRPSUfIyNGzuMfV1Nk3NDQkHBWoqLH09PVYU1JHOi1PQzcOCwtNNxa1tLdraGuGWQpuSQ6MiIt5UxKbo7W8wdCUmal2dHKRZBDh3uVkWVBwVi6Wk5Xd4eqHenGkrcJxZVU4O0NXW2OLaDBCLBGlmpKThXkkJCYBAABZQRhkSih2eoSuo5cdISbMxLgnJyYmIhsjIyM7QkkZGyFbZGiTdlItIxkpIxnCurUiIiMAAAKVdTfi29epiFCGaEmsgzgKAAAAAAMoHBMkIRxEPUODXCOymHWknqXMto8GAAA1IxGhagy4o3LBvcEdIB4uHRAmHhoiHiI8MR5jPAh6gYyCfYOodRKmdy6ljXDKpm7TuXvozJXm49geJC47KQwtLThLLAhgXmN8YS93cV7Al1fT2IiXAAAAgHRSTlMd/yv//6L//////0/H////HxH/////AP///v7////////+//////////////////////////////////////////+Sb//////8/3GvsP////9yi//Ok///////LLKv0f//////TEz/////btf///////////////+UOjwn//////EXE2cAABD6SURBVHja7ZyHe9tGtsVlO313X/a93UdgUIgOAhBBkZDYzCJSEkVRvUtO3B2X9Lopuyn/+p47AIsUyXEiepf8Pk8oioBk4Ddnzty5MxhlJvVSynpqfX1zaWl93NedeRmwm3eZJN2VNjY2D5cmHXdPYo7juq7jKorODjcnHFeqPX306EGt9EATLC1ibGmicfecB99++85uqapZgmUJAWMTjbvh7J7u7taCnnbQ6gmWGihsknH3neatWlf1tdatUlW1LC1kk61uqVnTrP8/ePD1bluzLMvXJ1vdTsn1rdbu6dPTU/87rdebbFyv03Eis+h5K142u3trd7LVTUmOIymB63pUsrlbLTbxuHa1VFoB7aJXOp1wXEOSDKXWcb0VSYIjdlv3JjtnMKQoKpVKsRu8r1WfTXaKo/+93QEuucFz26plH00y7jKr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'
+};
+</script>
 <script>
 'use strict';
 /* =====================================================================
@@ -76,7 +85,7 @@ const CUERPOS = {
   tierra:{ nombre:'Tierra', art:'la Tierra', g:9.81, color:'#3f86d8', color2:'#3fa66b', semilla:11, largo:6800,
     cielo:['#5aa9e6','#d6eefb'], suelo:'#4a4f57', borde:'#c9ccd1', fondo:'ciudad',
     obst:['casa','auto','atasco','bus','hoyo','cono','dron','casa','atasco'],
-    lema:'Cruza la ciudad y llega a la nave' },
+    lema:'Llega a la Voyager antes de que impacte el asteroide' },
   luna:{ nombre:'Luna', art:'la Luna', g:1.62, color:'#b9bcc6', color2:'#8d909b', semilla:23, largo:9000,
     cielo:['#03040a','#12162a'], suelo:'#7d808a', borde:'#b4b7c0', fondo:'luna',
     obst:['roca','rocaAlta','hoyo','modulo','rover','hoyo','roca'],
@@ -84,7 +93,7 @@ const CUERPOS = {
   marte:{ nombre:'Marte', art:'Marte', g:3.71, color:'#c9603a', color2:'#8f3d22', semilla:37, largo:8500,
     cielo:['#b9774d','#f1cfa6'], suelo:'#8e4326', borde:'#c8704a', fondo:'marte',
     obst:['roca','rocaAlta','hoyo','remolino','modulo','rover','hoyo','remolino'],
-    lema:'Cuidado con los remolinos de polvo' }
+    lema:'Lleva el Disco de Oro II a la colonia' }
 };
 const RUTA = ['tierra','luna','marte'];
 const TRAMOS = {
@@ -194,7 +203,8 @@ const botonSon=document.getElementById('son');
 botonSon.addEventListener('click',()=>{son=!son;botonSon.textContent='Sonido: '+(son?'sí':'no');});
 
 function ajustar(){
-  const ww=innerWidth,wh=innerHeight,dpr=Math.min(2,devicePixelRatio||1);
+  // en celulares 1,5 basta y alivia mucho la carga gráfica
+  const ww=innerWidth,wh=innerHeight,dpr=Math.min(esTactil?1.5:2,devicePixelRatio||1);
   W=clamp(Math.round(H*ww/wh),720,1280);
   esc=Math.min(ww/W,wh/H);
   cv.style.width=Math.floor(W*esc)+'px';cv.style.height=Math.floor(H*esc)+'px';
@@ -207,11 +217,30 @@ function aviso(a,b){E.aviso={a,b,t:3.2};}
 function modo(m){E.modo=m;tactil.hidden=!(esTactil&&m==='plat');}
 
 /* ---------- 4. PLATAFORMA ---------- */
+/* La amenaza: el asteroide K-77 (inventado). En la Tierra hay una cuenta regresiva
+   hasta el impacto; si llega a cero antes de despegar, se pierde la etapa. */
+const CUENTA_TIERRA=150;                   // segundos
+function amenaza(){
+  if(!P||E.etapa!==0||E.modo!=='plat')return 0;
+  return clamp(1-P.cuenta/CUENTA_TIERRA,0,1)*.85+(P.fin?Math.min(.15,P.fin*.1):0);
+}
+function asteroide(u){
+  const x=W*(.24+u*.2),y=105+u*70,r=9+u*u*62;
+  const gr=ctx.createRadialGradient(x,y,r*.4,x,y,r*2.6);      // resplandor
+  gr.addColorStop(0,'rgba(255,170,80,.55)');gr.addColorStop(1,'rgba(255,90,40,0)');
+  ctx.fillStyle=gr;circ(x,y,r*2.6);ctx.fill();
+  ctx.fillStyle='rgba(255,200,120,.35)';                      // estela
+  ctx.beginPath();ctx.moveTo(x-r*.7,y-r*.6);ctx.lineTo(x-r*5,y-r*4.2);ctx.lineTo(x-r*.2,y-r*.95);ctx.fill();
+  ctx.fillStyle='#5b4334';ctx.beginPath();
+  for(let i=0;i<9;i++){const a=i/9*6.283,k=.8+hash(i+40)*.3;ctx.lineTo(x+Math.cos(a)*r*k,y+Math.sin(a)*r*k);}
+  ctx.fill();
+  ctx.fillStyle='rgba(255,140,60,.8)';circ(x+r*.35,y+r*.3,r*.35);ctx.fill();
+}
 function iniciarPlat(i){
   E.etapa=i;N=generarNivel(RUTA[i]);
-  P={x:170,y:SUELO-44,w:26,h:44,vx:0,vy:0,suelo:true,dir:1,vidas:3,inv:0,coy:0,buf:0,previo:0,seg:{x:170,y:SUELO-44},monedas:0,fin:0,paso:0};
+  P={x:300,y:SUELO-44,w:26,h:44,vx:0,vy:0,suelo:true,dir:1,vidas:3,inv:0,coy:0,buf:0,previo:0,seg:{x:300,y:SUELO-44},monedas:0,fin:0,paso:0,cuenta:CUENTA_TIERRA};
   cam=0;modo('plat');
-  aviso(N.c.nombre+' · g = '+coma(N.c.g)+' m/s²',N.c.lema);
+  aviso(i===0?'¡Evacuación!':N.c.nombre+' · g = '+coma(N.c.g)+' m/s²',N.c.lema);
 }
 function solapa(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
 function danio(){
@@ -231,6 +260,11 @@ function actualizarPlat(dt){
     P.fin+=dt;
     if(P.fin>2.2){E.dinero+=P.monedas;E.ultimas=P.monedas;if(E.etapa>=RUTA.length-1)pantallaFin();else pantallaHangar();}
     return;
+  }
+  if(E.etapa===0){
+    const antes=Math.ceil(P.cuenta);P.cuenta-=dt;
+    if(P.cuenta<=10&&Math.ceil(P.cuenta)!==antes)bip(880,.08,'square',.04);   // tic de los últimos 10 s
+    if(P.cuenta<=0){P.cuenta=0;fallo('tiempo');return;}
   }
   const vmax=V_CARRERA*(1+.08*m.velocidad);
   const dir=(K.der?1:0)-(K.izq?1:0);
@@ -281,26 +315,50 @@ function colinas(par,base,amp,lon,color,sem){
   for(let x=0;x<=W+24;x+=24){const wx=x+cam*par;ctx.lineTo(x,base-amp*(.5+.5*Math.sin(wx/lon+sem))-amp*.35*Math.sin(wx/(lon*.37)+sem*2));}
   ctx.lineTo(W+24,H);ctx.fill();
 }
+/* Optimización: las estrellas se calculan una vez y se dibujan en 3 grupos de brillo,
+   y los edificios se pre-dibujan en una tira que se repite (antes eran ~800 rectángulos por cuadro). */
+const ESTR=Array.from({length:130},(_,i)=>{const z=hash(i*3+2);return{x:hash(i*3),y:hash(i*3+1)*H,z,s:1+z*1.6,g:Math.min(2,z*3|0)};});
+const ALFA_ESTR=['rgba(255,255,255,.4)','rgba(255,255,255,.7)','rgba(255,255,255,1)'];
 function estrellas(n,dy){
-  for(let i=0;i<n;i++){const z=hash(i*3+2);ctx.fillStyle='rgba(255,255,255,'+(.3+z*.7)+')';
-    const y=(hash(i*3+1)*H+(dy||0)*(.2+z))%H;ctx.fillRect(hash(i*3)*W,y,1+z*1.6,1+z*1.6);}
+  for(let g=0;g<3;g++){ctx.fillStyle=ALFA_ESTR[g];
+    for(let i=0;i<n;i++){const e=ESTR[i];if(e.g!==g)continue;
+      ctx.fillRect(e.x*W,(e.y+(dy||0)*(.2+e.z))%H,e.s,e.s);}}
+}
+const cacheGrad={};
+function degradado(clave,y1,c0,c1){
+  if(!cacheGrad[clave]){const g=ctx.createLinearGradient(0,0,0,y1);g.addColorStop(0,c0);g.addColorStop(1,c1);cacheGrad[clave]=g;}
+  return cacheGrad[clave];
+}
+const EDIF={an:92,n:24,alto:262,tira:null,k:0};   // alto: el edificio más alto mide 260
+function tiraEdificios(k){                 // k = píxeles reales por unidad lógica: se copia 1:1, sin escalar
+  if(EDIF.tira&&EDIF.k===k)return EDIF.tira;
+  const t=document.createElement('canvas');t.width=Math.ceil(EDIF.an*EDIF.n*k);t.height=Math.ceil(EDIF.alto*k);EDIF.k=k;
+  const c=t.getContext('2d');c.scale(k,k);c.translate(0,EDIF.alto-SUELO);
+  for(let i=0;i<EDIF.n;i++){
+    const x=i*EDIF.an,h=90+hash(i)*170,w=EDIF.an-14;
+    c.fillStyle=['#7f93ad','#8fa3bb','#6f839e'][i%3];c.fillRect(x,SUELO-h,w,h);
+    c.fillStyle='rgba(255,255,255,.35)';
+    for(let yy=SUELO-h+12;yy<SUELO-16;yy+=22)for(let xx=x+10;xx<x+w-12;xx+=20)if(hash(i*31+yy+xx)>.3)c.fillRect(xx,yy,9,11);
+  }
+  return EDIF.tira=t;
 }
 function fondo(c){
-  const gr=ctx.createLinearGradient(0,0,0,SUELO);gr.addColorStop(0,c.cielo[0]);gr.addColorStop(1,c.cielo[1]);
-  ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=degradado('cielo-'+c.nombre,SUELO,c.cielo[0],c.cielo[1]);ctx.fillRect(0,0,W,H);
   if(c.fondo==='ciudad'){
+    const u=amenaza();                      // 0 → 1 a medida que se acerca el asteroide
+    ctx.fillStyle='rgba(255,90,40,'+(u*.28)+')';ctx.fillRect(0,0,W,SUELO);
     ctx.fillStyle='#fff3c4';circ(W*.82,90,38);ctx.fill();
+    asteroide(u);
     ctx.fillStyle='rgba(255,255,255,.85)';
     for(let i=0;i<6;i++){const x=((i*310-cam*.08)%(W+300)+W+300)%(W+300)-150,y=60+hash(i)*110;
       circ(x,y,22);ctx.fill();circ(x+26,y+6,28);ctx.fill();circ(x+58,y,20);ctx.fill();}
     colinas(.12,330,90,260,'#7cc08a',1);
-    const an=92,i0=Math.floor(cam*.35/an);
-    for(let i=i0-1;i<i0+W/an+2;i++){
-      const x=i*an-cam*.35,h=90+hash(i)*170,w=an-14;
-      ctx.fillStyle=['#7f93ad','#8fa3bb','#6f839e'][((i%3)+3)%3];ctx.fillRect(x,SUELO-h,w,h);
-      ctx.fillStyle='rgba(255,255,255,.35)';
-      for(let yy=SUELO-h+12;yy<SUELO-16;yy+=22)for(let xx=x+10;xx<x+w-12;xx+=20)if(hash(i*31+yy+xx)>.3)ctx.fillRect(xx,yy,9,11);
-    }
+    // copia solo la parte visible de la tira, en píxeles reales (dos trozos si da la vuelta)
+    const k=cv.width/W,tira=tiraEdificios(k),tw=tira.width,th=tira.height;
+    let sx=Math.round((((cam*.35)%(EDIF.an*EDIF.n))+EDIF.an*EDIF.n)%(EDIF.an*EDIF.n)*k),dx=0;
+    ctx.save();ctx.setTransform(1,0,0,1,0,0);
+    while(dx<cv.width){const w=Math.min(tw-sx,cv.width-dx);ctx.drawImage(tira,sx,0,w,th,dx,Math.round((SUELO-EDIF.alto)*k),w,th);dx+=w;sx=0;}
+    ctx.restore();
   }else if(c.fondo==='luna'){
     estrellas(110);
     ctx.fillStyle='#3f86d8';circ(W*.76,96,36);ctx.fill();
@@ -422,12 +480,10 @@ function dibAstro(){
   ctx.fillStyle='rgba(160,205,255,.7)';ctx.fillRect(4,6,3,3);
   ctx.restore();
 }
-/* --- Sprites de la Voyager ---
-   voyager.png: 3 cuadros de 155×119 (0 reposo, 1 transmisión azul, 2 alerta roja)
-   portada.png: vista frontal, usada cuando la nave está posada.
-   Si no cargan, el juego sigue con el cohete dibujado a mano. */
+/* --- Sprites de la Voyager (vienen incrustados en window.SPRITES, arriba) ---
+   hoja: 0 reposo, 1 transmisión azul, 2 alerta roja. frente: vista frontal (posada / en el lanzador). */
 const SPR={hoja:new Image(),frente:new Image()};
-SPR.hoja.src='voyager.png';SPR.frente.src='portada.png';
+SPR.hoja.src=SPRITES.hoja;SPR.frente.src=SPRITES.frente;
 const listo=img=>img.complete&&img.naturalWidth>0;
 const CUADRO={w:155,h:119};
 function propulsores(x,y,k){               // chorros de hidracina: pequeños y azulados
@@ -454,17 +510,25 @@ function dibujarPlat(){
   // plataforma y nave de salida: en la Tierra, el cohete que lleva la Voyager; afuera, la Voyager misma
   const mx=N.meta+70-cam,sube=P.fin?Math.pow(P.fin,2.4)*120:0,tierra=E.etapa===0;
   ctx.fillStyle='#6c7480';ctx.fillRect(mx-70,SUELO-6,140,6);
-  if(tierra){
-    ctx.fillStyle='#8a93a3';ctx.fillRect(mx+50,SUELO-150,6,150);ctx.fillRect(mx+30,SUELO-120,24,4);
-    dibCohete(mx,SUELO-6-sube,.85,!!P.fin);
+  if(tierra){                              // torre, cohete lanzador y la Voyager montada en la punta
+    ctx.fillStyle='#8a93a3';ctx.fillRect(mx+50,SUELO-235,6,235);ctx.fillRect(mx+30,SUELO-120,24,4);ctx.fillRect(mx+20,SUELO-200,34,4);
+    const base=SUELO-6-sube;
+    dibCohete(mx,base,.85,!!P.fin);
+    if(listo(SPR.frente))ctx.drawImage(SPR.frente,mx-58,base-142-88,116,86);
   }else dibVoyagerPosada(mx,SUELO-6-sube,150,!!P.fin);
   if(!P.fin){ctx.fillStyle='#ffc857';ctx.font='700 13px system-ui';ctx.textAlign='center';
-    ctx.fillText(tierra?'LANZADOR · VOYAGER':'VOYAGER',mx,SUELO-(tierra?176:140)+Math.sin(E.t*4)*3);}
+    ctx.fillText('VOYAGER',mx,SUELO-(tierra?250:140)+Math.sin(E.t*4)*3);}
   for(const b of N.cajas)if(b.x+b.w>cam-20&&b.x<cam+W+20)dibCaja(b);
   for(const q of N.pel)if(q.x+q.w>cam-40&&q.x<cam+W+40)dibPeligro(q);
   for(const it of N.items)if(it.ok&&it.x>cam-20&&it.x<cam+W+20)dibItem(it.tipo,it.x-cam,it.y,E.t);
   if(!P.fin)dibAstro();
-  hud(P.vidas,E.dinero+P.monedas,clamp(P.x/N.meta,0,1),'Inicio','Nave');
+  hud(P.vidas,E.dinero+P.monedas,clamp(P.x/N.meta,0,1),'Inicio','Voyager');
+  if(tierra&&!P.fin){                      // cuenta regresiva del impacto
+    const s=Math.ceil(P.cuenta),txt='Impacto del K-77 en '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+    const urge=P.cuenta<=20;
+    ctx.font='800 16px system-ui';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.55)';
+    ctx.strokeText(txt,W/2,56);ctx.fillStyle=urge&&Math.sin(E.t*10)>0?'#ff4d4d':'#ffd9a0';ctx.fillText(txt,W/2,56);
+  }
 }
 
 /* ---------- 5. VUELO ---------- */
@@ -472,7 +536,7 @@ function iniciarVuelo(i){
   E.etapa=i;const de=RUTA[i],a=RUTA[i+1];
   V={x:W/2,px:W/2,giro:0,brillo:0,y:H-110,t:0,objs:[],esc:3+E.mej.escudo,inv:0,prox:1.2,proxMon:2,monedas:0,fin:0,tr:TRAMOS[de+'>'+a],de:CUERPOS[de],a:CUERPOS[a]};
   modo('vuelo');
-  aviso(V.de.nombre+' → '+V.a.nombre,esTactil?'Arrastra el dedo para mover la nave':'Esquiva meteoritos y basura espacial');
+  aviso(V.de.nombre+' → '+V.a.nombre,(i===0?'Esquiva los fragmentos del K-77 y la basura espacial':'Rumbo a la colonia de Marte')+(esTactil?' · arrastra el dedo':''));
 }
 function nuevoObj(tipo,x,r,vy){
   const o={tipo,x,y:-r-10,r,vy,vx:0,rot:Math.random()*6,vr:(Math.random()-.5)*3};
@@ -536,8 +600,7 @@ function planeta(c,cy,R){
   ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=5;circ(W/2,cy,R+2);ctx.stroke();
 }
 function dibujarVuelo(){
-  const gr=ctx.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#03040a');gr.addColorStop(1,'#0f1430');
-  ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=degradado('espacio',H,'#03040a','#0f1430');ctx.fillRect(0,0,W,H);
   estrellas(120,V.t*140);
   const R=W*.75;
   if(V.t<7)planeta(V.de,H+R-150+V.t*70,R);
@@ -596,22 +659,28 @@ function hud(vidas,monedas,prog,izq,der){
 
 /* ---------- 6. PANTALLAS ---------- */
 const ov=document.getElementById('ov'),panel=document.getElementById('panel');
-function mostrar(html){panel.innerHTML=html;ov.hidden=false;tactil.hidden=true;}
+function mostrar(html){panel.innerHTML=html;ov.hidden=false;panel.scrollTop=0;ov.scrollTop=0;tactil.hidden=true;}
 function chipsRuta(hechas){
   return '<div class="ruta">'+RUTA.map((id,i)=>'<span class="'+(i<hechas?'ok':i===hechas?'sig':'')+'">'+CUERPOS[id].nombre+'</span>').join('<i>→</i>')+'</div>';
 }
 /* Datos reales que aparecen en el hangar (uno por etapa) y al final. */
+const RELATO_HANGAR=[
+  'Despegaste justo a tiempo: el K-77 ya brilla sobre la ciudad. Ahora hay que atravesar la órbita llena de basura espacial y de los primeros fragmentos del asteroide.',
+  'Hiciste escala en la base lunar y recargaste combustible. Próximo destino: la colonia de Marte, donde el Disco de Oro II quedará a salvo.'
+];
 const DATOS=[
-  'La antena de la Voyager mide unos 3,7 m de diámetro. Con ella las sondas reales siguen enviando datos a la Tierra desde más allá del Sol.',
+  'La antena de la Voyager mide unos 3,7 m de diámetro. Con ella las sondas reales siguen enviando datos a la Tierra desde el espacio interestelar, a más de 20.000 millones de km.',
   'La Luna está, en promedio, a 384.400 km. La luz recorre esa distancia en poco más de un segundo; hasta Marte tarda entre 3 y 22 minutos, según dónde estén ambos planetas.'
 ];
 function pantallaTitulo(){
   modo('titulo');
   mostrar('<a class="volver" href="../../">← El Mundo de Felipe</a>'+
-    '<img class="voy" src="portada.png" alt="Sonda Voyager">'+
+    '<img class="voy" src="'+SPRITES.frente+'" alt="Sonda Voyager">'+
     '<h1>RUTA ESTELAR</h1><p class="sub">MISIÓN VOYAGER · MAPA 1: SISTEMA SOLAR INTERIOR</p>'+chipsRuta(-1)+
-    '<div class="historia"><b>La historia.</b> En 1977 la NASA lanzó las sondas Voyager 1 y 2, sin tripulación, rumbo a Júpiter y Saturno. '+
-    'En este juego imaginamos otra cosa: una Voyager reconstruida y tripulada, y tú eres quien la pilota. Primero tienes que llegar a la plataforma de lanzamiento cruzando la ciudad.</div>'+
+    '<div class="historia"><b>Año 2077.</b> Los telescopios detectan el asteroide <b>K-77</b> en rumbo de choque con la Tierra: el impacto es en minutos. '+
+    'Antes de que llegue, alguien tiene que sacar del planeta el <b>Disco de Oro II</b>, la memoria de la Tierra: semillas, ADN, libros y música. '+
+    'La única nave lista es la Voyager, reconstruida para llevar tripulación.<br><br>'+
+    'Tu misión: cruzar la ciudad en plena evacuación, subir a la Voyager antes del impacto y llevar el disco a la colonia de Marte, con escala en la base lunar.</div>'+
     '<p><b>A pie:</b> <kbd>←</kbd> <kbd>→</kbd> para moverte, <kbd>Espacio</kbd> o <kbd>↑</kbd> para saltar (mantén para saltar más alto). En celular, los botones de la pantalla.</p>'+
     '<p><b>En vuelo:</b> esquiva meteoritos y basura espacial con las flechas, o arrastrando el dedo. La luz de la Voyager se pone roja cuando recibe un golpe.</p>'+
     '<p>Las monedas y gemas compran mejoras en el hangar antes de cada despegue.</p>'+
@@ -620,7 +689,7 @@ function pantallaTitulo(){
 function pantallaHangar(){
   modo('hangar');
   const sig=CUERPOS[RUTA[E.etapa+1]],act=CUERPOS[RUTA[E.etapa]];
-  let h='<h2>Hangar · saliendo de '+act.art+'</h2><p>Recolectaste '+(E.ultimas||0)+' en esta etapa. Saldo: <span class="saldo">'+E.dinero+' monedas</span></p>'+chipsRuta(E.etapa+1)+'<div class="tienda">';
+  let h='<h2>'+(E.etapa===0?'A bordo de la Voyager':'Base lunar')+'</h2><p class="relato">'+RELATO_HANGAR[E.etapa]+'</p><p>Recolectaste '+(E.ultimas||0)+' en esta etapa. Saldo: <span class="saldo">'+E.dinero+' monedas</span></p>'+chipsRuta(E.etapa+1)+'<div class="tienda">';
   for(const k in MEJORAS){
     const n=E.mej[k],max=n>=COSTOS.length,costo=COSTOS[n];
     h+='<div class="item"><b>'+MEJORAS[k].nombre+' <span class="niv">'+'●'.repeat(n)+'○'.repeat(COSTOS.length-n)+'</span></b>'+
@@ -633,17 +702,20 @@ function pantallaHangar(){
 }
 function pantallaFin(){
   modo('fin');
-  mostrar('<h2>Primer mapa completado</h2>'+chipsRuta(RUTA.length)+
-    '<p>Tierra, Luna y Marte recorridos. Terminaste con <span class="saldo">'+E.dinero+' monedas</span>.</p>'+
+  mostrar('<h2>El Disco de Oro II está a salvo</h2>'+chipsRuta(RUTA.length)+
+    '<p class="relato">Llegaste a la colonia de Marte. La memoria de la Tierra (sus semillas, su ADN, sus libros y su música) quedó resguardada, y la humanidad tiene un lugar desde donde volver a empezar.</p>'+
+    '<p>Terminaste con <span class="saldo">'+E.dinero+' monedas</span>.</p>'+
     '<div class="dato"><b>Lo que pasó en la realidad.</b> Las Voyager nunca fueron a la Luna ni a Marte: pasaron por Júpiter y Saturno, y la Voyager 2 siguió a Urano y Neptuno. '+
     'En 2012 la Voyager 1 se convirtió en el primer objeto hecho por humanos en llegar al espacio interestelar; la Voyager 2 lo logró en 2018. '+
-    'Cada una lleva un Disco de Oro con sonidos e imágenes de la Tierra.</div>'+
+    'Cada una lleva un Disco de Oro real con sonidos, música e imágenes de la Tierra; el Disco de Oro II del juego está inspirado en él.</div>'+
+    '<div class="dato"><b>¿Y el asteroide?</b> El K-77 es inventado. Las agencias espaciales vigilan los asteroides que se acercan a la Tierra, y en 2022 la misión DART de la NASA chocó a propósito con el asteroide Dimorphos y logró cambiar su órbita: la primera prueba de defensa planetaria.</div>'+
     '<button class="gr" data-acc="reiniciar">Jugar de nuevo</button>');
 }
-function fallo(){
+function fallo(causa){
   const enVuelo=E.modo==='vuelo';
   modo('fallo');
-  mostrar('<h2>Misión interrumpida</h2><p>'+(enVuelo?'La nave no resistió más impactos.':'El astronauta se quedó sin vidas.')+
+  const motivo=causa==='tiempo'?'El K-77 llegó antes de que alcanzaras la Voyager.':enVuelo?'La nave no resistió más impactos.':'El astronauta se quedó sin vidas.';
+  mostrar('<h2>Misión interrumpida</h2><p>'+motivo+
     ' Conservas tu saldo de <span class="saldo">'+E.dinero+' monedas</span> y tus mejoras.</p>'+
     '<button class="gr" data-acc="'+(enVuelo?'revuelo':'replat')+'">Reintentar etapa</button>');
 }
