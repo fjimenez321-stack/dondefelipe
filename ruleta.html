@@ -768,7 +768,7 @@ function mostrar(r) {
     case 'premio': badge = '¡Premio!'; titulo = '+' + fmt(r.premio); texto = `Ganaste ${fmt(r.premio)} y el tiro costó ${fmt(RULETA.costo)}: tu saldo sube ${fmt(r.neto)}.`; break;
     case 'castigo': badge = 'Castigo'; titulo = '−' + fmt(-r.premio); texto = r.alCero ? 'El castigo era mayor que tu saldo: quedaste en 0.' : `Pierdes ${fmt(-r.premio)} más el tiro (${fmt(RULETA.costo)}): en total ${fmt(-r.neto)}.`; break;
     case 'nada': badge = 'Nada'; titulo = 'Casilla vacía'; texto = `No ganas ni pierdes nada más: solo el tiro (${fmt(RULETA.costo)}).`; break;
-    case 'beneficio': badge = /décima/.test(r.beneficio) ? '¡Décimas!' : 'Beneficio'; titulo = r.beneficio.replace(/^Ruleta: /, ''); texto = 'Quedó en <a href="cuenta.html">Mi cuenta</a> como «por usar». Pídele al profe que te lo aplique.'; break;
+    case 'beneficio': badge = /décima/.test(r.beneficio) ? '¡Décimas!' : 'Beneficio'; titulo = r.beneficio.replace(/^Ruleta: /, ''); texto = /descuento en un artículo de la Tienda/.test(r.beneficio) ? 'Es un cupón: úsalo en <a href="gatitos.html">Mercado → 🛍️ Tienda</a> con el botón «Usar cupón» del artículo que quieras (pagas el 80%).' : 'Quedó en <a href="cuenta.html">Mi cuenta</a> como «por usar». Pídele al profe que te lo aplique.'; break;
     case 'disertacion':
       badge = 'Castigo'; titulo = 'Disertación';
       texto = `Te toca una disertación breve frente al curso, cuando el profe lo indique. Tema sorteado: <b id="mTema">${esc(r.tema)}</b>. Puedes cambiarlo hasta que la hagas.`;
