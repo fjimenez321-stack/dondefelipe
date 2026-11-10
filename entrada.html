@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#08080c">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Entrada · El Mundo de Felipe</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:radial-gradient(700px 420px at 50% -120px,rgba(34,227,255,.16),transparent),var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:480px;margin:0 auto;padding:18px 16px 60px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}
+.ticket{margin-top:18px;background:var(--slab);border:1px solid var(--line2);border-radius:22px;overflow:hidden;box-shadow:0 24px 50px rgba(0,0,0,.55)}
+.ticket .top{height:8px;background:linear-gradient(90deg,var(--cyan),var(--acid))}
+.ticket .cab{padding:18px 20px 6px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.ticket .marca{font:700 11px var(--ff);letter-spacing:3px;text-transform:uppercase;color:var(--mute)}
+.ticket .num{font:900 30px/1 var(--ff-d);color:var(--cyan)}
+.ticket h1{font:900 clamp(34px,10vw,48px)/.92 var(--ff-d);text-transform:uppercase;margin:6px 20px 0}
+.ticket .cuando{color:#c9c8d4;margin:8px 20px 0;font-size:15px}
+.ticket .corte{border-top:2px dashed var(--line2);margin:18px 0 0;position:relative}
+.ticket .corte::before,.ticket .corte::after{content:'';position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:var(--bg)}
+.ticket .corte::before{left:-12px}.ticket .corte::after{right:-12px}
+.ticket .qrbox{display:flex;justify-content:center;padding:20px}
+.ticket .qr{background:#fff;padding:14px;border-radius:16px;width:min(270px,70vw);aspect-ratio:1}
+.ticket .qr img,.ticket .qr canvas{width:100%!important;height:100%!important;display:block;image-rendering:pixelated}
+.ticket .quien{text-align:center;font:800 24px/1.2 var(--ff);padding:0 20px}
+.ticket .det{text-align:center;color:var(--mute);padding:2px 20px 0}
+.ticket .cod{text-align:center;font:700 15px ui-monospace,Menlo,monospace;letter-spacing:1px;color:var(--cyan);padding:10px 20px 18px}
+.ticket.no .qrbox{filter:grayscale(1) opacity(.35)}
+.sello{margin:0 20px 18px;text-align:center;border-radius:14px;padding:12px;font:900 26px/1 var(--ff-d);text-transform:uppercase;letter-spacing:1px}
+.sello.ok{background:#14301f;color:var(--acid);border:1px solid #2c6b44}
+.sello.mal{background:#2b1417;color:var(--neg);border:1px solid #5c2228}
+.sello small{display:block;font:600 13px var(--ff);letter-spacing:0;text-transform:none;margin-top:6px;color:inherit;opacity:.85}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:18px;text-align:center}
+.staff{border-color:var(--cyan)}
+.staff .kick{font:700 11px var(--ff);letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin:0 0 8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:12px 20px;font:700 15px var(--ff);cursor:pointer;text-decoration:none}
+.btn.p{background:var(--acid);color:#141a00;border-color:var(--acid);font-weight:900}
+.btn.grande{width:100%;padding:18px;font-size:20px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px;text-align:left}
+.aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
+.muted{color:var(--mute);font-size:14px}
+.manual{display:flex;gap:8px;margin-top:10px}
+.manual input{flex:1;min-width:0;background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:11px 14px;font:600 15px ui-monospace,Menlo,monospace;letter-spacing:1px}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261105">
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="index.html"><i class="fa-solid fa-arrow-left"></i> El Mundo de Felipe</a>
+  <div id="vista"><p class="muted" style="margin-top:30px">Cargando entrada…</p></div>
+  <div id="staff"></div>
+  <div id="aviso"></div>
+  <section class="card" id="manualBox" hidden>
+    <p class="muted" style="margin:0">Escribe el código impreso bajo el QR:</p>
+    <div class="manual"><input id="manual" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX" aria-label="Código de la entrada"><button class="btn p" id="usarManual">Ver</button></div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="firebase/df.js?v=20261104e"></script>
+<script>
+(function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ms = t => (t && t.toMillis ? t.toMillis() : 0);
+// Al escribir a mano: I y L se leen como 1 (los códigos no usan I, L, O ni 0).
+const limpiar = c => String(c || '').toUpperCase().replace(/[IL]/g, '1').replace(/[^A-Z0-9]/g, '').slice(0, 40);
+const agrupado = c => (c.match(/.{1,4}/g) || []).join('-');
+const fechaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : ''; };
+const horaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; };
+async function sha256(t) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+function aviso(t, k) { $('aviso').innerHTML = t ? `<div class="aviso ${k || ''}">${t}</div>` : ''; }
+// La entrada es el enlace: el código queda en la dirección (#c=…) para que quien la recibe pueda volver a abrirla.
+// El fragmento (#) no se envía al servidor.
+let codigo = limpiar((location.hash.match(/[#&]c=([A-Za-z0-9-]+)/) || [])[1]), huella = '', t = null, evento = null, usuario = null, marcando = false;
+
+function pintar() {
+  $('manualBox').hidden = !!t;
+  if (!codigo) { $('vista').innerHTML = '<div class="card"><p style="margin:0">Abre esta página escaneando el QR de tu entrada.</p></div>'; return; }
+  if (!t) { $('vista').innerHTML = '<div class="card"><p style="margin:0">No encontramos esa entrada. Revisa el código o escanea de nuevo el QR.</p></div>'; return; }
+  const cerrado = evento && evento.estado === 'cerrado';
+  const sello = t.estado === 'usada' ? `<div class="sello mal">Ya ingresó<small>${esc(horaTxt(t.usada))}${t.usadaPor && evento ? ' · verificó ' + esc(t.usadaPor) : ''}</small></div>`
+    : t.estado === 'anulada' ? '<div class="sello mal">Entrada anulada</div>'
+    : evento ? (cerrado ? '<div class="sello mal">Evento cerrado<small>La entrada es válida, pero el ingreso está cerrado.</small></div>' : '<div class="sello ok">✓ Entrada válida</div>') : '';
+  $('vista').innerHTML = `<article class="ticket${t.estado !== 'valida' ? ' no' : ''}"><div class="top"></div>
+    <div class="cab"><span class="marca">El Mundo de Felipe · Entrada</span><span class="num">#${esc(t.n)}</span></div>
+    <h1>${esc(t.eventoNombre)}</h1>
+    <div class="cuando">${t.eventoFecha ? '<i class="fa-regular fa-calendar"></i> ' + esc(fechaTxt(t.eventoFecha)) : ''}${t.lugar ? '<br><i class="fa-solid fa-location-dot"></i> ' + esc(t.lugar) : ''}</div>
+    <div class="corte"></div>
+    <div class="qrbox"><div class="qr" id="qr"></div></div>
+    <div class="quien">${esc(t.nombre) || 'Entrada general'}</div>
+    <div class="det">${esc([t.curso, t.tipo].filter(Boolean).join(' · '))}</div>
+    <div class="cod">${esc(agrupado(codigo))}</div>
+    ${sello}
+    ${!evento ? `<p class="muted" style="text-align:center;margin:0 20px 18px">${t.estado === 'valida' ? 'Muestra este QR en la entrada. ' : ''}${t.nota ? esc(t.nota) + ' · ' : ''}Válida para un ingreso: no la compartas.</p>` : ''}
+  </article>`;
+  if (typeof QRCode !== 'undefined') new QRCode($('qr'), { text: location.href.split('#')[0] + '#c=' + codigo, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
+  pintarStaff();
+}
+function pintarStaff() {
+  const s = $('staff');
+  if (!t) { s.innerHTML = ''; return; }
+  if (!usuario) { s.innerHTML = '<p class="muted" style="text-align:center;margin-top:16px">¿Controlas la entrada? <a href="#" data-a="entrar">Entra con tu cuenta</a> para marcar el ingreso.</p>'; return; }
+  if (!evento) { s.innerHTML = ''; return; }
+  if (t.estado !== 'valida' || evento.estado === 'cerrado') {
+    s.innerHTML = `<div class="card staff"><p class="kick">Modo portero · ${esc(evento.nombre)}</p><a class="btn" href="verificar.html?e=${encodeURIComponent(t.evento)}"><i class="fa-solid fa-camera"></i> Escanear la siguiente</a></div>`;
+    return;
+  }
+  s.innerHTML = `<div class="card staff"><p class="kick">Modo portero · ${esc(evento.nombre)}</p>
+    <button class="btn p grande" data-a="pasar"${marcando ? ' disabled' : ''}><i class="fa-solid fa-door-open"></i> Dejar pasar</button>
+    <p class="muted" style="margin:10px 0 0">Al tocar, la entrada queda usada y ya no sirve otra vez.</p></div>`;
+}
+
+async function cargarEntrada() {
+  t = null; evento = null;
+  if (!codigo) return pintar();
+  try {
+    huella = await sha256(codigo);
+    const { F, db } = await DF.listo(), s = await F.getDoc(F.doc(db, 'entradas', huella));
+    t = s.exists() ? s.data() : null;
+  } catch (e) { aviso('No se pudo leer la entrada: ' + esc(e.message), 'err'); }
+  await cargarEvento();
+}
+// Solo el profe y los porteros del evento pueden leer el evento: si se puede, esta persona controla la entrada.
+async function cargarEvento() {
+  evento = null; usuario = DF.usuario();
+  if (t && usuario) {
+    try {
+      const { F, db } = await DF.listo(), s = await F.getDoc(F.doc(db, 'eventos', t.evento));
+      if (s.exists()) evento = s.data();
+    } catch (e) { /* no es portero */ }
+  }
+  pintar();
+}
+async function pasar() {
+  if (marcando || !t) return;
+  marcando = true; pintarStaff(); aviso('');
+  try {
+    const { F, db } = await DF.listo(), ref = F.doc(db, 'entradas', huella);
+    await F.runTransaction(db, async tx => {
+      const s = await tx.get(ref);
+      if (!s.exists()) throw new Error('la entrada no existe');
+      const d = s.data();
+      if (d.estado === 'usada') throw new Error('esta entrada YA SE USÓ (' + horaTxt(d.usada) + ')');
+      if (d.estado !== 'valida') throw new Error('esta entrada está anulada');
+      tx.update(ref, { estado: 'usada', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'qr' });
+    });
+    if (navigator.vibrate) navigator.vibrate(120);
+  } catch (e) {
+    aviso('No se marcó: ' + esc(/permission/i.test(e.message) ? 'Firebase lo rechazó (¿estás en la lista de porteros y el evento está abierto?)' : /offline|unavailable/i.test(e.message) ? 'no hay conexión a internet.' : e.message), 'err');
+    if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 80]);
+  }
+  marcando = false;
+  await cargarEntrada();
+}
+
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-a], #usarManual'); if (!b) return;
+  if (b.dataset.a === 'entrar') { ev.preventDefault(); DF.entrar().catch(e => { if (!e.cancelado) aviso('No se pudo entrar: ' + esc(e.message), 'err'); }); }
+  if (b.dataset.a === 'pasar') pasar();
+  if (b.id === 'usarManual') { codigo = limpiar($('manual').value); if (codigo) history.replaceState(null, '', location.pathname + '#c=' + codigo); aviso(''); cargarEntrada(); }
+});
+$('manual').addEventListener('keydown', e => { if (e.key === 'Enter') $('usarManual').click(); });
+window.addEventListener('hashchange', () => { codigo = limpiar((location.hash.match(/[#&]c=([A-Za-z0-9-]+)/) || [])[1]); cargarEntrada(); });
+
+let primera = true;
+DF.listo().then(() => DF.alCambiarUsuario(() => { if (primera) { primera = false; cargarEntrada(); } else cargarEvento(); }),
+  e => { $('vista').innerHTML = '<div class="card"><p class="muted">Sin conexión: ' + esc(e.message) + '</p></div>'; });
+})();
+</script>
+</body>
+</html>

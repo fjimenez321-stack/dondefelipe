@@ -1218,6 +1218,41 @@ service cloud.firestore {
       allow read, write: if esProfe();
     }
 
+    // ═════ Entradas a eventos (QR) ═════
+    // El profe crea el evento (con su lista de porteros) y genera una entrada por asistente.
+    // Igual que las gift cards: el QR lleva un código aleatorio (80 bits) y el documento se llama con su
+    // sha256, así que nadie puede adivinar ni listar entradas. El código queda aparte (entradas_codigos),
+    // solo para que el profe reimprima.
+    // En la puerta, un portero del evento (o el profe) la marca 'usada' UNA vez; las reglas impiden
+    // volver a marcarla, cambiar otros datos o hacerlo con el evento cerrado.
+    function rutaEvento(e) { return /databases/$(database)/documents/eventos/$(e); }
+    function esPortero(e) {
+      return conCuenta() && exists(rutaEvento(e))
+        && request.auth.token.email.lower() in get(rutaEvento(e)).data.porteros;
+    }
+    match /eventos/{eid} {
+      allow get, list: if esProfe() || (conCuenta() && request.auth.token.email.lower() in resource.data.porteros);
+      allow write: if esProfe();
+    }
+    match /entradas/{h} {
+      // Quien tiene el QR puede ver su entrada; listar (para contar y buscar por nombre): profe y porteros del evento.
+      allow get: if true;
+      allow list: if esProfe() || esPortero(resource.data.evento);
+      allow create, delete: if esProfe();
+      allow update: if esProfe();
+      allow update: if esPortero(resource.data.evento)
+        && get(rutaEvento(resource.data.evento)).data.estado == 'abierto'
+        && resource.data.estado == 'valida'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'usada', 'usadaPor', 'metodo'])
+        && request.resource.data.estado == 'usada'
+        && request.resource.data.usada == request.time
+        && request.resource.data.usadaPor == request.auth.token.email.lower()
+        && request.resource.data.metodo in ['qr', 'manual'];
+    }
+    match /entradas_codigos/{h} {
+      allow read, write: if esProfe();
+    }
+
     // ═════ Tienda: artículos físicos (cartas, juegos, etc.) ═════
     // Solo el profe publica (nombre, descripción, foto o emoji, precio, unidades). Al comprar se crea un
     // pedido 'articulo' en mercado_pedidos con el pago retenido (igual que los beneficios) y el artículo
