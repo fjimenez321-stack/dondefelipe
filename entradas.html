@@ -82,11 +82,23 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
 .en .qr img,.en .qr canvas{width:100%!important;height:100%!important;display:block;image-rendering:pixelated}
 .en .cod{font:700 2.1mm/1.2 ui-monospace,Menlo,monospace;text-align:center;letter-spacing:.15mm}
 .en .num{font:900 3.2mm var(--ff-d)}
+/* etiqueta: solo QR + nombre, para pegar en la entrada ya diseñada */
+.et{width:var(--w,40mm);background:#fff;color:#111;text-align:center;break-inside:avoid;page-break-inside:avoid;padding:calc(var(--w,40mm) * .07);border:.2mm dashed #bbb;
+  display:flex;flex-direction:column;align-items:center;gap:1mm;font-family:var(--ff);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.et .qr{width:100%;aspect-ratio:1}
+.et .qr img,.et .qr canvas{width:100%!important;height:100%!important;display:block;image-rendering:pixelated}
+.et .nm{font:800 calc(var(--w,40mm) * .085)/1.12 var(--ff);word-break:break-word}
+.et .cu{font:600 calc(var(--w,40mm) * .062)/1.1 var(--ff);color:#555}
+.herr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;padding:10px 12px;border:1px dashed var(--line2);border-radius:14px}
+.herr select{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:5px 10px;font:600 13px var(--ff)}
+.obs{display:block;font-size:12.5px;color:var(--brass);margin-top:2px}
+.obs.ing{color:var(--cyan)}
 @media print{
   @page{size:A4;margin:8mm}
   body{background:#fff}
   .wrap > *:not(#hoja){display:none!important}
   #hoja{display:grid!important;grid-template-columns:repeat(2,90mm);gap:4mm 6mm;justify-content:center}
+  #hoja.etq{grid-template-columns:repeat(auto-fill,var(--w,40mm));gap:3mm;justify-content:start}
 }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -135,7 +147,7 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
   <!-- ═════ asistentes ═════ -->
   <section class="card" id="secAgregar" hidden>
     <h2><i class="fa-solid fa-user-plus"></i> Generar entradas</h2>
-    <p class="muted" style="margin:0">Sube el Excel o pega la lista desde Excel o Google Sheets. Si la primera fila tiene encabezados (<b>Nombre</b>, <b>Apellido</b>, <b>Curso</b>, <b>Tipo</b>) se usan esas columnas en cualquier orden; si no, se toma Nombre · Curso · Tipo. Cada QR sale con el nombre del titular. También puedes generar entradas sin nombre.</p>
+    <p class="muted" style="margin:0">Sube el Excel o pega la lista desde Excel o Google Sheets. Si la primera fila tiene encabezados (<b>Nombre</b> o <b>Estudiante</b>, <b>Apellido</b>, <b>Curso</b>, <b>Tipo</b>, <b>Apoderado</b>, <b>Observaciones</b>) se usan esas columnas en cualquier orden; si no, se toma Nombre · Curso · Tipo. Cada QR sale con el nombre del titular. También puedes generar entradas sin nombre.</p>
     <div class="form">
       <label class="ancho">Lista de asistentes
         <textarea id="lista" placeholder="Ana Pérez&#9;3° Medio&#9;Estudiante&#10;Luis Soto&#9;Apoderado&#10;María Rojas"></textarea>
@@ -166,7 +178,15 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
       <button class="btn sm" id="csv"><i class="fa-solid fa-file-csv"></i> Exportar asistencia (CSV)</button>
       <span id="nSel" class="muted"></span>
     </div>
-    <div class="tabla-scroll"><table><thead><tr><th><input type="checkbox" id="todas" aria-label="Seleccionar todas las visibles"></th><th>N°</th><th>Nombre</th><th>Curso / grupo</th><th>Tipo</th><th>Estado</th><th></th></tr></thead><tbody id="filas"></tbody></table></div>
+    <div class="herr">
+      <b style="font-size:13px"><i class="fa-solid fa-qrcode"></i> Solo QR + nombre (para tu entrada ya diseñada):</b>
+      <label class="muted">Nombre <select id="posNombre"><option value="abajo">abajo del QR</option><option value="arriba">arriba del QR</option></select></label>
+      <label class="muted"><input type="checkbox" id="conCurso" checked> con curso</label>
+      <button class="btn sm" id="qrZip" disabled><i class="fa-solid fa-file-zipper"></i> Imágenes PNG (ZIP)</button>
+      <label class="muted">Tamaño al imprimir <select id="tamEt"><option value="30">3 cm</option><option value="40" selected>4 cm</option><option value="50">5 cm</option><option value="60">6 cm</option></select></label>
+      <button class="btn sm" id="qrImp" disabled><i class="fa-solid fa-print"></i> Imprimir para recortar</button>
+    </div>
+    <div class="tabla-scroll"><table><thead><tr><th><input type="checkbox" id="todas" aria-label="Seleccionar todas las visibles"></th><th>N°</th><th>Estudiante (titular)</th><th>Curso / grupo</th><th>Tipo</th><th>Estado y observaciones</th><th></th></tr></thead><tbody id="filas"></tbody></table></div>
   </section>
 
   <div id="hoja"></div>
@@ -183,8 +203,8 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const ms = t => (t && t.toMillis ? t.toMillis() : 0);
 // Sin letras que se confunden (sin I, L, O ni 0): 32 símbolos × 16 = 80 bits de azar (imposible de adivinar).
 const ALFA = 'ABCDEFGHJKMNPQRSTUVWXYZ123456789', LARGO = 16;
-const POR_LOTE = 200;   // 2 escrituras por entrada; Firestore acepta 500 por lote
-let usuario = null, eventos = [], evId = '', ev = null, entradas = [], codigos = {}, filtro = '', sel = new Set(), unsubEv = null, unsubEn = null, editando = false;
+const POR_LOTE = 150;   // hasta 3 escrituras por entrada; Firestore acepta 500 por lote
+let priv = {}, unsubPriv = null, usuario = null, eventos = [], evId = '', ev = null, entradas = [], codigos = {}, filtro = '', sel = new Set(), unsubEv = null, unsubEn = null, editando = false;
 
 function aviso(t, k) { $('aviso').innerHTML = t ? `<div class="aviso ${k || ''}">${t}</div>` : ''; }
 function msg(id, t, k) { $(id).innerHTML = t ? `<span style="color:${k === 'err' ? 'var(--neg)' : 'var(--acid)'}">${t}</span>` : ''; }
@@ -265,9 +285,9 @@ async function borrarEvento() {
   if (n && prompt(`Escribe BORRAR para confirmar que quieres eliminar ${n} entradas.`) !== 'BORRAR') return;
   const { F, db } = await DF.listo();
   try {
-    for (let i = 0; i < n; i += 240) {
+    for (let i = 0; i < n; i += 160) {
       const b = F.writeBatch(db);
-      entradas.slice(i, i + 240).forEach(t => { b.delete(F.doc(db, 'entradas', t.id)); b.delete(F.doc(db, 'entradas_codigos', t.id)); });
+      entradas.slice(i, i + 160).forEach(t => { b.delete(F.doc(db, 'entradas', t.id)); b.delete(F.doc(db, 'entradas_codigos', t.id)); b.delete(F.doc(db, 'entradas_privado', t.id)); });
       await b.commit();
     }
     await F.deleteDoc(F.doc(db, 'eventos', evId));
@@ -279,7 +299,8 @@ async function borrarEvento() {
 const sinTilde = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 // Encabezados reconocidos (sin importar mayúsculas ni tildes).
 const COLS = { nombre: /^(nombres?|nombre completo|titular|asistente|estudiante|alumno|alumna|invitado)$/, apellido: /^(apellidos?|apellido paterno|ap\.? paterno)$/,
-  apellido2: /^(apellido materno|ap\.? materno|segundo apellido)$/, curso: /^(curso|grupo|nivel|cargo|seccion)$/, tipo: /^(tipo|tipo de entrada|categoria|entrada|ubicacion|zona)$/ };
+  apellido2: /^(apellido materno|ap\.? materno|segundo apellido)$/, curso: /^(curso|grupo|nivel|cargo|seccion)$/, tipo: /^(tipo|tipo de entrada|categoria|entrada|ubicacion|zona)$/,
+  apoderado: /^(apoderad[oa]s?|nombre (del )?apoderad[oa]|tutor|tutora|responsable)$/, obs: /^(observacion(es)?|obs\.?|notas?|comentarios?)$/ };
 function leerLista() {
   const txt = $('lista').value.replace(/\r/g, ''), lineas = txt.split('\n').filter(l => l.trim());
   const sep = /\t/.test(txt) ? '\t' : /;/.test(txt) ? ';' : ',';
@@ -294,7 +315,7 @@ function leerLista() {
   const v = (f, k) => col[k] == null ? '' : (f[col[k]] || '');
   return filas.map(f => {
     const nombre = [v(f, 'nombre'), v(f, 'apellido'), v(f, 'apellido2')].filter(Boolean).join(' ').trim();
-    return { nombre: nombre.slice(0, 80), curso: v(f, 'curso').slice(0, 40), tipo: (v(f, 'tipo') || tipoDef).slice(0, 30) };
+    return { nombre: nombre.slice(0, 80), curso: v(f, 'curso').slice(0, 40), tipo: (v(f, 'tipo') || tipoDef).slice(0, 30), apoderado: v(f, 'apoderado').slice(0, 80), obs: v(f, 'obs').slice(0, 300) };
   }).filter(p => p.nombre);
 }
 function infoLista() {
@@ -325,7 +346,7 @@ async function generar() {
   if (!ev) return;
   const personas = leerLista(), sn = Math.max(0, Math.round(+$('sinNombre').value || 0));
   const tipoDef = $('tipoDef').value.trim().slice(0, 30) || 'General';
-  for (let i = 0; i < sn; i++) personas.push({ nombre: '', curso: '', tipo: tipoDef });
+  for (let i = 0; i < sn; i++) personas.push({ nombre: '', curso: '', tipo: tipoDef, apoderado: '', obs: '' });
   if (!personas.length) return msg('genMsg', 'Pega al menos un nombre o indica entradas sin nombre.', 'err');
   if (personas.length > 1000) return msg('genMsg', 'Máximo 1.000 entradas por vez.', 'err');
   // Aviso de posibles duplicados (mismo nombre ya con entrada en este evento).
@@ -341,9 +362,11 @@ async function generar() {
       for (const p of personas.slice(i, i + POR_LOTE)) {
         const codigo = nuevoCodigo(), h = await sha256(codigo);
         const d = { evento: evId, eventoNombre: ev.nombre, eventoFecha: ev.fecha || null, lugar: ev.lugar || '', nota: ev.nota || '',
-          nombre: p.nombre, curso: p.curso, tipo: p.tipo, n: ++n, estado: 'valida', lote, profe: usuario.email, creada: F.serverTimestamp() };
+          nombre: p.nombre, curso: p.curso, tipo: p.tipo, apoderado: p.apoderado || '', n: ++n, estado: 'valida', lote, profe: usuario.email, creada: F.serverTimestamp() };
         b.set(F.doc(db, 'entradas', h), d);
         b.set(F.doc(db, 'entradas_codigos', h), { codigo, evento: evId });
+        // Las observaciones van aparte: las ven solo el profe y los porteros, no quien tiene el QR.
+        if (p.obs) { b.set(F.doc(db, 'entradas_privado', h), { evento: evId, obs: p.obs }); priv[h] = { obs: p.obs }; }
         codigos[h] = codigo; nuevas.push(Object.assign({ id: h, codigo }, d));
       }
       await b.commit();
@@ -360,7 +383,7 @@ async function generar() {
 function visibles() {
   const q = $('buscar').value.trim().toLowerCase();
   return entradas.filter(t => (!filtro || t.estado === filtro)
-    && (!q || [t.nombre, t.curso, t.tipo, '#' + t.n, String(t.n)].some(v => String(v || '').toLowerCase().includes(q))))
+    && (!q || [t.nombre, t.curso, t.tipo, t.apoderado, '#' + t.n, String(t.n), (priv[t.id] || {}).obs, (priv[t.id] || {}).obsIngreso].some(v => String(v || '').toLowerCase().includes(q))))
     .sort((a, b) => (a.n || 0) - (b.n || 0));
 }
 function pintarStats() {
@@ -370,20 +393,27 @@ function pintarStats() {
     <div class="stat"><b style="color:var(--cyan)">${pend}</b><span>Por llegar</span></div><div class="stat"><b style="color:var(--mute)">${an}</b><span>Anuladas</span></div>`;
   $('barra').style.width = val.length ? (100 * us / val.length) + '%' : '0';
 }
+function obsHTML(id) {
+  const o = priv[id]; if (!o) return '';
+  return (o.obs ? `<span class="obs">📝 ${esc(o.obs)}</span>` : '') + (o.obsIngreso ? `<span class="obs ing">🚪 ${esc(o.obsIngreso)}${o.obsPor ? ' — ' + esc(o.obsPor) : ''}</span>` : '');
+}
 function pintarLista() {
   pintarStats();
   const l = visibles();
+  let acc2;
   $('filas').innerHTML = l.map(t => {
     const est = t.estado === 'usada' ? `<span class="chip ok">Ingresó ${esc(horaTxt(t.usada))}</span><br><small class="muted">${esc(t.usadaPor || '')}${t.metodo === 'manual' ? ' · a mano' : ''}</small>`
       : t.estado === 'anulada' ? '<span class="chip">Anulada</span>' : '<span class="chip val">Sin usar</span>';
     const acc = t.estado === 'valida' ? `<button class="btn sm" data-a="png" data-id="${esc(t.id)}" title="Descargar imagen"><i class="fa-solid fa-image"></i></button> <button class="btn sm" data-a="manual" data-id="${esc(t.id)}" title="Marcar ingreso a mano"><i class="fa-solid fa-check"></i></button> <button class="btn sm" data-a="anular" data-id="${esc(t.id)}">Anular</button>`
       : t.estado === 'usada' ? `<button class="btn sm" data-a="deshacer" data-id="${esc(t.id)}">Deshacer ingreso</button>`
       : `<button class="btn sm" data-a="reactivar" data-id="${esc(t.id)}">Reactivar</button>`;
+    acc2 = `<button class="btn sm" data-a="qr" data-id="${esc(t.id)}" title="Descargar solo QR + nombre"><i class="fa-solid fa-qrcode"></i></button> <button class="btn sm" data-a="obs" data-id="${esc(t.id)}" title="Observaciones"><i class="fa-solid fa-note-sticky"></i></button> `;
     return `<tr><td>${t.estado === 'valida' ? `<input type="checkbox" data-sel="${esc(t.id)}"${sel.has(t.id) ? ' checked' : ''}>` : ''}</td>
-      <td class="num">#${t.n || ''}</td><td><b>${esc(t.nombre) || '<span class="muted">Sin nombre</span>'}</b></td><td>${esc(t.curso)}</td><td>${esc(t.tipo)}</td><td>${est}</td><td class="acc">${acc}</td></tr>`;
+      <td class="num">#${t.n || ''}</td><td><b>${esc(t.nombre) || '<span class="muted">Sin nombre</span>'}</b>${t.apoderado ? `<br><small class="muted">Apoderado/a: ${esc(t.apoderado)}</small>` : ''}</td><td>${esc(t.curso)}</td><td>${esc(t.tipo)}</td>
+      <td>${est}${obsHTML(t.id)}</td><td class="acc">${t.estado === 'valida' ? acc2 : `<button class="btn sm" data-a="obs" data-id="${esc(t.id)}" title="Observaciones"><i class="fa-solid fa-note-sticky"></i></button> `}${acc}</td></tr>`;
   }).join('') || '<tr><td colspan="7" class="muted">No hay entradas en esta vista.</td></tr>';
   for (const id of [...sel]) { const t = entradas.find(x => x.id === id); if (!t || t.estado !== 'valida') sel.delete(id); }
-  $('impSel').disabled = $('pngSel').disabled = !sel.size;
+  $('impSel').disabled = $('pngSel').disabled = $('qrZip').disabled = $('qrImp').disabled = !sel.size;
   $('nSel').textContent = sel.size ? `${sel.size} seleccionada${sel.size === 1 ? '' : 's'}` : '';
   $('todas').checked = false;
 }
@@ -400,6 +430,14 @@ $('filas').addEventListener('click', async e => {
   const { F, db } = await DF.listo(), ref = F.doc(db, 'entradas', t.id), quien = t.nombre || 'entrada #' + t.n;
   try {
     if (b.dataset.a === 'png') { const c = await conCodigos([t]); if (c[0]) descargar(await pngEntrada(c[0]), nombreArchivo(c[0])); return; }
+    if (b.dataset.a === 'qr') { const c = await conCodigos([t]); if (c[0]) descargar(await pngQR(c[0]), nombreArchivo(c[0])); return; }
+    if (b.dataset.a === 'obs') {
+      const o = priv[t.id] || {};
+      const nueva = prompt(`Observación para ${quien} (la ven tú y los porteros al escanear; no la ve el apoderado):` + (o.obsIngreso ? `\n\nEn la puerta anotaron: «${o.obsIngreso}»` : ''), o.obs || '');
+      if (nueva === null) return;
+      await F.setDoc(F.doc(db, 'entradas_privado', t.id), { evento: t.evento, obs: nueva.trim().slice(0, 300) }, { merge: true });
+      return;
+    }
     if (b.dataset.a === 'anular') { if (!confirm(`¿Anular la entrada de ${quien}? Ya no servirá para ingresar.`)) return; await F.updateDoc(ref, { estado: 'anulada', anulada: F.serverTimestamp() }); }
     if (b.dataset.a === 'reactivar') await F.updateDoc(ref, { estado: 'valida' });
     if (b.dataset.a === 'manual') { if (!confirm(`¿Marcar que ${quien} ya ingresó?`)) return; await F.updateDoc(ref, { estado: 'usada', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'manual' }); }
@@ -429,7 +467,7 @@ async function imprimir() {
   if (typeof QRCode === 'undefined') return aviso('No se pudo cargar el generador de QR. Revisa tu conexión.', 'err');
   const lista = await conCodigos(elegidas());
   if (!lista.length) return aviso('Selecciona entradas sin usar para imprimir.', 'err');
-  $('hoja').innerHTML = lista.map(entradaHTML).join('');
+  $('hoja').className = ''; $('hoja').innerHTML = lista.map(entradaHTML).join('');
   lista.forEach((t, i) => new QRCode($('qr' + i), { text: urlEntrada(t.codigo), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M }));
   setTimeout(() => window.print(), 450);
 }
@@ -464,13 +502,56 @@ async function pngEntrada(t) {
   x.imageSmoothingEnabled = false; if (q) x.drawImage(q, qx, qy, Q, Q);
   x.textAlign = 'center';
   x.fillStyle = '#f2f1ec'; x.font = '800 54px system-ui,sans-serif'; x.fillText(t.nombre || 'Entrada general', W / 2, qy + Q + 120);
-  x.fillStyle = '#9b9aab'; x.font = '600 34px system-ui,sans-serif'; x.fillText([t.curso, t.tipo].filter(Boolean).join(' · '), W / 2, qy + Q + 172);
+  x.fillStyle = '#9b9aab'; x.font = '600 34px system-ui,sans-serif'; x.fillText([t.curso, t.tipo, t.apoderado ? 'Apoderado/a: ' + t.apoderado : ''].filter(Boolean).join(' · '), W / 2, qy + Q + 172);
   x.fillStyle = '#22e3ff'; x.font = '700 34px ui-monospace,Menlo,monospace'; x.fillText(agrupado(t.codigo), W / 2, qy + Q + 232);
   x.fillStyle = '#9b9aab'; x.font = '500 26px system-ui,sans-serif';
   x.fillText((t.nota ? t.nota + ' · ' : '') + 'Válida para un ingreso. No compartas este QR.', W / 2, H - 50);
   return new Promise(ok => c.toBlob(ok, 'image/png'));
 }
 // El archivo de cada QR se llama como su titular (ej.: «Ana Pérez.png»); sin nombre: «Entrada 004.png».
+// Solo el QR con el nombre (arriba o abajo), fondo blanco, para montarlo en una entrada ya diseñada.
+async function pngQR(t) {
+  const arriba = $('posNombre').value === 'arriba', curso = $('conCurso').checked && t.curso;
+  const W = 900, M = 72, Q = W - 2 * M,   // margen blanco: los lectores lo necesitan para leer el QR sobre un diseño de color
+   c = document.createElement('canvas'), x = c.getContext('2d');
+  x.font = '800 64px system-ui,sans-serif';
+  const lineas = envolver(x, t.nombre || 'Entrada general', W - 2 * M).slice(0, 2);
+  const alto = lineas.length * 74 + (curso ? 54 : 0) + 30;
+  c.width = W; c.height = Q + 2 * M + alto;
+  x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  const qy = arriba ? M + alto : M;
+  const q = qrCanvas(urlEntrada(t.codigo)); x.imageSmoothingEnabled = false; if (q) x.drawImage(q, M, qy, Q, Q);
+  let y = arriba ? M + 58 : qy + Q + 72;
+  x.textAlign = 'center'; x.fillStyle = '#111'; x.font = '800 64px system-ui,sans-serif';
+  lineas.forEach(l => { x.fillText(l, W / 2, y); y += 74; });
+  if (curso) { x.fillStyle = '#555'; x.font = '600 44px system-ui,sans-serif'; x.fillText(t.curso, W / 2, y - 14); }
+  return new Promise(ok => c.toBlob(ok, 'image/png'));
+}
+async function zipQR() {
+  if (typeof JSZip === 'undefined') return aviso('No se pudo cargar el compresor ZIP. Revisa tu conexión.', 'err');
+  const lista = await conCodigos(elegidas()); if (!lista.length) return;
+  $('qrZip').disabled = true; const z = new JSZip(), usados = {};
+  for (let i = 0; i < lista.length; i++) {
+    $('nSel').textContent = `Preparando QR ${i + 1} / ${lista.length}…`;
+    let n = nombreArchivo(lista[i]); const k = n.toLowerCase();
+    if (usados[k]) n = n.replace(/\.png$/, ` (#${lista[i].n}).png`); usados[k] = 1;
+    z.file(n, await pngQR(lista[i]));
+  }
+  descargar(await z.generateAsync({ type: 'blob' }), 'qr-' + ev.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase().slice(0, 40) + '.zip');
+  pintarLista();
+}
+async function imprimirQR() {
+  if (typeof QRCode === 'undefined') return aviso('No se pudo cargar el generador de QR. Revisa tu conexión.', 'err');
+  const lista = await conCodigos(elegidas()); if (!lista.length) return;
+  const arriba = $('posNombre').value === 'arriba', curso = $('conCurso').checked, h = $('hoja');
+  h.className = 'etq'; h.style.setProperty('--w', $('tamEt').value + 'mm');
+  h.innerHTML = lista.map((t, i) => {
+    const txt = `<div class="nm">${esc(t.nombre) || 'Entrada general'}</div>${curso && t.curso ? `<div class="cu">${esc(t.curso)}</div>` : ''}`;
+    return `<div class="et">${arriba ? txt : ''}<div class="qr" id="eq${i}"></div>${arriba ? '' : txt}</div>`;
+  }).join('');
+  lista.forEach((t, i) => new QRCode($('eq' + i), { text: urlEntrada(t.codigo), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M }));
+  setTimeout(() => window.print(), 450);
+}
 const nombreArchivo = t => (t.nombre ? t.nombre.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) : 'Entrada ' + String(t.n).padStart(3, '0')) + '.png';
 function descargar(blob, nombre) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
 async function zipSel() {
@@ -490,13 +571,17 @@ async function zipSel() {
 }
 function exportarCSV() {
   const c = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-  const filas = [['N°', 'Nombre', 'Curso/grupo', 'Tipo', 'Estado', 'Hora de ingreso', 'Verificó', 'Método']].concat(
-    entradas.slice().sort((a, b) => a.n - b.n).map(t => [t.n, t.nombre, t.curso, t.tipo, t.estado === 'usada' ? 'Ingresó' : t.estado === 'anulada' ? 'Anulada' : 'No ingresó',
-      t.usada ? new Date(ms(t.usada)).toLocaleString('es-CL') : '', t.usadaPor || '', t.metodo || '']));
+  const filas = [['N°', 'Estudiante', 'Curso/grupo', 'Tipo', 'Apoderado/a', 'Estado', 'Hora de ingreso', 'Verificó', 'Método', 'Observaciones', 'Observación en la puerta']].concat(
+    entradas.slice().sort((a, b) => a.n - b.n).map(t => [t.n, t.nombre, t.curso, t.tipo, t.apoderado || '', t.estado === 'usada' ? 'Ingresó' : t.estado === 'anulada' ? 'Anulada' : 'No ingresó',
+      t.usada ? new Date(ms(t.usada)).toLocaleString('es-CL') : '', t.usadaPor || '', t.metodo || '', (priv[t.id] || {}).obs || '', (priv[t.id] || {}).obsIngreso || '']));
   descargar(new Blob(['﻿' + filas.map(f => f.map(c).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'asistencia-' + (ev ? ev.nombre.replace(/[^\w]+/g, '-').toLowerCase() : 'evento') + '.csv');
 }
 $('impSel').addEventListener('click', imprimir);
 $('pngSel').addEventListener('click', zipSel);
+$('qrZip').addEventListener('click', zipQR);
+$('qrImp').addEventListener('click', imprimirQR);
+try { $('posNombre').value = localStorage.getItem('entradas-pos') || 'abajo'; } catch (e) {}
+$('posNombre').addEventListener('change', () => { try { localStorage.setItem('entradas-pos', $('posNombre').value); } catch (e) {} });
 $('csv').addEventListener('click', exportarCSV);
 $('generar').addEventListener('click', generar);
 $('nuevoEv').addEventListener('click', () => abrirForm(true));
@@ -512,6 +597,10 @@ async function escucharEntradas() {
   entradas = []; pintarLista();
   if (!ev) return;
   const { F, db } = await DF.listo();
+  if (unsubPriv) { try { unsubPriv(); } catch (e) {} } priv = {};
+  unsubPriv = F.onSnapshot(F.query(F.collection(db, 'entradas_privado'), F.where('evento', '==', evId)), s => {
+    priv = {}; s.docs.forEach(d => { priv[d.id] = d.data(); }); pintarLista();
+  }, () => {});
   unsubEn = F.onSnapshot(F.query(F.collection(db, 'entradas'), F.where('evento', '==', evId)), s => {
     entradas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintarLista();
   }, e => aviso('No se pudieron leer las entradas: ' + esc(/permission/i.test(e.message) ? 'publica primero las reglas nuevas en Firebase.' : e.message), 'err'));

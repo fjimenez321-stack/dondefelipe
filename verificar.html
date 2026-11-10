@@ -54,6 +54,9 @@ select,input[type=search],input[type=text]{width:100%;background:var(--slab2);bo
 .res .tit{font:900 clamp(56px,17vw,110px)/.9 var(--ff-d);text-transform:uppercase;margin-top:14px}
 .res .nom{font:800 clamp(24px,7vw,36px)/1.15 var(--ff);margin-top:14px}
 .res .det{font:600 18px var(--ff);opacity:.9;margin-top:6px}
+.res .obsv{margin-top:16px;background:rgba(0,0,0,.28);border:2px solid #ffe08a;color:#fff6d6;border-radius:14px;padding:10px 16px;font:700 19px/1.3 var(--ff);max-width:560px}
+.res .obsv.ing{border-color:#9be7ff}
+.res .anotar{margin-top:18px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;padding:12px 20px;font:800 16px var(--ff);cursor:pointer}
 .res .pie{position:absolute;bottom:22px;left:0;right:0;font:600 14px var(--ff);opacity:.8}
 .lista{margin-top:10px;max-height:340px;overflow:auto}
 .it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line)}
@@ -133,7 +136,7 @@ async function sha256(t) {
 }
 function aviso(t, k) { $('aviso').innerHTML = t ? `<div class="aviso ${k || ''}">${t}</div>` : ''; }
 
-let usuario = null, escuchando = null, eventos = [], evId = '', entradas = [], unsubEv = null, unsubEn = null, modo = 'marcar';
+let privMap = {}, unsubPriv = null, usuario = null, escuchando = null, eventos = [], evId = '', entradas = [], unsubEv = null, unsubEn = null, modo = 'marcar';
 let stream = null, camaras = [], camIdx = 0, detector = null, lienzo = null, ocupado = false, ultimo = { c: '', t: 0 }, wake = null, log = [];
 
 /* ═════════ sonido y vibración ═════════ */
@@ -153,22 +156,55 @@ function sonar(ok) {
 
 /* ═════════ resultado a pantalla completa ═════════ */
 let cierre = null;
-function mostrar(tipo, tit, t, extra) {
+let resActual = null;
+function obsBloque(o) {
+  if (!o) return '';
+  return (o.obs ? `<div class="obsv">📝 ${esc(o.obs)}</div>` : '') + (o.obsIngreso ? `<div class="obsv ing">🚪 ${esc(o.obsIngreso)}</div>` : '');
+}
+function mostrar(tipo, tit, t, extra, h, o) {
+  resActual = t && h ? { t, h } : null;
   const r = $('res'), ico = tipo === 'ok' ? 'fa-circle-check' : tipo === 'info' ? 'fa-circle-info' : 'fa-circle-xmark';
   r.className = 'res ' + tipo; r.hidden = false;
   r.innerHTML = `<i class="fa-solid ${ico} ico"></i><div class="tit">${esc(tit)}</div>
-    ${t ? `<div class="nom">${esc(t.nombre) || 'Entrada general'}</div><div class="det">#${esc(t.n)}${t.curso ? ' · ' + esc(t.curso) : ''}${t.tipo ? ' · ' + esc(t.tipo) : ''}</div>` : ''}
-    ${extra ? `<div class="det">${extra}</div>` : ''}<div class="pie">Toca para seguir</div>`;
+    ${t ? `<div class="nom">${esc(t.nombre) || 'Entrada general'}</div><div class="det">#${esc(t.n)}${t.curso ? ' · ' + esc(t.curso) : ''}${t.tipo ? ' · ' + esc(t.tipo) : ''}</div>${t.apoderado ? `<div class="det">Apoderado/a: ${esc(t.apoderado)}</div>` : ''}` : ''}
+    ${extra ? `<div class="det">${extra}</div>` : ''}${obsBloque(o)}
+    ${resActual ? '<button class="anotar" data-anotar="1"><i class="fa-solid fa-pen"></i> Agregar observación</button>' : ''}<div class="pie">Toca para seguir</div>`;
   sonar(tipo === 'ok');
-  clearTimeout(cierre); cierre = setTimeout(ocultar, tipo === 'ok' ? 2200 : 4500);
+  // Con observaciones, la pantalla no se cierra sola: hay que leerla.
+  clearTimeout(cierre); if (!(o && (o.obs || o.obsIngreso))) cierre = setTimeout(ocultar, tipo === 'ok' ? 2600 : 4500);
 }
 function ocultar() { clearTimeout(cierre); $('res').hidden = true; ocupado = false; }
-$('res').addEventListener('click', ocultar);
-function anotar(tipo, txt, t) {
-  log.unshift({ tipo, txt, t, h: Date.now() }); log = log.slice(0, 15);
-  $('log').innerHTML = log.map(l => `<div class="it"><span class="chip ${l.tipo === 'ok' ? 'ok' : l.tipo === 'mal' ? 'mal' : ''}">${esc(horaTxt(l.h))}</span>
-    <div class="q"><b>${l.t ? esc(l.t.nombre || 'Entrada general') + ' · #' + esc(l.t.n) : 'Código desconocido'}</b><small>${esc(l.txt)}</small></div></div>`).join('');
+$('res').addEventListener('click', e => {
+  if (e.target.closest('[data-anotar]')) { clearTimeout(cierre); const r = resActual; anotarObs(r.h, r.t).finally(ocultar); return; }
+  ocultar();
+});
+// Observación desde la puerta (ej.: «llegó con 2 acompañantes», «retira la tía»). Se guarda aparte: el apoderado no la ve.
+async function anotarObs(h, t) {
+  const previa = (privMap[h] || {}).obsIngreso || '';
+  const txt = prompt(`Observación para ${t.nombre || 'la entrada #' + t.n}:`, previa);
+  if (txt === null) return;
+  try {
+    const { F, db } = await DF.listo();
+    await F.setDoc(F.doc(db, 'entradas_privado', h), { evento: t.evento, obsIngreso: txt.trim().slice(0, 300), obsPor: usuario.email.toLowerCase(), obsFecha: F.serverTimestamp() }, { merge: true });
+    privMap[h] = Object.assign({}, privMap[h], { obsIngreso: txt.trim() });
+    const l = log.find(x => x.h2 === h); if (l) l.txt2 = txt.trim(); pintarLog();
+  } catch (e) { alert('No se guardó la observación: ' + (/permission/i.test(e.message) ? 'Firebase lo rechazó (¿publicaste las reglas nuevas?)' : e.message)); }
 }
+async function leerPriv(h) {
+  if (privMap[h]) return privMap[h];
+  try { const { F, db } = await DF.listo(), s = await F.getDoc(F.doc(db, 'entradas_privado', h)); return s.exists() ? (privMap[h] = s.data()) : null; }
+  catch (e) { return null; }   // sin documento de observaciones
+}
+function anotar(tipo, txt, t, h2) {
+  log.unshift({ tipo, txt, t, h: Date.now(), h2, txt2: h2 && privMap[h2] ? privMap[h2].obsIngreso || '' : '' }); log = log.slice(0, 25);
+  pintarLog();
+}
+function pintarLog() {
+  $('log').innerHTML = log.map((l, i) => `<div class="it"><span class="chip ${l.tipo === 'ok' ? 'ok' : l.tipo === 'mal' ? 'mal' : ''}">${esc(horaTxt(l.h))}</span>
+    <div class="q"><b>${l.t ? esc(l.t.nombre || 'Entrada general') + ' · #' + esc(l.t.n) : 'Código desconocido'}</b><small>${esc(l.txt)}${l.t && l.t.curso ? ' · ' + esc(l.t.curso) : ''}${l.txt2 ? ' · 🚪 ' + esc(l.txt2) : ''}</small></div>
+    ${l.h2 ? `<button class="btn sm" data-log="${i}" title="Agregar observación"><i class="fa-solid fa-pen"></i></button>` : ''}</div>`).join('');
+}
+$('log').addEventListener('click', e => { const b = e.target.closest('[data-log]'); if (!b) return; const l = log[+b.dataset.log]; if (l && l.h2) anotarObs(l.h2, l.t); });
 
 /* ═════════ verificar ═════════ */
 function codigoDe(texto) {
@@ -201,13 +237,13 @@ async function verificar(texto, metodo, huellaDirecta) {
       tx.update(ref, { estado: 'usada', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: metodo || 'qr' });
       return { k: 'pasa', t };
     });
-    const t = r.t;
-    if (r.k === 'pasa') { mostrar('ok', 'Pasa', t); anotar('ok', 'Ingresó' + (metodo === 'manual' ? ' (a mano)' : ''), t); }
-    else if (r.k === 'valida') { mostrar('info', 'Válida', t, 'Sin usar · modo «Solo consultar»: no se marcó.'); anotar('info', 'Consultada: válida', t); }
-    else if (r.k === 'usada') { mostrar('mal', 'Ya ingresó', t, `A las ${esc(horaTxt(t.usada))}${t.usadaPor ? ' · verificó ' + esc(t.usadaPor) : ''}`); anotar('mal', 'Repetida: ya había ingresado ' + horaTxt(t.usada), t); }
-    else if (r.k === 'anulada') { mostrar('mal', 'Anulada', t, 'Esta entrada fue anulada por el profe.'); anotar('mal', 'Anulada', t); }
+    const t = r.t, o = t && t.evento === evId ? await leerPriv(h) : null, hh = t && t.evento === evId ? h : null;
+    if (r.k === 'pasa') { mostrar('ok', 'Pasa', t, '', hh, o); anotar('ok', 'Ingresó' + (metodo === 'manual' ? ' (a mano)' : ''), t, hh); }
+    else if (r.k === 'valida') { mostrar('info', 'Válida', t, 'Sin usar · modo «Solo consultar»: no se marcó.', hh, o); anotar('info', 'Consultada: válida', t, hh); }
+    else if (r.k === 'usada') { mostrar('mal', 'Ya ingresó', t, `A las ${esc(horaTxt(t.usada))}${t.usadaPor ? ' · verificó ' + esc(t.usadaPor) : ''}`, hh, o); anotar('mal', 'Repetida: ya había ingresado ' + horaTxt(t.usada), t, hh); }
+    else if (r.k === 'anulada') { mostrar('mal', 'Anulada', t, 'Esta entrada fue anulada por el profe.', hh, o); anotar('mal', 'Anulada', t, hh); }
     else if (r.k === 'otro') { mostrar('mal', 'Otro evento', t, 'Es para «' + esc(t.eventoNombre) + '».'); anotar('mal', 'De otro evento: ' + t.eventoNombre, t); }
-    else if (r.k === 'cerrado') { mostrar('mal', 'Evento cerrado', t, 'El profe cerró el ingreso de este evento.'); anotar('mal', 'Evento cerrado', t); }
+    else if (r.k === 'cerrado') { mostrar('mal', 'Evento cerrado', t, 'El profe cerró el ingreso de este evento.', hh, o); anotar('mal', 'Evento cerrado', t, hh); }
     else { mostrar('mal', 'No existe', null, 'No hay ninguna entrada con ese código. ¿Es falsa o fue borrada?'); anotar('mal', 'No existe'); }
   } catch (e) {
     const txt = /permission/i.test(e.message) ? 'Firebase lo rechazó: revisa que tu correo esté en la lista de porteros.' : /offline|unavailable|network/i.test(e.message) ? 'Sin conexión a internet. Revisa los datos o el wifi y vuelve a escanear.' : e.message;
@@ -287,8 +323,8 @@ function pintarCont() {
 function pintarBusqueda() {
   const q = $('buscar').value.trim().toLowerCase();
   if (!q) { $('resBuscar').innerHTML = ''; return; }
-  const l = entradas.filter(t => [t.nombre, t.curso, t.tipo, '#' + t.n, String(t.n)].some(v => String(v || '').toLowerCase().includes(q))).slice(0, 30);
-  $('resBuscar').innerHTML = l.map(t => `<div class="it"><div class="q"><b>${esc(t.nombre) || 'Entrada general'}</b><small>#${esc(t.n)}${t.curso ? ' · ' + esc(t.curso) : ''}${t.tipo ? ' · ' + esc(t.tipo) : ''}</small></div>
+  const l = entradas.filter(t => [t.nombre, t.curso, t.tipo, t.apoderado, '#' + t.n, String(t.n)].some(v => String(v || '').toLowerCase().includes(q))).slice(0, 30);
+  $('resBuscar').innerHTML = l.map(t => `<div class="it"><div class="q"><b>${esc(t.nombre) || 'Entrada general'}</b><small>#${esc(t.n)}${t.curso ? ' · ' + esc(t.curso) : ''}${t.tipo ? ' · ' + esc(t.tipo) : ''}${t.apoderado ? ' · Apod.: ' + esc(t.apoderado) : ''}${(privMap[t.id] || {}).obs ? '<br>📝 ' + esc(privMap[t.id].obs) : ''}</small></div>
     ${t.estado === 'usada' ? `<span class="chip ok">Ingresó ${esc(horaTxt(t.usada))}</span>` : t.estado === 'anulada' ? '<span class="chip mal">Anulada</span>'
       : `<button class="btn ok sm" data-pasar="${esc(t.id)}">Dejar pasar</button>`}</div>`).join('') || '<p class="muted">Nadie con ese nombre en este evento.</p>';
 }
@@ -307,6 +343,10 @@ async function escuchar() {
   try { localStorage.setItem('verificar-evento', evId); } catch (e) {}
   if (!evId) return;
   const { F, db } = await DF.listo();
+  if (unsubPriv) { try { unsubPriv(); } catch (e) {} } privMap = {};
+  unsubPriv = F.onSnapshot(F.query(F.collection(db, 'entradas_privado'), F.where('evento', '==', evId)), s => {
+    s.docs.forEach(d => { privMap[d.id] = d.data(); }); pintarBusqueda();
+  }, () => {});   // si no se puede listar, se leen una por una al escanear
   unsubEn = F.onSnapshot(F.query(F.collection(db, 'entradas'), F.where('evento', '==', evId)), s => {
     entradas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); $('buscarBox').hidden = false; pintarCont();
   }, () => { $('buscarBox').hidden = true; });   // si no se puede listar, el escáner igual funciona
@@ -325,7 +365,7 @@ $('manual').addEventListener('keydown', e => { if (e.key === 'Enter') $('usarMan
 /* ═════════ arranque ═════════ */
 async function cargar() {
   usuario = DF.usuario();
-  [unsubEv, unsubEn].forEach(u => { if (u) try { u(); } catch (e) {} }); unsubEv = unsubEn = null; escuchando = null;
+  [unsubEv, unsubEn, unsubPriv].forEach(u => { if (u) try { u(); } catch (e) {} }); unsubEv = unsubEn = unsubPriv = null; escuchando = null;
   $('app').hidden = true;
   if (!usuario) { apagar(); return aviso('Entra con la cuenta que el profe anotó como portero del evento. <button class="btn sm" id="entrar">Entrar</button>'); }
   const { F, db } = await DF.listo();
