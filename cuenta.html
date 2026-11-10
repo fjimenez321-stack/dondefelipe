@@ -10,11 +10,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
 :root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
---ink:#f2f1ec;--mute:#9b9aab;--acid:#ccff00;--cyan:#22e3ff;--pink:#ff2e7e;--brass:#e9b949;--neg:#ff7a70;--pos:#4bd08c;
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ffd60a;--cyan:#1fdd6c;--pink:#ff2b3d;--brass:#e9b949;--neg:#ff7a70;--pos:#4bd08c;
 --ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;min-height:100vh;background:radial-gradient(900px 420px at 85% -120px,rgba(34,227,255,.13),transparent),radial-gradient(700px 380px at 0% 0%,rgba(204,255,0,.06),transparent),var(--bg);color:var(--ink);font:16px/1.6 var(--ff);-webkit-font-smoothing:antialiased}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 420px at 85% -120px,rgba(31,221,108,.13),transparent),radial-gradient(700px 380px at 0% 0%,rgba(255,214,10,.06),transparent),var(--bg);color:var(--ink);font:16px/1.6 var(--ff);-webkit-font-smoothing:antialiased}
 a{color:var(--cyan)}
 .wrap{max-width:860px;margin:0 auto;padding:22px 16px 70px}
 .crumb{color:var(--mute);text-decoration:none;font-size:14px}.crumb:hover{color:var(--ink)}
@@ -79,13 +79,13 @@ label.ap input{width:18px;height:18px;margin-top:3px;accent-color:var(--acid)}
 .saldo b.neg{color:var(--neg)}
 .can{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
 .can.pend{background:rgba(233,185,73,.15);color:#f3c766}
-.can.usada{background:rgba(204,255,0,.12);color:var(--acid)}
+.can.usada{background:rgba(255,214,10,.12);color:var(--acid)}
 .tr-form{display:grid;grid-template-columns:1fr 140px;gap:10px;margin-top:8px}
 .tr-form select,.tr-form input{width:100%;background:var(--slab2);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:9px 12px;font:15px var(--ff)}
 .tr-form .ancho{grid-column:1/-1}
 .tr-form .fila{grid-column:1/-1}
 @media (max-width:560px){.tr-form{grid-template-columns:1fr}}
-.can.ok{background:rgba(204,255,0,.12);color:var(--acid)}
+.can.ok{background:rgba(255,214,10,.12);color:var(--acid)}
 .can.no{background:rgba(255,122,112,.14);color:var(--neg)}
 .can.anul{background:rgba(255,255,255,.08);color:var(--mute);text-decoration:line-through}
 /* resumen del perfil */
@@ -138,14 +138,14 @@ textarea,.pp-in{width:100%;background:var(--slab2);color:var(--ink);border:1px s
 .prod .cong{border-style:dashed;border-color:rgba(233,185,73,.5)}
 .normas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
 .normas>div{border-radius:12px;padding:10px 14px;font-size:14px}
-.normas .si{background:rgba(204,255,0,.07);border:1px solid rgba(204,255,0,.3)}
+.normas .si{background:rgba(255,214,10,.07);border:1px solid rgba(255,214,10,.3)}
 .normas .no{background:rgba(255,122,112,.08);border:1px solid rgba(255,122,112,.35)}
 .normas ul{margin:4px 0 0;padding-left:18px}
 @media (max-width:560px){.normas{grid-template-columns:1fr}}
 footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--mute);font-size:14px}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="fuentes/fuentes.css?v=20261105">
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261110">
 </head>
 <body>
 <div class="wrap">
@@ -517,7 +517,7 @@ async function cargarGatitos(u, banco) {
       const vis = t || v || c;
       return `<div class="gmini ${t ? '' : v || c ? 'congelado' : 'falta'}" style="--rc:${r.color || '#888'}" title="${vis ? esc(g.nombre) : '???'}"><img src="gatitos/img/${esc(g.id)}.webp" alt="${vis ? esc(g.nombre) : 'Gatito por descubrir'}" loading="lazy"><span>${vis ? esc(g.nombre) : '???'}</span>${v ? '<em>🔒 a la venta</em>' : c ? '<em>⏳ por llegar</em>' : t && fechaAdq(g.id) ? `<em>📅 ${fechaAdq(g.id)}</em>` : ''}</div>`; };
     $('gCont').innerHTML = `
-      ${fav ? `<div class="gfav" style="--rc:${(R[fav.rareza] || {}).color || '#ccff00'}"><img src="gatitos/img/${esc(fav.id)}.webp" alt="">
+      ${fav ? `<div class="gfav" style="--rc:${(R[fav.rareza] || {}).color || '#ffd60a'}"><img src="gatitos/img/${esc(fav.id)}.webp" alt="">
         <div><small>Mi gatito favorito</small><b>${esc(fav.nombre)}</b><span>${esc((R[fav.rareza] || {}).nombre || '')}</span></div></div>` : ''}
       <p class="sub">Colección: ${mios.length} de ${G.length} · valor ${fmt(valor)} ₣${venta.length ? ` · ${venta.length} a la venta` : ''}${camino.length ? ` · ${camino.length} por llegar` : ''}</p>
       <div class="ggrid">${cat.map(mini).join('')}</div>

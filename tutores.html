@@ -12,8 +12,8 @@
 <style>
 :root{
   --void:#08080c; --ink:#0e0f16; --slab:#14161f; --slab-2:#1b1e2b; --slab-3:#232739;
-  --acid:#ccff00; --acid-deep:#5e7a00; --tyrian:#ff2e7e; --cyan:#22e3ff; --brass:#e9b949;
-  --bone:#f2f0e9; --mute:#9498ab; --line:rgba(204,255,0,.16); --line-2:rgba(255,255,255,.08);
+  --acid:#ffd60a; --acid-deep:#7a5c00; --tyrian:#ff2b3d; --cyan:#1fdd6c; --brass:#e9b949;
+  --bone:#f2f0e9; --mute:#9498ab; --line:rgba(255,214,10,.16); --line-2:rgba(255,255,255,.08);
   --ff-display:'Big Shoulders Display','Impact',sans-serif;
   --ff-body:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;
   --r-sm:6px; --r-md:10px; --r-lg:14px;
@@ -49,20 +49,20 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--r-sm);padding:.75rem 1.3rem;font-size:.74rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;background:var(--acid);color:#0a0c00}
 .btn:hover:not(:disabled){background:var(--cyan)}
 .btn:disabled{opacity:.5;cursor:wait}
-.btn.s{background:transparent;color:var(--acid);border:1.5px solid rgba(204,255,0,.4)}
-.btn.s:hover{background:rgba(204,255,0,.1)}
+.btn.s{background:transparent;color:var(--acid);border:1.5px solid rgba(255,214,10,.4)}
+.btn.s:hover{background:rgba(255,214,10,.1)}
 
 .lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
 .tutor{position:relative;display:flex;flex-direction:column;gap:10px;background:var(--slab);border:1px solid var(--line-2);border-top:3px solid var(--tc,var(--acid));border-radius:var(--r-md);padding:1.2rem 1.2rem 1.1rem;min-width:0}
 .tutor .ico{font-size:2rem;line-height:1}
 .tutor h2{font:800 1.35rem/1.1 var(--ff-display);text-transform:uppercase;letter-spacing:.5px;overflow-wrap:anywhere}
 .datos{display:flex;gap:8px;flex-wrap:wrap}
-.dato{font-size:.62rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:4px 10px;border-radius:2px;background:rgba(204,255,0,.12);color:var(--acid)}
+.dato{font-size:.62rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:4px 10px;border-radius:2px;background:rgba(255,214,10,.12);color:var(--acid)}
 .desc{font-size:.9rem;color:#c6c9d6;line-height:1.55;flex:1}
 .tutor .fila{margin-top:4px}
 .aviso{font-size:.8rem;line-height:1.5;color:var(--bone);background:rgba(233,185,73,.1);border:1px solid rgba(233,185,73,.35);border-radius:var(--r-sm);padding:8px 10px}
 .aviso b{color:var(--brass)}
-.info{border-left:4px solid var(--cyan);background:rgba(34,227,255,.06);padding:12px 16px;border-radius:0 var(--r-sm) var(--r-sm) 0;margin:0 0 1.6rem;font-size:.86rem;line-height:1.6;color:#c6c9d6}
+.info{border-left:4px solid var(--cyan);background:rgba(31,221,108,.06);padding:12px 16px;border-radius:0 var(--r-sm) var(--r-sm) 0;margin:0 0 1.6rem;font-size:.86rem;line-height:1.6;color:#c6c9d6}
 .info b{color:var(--cyan)}
 .info ul{margin:.4rem 0 0 1.1rem}
 .fila{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -88,7 +88,7 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
 </style>
 <link rel="stylesheet" href="assets/mc-sutil.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="fuentes/fuentes.css?v=20261105">
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261110">
 </head>
 <body>
 <div class="frieze"></div>
@@ -129,7 +129,7 @@ var CURSOS=[
   {k:'1m',n:'1° Medio'},{k:'2m',n:'2° Medio'},{k:'3m',n:'3° Medio'},{k:'4m',n:'4° Medio'},
   {k:'general',n:'General'}
 ];
-var COLS=['#ccff00','#22e3ff','#ff2e7e','#e9b949','#a78bfa','#34d399'];
+var COLS=['#ffd60a','#1fdd6c','#ff2b3d','#e9b949','#a78bfa','#34d399'];
 var MENORES=['6b','7b'];  // cursos donde la mayoría tiene menos de 13 años
 var URL_OK=/^https:\/\/notebook(lm)?\.google\.com\/\S+$/;
 

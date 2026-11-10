@@ -42,3 +42,11 @@
 }
 :root:root { --ff-sec: 'Matcha World', 'Matcha Style', 'Big Shoulders Display', Impact, sans-serif; }
 h2:not([class*="-banner"] h2):not(.lienzo h2) { font-family: var(--ff-sec) !important; letter-spacing: .5px; }
+
+/* Estilo reggae (nov 2026): franja verde · amarillo · rojo arriba de cada página y selección de texto a tono.
+   Los colores del sitio se cambiaron en cada página (--acid amarillo, --cyan verde, --pink rojo). */
+html::before {
+  content: ""; position: fixed; top: 0; left: 0; right: 0; height: 5px; z-index: 2147482000; pointer-events: none;
+  background: linear-gradient(90deg, #12b85a 0 33.33%, #ffd60a 33.33% 66.66%, #ff2b3d 66.66% 100%);
+}
+::selection { background: #ffd60a; color: #0b0b0f; }
