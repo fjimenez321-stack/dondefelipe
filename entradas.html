@@ -85,6 +85,8 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
 .en .izq{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:1.5mm 2mm 1.5mm 3.5mm}
 .en .quien{font:700 3.8mm/1.15 Arial,Helvetica,sans-serif;color:#0b2559;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .en .det{font:400 2.4mm/1.3 Arial,Helvetica,sans-serif;color:#123a8f;margin-top:.5mm}
+.en .invl{font:400 2.1mm/1.3 Arial,Helvetica,sans-serif;color:#0b2559;margin-top:.8mm;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.en .invl b{color:#8a6d0f}
 .en .inst{font:400 1.7mm/1.25 Arial,Helvetica,sans-serif;color:#555;margin-top:1mm}
 .en .der{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6mm;padding:1.2mm 2mm 1.2mm 0}
 .en .qr{width:26mm;height:26mm}
@@ -101,6 +103,8 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
 .herr select{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:5px 10px;font:600 13px var(--ff)}
 .obs{display:block;font-size:12.5px;color:var(--brass);margin-top:2px}
 .obs.ing{color:var(--cyan)}
+.inv{display:block;font-size:12.5px;color:var(--mute);margin-top:3px;line-height:1.5}
+.inv .si{color:var(--acid)}
 @media print{
   @page{size:A4;margin:8mm}
   body{background:#fff}
@@ -155,7 +159,7 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
   <!-- ═════ asistentes ═════ -->
   <section class="card" id="secAgregar" hidden>
     <h2><i class="fa-solid fa-user-plus"></i> Generar entradas</h2>
-    <p class="muted" style="margin:0">Sube el Excel o pega la lista desde Excel o Google Sheets. Si la primera fila tiene encabezados (<b>Nombre</b> o <b>Estudiante</b>, <b>Apellido</b>, <b>Curso</b>, <b>Tipo</b>, <b>Apoderado</b>, <b>Cupos</b>, <b>Observaciones</b>) se usan esas columnas en cualquier orden; si no, se toma Nombre · Curso · Tipo. Cada QR sale con el nombre del titular. También puedes generar entradas sin nombre.</p>
+    <p class="muted" style="margin:0"><b>Entradas nominadas:</b> una fila por estudiante y sus invitados en columnas «Invitado 1», «Invitado 2»… (o una columna «Invitados» con los nombres separados por punto y coma). <a href="#" id="plantilla">Descarga la plantilla de Excel</a>. Sube el Excel o pega la lista desde Excel o Google Sheets. Si la primera fila tiene encabezados (<b>Nombre</b> o <b>Estudiante</b>, <b>Apellido</b>, <b>Curso</b>, <b>Tipo</b>, <b>Apoderado</b>, <b>Cupos</b>, <b>Observaciones</b>) se usan esas columnas en cualquier orden; si no, se toma Nombre · Curso · Tipo. Cada QR sale con el nombre del titular. También puedes generar entradas sin nombre.</p>
     <div class="form">
       <label class="ancho">Lista de asistentes
         <textarea id="lista" placeholder="Ana Pérez&#9;3° Medio&#9;Estudiante&#10;Luis Soto&#9;Apoderado&#10;María Rojas"></textarea>
@@ -190,6 +194,7 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
       <b style="font-size:13px"><i class="fa-solid fa-qrcode"></i> Solo QR + nombre (para tu entrada ya diseñada):</b>
       <label class="muted">Nombre <select id="posNombre"><option value="abajo">abajo del QR</option><option value="arriba">arriba del QR</option></select></label>
       <label class="muted"><input type="checkbox" id="conCurso" checked> con curso</label>
+      <label class="muted"><input type="checkbox" id="conInv" checked> con invitados</label>
       <button class="btn sm" id="qrZip" disabled><i class="fa-solid fa-file-zipper"></i> Imágenes PNG (ZIP)</button>
       <label class="muted">Tamaño al imprimir <select id="tamEt"><option value="30">3 cm</option><option value="40" selected>4 cm</option><option value="50">5 cm</option><option value="60">6 cm</option></select></label>
       <button class="btn sm" id="qrImp" disabled><i class="fa-solid fa-print"></i> Imprimir para recortar</button>
@@ -229,6 +234,10 @@ const horaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleTimeStrin
 const cuposDe = t => Math.max(1, Math.round(+t.cupos || 1));
 const usosDe = t => t.usos != null ? t.usos : (t.estado === 'usada' ? cuposDe(t) : 0);   // entradas antiguas sin contador
 const personas = n => n + (n === 1 ? ' persona' : ' personas');
+// Entradas nominadas: invitados con nombre y quiénes de ellos ya entraron (índices).
+const invDe = t => Array.isArray(t.invitados) ? t.invitados : [];
+const entDe = t => Array.isArray(t.entraron) ? t.entraron : [];
+const libresSinNombre = t => cuposDe(t) - invDe(t).length - (usosDe(t) - entDe(t).length);   // cupos sin nombre que quedan
 const correos = txt => [...new Set(String(txt || '').toLowerCase().split(/[\s,;]+/).map(s => s.trim()).filter(s => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)))].slice(0, 30);
 
 /* ═════════ eventos ═════════ */
@@ -305,7 +314,7 @@ async function guardarEvento() {
         await b.commit();
       }
       // Si cambiaron los cupos, ofrece aplicarlos a las entradas ya generadas (sin bajar de lo ya usado).
-      const otras = entradas.filter(t => t.estado !== 'anulada' && cuposDe(t) !== d.cupos);
+      const otras = entradas.filter(t => t.estado !== 'anulada' && !invDe(t).length && cuposDe(t) !== d.cupos);   // las nominadas mantienen sus cupos
       if (otras.length && confirm(`Cambiaste los cupos a ${d.cupos}. ¿Aplicarlo también a las ${otras.length} entradas ya generadas?\n(Las que ya tienen más ingresos que eso quedan con lo usado.)`)) {
         for (let i = 0; i < otras.length; i += 450) {
           const b = F.writeBatch(db);
@@ -337,30 +346,61 @@ async function borrarEvento() {
 /* ═════════ generar ═════════ */
 const sinTilde = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 // Encabezados reconocidos (sin importar mayúsculas ni tildes).
-const COLS = { nombre: /^(nombres?|nombre completo|titular|asistente|estudiante|alumno|alumna|invitado)$/, apellido: /^(apellidos?|apellido paterno|ap\.? paterno)$/,
+const COLS = { nombre: /^(nombres?|nombre completo|titular|estudiante|nombre (del )?estudiante|alumno|alumna)$/, apellido: /^(apellidos?|apellido paterno|ap\.? paterno)$/,
   apellido2: /^(apellido materno|ap\.? materno|segundo apellido)$/, curso: /^(curso|grupo|nivel|cargo|seccion)$/, tipo: /^(tipo|tipo de entrada|categoria|entrada|ubicacion|zona)$/,
   apoderado: /^(apoderad[oa]s?|nombre (del )?apoderad[oa]|tutor|tutora|responsable)$/, obs: /^(observacion(es)?|obs\.?|notas?|comentarios?)$/,
-  cupos: /^(cupos?|n(°|ro\.?|umero)? (de )?cupos|personas|n(°|ro\.?)? (de )?personas|cantidad|invitados|acompanantes)$/ };
+  cupos: /^(cupos?|n(°|ro\.?|umero)? (de )?cupos|n(°|ro\.?)? (de )?personas|cantidad)$/ };
+// Columnas de invitados: «Invitado 1», «Invitado 2»… o una sola «Invitados» con nombres separados por ; o saltos de línea.
+const COL_INV = /^(invitad[oa]s?|acompanantes?|familiar(es)?|nombre (del )?invitad[oa])( ?(n°|nro\.?|#)? ?\d+)?$/;
+const MAX_INV = 10;
 function leerLista() {
   const txt = $('lista').value.replace(/\r/g, ''), lineas = txt.split('\n').filter(l => l.trim());
   const sep = /\t/.test(txt) ? '\t' : /;/.test(txt) ? ';' : ',';
   const tipoDef = $('tipoDef').value.trim().slice(0, 30) || 'General';
-  const filas = lineas.map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '').replace(/\s+/g, ' ')));
-  let col = { nombre: 0, curso: 1, tipo: 2 };
+  const filas = lineas.map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '')));
+  let col = { nombre: 0, curso: 1, tipo: 2 }, colInv = [];
   if (filas.length) {
     const cab = filas[0].map(sinTilde), enc = {};
-    cab.forEach((c, i) => { for (const k in COLS) if (enc[k] == null && COLS[k].test(c)) enc[k] = i; });
-    if (enc.nombre != null || enc.apellido != null) { col = enc; filas.shift(); }
+    cab.forEach((c, i) => { for (const k in COLS) if (enc[k] == null && COLS[k].test(c)) enc[k] = i; if (COL_INV.test(c)) colInv.push(i); });
+    if (enc.nombre != null || enc.apellido != null) { col = enc; filas.shift(); } else colInv = [];
   }
-  const v = (f, k) => col[k] == null ? '' : (f[col[k]] || '');
-  return filas.map(f => {
-    const nombre = [v(f, 'nombre'), v(f, 'apellido'), v(f, 'apellido2')].filter(Boolean).join(' ').trim();
-    return { nombre: nombre.slice(0, 80), curso: v(f, 'curso').slice(0, 40), tipo: (v(f, 'tipo') || tipoDef).slice(0, 30), cupos: Math.round(+v(f, 'cupos')) || 0, apoderado: v(f, 'apoderado').slice(0, 80), obs: v(f, 'obs').slice(0, 300) };
-  }).filter(p => p.nombre);
+  const v = (f, k) => col[k] == null ? '' : (f[col[k]] || '').replace(/\s+/g, ' ');
+  const corta = sep === ',' ? /[;|/]+/ : /[;|/,]+/;   // varios nombres en una celda
+  // Una entrada por estudiante: si aparece en varias filas (una por invitado), se juntan.
+  const porClave = new Map(), lista = [];
+  for (const f of filas) {
+    const nombre = [v(f, 'nombre'), v(f, 'apellido'), v(f, 'apellido2')].filter(Boolean).join(' ').trim().slice(0, 80);
+    if (!nombre) continue;
+    const inv = colInv.flatMap(i => String(f[i] || '').split(corta)).map(x => x.replace(/\s+/g, ' ').trim().slice(0, 80)).filter(Boolean);
+    const clave = sinTilde(nombre) + '|' + sinTilde(v(f, 'curso'));
+    let p = porClave.get(clave);
+    if (!p) {
+      p = { nombre, curso: v(f, 'curso').slice(0, 40), tipo: (v(f, 'tipo') || tipoDef).slice(0, 30), cupos: Math.round(+v(f, 'cupos')) || 0,
+        apoderado: v(f, 'apoderado').slice(0, 80), obs: v(f, 'obs').slice(0, 300), invitados: [] };
+      porClave.set(clave, p); lista.push(p);
+    } else {
+      p.cupos = Math.max(p.cupos, Math.round(+v(f, 'cupos')) || 0);
+      if (!p.apoderado) p.apoderado = v(f, 'apoderado').slice(0, 80);
+      const o = v(f, 'obs'); if (o && !p.obs.includes(o)) p.obs = (p.obs ? p.obs + ' · ' : '') + o.slice(0, 300 - p.obs.length);
+    }
+    for (const x of inv) if (!p.invitados.some(y => sinTilde(y) === sinTilde(x)) && p.invitados.length < MAX_INV) p.invitados.push(x);
+  }
+  return lista;
+}
+// Plantilla de Excel para entradas nominadas: una fila por estudiante, sus invitados en columnas.
+async function plantilla() {
+  try { await cargarXLSX(); } catch (e) { return msg('genMsg', esc(e.message), 'err'); }
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['Estudiante', 'Curso', 'Apoderado', 'Invitado 1', 'Invitado 2', 'Invitado 3', 'Invitado 4', 'Observaciones'],
+    ['Ana María Pérez Soto', '4° Medio A', 'Carolina Soto', 'Carolina Soto', 'Jorge Pérez', 'Elena Muñoz', '', 'Abuela en silla de ruedas'],
+    ['Luis Rojas Díaz', '4° Medio B', 'Pedro Rojas', 'Pedro Rojas', 'Marta Díaz', '', '', '']]);
+  ws['!cols'] = [{ wch: 26 }, { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 30 }];
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Entradas');
+  XLSX.writeFile(wb, 'plantilla-entradas-nominadas.xlsx');
 }
 function infoLista() {
-  const l = leerLista(), sn = Math.max(0, Math.round(+$('sinNombre').value || 0));
-  $('listaInfo').textContent = l.length || sn ? `Se generarán ${l.length + sn} entradas (${l.length} con nombre${sn ? ', ' + sn + ' sin nombre' : ''}).` : 'Una persona por línea. Separa columnas con tabulación (al pegar desde una planilla), punto y coma o coma.';
+  const l = leerLista(), sn = Math.max(0, Math.round(+$('sinNombre').value || 0)), ni = l.reduce((a, p) => a + p.invitados.length, 0);
+  $('listaInfo').textContent = l.length || sn ? `Se generarán ${l.length + sn} entradas (${l.length} con nombre${ni ? ', con ' + ni + ' invitados nominados en total' : ''}${sn ? ', ' + sn + ' sin nombre' : ''}).` : 'Una persona por línea. Separa columnas con tabulación (al pegar desde una planilla), punto y coma o coma.';
 }
 $('lista').addEventListener('input', infoLista); $('sinNombre').addEventListener('input', infoLista); $('tipoDef').addEventListener('input', infoLista);
 function cargarXLSX() {
@@ -374,11 +414,11 @@ $('archivo').addEventListener('change', async e => {
       await cargarXLSX();
       const wb = XLSX.read(await f.arrayBuffer(), { type: 'array' }), hoja = wb.Sheets[wb.SheetNames[0]];
       const filas = XLSX.utils.sheet_to_json(hoja, { header: 1, raw: false, defval: '' });
-      $('lista').value = filas.filter(r => r.some(c => String(c).trim())).map(r => r.map(c => String(c).replace(/[\t\n\r]+/g, ' ').trim()).join('\t')).join('\n');
+      $('lista').value = filas.filter(r => r.some(c => String(c).trim())).map(r => r.map(c => String(c).replace(/[\n\r]+/g, ' ; ').replace(/\t+/g, ' ').trim()).join('\t')).join('\n');
     } else $('lista').value = await f.text();
     infoLista();
     const l = leerLista();
-    msg('genMsg', l.length ? `✓ ${esc(f.name)}: ${l.length} titulares leídos (ej.: ${esc(l.slice(0, 3).map(p => p.nombre).join(', '))}). Revisa la lista y presiona «Generar entradas».` : 'No encontré nombres en el archivo. Revisa que tenga una columna «Nombre».', l.length ? '' : 'err');
+    msg('genMsg', l.length ? `✓ ${esc(f.name)}: ${l.length} estudiantes y ${l.reduce((a, p) => a + p.invitados.length, 0)} invitados leídos (ej.: ${esc(l.slice(0, 2).map(p => p.nombre + (p.invitados.length ? ' → ' + p.invitados.join(', ') : '')).join(' · '))}). Revisa la lista y presiona «Generar entradas».` : 'No encontré nombres en el archivo. Revisa que tenga una columna «Nombre».', l.length ? '' : 'err');
   } catch (err) { msg('genMsg', 'No se pudo leer el archivo: ' + esc(err.message), 'err'); }
   e.target.value = '';
 });
@@ -386,7 +426,7 @@ async function generar() {
   if (!ev) return;
   const personas = leerLista(), sn = Math.max(0, Math.round(+$('sinNombre').value || 0));
   const tipoDef = $('tipoDef').value.trim().slice(0, 30) || 'General';
-  for (let i = 0; i < sn; i++) personas.push({ nombre: '', curso: '', tipo: tipoDef, apoderado: '', obs: '', cupos: 0 });
+  for (let i = 0; i < sn; i++) personas.push({ nombre: '', curso: '', tipo: tipoDef, apoderado: '', obs: '', cupos: 0, invitados: [] });
   if (!personas.length) return msg('genMsg', 'Pega al menos un nombre o indica entradas sin nombre.', 'err');
   if (personas.length > 1000) return msg('genMsg', 'Máximo 1.000 entradas por vez.', 'err');
   // Aviso de posibles duplicados (mismo nombre ya con entrada en este evento).
@@ -402,7 +442,9 @@ async function generar() {
       for (const p of personas.slice(i, i + POR_LOTE)) {
         const codigo = nuevoCodigo(), h = await sha256(codigo);
         const d = { evento: evId, eventoNombre: ev.nombre, eventoFecha: ev.fecha || null, lugar: ev.lugar || '', nota: ev.nota || '',
-          nombre: p.nombre, curso: p.curso, tipo: p.tipo, apoderado: p.apoderado || '', cupos: Math.min(20, Math.max(1, p.cupos || ev.cupos || 1)), usos: 0, n: ++n, estado: 'valida', lote, profe: usuario.email, creada: F.serverTimestamp() };
+          nombre: p.nombre, curso: p.curso, tipo: p.tipo, apoderado: p.apoderado || '', invitados: p.invitados, entraron: [],
+          // Nominada: los cupos son sus invitados (o más, si el Excel trae una columna Cupos mayor).
+          cupos: Math.min(20, Math.max(1, p.invitados.length ? Math.max(p.invitados.length, p.cupos) : (p.cupos || ev.cupos || 1))), usos: 0, n: ++n, estado: 'valida', lote, profe: usuario.email, creada: F.serverTimestamp() };
         b.set(F.doc(db, 'entradas', h), d);
         b.set(F.doc(db, 'entradas_codigos', h), { codigo, evento: evId });
         // Las observaciones van aparte: las ven solo el profe y los porteros, no quien tiene el QR.
@@ -424,7 +466,7 @@ function visibles() {
   const q = $('buscar').value.trim().toLowerCase();
   const ok = t => !filtro || (filtro === 'sin' ? t.estado === 'valida' && !usosDe(t) : filtro === 'parcial' ? t.estado === 'valida' && usosDe(t) > 0 : t.estado === filtro);
   return entradas.filter(t => ok(t)
-    && (!q || [t.nombre, t.curso, t.tipo, t.apoderado, '#' + t.n, String(t.n), (priv[t.id] || {}).obs, (priv[t.id] || {}).obsIngreso].some(v => String(v || '').toLowerCase().includes(q))))
+    && (!q || [t.nombre, t.curso, t.tipo, t.apoderado, invDe(t).join(' '), '#' + t.n, String(t.n), (priv[t.id] || {}).obs, (priv[t.id] || {}).obsIngreso].some(v => String(v || '').toLowerCase().includes(q))))
     .sort((a, b) => (a.n || 0) - (b.n || 0));
 }
 function pintarStats() {
@@ -433,6 +475,10 @@ function pintarStats() {
   $('stats').innerHTML = `<div class="stat"><b>${val.length}</b><span>Entradas · ${cup} cupos</span></div><div class="stat"><b style="color:var(--acid)">${us}</b><span>Personas que ingresaron</span></div>
     <div class="stat"><b style="color:var(--cyan)">${cup - us}</b><span>Cupos por llegar</span></div><div class="stat"><b>${conIng}</b><span>Entradas usadas al menos 1 vez</span></div>${an ? `<div class="stat"><b style="color:var(--mute)">${an}</b><span>Anuladas</span></div>` : ''}`;
   $('barra').style.width = cup ? (100 * us / cup) + '%' : '0';
+}
+function invHTML(t) {
+  const inv = invDe(t), ent = entDe(t); if (!inv.length) return '';
+  return `<span class="inv">👥 ${inv.map((x, i) => ent.includes(i) ? `<span class="si">✓ ${esc(x)}</span>` : esc(x)).join(' · ')}${libresSinNombre(t) > 0 && cuposDe(t) > inv.length ? ` · <i>+${cuposDe(t) - inv.length} sin nombre</i>` : ''}</span>`;
 }
 function obsHTML(id) {
   const o = priv[id]; if (!o) return '';
@@ -448,13 +494,13 @@ function pintarLista() {
       : (u ? `<span class="chip ${t.estado === 'usada' ? 'ok' : 'hot'}">${t.estado === 'usada' ? 'Completa' : 'Ingresaron'} ${u}/${c}</span><br><small class="muted">${t.primerIngreso && u > 1 ? esc(horaTxt(t.primerIngreso)) + '–' : ''}${esc(horaTxt(t.usada))} · ${esc(t.usadaPor || '')}${t.metodo === 'manual' ? ' · a mano' : ''}</small>`
           : `<span class="chip val">Sin usar · ${personas(c)}</span>`);
     const deshacer = u ? ` <button class="btn sm" data-a="deshacer" data-id="${esc(t.id)}" title="Restar el último ingreso">−1</button>` : '';
-    const cuposBtn = t.estado !== 'anulada' ? ` <button class="btn sm" data-a="cupos" data-id="${esc(t.id)}" title="Cambiar cupos"><i class="fa-solid fa-users"></i> ${c}</button>` : '';
+    const cuposBtn = t.estado !== 'anulada' ? ` <button class="btn sm" data-a="invitados" data-id="${esc(t.id)}" title="Invitados (nombres)"><i class="fa-solid fa-user-pen"></i></button> <button class="btn sm" data-a="cupos" data-id="${esc(t.id)}" title="Cambiar cupos"><i class="fa-solid fa-users"></i> ${c}</button>` : '';
     const acc = t.estado === 'valida' ? `<button class="btn sm" data-a="png" data-id="${esc(t.id)}" title="Descargar imagen"><i class="fa-solid fa-image"></i></button>${cuposBtn} <button class="btn sm" data-a="manual" data-id="${esc(t.id)}" title="Sumar un ingreso a mano">+1</button>${deshacer} <button class="btn sm" data-a="anular" data-id="${esc(t.id)}">Anular</button>`
       : t.estado === 'usada' ? `${cuposBtn}${deshacer}`
       : `<button class="btn sm" data-a="reactivar" data-id="${esc(t.id)}">Reactivar</button>`;
     acc2 = `<button class="btn sm" data-a="qr" data-id="${esc(t.id)}" title="Descargar solo QR + nombre"><i class="fa-solid fa-qrcode"></i></button> <button class="btn sm" data-a="obs" data-id="${esc(t.id)}" title="Observaciones"><i class="fa-solid fa-note-sticky"></i></button> `;
     return `<tr><td>${t.estado === 'valida' ? `<input type="checkbox" data-sel="${esc(t.id)}"${sel.has(t.id) ? ' checked' : ''}>` : ''}</td>
-      <td class="num">#${t.n || ''}</td><td><b>${esc(t.nombre) || '<span class="muted">Sin nombre</span>'}</b>${t.apoderado ? `<br><small class="muted">Apoderado/a: ${esc(t.apoderado)}</small>` : ''}</td><td>${esc(t.curso)}</td><td>${esc(t.tipo)}</td>
+      <td class="num">#${t.n || ''}</td><td><b>${esc(t.nombre) || '<span class="muted">Sin nombre</span>'}</b>${t.apoderado ? `<br><small class="muted">Apoderado/a: ${esc(t.apoderado)}</small>` : ''}${invHTML(t)}</td><td>${esc(t.curso)}</td><td>${esc(t.tipo)}</td>
       <td>${est}${obsHTML(t.id)}</td><td class="acc">${t.estado === 'valida' ? acc2 : `<button class="btn sm" data-a="obs" data-id="${esc(t.id)}" title="Observaciones"><i class="fa-solid fa-note-sticky"></i></button> `}${acc}</td></tr>`;
   }).join('') || '<tr><td colspan="7" class="muted">No hay entradas en esta vista.</td></tr>';
   for (const id of [...sel]) { const t = entradas.find(x => x.id === id); if (!t || t.estado !== 'valida') sel.delete(id); }
@@ -486,9 +532,16 @@ $('filas').addEventListener('click', async e => {
     if (b.dataset.a === 'anular') { if (!confirm(`¿Anular la entrada de ${quien}? Ya no servirá para ingresar.`)) return; await F.updateDoc(ref, { estado: 'anulada', anulada: F.serverTimestamp() }); }
     if (b.dataset.a === 'reactivar') await F.updateDoc(ref, { estado: 'valida' });
     if (b.dataset.a === 'manual') {
-      const u = usosDe(t) + 1, c = cuposDe(t);
-      if (!confirm(`¿Sumar un ingreso a ${quien}? (quedará ${u} de ${c})`)) return;
+      const u = usosDe(t) + 1, c = cuposDe(t), inv = invDe(t), ent = entDe(t);
+      const pend = inv.map((x, i) => [x, i]).filter(([, i]) => !ent.includes(i)), libres = libresSinNombre(t);
+      let quienEntra = -1;
+      if (pend.length) {
+        const r = prompt(`¿Quién de la entrada de ${quien} ingresó? Escribe el número:\n` + pend.map(([x], k) => `${k + 1}) ${x}`).join('\n') + (libres > 0 ? `\n0) Otra persona (cupo sin nombre)` : ''), '1');
+        if (r === null) return; const k = Math.round(+r);
+        if (k === 0 && libres > 0) quienEntra = -1; else if (k >= 1 && k <= pend.length) quienEntra = pend[k - 1][1]; else return alert('Número no válido.');
+      } else if (!confirm(`¿Sumar un ingreso a ${quien}? (quedará ${u} de ${c})`)) return;
       const d = { usos: u, estado: u >= c ? 'usada' : 'valida', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'manual' };
+      if (quienEntra >= 0) d.entraron = ent.concat([quienEntra]);
       if (!t.primerIngreso) d.primerIngreso = F.serverTimestamp();
       await F.updateDoc(ref, d);
     }
@@ -497,12 +550,31 @@ $('filas').addEventListener('click', async e => {
       if (r === null) return; const c = Math.round(+r);
       if (!(c >= 1 && c <= 20)) return alert('Escribe un número entre 1 y 20.');
       if (c < usosDe(t)) return alert(`Ya entraron ${usosDe(t)} personas con esta entrada: los cupos no pueden ser menos.`);
+      if (c < invDe(t).length) return alert(`La entrada tiene ${invDe(t).length} invitados con nombre: los cupos no pueden ser menos (quita invitados primero).`);
       await F.updateDoc(ref, { cupos: c, usos: usosDe(t), estado: usosDe(t) >= c ? 'usada' : 'valida' });
     }
     if (b.dataset.a === 'deshacer') {
       const u = usosDe(t) - 1; if (u < 0) return;
-      if (!confirm(`¿Restar el último ingreso de ${quien}? (quedará ${u} de ${cuposDe(t)})`)) return;
-      await F.updateDoc(ref, u ? { usos: u, estado: 'valida' } : { usos: 0, estado: 'valida', usada: F.deleteField(), usadaPor: F.deleteField(), metodo: F.deleteField(), primerIngreso: F.deleteField() });
+      const inv = invDe(t), ent = entDe(t), sinNom = usosDe(t) - ent.length;
+      let nuevaEnt = ent;
+      if (ent.length) {
+        const ops = ent.map(i => inv[i]);
+        const r = prompt(`¿A quién le quitas el ingreso? (entrada de ${quien}) Escribe el número:\n` + ops.map((x, k) => `${k + 1}) ${x}`).join('\n') + (sinNom > 0 ? `\n0) Una persona sin nombre` : ''), String(ops.length));
+        if (r === null) return; const k = Math.round(+r);
+        if (k >= 1 && k <= ops.length) nuevaEnt = ent.filter((_, j) => j !== k - 1); else if (!(k === 0 && sinNom > 0)) return alert('Número no válido.');
+      } else if (!confirm(`¿Restar el último ingreso de ${quien}? (quedará ${u} de ${cuposDe(t)})`)) return;
+      await F.updateDoc(ref, u ? { usos: u, estado: 'valida', entraron: nuevaEnt } : { usos: 0, estado: 'valida', entraron: [], usada: F.deleteField(), usadaPor: F.deleteField(), metodo: F.deleteField(), primerIngreso: F.deleteField() });
+    }
+    if (b.dataset.a === 'invitados') {
+      const inv = invDe(t), ent = entDe(t);
+      const r = prompt(`Invitados de la entrada de ${quien}, separados por punto y coma (;).\nMáximo ${MAX_INV}. Quienes ya entraron no se pueden quitar.`, inv.join('; '));
+      if (r === null) return;
+      const nuevos = []; for (const x of r.split(/[;\n]+/).map(x => x.replace(/\s+/g, ' ').trim().slice(0, 80)).filter(Boolean)) if (!nuevos.some(y => sinTilde(y) === sinTilde(x)) && nuevos.length < MAX_INV) nuevos.push(x);
+      const nuevaEnt = [];
+      for (const i of ent) { const k = nuevos.findIndex(y => sinTilde(y) === sinTilde(inv[i])); if (k < 0) return alert(`«${inv[i]}» ya entró: no se puede quitar de la lista.`); nuevaEnt.push(k); }
+      const extra = Math.max(0, cuposDe(t) - inv.length);   // cupos sin nombre que ya tenía
+      const c = Math.min(20, Math.max(1, usosDe(t), nuevos.length + (inv.length ? extra : (nuevos.length ? 0 : cuposDe(t)))));
+      await F.updateDoc(ref, { invitados: nuevos, entraron: nuevaEnt, cupos: c, usos: usosDe(t), estado: t.estado === 'anulada' ? 'anulada' : (usosDe(t) >= c ? 'usada' : 'valida') });
     }
   } catch (err) { alert('No se pudo: ' + err.message); }
 });
@@ -521,6 +593,7 @@ function entradaHTML(t, i) {
   return `<div class="en"><div class="cab"><div style="min-width:0"><div class="marca">El Mundo de Felipe · Entrada</div><div class="ev">${esc(t.eventoNombre)}</div>
       <div class="cuando">${esc([fechaTxt(t.eventoFecha), t.lugar].filter(Boolean).join(' · '))}</div></div><div class="num">N° ${t.n}</div></div>
     <div class="izq"><div class="quien">${esc(t.nombre) || 'Entrada general'}</div><div class="det">${esc([t.curso, t.tipo].filter(Boolean).join(' · '))}${t.apoderado ? '<br>Apoderado/a: ' + esc(t.apoderado) : ''}</div>
+      ${invDe(t).length ? `<div class="invl"><b>Invitados:</b> ${esc(invDe(t).join(' · '))}</div>` : ''}
       <div class="inst">${t.nota ? esc(t.nota) + ' · ' : ''}Válida para ${personas(cuposDe(t))}. No compartas el QR.</div></div>
     <div class="der"><div class="qr" id="qr${i}"></div><div class="cod">${esc(agrupado(t.codigo))}</div></div></div>`;
 }
@@ -537,6 +610,7 @@ function qrCanvas(texto) {
   new QRCode(d, { text: texto, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
   return d.querySelector('canvas');
 }
+function recortar(ctx, txt, max) { let t = String(txt); while (t.length > 3 && ctx.measureText(t).width > max) t = t.slice(0, -2); return t === String(txt) ? t : t.trim() + '…'; }
 function envolver(ctx, txt, max) {
   const pal = String(txt).split(/\s+/), lineas = []; let l = '';
   for (const p of pal) { const t = l ? l + ' ' + p : p; if (ctx.measureText(t).width > max && l) { lineas.push(l); l = p; } else l = t; }
@@ -547,7 +621,8 @@ function envolver(ctx, txt, max) {
 const AZUL = '#123a8f', AZUL_OSC = '#0b2559', DORADO = '#c9a227', DORADO_OSC = '#8a6d0f', LETRA = 'Arial, Helvetica, sans-serif';
 async function pngEntrada(t) {
   try { await document.fonts.load('900 80px "Big Shoulders Display"'); } catch (e) {}
-  const W = 1080, H = 1500, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const inv = invDe(t), filasInv = Math.ceil(inv.length / 2);
+  const W = 1080, H = 1500 + (inv.length ? 90 + filasInv * 50 : 0), c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d');
   // cabecera azul
   x.font = '900 92px "Big Shoulders Display",Impact,sans-serif';
@@ -575,6 +650,14 @@ async function pngEntrada(t) {
   x.fillStyle = AZUL; x.font = `600 36px ${LETRA}`;
   const det = [t.curso, t.tipo, 'Válida para ' + personas(cuposDe(t))].filter(Boolean).join('  ·  '); if (det) { x.fillText(det, W / 2, y); y += 50; }
   if (t.apoderado) { x.fillText('Apoderado/a: ' + t.apoderado, W / 2, y); y += 50; }
+  // Entrada nominada: los invitados, en dos columnas
+  if (inv.length) {
+    y += 22; x.fillStyle = DORADO; x.fillRect(140, y - 8, W - 280, 3);
+    x.fillStyle = DORADO_OSC; x.font = `700 28px ${LETRA}`; x.fillText('INVITADOS', W / 2, y + 36); y += 86;
+    x.fillStyle = AZUL_OSC; x.font = `600 36px ${LETRA}`;
+    inv.forEach((nm, i) => { const col = (inv.length % 2 && i === inv.length - 1) ? W / 2 : (i % 2 ? W * 0.74 : W * 0.26); x.fillText(recortar(x, nm, W * 0.46), col, y + Math.floor(i / 2) * 50); });
+    y += filasInv * 50;
+  }
   x.fillStyle = DORADO_OSC; x.font = '700 32px ui-monospace,Menlo,Consolas,monospace'; x.fillText(agrupado(t.codigo), W / 2, Math.min(y + 10, H - 120));
   // pie azul con filete dorado
   x.fillStyle = DORADO; x.fillRect(0, H - 92, W, 6);
@@ -591,7 +674,9 @@ async function pngQR(t) {
    c = document.createElement('canvas'), x = c.getContext('2d');
   x.font = `700 64px ${LETRA}`;
   const lineas = envolver(x, t.nombre || 'Entrada general', W - 2 * M).slice(0, 2);
-  const alto = lineas.length * 74 + (curso ? 54 : 0) + 30;
+  x.font = `400 38px ${LETRA}`;
+  const invL = $('conInv').checked && invDe(t).length ? envolver(x, invDe(t).join(' · '), W - 2 * M).slice(0, 5) : [];
+  const alto = lineas.length * 74 + (curso ? 54 : 0) + (invL.length ? 16 + invL.length * 48 : 0) + 30;
   c.width = W; c.height = Q + 2 * M + alto;
   x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
   const qy = arriba ? M + alto : M;
@@ -599,7 +684,8 @@ async function pngQR(t) {
   let y = arriba ? M + 58 : qy + Q + 72;
   x.textAlign = 'center'; x.fillStyle = AZUL_OSC; x.font = `700 64px ${LETRA}`;
   lineas.forEach(l => { x.fillText(l, W / 2, y); y += 74; });
-  if (curso) { x.fillStyle = AZUL; x.font = `400 44px ${LETRA}`; x.fillText(t.curso, W / 2, y - 14); }
+  if (curso) { x.fillStyle = AZUL; x.font = `400 44px ${LETRA}`; x.fillText(t.curso, W / 2, y - 14); y += 54; }
+  if (invL.length) { y += 16; x.fillStyle = AZUL_OSC; x.font = `400 38px ${LETRA}`; invL.forEach(l => { x.fillText(l, W / 2, y - 14); y += 48; }); }
   return new Promise(ok => c.toBlob(ok, 'image/png'));
 }
 async function zipQR() {
@@ -621,7 +707,7 @@ async function imprimirQR() {
   const arriba = $('posNombre').value === 'arriba', curso = $('conCurso').checked, h = $('hoja');
   h.className = 'etq'; h.style.setProperty('--w', $('tamEt').value + 'mm');
   h.innerHTML = lista.map((t, i) => {
-    const txt = `<div class="nm">${esc(t.nombre) || 'Entrada general'}</div>${curso && t.curso ? `<div class="cu">${esc(t.curso)}</div>` : ''}`;
+    const txt = `<div class="nm">${esc(t.nombre) || 'Entrada general'}</div>${curso && t.curso ? `<div class="cu">${esc(t.curso)}</div>` : ''}${$('conInv').checked && invDe(t).length ? `<div class="cu" style="color:#0b2559">${esc(invDe(t).join(' · '))}</div>` : ''}`;
     return `<div class="et">${arriba ? txt : ''}<div class="qr" id="eq${i}"></div>${arriba ? '' : txt}</div>`;
   }).join('');
   lista.forEach((t, i) => new QRCode($('eq' + i), { text: urlEntrada(t.codigo), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M }));
@@ -647,10 +733,10 @@ async function zipSel() {
 function exportarCSV() {
   const c = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const fh = x => x ? new Date(ms(x)).toLocaleString('es-CL') : '';
-  const filas = [['N°', 'Estudiante', 'Curso/grupo', 'Tipo', 'Apoderado/a', 'Cupos', 'Ingresaron', 'Estado', 'Primer ingreso', 'Último ingreso', 'Verificó (último)', 'Método', 'Observaciones', 'Observación en la puerta']].concat(
+  const filas = [['N°', 'Estudiante', 'Curso/grupo', 'Tipo', 'Apoderado/a', 'Cupos', 'Ingresaron', 'Estado', 'Primer ingreso', 'Último ingreso', 'Verificó (último)', 'Método', 'Invitados', 'Invitados que entraron', 'Invitados que faltan', 'Observaciones', 'Observación en la puerta']].concat(
     entradas.slice().sort((a, b) => a.n - b.n).map(t => [t.n, t.nombre, t.curso, t.tipo, t.apoderado || '', cuposDe(t), t.estado === 'anulada' ? 0 : usosDe(t),
       t.estado === 'anulada' ? 'Anulada' : t.estado === 'usada' ? 'Completa' : usosDe(t) ? 'Con cupos libres' : 'No ingresó',
-      fh(t.primerIngreso || t.usada), fh(t.usada), t.usadaPor || '', t.metodo || '', (priv[t.id] || {}).obs || '', (priv[t.id] || {}).obsIngreso || '']));
+      fh(t.primerIngreso || t.usada), fh(t.usada), t.usadaPor || '', t.metodo || '', invDe(t).join(', '), entDe(t).map(i => invDe(t)[i]).join(', '), invDe(t).filter((_, i) => !entDe(t).includes(i)).join(', '), (priv[t.id] || {}).obs || '', (priv[t.id] || {}).obsIngreso || '']));
   descargar(new Blob(['﻿' + filas.map(f => f.map(c).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'asistencia-' + (ev ? ev.nombre.replace(/[^\w]+/g, '-').toLowerCase() : 'evento') + '.csv');
 }
 $('impSel').addEventListener('click', imprimir);
@@ -661,6 +747,7 @@ try { $('posNombre').value = localStorage.getItem('entradas-pos') || 'abajo'; } 
 $('posNombre').addEventListener('change', () => { try { localStorage.setItem('entradas-pos', $('posNombre').value); } catch (e) {} });
 $('csv').addEventListener('click', exportarCSV);
 $('generar').addEventListener('click', generar);
+$('plantilla').addEventListener('click', e => { e.preventDefault(); plantilla(); });
 $('cancelarEv').addEventListener('click', cerrarForm);
 $('guardarEv').addEventListener('click', guardarEvento);
 $('borrarEv').addEventListener('click', borrarEvento);
