@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad 4 · Sesión 1 — ¿Y si la Tierra sí estuviera quieta?</title>
+<style>
+:root{
+  --navy:#1F3A44; --teal:#2E7D82; --amber:#B8791F;
+  --ink:#1d2a30; --muted:#5b6b72; --line:#d6dee1; --bg:#fbfaf7;
+  --ok:#2e7d4f; --warn:#c79a1c; --bad:#b33a3a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);overflow:hidden}
+body{font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif;font-size:clamp(16px,2.6vw,36px);line-height:1.3}
+h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;color:var(--navy);line-height:1.12}
+h1{font-size:2.3em}
+h2{font-size:1.65em;margin-bottom:.45em}
+h3{font-size:1.08em;margin-bottom:.25em}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;padding:3.2vh 5vw 9vh;display:none;flex-direction:column;justify-content:center;overflow:hidden}
+.slide.active{display:flex;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kicker{font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:.35em}
+.chip{display:inline-block;font-size:.55em;padding:.15em .6em;border:1.5px solid var(--amber);color:var(--amber);border-radius:99px;font-weight:700;vertical-align:middle;margin-left:.5em;letter-spacing:.03em}
+.card{background:#fff;border:1px solid var(--line);border-left:6px solid var(--teal);border-radius:6px;padding:.6em .9em;margin:.3em 0}
+.card.amber{border-left-color:var(--amber)}
+.card.navy{border-left-color:var(--navy)}
+.card p+p{margin-top:.3em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.8em;align-items:start}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7em;align-items:stretch}
+.big-q{font-family:Cambria,Georgia,serif;font-size:1.5em;color:var(--navy);line-height:1.2}
+ul.clean{list-style:none}
+ul.clean li{padding-left:1.1em;position:relative;margin:.22em 0}
+ul.clean li::before{content:"";position:absolute;left:0;top:.5em;width:.45em;height:.45em;background:var(--teal);border-radius:1px}
+ol.steps{padding-left:1.4em}
+ol.steps li{margin:.2em 0}
+.small{font-size:.8em;color:var(--muted)}
+.em{color:var(--amber);font-weight:700}
+.tl{color:var(--teal);font-weight:700}
+.reveal-btn{font:inherit;font-size:.7em;font-weight:700;color:#fff;background:var(--navy);border:none;border-radius:6px;padding:.35em .9em;cursor:pointer;margin-top:.5em;align-self:flex-start}
+.reveal-btn:hover{background:var(--teal)}
+.hidden{visibility:hidden;opacity:0}
+.revealable{transition:opacity .35s}
+.title-slide{background:linear-gradient(135deg,#132a32 0%,#1F3A44 60%,#2E7D82 140%);color:#fff}
+.title-slide h1{color:#fff}
+.title-slide .kicker{color:#f2c27a}
+.title-slide .sub{font-size:1.05em;opacity:.9;margin-top:.5em;max-width:28em}
+.stars{position:absolute;inset:0;pointer-events:none;opacity:.55}
+.num{font-family:Cambria,Georgia,serif;font-size:2.2em;color:var(--amber);font-weight:700;line-height:1}
+svg text{font-family:Calibri,"Segoe UI",Arial,sans-serif}
+canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block}
+.ctrls{display:flex;gap:.4em;flex-wrap:wrap;margin-top:.4em}
+.ctrls button{font:inherit;font-size:.62em;font-weight:700;padding:.3em .8em;border-radius:6px;border:1.5px solid var(--teal);background:#fff;color:var(--teal);cursor:pointer}
+.ctrls button:hover{background:var(--teal);color:#fff}
+.sema{display:grid;grid-template-columns:auto 1fr;gap:.45em .7em;align-items:center}
+.dot{width:1.3em;height:1.3em;border-radius:50%}
+.lvl h3{display:flex;align-items:center;gap:.4em}
+.lvl .tag{font-size:.6em;font-weight:700;padding:.12em .5em;border-radius:4px;color:#fff}
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;height:7vh;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 1.4vw;background:rgba(251,250,247,.94);border-top:1px solid var(--line);z-index:10;font-size:16px}
+.nav button{font:inherit;font-size:15px;font-weight:700;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:6px;padding:6px 14px;cursor:pointer}
+.nav button:hover{background:var(--navy);color:#fff}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.dots span{width:10px;height:10px;border-radius:50%;background:var(--line);cursor:pointer}
+.dots span.on{background:var(--teal)}
+.counter{color:var(--muted);font-weight:700;min-width:4.5em;text-align:center}
+.left,.right{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide title-slide">
+  <svg class="stars" viewBox="0 0 100 60" preserveAspectRatio="none" id="starfield"></svg>
+  <div style="position:relative">
+    <div class="kicker">Física · 2° Medio · Unidad 4: El Universo</div>
+    <h1>¿Y si la Tierra<br>sí estuviera quieta?</h1>
+    <p class="sub">Sesión 1 — Nuestra imagen del Universo y el modelo geocéntrico</p>
+  </div>
+</section>
+
+<!-- 2 OBJETIVO -->
+<section class="slide">
+  <div class="kicker">Objetivo de la clase</div>
+  <h2>Hoy vamos a…</h2>
+  <div class="card navy"><p style="font-size:1.1em">Identificar y describir las principales características del <b>modelo geocéntrico de Ptolomeo</b>, y entender <span class="em">por qué era una explicación lógica</span> con la evidencia que se tenía.</p></div>
+  <div class="grid3" style="margin-top:.5em">
+    <div class="card"><h3>1 · Observar</h3><p class="small">El cielo real, hoy y desde Villa Alemana, con Sky Map.</p></div>
+    <div class="card"><h3>2 · Pensar como griego</h3><p class="small">Sin telescopio: ¿qué conclusión sacarías tú?</p></div>
+    <div class="card"><h3>3 · Modelar</h3><p class="small">Cómo Ptolomeo explicó un cielo que no siempre se comporta bien.</p></div>
+  </div>
+</section>
+
+<!-- 3 DIBUJO TPS -->
+<section class="slide">
+  <div class="kicker">Antes de empezar <span class="chip">≈10 min</span></div>
+  <h2>Dibuja el Universo</h2>
+  <div class="grid2">
+    <div>
+      <div class="card"><h3>Piensa (3 min) — solo/a</h3><p>En tu cuaderno, dibuja <b>cómo te imaginas el Universo</b>. ¿Qué hay en el centro? ¿Dónde estamos nosotros? ¿Tiene borde?</p></div>
+      <div class="card"><h3>En parejas (4 min)</h3><p>Compara tu dibujo con el de tu compañero/a. ¿En qué coinciden? ¿En qué no?</p></div>
+      <div class="card"><h3>Al curso (3 min)</h3><p>Algunas parejas muestran sus dibujos.</p></div>
+    </div>
+    <div class="card amber">
+      <p class="big-q">Guarda tu dibujo.</p>
+      <p style="margin-top:.4em">Al final de la clase lo vas a comparar con el Universo de hace <b>1.900 años</b>.</p>
+      <p class="small" style="margin-top:.6em">No hay dibujo malo: lo que importa es qué creías <i>antes</i> de esta unidad.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 KAHOOT -->
+<section class="slide">
+  <div class="kicker">Diagnóstico <span class="chip">≈8 min</span></div>
+  <h2>Kahoot: ¿qué sabemos del cielo?</h2>
+  <div class="card navy" style="text-align:center;padding:1.2em">
+    <p class="big-q">kahoot.it</p>
+    <p style="margin-top:.4em">PIN del juego: <span class="em" style="font-size:1.3em">__________</span></p>
+  </div>
+  <p class="small" style="margin-top:.6em">Es diagnóstico: no lleva nota. Responde lo que de verdad crees, no lo que crees que el profe quiere escuchar.</p>
+</section>
+
+<!-- 5 SKY MAP INTRO -->
+<section class="slide">
+  <div class="kicker">Misión de observación <span class="chip">≈20 min</span></div>
+  <h2>El cielo en tu bolsillo</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Descarga (1 celular por pareja)</h3>
+      <ul class="clean">
+        <li><b>Android:</b> <span class="tl">Sky Map</span> (gratis)</li>
+        <li><b>iPhone:</b> <span class="tl">Stellarium Mobile</span> (gratis)</li>
+      </ul>
+      <p class="small" style="margin-top:.4em">Activa la ubicación. Si la brújula se ve rara, mueve el celular dibujando un <b>8</b> en el aire para calibrar.</p>
+    </div>
+    <div class="card amber">
+      <h3>¿Cómo funciona?</h3>
+      <p>Apuntas el celular a cualquier parte y la app te muestra <b>qué hay en el cielo en esa dirección, ahora mismo</b>, aunque haya techo, nubes o sea de día.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 SKY MAP MISIONES -->
+<section class="slide">
+  <div class="kicker">Misión de observación</div>
+  <h2>Registra en tu cuaderno</h2>
+  <ol class="steps">
+    <li><b>Busca el Sol.</b> ¿Hacia dónde está ahora? ¿Alto o bajo?</li>
+    <li><b>Busca la Luna</b> y <b>al menos un planeta</b>. Anota cuáles aparecen.</li>
+    <li><b>Apunta el celular al suelo.</b> ¿Qué aparece? ¿Qué significa eso?</li>
+    <li><b>Busca la Cruz del Sur.</b> ¿Hacia qué lado del cielo está?</li>
+    <li><b>Viaje en el tiempo:</b> adelanta la hora 6, 12 y 24 horas. ¿Qué hace el cielo completo?</li>
+  </ol>
+  <div class="card amber" style="margin-top:.4em"><p><b>Pregunta clave:</b> si solo pudieras mirar (sin la app, sin que nadie te explique nada)… <span class="em">¿qué se mueve: el cielo o tú?</span></p></div>
+</section>
+
+<!-- 7 PUESTA EN COMÚN -->
+<section class="slide">
+  <div class="kicker">Puesta en común</div>
+  <h2>¿Qué vimos?</h2>
+  <div class="grid2">
+    <div class="card"><h3>Al apuntar al suelo…</h3><p>Aparece el cielo <b>del otro lado de la Tierra</b>. El cielo nos rodea por completo: estamos <b>dentro</b> de una "esfera" de estrellas.</p></div>
+    <div class="card"><h3>Con el viaje en el tiempo…</h3><p>Todo el cielo <b>gira en bloque</b> alrededor de un punto (el polo sur celeste, cerca de la Cruz del Sur) y da una vuelta completa en un día.</p></div>
+  </div>
+  <div class="card navy" style="margin-top:.5em"><p class="big-q" style="font-size:1.25em">Votación a mano alzada: ¿el cielo gira alrededor nuestro, o nosotros giramos?</p><p class="small" style="margin-top:.3em">Ahora prepárate para defender la respuesta "equivocada".</p></div>
+</section>
+
+<!-- 8 PONTE EN EL LUGAR -->
+<section class="slide">
+  <div class="kicker">Viaje al pasado</div>
+  <h2>Alejandría, año 150 d.C.</h2>
+  <div class="grid2">
+    <div class="card navy">
+      <p>Eres astrónomo/a griego/a. <b>No existe el telescopio.</b> Solo tienes tus ojos, instrumentos para medir ángulos y siglos de registros del cielo.</p>
+      <p style="margin-top:.4em">Y no eres ingenuo: ya sabes que la Tierra es <b>redonda</b>. Eratóstenes midió su tamaño cerca del 240 a.C.</p>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.2em">Tu tarea:</p>
+      <p>Explicar <b>con la evidencia que tienes</b> por qué el cielo se mueve como se mueve.</p>
+      <p class="small" style="margin-top:.4em">Las siguientes tres preguntas son las que se hacía la gente de esa época. Respóndelas con tu compañero/a <b>antes</b> de ver la respuesta.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9 PREGUNTA 1 -->
+<section class="slide">
+  <div class="kicker">Pregunta 1 de 3</div>
+  <p class="big-q">Si la Tierra girara sobre sí misma, aquí en Villa Alemana estarías viajando a unos <span class="em">1.400 km/h</span>.<br>Un avión comercial va a unos 900 km/h.</p>
+  <p style="margin-top:.5em">¿Por qué no sientes viento, no te mareas, no se vuelan los árboles?</p>
+  <button class="reveal-btn" data-reveal="r1">Ver qué concluía un griego</button>
+  <div class="card amber revealable hidden" id="r1" style="margin-top:.5em">
+    <p><b>Conclusión lógica:</b> "Si nos moviéramos tan rápido, lo sentiríamos. No lo sentimos → <b>la Tierra está quieta</b>."</p>
+    <p class="small">Lo que les faltaba: la idea de <b>inercia</b>: todo lo que está sobre la Tierra (aire, árboles, tú) se mueve junto con ella. Eso lo formularon Galileo y Newton… ¡1.500 años después!</p>
+  </div>
+</section>
+
+<!-- 10 PREGUNTA 2 -->
+<section class="slide">
+  <div class="kicker">Pregunta 2 de 3</div>
+  <div class="grid2" style="align-items:center">
+    <div>
+      <p class="big-q">Lanzas una piedra en línea recta hacia arriba.<br>Cae <span class="em">exactamente</span> donde la lanzaste.</p>
+      <p style="margin-top:.5em">Si la Tierra girara hacia el este mientras la piedra está en el aire… ¿dónde debería caer?</p>
+    </div>
+    <svg viewBox="0 0 300 220" style="width:100%">
+      <line x1="10" y1="200" x2="290" y2="200" stroke="#1F3A44" stroke-width="3"/>
+      <path d="M150 195 L150 40" stroke="#2E7D82" stroke-width="3" stroke-dasharray="8 6" fill="none"/>
+      <polygon points="150,30 142,48 158,48" fill="#2E7D82"/>
+      <circle cx="150" cy="196" r="9" fill="#B8791F"/>
+      <path d="M150 60 Q 120 110 95 190" stroke="#b33a3a" stroke-width="2.5" stroke-dasharray="5 5" fill="none"/>
+      <circle cx="95" cy="192" r="7" fill="none" stroke="#b33a3a" stroke-width="2"/>
+      <text x="40" y="160" fill="#b33a3a" font-size="15">¿aquí?</text>
+      <path d="M190 214 L270 214" stroke="#5b6b72" stroke-width="2"/>
+      <polygon points="275,214 265,209 265,219" fill="#5b6b72"/>
+      <text x="190" y="190" font-size="13" fill="#5b6b72">giro de la Tierra</text>
+    </svg>
+  </div>
+  <button class="reveal-btn" data-reveal="r2">Ver qué concluía un griego</button>
+  <div class="card amber revealable hidden" id="r2" style="margin-top:.4em">
+    <p><b>Conclusión lógica:</b> "Si la Tierra se moviera, la piedra caería atrás, hacia el oeste. Cae en el mismo lugar → <b>la Tierra no se mueve</b>." Era un experimento real, repetible y con un resultado claro.</p>
+  </div>
+</section>
+
+<!-- 11 PREGUNTA 3 PARALAJE -->
+<section class="slide">
+  <div class="kicker">Pregunta 3 de 3 — el argumento más fuerte</div>
+  <div class="grid2" style="align-items:center">
+    <div>
+      <div class="card"><h3>Pruébalo ahora</h3><p>Estira el brazo con el pulgar arriba. Míralo con un ojo, luego con el otro. <b>El pulgar "salta"</b> respecto al fondo. Eso se llama <span class="tl">paralaje</span>.</p></div>
+      <p class="big-q" style="font-size:1.05em;margin-top:.3em">Si la Tierra diera vueltas alrededor del Sol, en enero y en julio miraríamos las estrellas desde puntos muy distintos. ¿Qué debería pasar con ellas?</p>
+    </div>
+    <svg viewBox="0 0 320 260" style="width:100%;max-height:44vh">
+      <g fill="#5b6b72" font-size="11">
+        <circle cx="40" cy="20" r="2.5"/><circle cx="110" cy="14" r="2"/><circle cx="200" cy="22" r="2.5"/><circle cx="280" cy="12" r="2"/><circle cx="160" cy="30" r="1.8"/>
+        <text x="115" y="50">estrellas lejanas</text>
+      </g>
+      <circle cx="160" cy="95" r="6" fill="#B8791F"/>
+      <text x="172" y="99" font-size="12" fill="#B8791F">estrella cercana</text>
+      <circle cx="160" cy="215" r="13" fill="#f2c27a" stroke="#B8791F"/>
+      <text x="146" y="245" font-size="12" fill="#1F3A44">Sol</text>
+      <ellipse cx="160" cy="215" rx="110" ry="22" fill="none" stroke="#1F3A44" stroke-dasharray="4 4"/>
+      <circle cx="50" cy="215" r="7" fill="#2E7D82"/><text x="18" y="245" font-size="12" fill="#2E7D82">Tierra (enero)</text>
+      <circle cx="270" cy="215" r="7" fill="#2E7D82"/><text x="232" y="245" font-size="12" fill="#2E7D82">Tierra (julio)</text>
+      <line x1="50" y1="215" x2="205" y2="18" stroke="#2E7D82" stroke-width="1.3"/>
+      <line x1="270" y1="215" x2="112" y2="18" stroke="#2E7D82" stroke-width="1.3"/>
+    </svg>
+  </div>
+  <button class="reveal-btn" data-reveal="r3">Ver qué concluía un griego</button>
+  <div class="card amber revealable hidden" id="r3" style="margin-top:.3em">
+    <p style="font-size:.9em"><b>Lo buscaron y no lo vieron.</b> Las estrellas no se movían nada a lo largo del año → "la Tierra no orbita nada". La otra opción era que las estrellas estuvieran <i>absurdamente</i> lejos. El paralaje es tan pequeño que recién se midió en <b>1838</b> (Friedrich Bessel), con telescopio.</p>
+  </div>
+</section>
+
+<!-- 12 CONCLUSION PARCIAL -->
+<section class="slide">
+  <div class="kicker">Conclusión parcial</div>
+  <h2>No era una idea tonta</h2>
+  <div class="grid3">
+    <div class="card"><div class="num">1</div><p>No sentimos ningún movimiento.</p></div>
+    <div class="card"><div class="num">2</div><p>Los objetos caen donde se lanzan.</p></div>
+    <div class="card"><div class="num">3</div><p>Las estrellas no muestran paralaje.</p></div>
+  </div>
+  <div class="card navy" style="margin-top:.5em">
+    <p class="big-q" style="font-size:1.2em">El geocentrismo era la conclusión <span class="em">más razonable</span> con la evidencia disponible.</p>
+    <p class="small" style="margin-top:.3em">Ojo: ya hacia el 270 a.C., <b>Aristarco de Samos</b> propuso que la Tierra giraba en torno al Sol. Casi nadie le hizo caso. ¿Por qué crees? (pista: mira los tres puntos de arriba)</p>
+  </div>
+</section>
+
+<!-- 13 MODELO PTOLOMEO -->
+<section class="slide">
+  <div class="kicker">El modelo geocéntrico</div>
+  <div class="grid2" style="align-items:center;grid-template-columns:1.05fr .95fr">
+    <div>
+      <h2>Claudio Ptolomeo</h2>
+      <p class="small">Alejandría, siglo II d.C. Su libro, el <i>Almagesto</i> (≈150 d.C.), reunió siglos de astronomía griega.</p>
+      <ul class="clean" style="margin-top:.4em">
+        <li>La <b>Tierra</b> es esférica, está <b>inmóvil</b> y en el <b>centro</b>.</li>
+        <li>Alrededor giran: Luna, Mercurio, Venus, <b>Sol</b>, Marte, Júpiter, Saturno.</li>
+        <li>Al final, la <b>esfera de las estrellas fijas</b>, que da una vuelta al día.</li>
+        <li>Todo se mueve con <b>círculos</b> y <b>velocidad constante</b>, considerados los movimientos "perfectos".</li>
+      </ul>
+    </div>
+    <svg viewBox="-160 -160 320 320" style="width:100%;max-height:62vh">
+      <circle r="150" fill="#0f2229"/>
+      <g fill="none" stroke="#3d6470" stroke-width="1">
+        <circle r="28"/><circle r="45"/><circle r="62"/><circle r="80"/><circle r="98"/><circle r="116"/><circle r="133"/>
+      </g>
+      <circle r="146" fill="none" stroke="#B8791F" stroke-width="1.5" stroke-dasharray="2 4"/>
+      <circle r="10" fill="#2E7D82"/><text y="24" text-anchor="middle" font-size="10" fill="#cfe7e8">Tierra</text>
+      <g font-size="11.5" fill="#e8eef0">
+        <circle cx="28" cy="0" r="4" fill="#ddd"/><text x="22" y="-7">Luna</text>
+        <circle cx="0" cy="-45" r="3.5" fill="#a9a9a9"/><text x="6" y="-46">Mercurio</text>
+        <circle cx="-62" cy="0" r="4.5" fill="#f3e2b0"/><text x="-90" y="-8">Venus</text>
+        <circle cx="0" cy="80" r="8" fill="#f2c27a"/><text x="11" y="84" fill="#f2c27a">Sol</text>
+        <circle cx="69" cy="-69" r="4.5" fill="#d1603d"/><text x="76" y="-71">Marte</text>
+        <circle cx="-82" cy="82" r="6" fill="#d8b98a"/><text x="-112" y="100">Júpiter</text>
+        <circle cx="94" cy="94" r="5.5" fill="#e3cf91"/><text x="72" y="113">Saturno</text>
+        <text x="-55" y="-136" fill="#f2c27a">estrellas fijas</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- 14 MATIZ 1 RETROGRADO -->
+<section class="slide">
+  <div class="kicker">El problema · Matiz 1</div>
+  <h2>Los "errantes" se portan mal</h2>
+  <div class="grid2">
+    <div>
+      <p><b>Planeta</b> viene del griego <i>planētēs</i>: <span class="em">"errante"</span>. Las estrellas se mueven todas juntas, pero cinco puntos de luz se desplazan entre ellas.</p>
+      <div class="card amber" style="margin-top:.5em"><p>Y lo peor: <b>Marte, Júpiter y Saturno a veces se detienen, retroceden y vuelven a avanzar.</b> Es el <span class="tl">movimiento retrógrado</span>.</p></div>
+    </div>
+    <div class="card navy">
+      <p class="big-q" style="font-size:1.15em">Discute con tu pareja:</p>
+      <p style="margin-top:.3em">Si todo gira en círculos perfectos y a velocidad constante alrededor de la Tierra… <b>¿cómo puede un planeta ir hacia atrás?</b></p>
+      <p class="small" style="margin-top:.4em">Además, Marte a veces brilla muchísimo y a veces casi no se ve. ¿Qué te sugiere eso sobre su distancia?</p>
+    </div>
+  </div>
+</section>
+
+<!-- 15 EPICICLOS ANIMACION -->
+<section class="slide">
+  <div class="kicker">La solución de Ptolomeo</div>
+  <div class="grid2" style="grid-template-columns:.9fr 1.1fr;align-items:center">
+    <div>
+      <h2>Círculos sobre círculos</h2>
+      <ul class="clean">
+        <li>El planeta gira en un círculo pequeño: el <span class="em">epiciclo</span>.</li>
+        <li>El centro del epiciclo gira en un círculo grande alrededor de la Tierra: el <span class="tl">deferente</span>.</li>
+        <li>Visto desde la Tierra, el planeta <b>hace rizos</b>: avanza, retrocede y se <b>acerca y aleja</b> (por eso cambia su brillo).</li>
+      </ul>
+      <p class="small" style="margin-top:.4em">Sigue usando solo círculos. Ingenioso, ¿no?</p>
+    </div>
+    <div>
+      <canvas id="epi" width="640" height="520"></canvas>
+      <div class="ctrls">
+        <button id="epiPlay">⏸ Pausa</button>
+        <button id="epiClear">Borrar rastro</button>
+        <button id="epiGuides">Ocultar círculos</button>
+        <button id="epiFast">Velocidad ×2</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 MATIZ 2 ECUANTE -->
+<section class="slide">
+  <div class="kicker">Matiz 2</div>
+  <h2>El ecuante: la Tierra… no tan al centro</h2>
+  <div class="grid2" style="align-items:center">
+    <div>
+      <p>Ni con epiciclos calzaban las predicciones. Ptolomeo hizo dos ajustes:</p>
+      <ul class="clean" style="margin-top:.3em">
+        <li>Corrió a la Tierra <b>un poco fuera del centro</b> del deferente.</li>
+        <li>Inventó un punto, el <span class="em">ecuante</span>: solo visto desde ahí el planeta se mueve a velocidad constante.</li>
+      </ul>
+      <div class="card navy" style="margin-top:.5em"><p><b>Debate breve:</b> si la Tierra ya no está exactamente en el centro… ¿sigue siendo un modelo "geocéntrico"?</p></div>
+    </div>
+    <svg viewBox="-150 -130 300 260" style="width:100%">
+      <circle r="110" fill="none" stroke="#2E7D82" stroke-width="2"/>
+      <circle cx="0" cy="0" r="3.5" fill="#1F3A44"/><text x="-14" y="18" font-size="11" fill="#1F3A44">centro</text>
+      <circle cx="-38" cy="0" r="9" fill="#2E7D82"/><text x="-64" y="24" font-size="12" fill="#2E7D82">Tierra</text>
+      <circle cx="38" cy="0" r="5" fill="#B8791F"/><text x="30" y="20" font-size="12" fill="#B8791F">ecuante</text>
+      <circle cx="78" cy="-78" r="22" fill="none" stroke="#B8791F" stroke-dasharray="3 3"/>
+      <circle cx="96" cy="-91" r="6" fill="#d1603d"/>
+      <line x1="38" y1="0" x2="78" y2="-78" stroke="#B8791F" stroke-width="1.3"/>
+      <text x="-140" y="-112" font-size="11" fill="#5b6b72">deferente</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 17 MATIZ 3 FUNCIONABA -->
+<section class="slide">
+  <div class="kicker">Matiz 3</div>
+  <h2>Y funcionaba</h2>
+  <div class="grid3">
+    <div class="card"><div class="num">≈1.400</div><p class="small">años usado como <b>el</b> modelo del Universo, hasta Copérnico (1543) y más allá.</p></div>
+    <div class="card"><div class="num">✓</div><p class="small">Predecía posiciones de planetas y eclipses con buena precisión. Servía para calendarios y navegación.</p></div>
+    <div class="card"><div class="num">?</div><p class="small">Cada nueva observación que no calzaba se arreglaba agregando más círculos.</p></div>
+  </div>
+  <div class="card navy" style="margin-top:.5em">
+    <p class="big-q" style="font-size:1.25em">Si un modelo predice bien lo que observamos… <span class="em">¿significa que es verdadero?</span></p>
+    <p class="small" style="margin-top:.3em">Piensa en el GPS de tu celular: calcula muy bien… ¿eso prueba que entiende "cómo es" la Tierra?</p>
+  </div>
+</section>
+
+<!-- 18 STEAM DIBUJO -->
+<section class="slide">
+  <div class="kicker">Vuelve a tu dibujo</div>
+  <h2>Tu Universo vs. el de Ptolomeo</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Compara</h3>
+      <ul class="clean">
+        <li>¿Qué pusiste tú en el centro? ¿Por qué?</li>
+        <li>¿Tu dibujo tenía borde? El de Ptolomeo sí: la esfera de las estrellas fijas.</li>
+        <li>¿Qué cosa de tu dibujo <b>no podrías demostrar</b> solo mirando el cielo?</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3>Para pensar</h3>
+      <p>Tú "sabes" que la Tierra gira alrededor del Sol. Pero… <b>¿lo has comprobado tú mismo/a?</b> ¿O lo crees porque te lo enseñaron?</p>
+      <p class="small" style="margin-top:.4em">Un griego del siglo II tenía más evidencia directa para su modelo que la que tú tienes para el tuyo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 19 TRABAJO DIFERENCIADO -->
+<section class="slide">
+  <div class="kicker">Trabajo en clase <span class="chip">≈12 min</span></div>
+  <h2>Elige tu nivel</h2>
+  <div class="grid3">
+    <div class="card lvl" style="border-left-color:var(--ok)">
+      <h3><span class="tag" style="background:var(--ok)">Básico</span></h3>
+      <ol class="steps" style="font-size:.85em">
+        <li>Dibuja el modelo de Ptolomeo con los 7 astros en orden y la esfera de estrellas fijas.</li>
+        <li>Escribe <b>dos observaciones</b> que apoyaban que la Tierra estaba quieta.</li>
+      </ol>
+    </div>
+    <div class="card lvl" style="border-left-color:var(--warn)">
+      <h3><span class="tag" style="background:var(--warn)">Intermedio</span></h3>
+      <ol class="steps" style="font-size:.85em">
+        <li>Explica con tus palabras qué es el movimiento retrógrado y cómo lo resolvía el epiciclo.</li>
+        <li>¿Por qué no ver paralaje era un argumento tan fuerte a favor del geocentrismo?</li>
+      </ol>
+    </div>
+    <div class="card lvl" style="border-left-color:var(--bad)">
+      <h3><span class="tag" style="background:var(--bad)">Desafío</span></h3>
+      <ol class="steps" style="font-size:.85em">
+        <li>Venus <b>nunca</b> se aleja más de ~47° del Sol en el cielo. ¿Qué tendría que "forzar" Ptolomeo para explicarlo? ¿Qué te sugiere ese dato?</li>
+        <li>Escribe el mejor argumento que usaría un ptolemaico contra ti. Luego respóndele.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 20 SEMAFORO -->
+<section class="slide">
+  <div class="kicker">Cierre</div>
+  <h2>Semáforo: ¿cómo quedé?</h2>
+  <div class="card">
+    <div class="sema">
+      <div class="dot" style="background:var(--ok)"></div><p><b>Verde:</b> puedo explicar el modelo de Ptolomeo y dar al menos <b>dos razones</b> de por qué era lógico.</p>
+      <div class="dot" style="background:var(--warn)"></div><p><b>Amarillo:</b> entiendo el modelo, pero me cuesta explicar los epiciclos o el paralaje.</p>
+      <div class="dot" style="background:var(--bad)"></div><p><b>Rojo:</b> todavía no entiendo por qué alguien pensaría que la Tierra está quieta.</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:.5em">Levanta la mano con tu color, o escríbelo en la esquina de tu cuaderno.</p>
+</section>
+
+<!-- 21 PROXIMA -->
+<section class="slide title-slide">
+  <div style="position:relative">
+    <div class="kicker">Próxima clase</div>
+    <h1 style="font-size:1.9em">Un canónigo polaco<br>mueve la Tierra</h1>
+    <p class="sub">Copérnico propone sacar a la Tierra del centro… sin tener ninguna prueba nueva. ¿Por qué alguien le creería?</p>
+    <p class="sub small" style="color:#cfe7e8;margin-top:1em">Deja Sky Map instalado: lo seguiremos usando.</p>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <div class="left"><button id="prevBtn">◀</button><button id="nextBtn">▶</button></div>
+  <div class="dots" id="dots"></div>
+  <div class="right"><span class="counter" id="counter"></span><button id="fsBtn">⛶ Pantalla completa</button></div>
+</div>
+
+<script>
+(function(){
+  // starfield
+  var sf=document.getElementById('starfield'), s='';
+  for(var i=0;i<90;i++){var x=(Math.sin(i*12.9898)*43758.5453)%1,y=(Math.sin(i*78.233)*12345.678)%1;x=Math.abs(x)*100;y=Math.abs(y)*60;s+='<circle cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="'+(0.08+(i%4)*0.06).toFixed(2)+'" fill="#fff"/>';}
+  sf.innerHTML=s;
+
+  var slides=[].slice.call(document.querySelectorAll('.slide')), cur=0;
+  var dots=document.getElementById('dots'), counter=document.getElementById('counter');
+  slides.forEach(function(_,i){var d=document.createElement('span');d.onclick=function(){go(i)};dots.appendChild(d);});
+  function go(n){
+    cur=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach(function(sl,i){sl.classList.toggle('active',i===cur)});
+    [].forEach.call(dots.children,function(d,i){d.classList.toggle('on',i===cur)});
+    counter.textContent=(cur+1)+' / '+slides.length;
+  }
+  document.getElementById('prevBtn').onclick=function(){go(cur-1)};
+  document.getElementById('nextBtn').onclick=function(){go(cur+1)};
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(cur+1)}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1)}
+    else if(e.key==='Home'){go(0)} else if(e.key==='End'){go(slides.length-1)}
+  });
+  var tx=null;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(cur+(dx<0?1:-1));tx=null},{passive:true});
+  var fsBtn=document.getElementById('fsBtn');
+  fsBtn.onclick=function(){
+    if(!document.fullscreenElement){(document.documentElement.requestFullscreen||function(){}).call(document.documentElement)}
+    else{document.exitFullscreen()}
+  };
+  document.addEventListener('fullscreenchange',function(){fsBtn.textContent=document.fullscreenElement?'↩ Volver':'⛶ Pantalla completa'});
+
+  // reveals
+  [].forEach.call(document.querySelectorAll('.reveal-btn'),function(b){
+    b.onclick=function(){var t=document.getElementById(b.dataset.reveal);var h=t.classList.toggle('hidden');b.textContent=h?'Ver qué concluía un griego':'Ocultar';};
+  });
+
+  // epicycle animation
+  var cv=document.getElementById('epi'), cx=cv.getContext('2d');
+  var W=cv.width,H=cv.height,ox=W/2,oy=H/2,R=150,r=62;
+  var t=0,running=true,guides=true,speed=1,trail=[];
+  var w1=0.006, w2=0.006*5.2;
+  function frame(){
+    if(running){t+=speed;}
+    var a=w1*t, b=w2*t;
+    var ex=ox+R*Math.cos(a), ey=oy-R*Math.sin(a);
+    var px=ex+r*Math.cos(b), py=ey-r*Math.sin(b);
+    if(running){trail.push([px,py]); if(trail.length>2600)trail.shift();}
+    cx.fillStyle='#0f2229';cx.fillRect(0,0,W,H);
+    // stars
+    cx.fillStyle='rgba(255,255,255,.35)';
+    for(var i=0;i<60;i++){var sx=(Math.abs(Math.sin(i*91.7))*W),sy=(Math.abs(Math.sin(i*37.3))*H);cx.fillRect(sx,sy,1.5,1.5);}
+    if(guides){
+      cx.strokeStyle='#2E7D82';cx.lineWidth=2;cx.beginPath();cx.arc(ox,oy,R,0,7);cx.stroke();
+      cx.strokeStyle='#B8791F';cx.setLineDash([5,5]);cx.beginPath();cx.arc(ex,ey,r,0,7);cx.stroke();cx.setLineDash([]);
+      cx.strokeStyle='rgba(255,255,255,.35)';cx.lineWidth=1;cx.beginPath();cx.moveTo(ox,oy);cx.lineTo(ex,ey);cx.lineTo(px,py);cx.stroke();
+      cx.fillStyle='#B8791F';cx.beginPath();cx.arc(ex,ey,3,0,7);cx.fill();
+    }
+    // trail
+    cx.strokeStyle='rgba(242,194,122,.9)';cx.lineWidth=2;cx.beginPath();
+    for(var j=0;j<trail.length;j++){j?cx.lineTo(trail[j][0],trail[j][1]):cx.moveTo(trail[j][0],trail[j][1]);}
+    cx.stroke();
+    // earth
+    cx.fillStyle='#2E7D82';cx.beginPath();cx.arc(ox,oy,13,0,7);cx.fill();
+    cx.fillStyle='#cfe7e8';cx.font='bold 17px Calibri, Arial';cx.textAlign='center';cx.fillText('Tierra',ox,oy+32);
+    // planet
+    cx.fillStyle='#d1603d';cx.beginPath();cx.arc(px,py,9,0,7);cx.fill();
+    cx.fillStyle='#f3d0c4';cx.fillText('Marte',px,py-15);
+    if(guides){cx.fillStyle='#7fc3c6';cx.font='15px Calibri, Arial';cx.textAlign='left';cx.fillText('deferente',ox+R*0.72,oy+R*0.86);cx.fillStyle='#f2c27a';cx.fillText('epiciclo',ex+r+6,ey);}
+    requestAnimationFrame(frame);
+  }
+  document.getElementById('epiPlay').onclick=function(){running=!running;this.textContent=running?'⏸ Pausa':'▶ Animar'};
+  document.getElementById('epiClear').onclick=function(){trail=[]};
+  document.getElementById('epiGuides').onclick=function(){guides=!guides;this.textContent=guides?'Ocultar círculos':'Mostrar círculos'};
+  document.getElementById('epiFast').onclick=function(){speed=speed===1?2:(speed===2?4:1);this.textContent='Velocidad ×'+(speed===4?1:speed*2)};
+  frame();
+  go(0);
+})();
+</script>
+</body>
+</html>
