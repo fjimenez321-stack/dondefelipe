@@ -131,6 +131,7 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
         <label class="ancho">Nombre del evento<input id="eNombre" maxlength="80" placeholder="Ej.: Gala de fin de año 2026"></label>
         <label>Fecha y hora<input id="eFecha" type="datetime-local"></label>
         <label>Lugar<input id="eLugar" maxlength="80" placeholder="Ej.: Gimnasio del colegio"></label>
+        <label>Cupos por entrada<input id="eCupos" type="number" min="1" max="20" value="4"><small>Personas que entran con cada QR. Una columna «Cupos» en el Excel lo cambia por persona.</small></label>
         <label>Estado
           <select id="eEstado"><option value="abierto">Abierto (se puede ingresar)</option><option value="cerrado">Cerrado (el verificador no deja pasar)</option></select>
         </label>
@@ -154,7 +155,7 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
   <!-- ═════ asistentes ═════ -->
   <section class="card" id="secAgregar" hidden>
     <h2><i class="fa-solid fa-user-plus"></i> Generar entradas</h2>
-    <p class="muted" style="margin:0">Sube el Excel o pega la lista desde Excel o Google Sheets. Si la primera fila tiene encabezados (<b>Nombre</b> o <b>Estudiante</b>, <b>Apellido</b>, <b>Curso</b>, <b>Tipo</b>, <b>Apoderado</b>, <b>Observaciones</b>) se usan esas columnas en cualquier orden; si no, se toma Nombre · Curso · Tipo. Cada QR sale con el nombre del titular. También puedes generar entradas sin nombre.</p>
+    <p class="muted" style="margin:0">Sube el Excel o pega la lista desde Excel o Google Sheets. Si la primera fila tiene encabezados (<b>Nombre</b> o <b>Estudiante</b>, <b>Apellido</b>, <b>Curso</b>, <b>Tipo</b>, <b>Apoderado</b>, <b>Cupos</b>, <b>Observaciones</b>) se usan esas columnas en cualquier orden; si no, se toma Nombre · Curso · Tipo. Cada QR sale con el nombre del titular. También puedes generar entradas sin nombre.</p>
     <div class="form">
       <label class="ancho">Lista de asistentes
         <textarea id="lista" placeholder="Ana Pérez&#9;3° Medio&#9;Estudiante&#10;Luis Soto&#9;Apoderado&#10;María Rojas"></textarea>
@@ -176,7 +177,7 @@ details summary{cursor:pointer;color:var(--cyan);font-weight:700}
     <div class="stats" id="stats"></div>
     <div class="barra"><i id="barra"></i></div>
     <div class="filtros">
-      <span class="seg" id="filtroSeg"><button type="button" data-f="" class="on">Todas</button><button type="button" data-f="valida">Sin usar</button><button type="button" data-f="usada">Ingresaron</button><button type="button" data-f="anulada">Anuladas</button></span>
+      <span class="seg" id="filtroSeg"><button type="button" data-f="" class="on">Todas</button><button type="button" data-f="sin">Sin usar</button><button type="button" data-f="parcial">Con cupos libres</button><button type="button" data-f="usada">Completas</button><button type="button" data-f="anulada">Anuladas</button></span>
       <input id="buscar" type="search" placeholder="Buscar nombre, curso, tipo o N°…">
     </div>
     <div class="filtros">
@@ -224,6 +225,10 @@ async function sha256(t) {
 const urlEntrada = c => new URL('entrada.html', location.href).href.split('#')[0] + '#c=' + c;
 const fechaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleString('es-CL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''; };
 const horaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : ''; };
+// Cupos: cuántas personas pueden entrar con una misma entrada (el QR se lee hasta esa cantidad de veces).
+const cuposDe = t => Math.max(1, Math.round(+t.cupos || 1));
+const usosDe = t => t.usos != null ? t.usos : (t.estado === 'usada' ? cuposDe(t) : 0);   // entradas antiguas sin contador
+const personas = n => n + (n === 1 ? ' persona' : ' personas');
 const correos = txt => [...new Set(String(txt || '').toLowerCase().split(/[\s,;]+/).map(s => s.trim()).filter(s => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)))].slice(0, 30);
 
 /* ═════════ eventos ═════════ */
@@ -268,6 +273,7 @@ function abrirForm(nuevo) {
   $('eLugar').value = e ? e.lugar || '' : '';
   $('eNota').value = e ? e.nota || '' : '';
   $('eEstado').value = e ? e.estado || 'abierto' : 'abierto';
+  $('eCupos').value = e ? e.cupos || 1 : 4;
   $('ePorteros').value = e ? (e.porteros || []).join('\n') : '';
   if (e && e.fecha) { const d = new Date(ms(e.fecha)); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('eFecha').value = d.toISOString().slice(0, 16); } else $('eFecha').value = '';
   $('formEv').hidden = false; $('formEv').dataset.nuevo = nuevo ? '1' : '';
@@ -282,6 +288,7 @@ async function guardarEvento() {
   const { F, db } = await DF.listo(), nuevo = !!$('formEv').dataset.nuevo;
   const fecha = $('eFecha').value ? F.Timestamp.fromDate(new Date($('eFecha').value)) : null;
   const d = { nombre, fecha, lugar: $('eLugar').value.trim().slice(0, 80), nota: $('eNota').value.trim().slice(0, 90),
+    cupos: Math.min(20, Math.max(1, Math.round(+$('eCupos').value || 1))),
     estado: $('eEstado').value === 'cerrado' ? 'cerrado' : 'abierto', porteros: correos($('ePorteros').value), actualizado: F.serverTimestamp() };
   try {
     if (nuevo) {
@@ -296,6 +303,15 @@ async function guardarEvento() {
         const b = F.writeBatch(db);
         cambiar.slice(i, i + 450).forEach(t => b.update(F.doc(db, 'entradas', t.id), { eventoNombre: d.nombre, eventoFecha: d.fecha, lugar: d.lugar, nota: d.nota }));
         await b.commit();
+      }
+      // Si cambiaron los cupos, ofrece aplicarlos a las entradas ya generadas (sin bajar de lo ya usado).
+      const otras = entradas.filter(t => t.estado !== 'anulada' && cuposDe(t) !== d.cupos);
+      if (otras.length && confirm(`Cambiaste los cupos a ${d.cupos}. ¿Aplicarlo también a las ${otras.length} entradas ya generadas?\n(Las que ya tienen más ingresos que eso quedan con lo usado.)`)) {
+        for (let i = 0; i < otras.length; i += 450) {
+          const b = F.writeBatch(db);
+          otras.slice(i, i + 450).forEach(t => { const c = Math.max(d.cupos, usosDe(t)); b.update(F.doc(db, 'entradas', t.id), { cupos: c, usos: usosDe(t), estado: usosDe(t) >= c ? 'usada' : 'valida' }); });
+          await b.commit();
+        }
       }
     }
     cerrarForm(); aviso('✓ Evento guardado.', 'ok'); setTimeout(() => aviso(''), 2500);
@@ -323,7 +339,8 @@ const sinTilde = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').t
 // Encabezados reconocidos (sin importar mayúsculas ni tildes).
 const COLS = { nombre: /^(nombres?|nombre completo|titular|asistente|estudiante|alumno|alumna|invitado)$/, apellido: /^(apellidos?|apellido paterno|ap\.? paterno)$/,
   apellido2: /^(apellido materno|ap\.? materno|segundo apellido)$/, curso: /^(curso|grupo|nivel|cargo|seccion)$/, tipo: /^(tipo|tipo de entrada|categoria|entrada|ubicacion|zona)$/,
-  apoderado: /^(apoderad[oa]s?|nombre (del )?apoderad[oa]|tutor|tutora|responsable)$/, obs: /^(observacion(es)?|obs\.?|notas?|comentarios?)$/ };
+  apoderado: /^(apoderad[oa]s?|nombre (del )?apoderad[oa]|tutor|tutora|responsable)$/, obs: /^(observacion(es)?|obs\.?|notas?|comentarios?)$/,
+  cupos: /^(cupos?|n(°|ro\.?|umero)? (de )?cupos|personas|n(°|ro\.?)? (de )?personas|cantidad|invitados|acompanantes)$/ };
 function leerLista() {
   const txt = $('lista').value.replace(/\r/g, ''), lineas = txt.split('\n').filter(l => l.trim());
   const sep = /\t/.test(txt) ? '\t' : /;/.test(txt) ? ';' : ',';
@@ -338,7 +355,7 @@ function leerLista() {
   const v = (f, k) => col[k] == null ? '' : (f[col[k]] || '');
   return filas.map(f => {
     const nombre = [v(f, 'nombre'), v(f, 'apellido'), v(f, 'apellido2')].filter(Boolean).join(' ').trim();
-    return { nombre: nombre.slice(0, 80), curso: v(f, 'curso').slice(0, 40), tipo: (v(f, 'tipo') || tipoDef).slice(0, 30), apoderado: v(f, 'apoderado').slice(0, 80), obs: v(f, 'obs').slice(0, 300) };
+    return { nombre: nombre.slice(0, 80), curso: v(f, 'curso').slice(0, 40), tipo: (v(f, 'tipo') || tipoDef).slice(0, 30), cupos: Math.round(+v(f, 'cupos')) || 0, apoderado: v(f, 'apoderado').slice(0, 80), obs: v(f, 'obs').slice(0, 300) };
   }).filter(p => p.nombre);
 }
 function infoLista() {
@@ -369,7 +386,7 @@ async function generar() {
   if (!ev) return;
   const personas = leerLista(), sn = Math.max(0, Math.round(+$('sinNombre').value || 0));
   const tipoDef = $('tipoDef').value.trim().slice(0, 30) || 'General';
-  for (let i = 0; i < sn; i++) personas.push({ nombre: '', curso: '', tipo: tipoDef, apoderado: '', obs: '' });
+  for (let i = 0; i < sn; i++) personas.push({ nombre: '', curso: '', tipo: tipoDef, apoderado: '', obs: '', cupos: 0 });
   if (!personas.length) return msg('genMsg', 'Pega al menos un nombre o indica entradas sin nombre.', 'err');
   if (personas.length > 1000) return msg('genMsg', 'Máximo 1.000 entradas por vez.', 'err');
   // Aviso de posibles duplicados (mismo nombre ya con entrada en este evento).
@@ -385,7 +402,7 @@ async function generar() {
       for (const p of personas.slice(i, i + POR_LOTE)) {
         const codigo = nuevoCodigo(), h = await sha256(codigo);
         const d = { evento: evId, eventoNombre: ev.nombre, eventoFecha: ev.fecha || null, lugar: ev.lugar || '', nota: ev.nota || '',
-          nombre: p.nombre, curso: p.curso, tipo: p.tipo, apoderado: p.apoderado || '', n: ++n, estado: 'valida', lote, profe: usuario.email, creada: F.serverTimestamp() };
+          nombre: p.nombre, curso: p.curso, tipo: p.tipo, apoderado: p.apoderado || '', cupos: Math.min(20, Math.max(1, p.cupos || ev.cupos || 1)), usos: 0, n: ++n, estado: 'valida', lote, profe: usuario.email, creada: F.serverTimestamp() };
         b.set(F.doc(db, 'entradas', h), d);
         b.set(F.doc(db, 'entradas_codigos', h), { codigo, evento: evId });
         // Las observaciones van aparte: las ven solo el profe y los porteros, no quien tiene el QR.
@@ -405,16 +422,17 @@ async function generar() {
 /* ═════════ listado ═════════ */
 function visibles() {
   const q = $('buscar').value.trim().toLowerCase();
-  return entradas.filter(t => (!filtro || t.estado === filtro)
+  const ok = t => !filtro || (filtro === 'sin' ? t.estado === 'valida' && !usosDe(t) : filtro === 'parcial' ? t.estado === 'valida' && usosDe(t) > 0 : t.estado === filtro);
+  return entradas.filter(t => ok(t)
     && (!q || [t.nombre, t.curso, t.tipo, t.apoderado, '#' + t.n, String(t.n), (priv[t.id] || {}).obs, (priv[t.id] || {}).obsIngreso].some(v => String(v || '').toLowerCase().includes(q))))
     .sort((a, b) => (a.n || 0) - (b.n || 0));
 }
 function pintarStats() {
-  const val = entradas.filter(t => t.estado !== 'anulada'), us = entradas.filter(t => t.estado === 'usada').length;
-  const an = entradas.length - val.length, pend = val.length - us;
-  $('stats').innerHTML = `<div class="stat"><b>${val.length}</b><span>Entradas</span></div><div class="stat"><b style="color:var(--acid)">${us}</b><span>Ingresaron</span></div>
-    <div class="stat"><b style="color:var(--cyan)">${pend}</b><span>Por llegar</span></div><div class="stat"><b style="color:var(--mute)">${an}</b><span>Anuladas</span></div>`;
-  $('barra').style.width = val.length ? (100 * us / val.length) + '%' : '0';
+  const val = entradas.filter(t => t.estado !== 'anulada'), an = entradas.length - val.length;
+  const cup = val.reduce((a, t) => a + cuposDe(t), 0), us = val.reduce((a, t) => a + usosDe(t), 0), conIng = val.filter(t => usosDe(t) > 0).length;
+  $('stats').innerHTML = `<div class="stat"><b>${val.length}</b><span>Entradas · ${cup} cupos</span></div><div class="stat"><b style="color:var(--acid)">${us}</b><span>Personas que ingresaron</span></div>
+    <div class="stat"><b style="color:var(--cyan)">${cup - us}</b><span>Cupos por llegar</span></div><div class="stat"><b>${conIng}</b><span>Entradas usadas al menos 1 vez</span></div>${an ? `<div class="stat"><b style="color:var(--mute)">${an}</b><span>Anuladas</span></div>` : ''}`;
+  $('barra').style.width = cup ? (100 * us / cup) + '%' : '0';
 }
 function obsHTML(id) {
   const o = priv[id]; if (!o) return '';
@@ -425,10 +443,14 @@ function pintarLista() {
   const l = visibles();
   let acc2;
   $('filas').innerHTML = l.map(t => {
-    const est = t.estado === 'usada' ? `<span class="chip ok">Ingresó ${esc(horaTxt(t.usada))}</span><br><small class="muted">${esc(t.usadaPor || '')}${t.metodo === 'manual' ? ' · a mano' : ''}</small>`
-      : t.estado === 'anulada' ? '<span class="chip">Anulada</span>' : '<span class="chip val">Sin usar</span>';
-    const acc = t.estado === 'valida' ? `<button class="btn sm" data-a="png" data-id="${esc(t.id)}" title="Descargar imagen"><i class="fa-solid fa-image"></i></button> <button class="btn sm" data-a="manual" data-id="${esc(t.id)}" title="Marcar ingreso a mano"><i class="fa-solid fa-check"></i></button> <button class="btn sm" data-a="anular" data-id="${esc(t.id)}">Anular</button>`
-      : t.estado === 'usada' ? `<button class="btn sm" data-a="deshacer" data-id="${esc(t.id)}">Deshacer ingreso</button>`
+    const u = usosDe(t), c = cuposDe(t);
+    const est = t.estado === 'anulada' ? '<span class="chip">Anulada</span>'
+      : (u ? `<span class="chip ${t.estado === 'usada' ? 'ok' : 'hot'}">${t.estado === 'usada' ? 'Completa' : 'Ingresaron'} ${u}/${c}</span><br><small class="muted">${t.primerIngreso && u > 1 ? esc(horaTxt(t.primerIngreso)) + '–' : ''}${esc(horaTxt(t.usada))} · ${esc(t.usadaPor || '')}${t.metodo === 'manual' ? ' · a mano' : ''}</small>`
+          : `<span class="chip val">Sin usar · ${personas(c)}</span>`);
+    const deshacer = u ? ` <button class="btn sm" data-a="deshacer" data-id="${esc(t.id)}" title="Restar el último ingreso">−1</button>` : '';
+    const cuposBtn = t.estado !== 'anulada' ? ` <button class="btn sm" data-a="cupos" data-id="${esc(t.id)}" title="Cambiar cupos"><i class="fa-solid fa-users"></i> ${c}</button>` : '';
+    const acc = t.estado === 'valida' ? `<button class="btn sm" data-a="png" data-id="${esc(t.id)}" title="Descargar imagen"><i class="fa-solid fa-image"></i></button>${cuposBtn} <button class="btn sm" data-a="manual" data-id="${esc(t.id)}" title="Sumar un ingreso a mano">+1</button>${deshacer} <button class="btn sm" data-a="anular" data-id="${esc(t.id)}">Anular</button>`
+      : t.estado === 'usada' ? `${cuposBtn}${deshacer}`
       : `<button class="btn sm" data-a="reactivar" data-id="${esc(t.id)}">Reactivar</button>`;
     acc2 = `<button class="btn sm" data-a="qr" data-id="${esc(t.id)}" title="Descargar solo QR + nombre"><i class="fa-solid fa-qrcode"></i></button> <button class="btn sm" data-a="obs" data-id="${esc(t.id)}" title="Observaciones"><i class="fa-solid fa-note-sticky"></i></button> `;
     return `<tr><td>${t.estado === 'valida' ? `<input type="checkbox" data-sel="${esc(t.id)}"${sel.has(t.id) ? ' checked' : ''}>` : ''}</td>
@@ -463,8 +485,25 @@ $('filas').addEventListener('click', async e => {
     }
     if (b.dataset.a === 'anular') { if (!confirm(`¿Anular la entrada de ${quien}? Ya no servirá para ingresar.`)) return; await F.updateDoc(ref, { estado: 'anulada', anulada: F.serverTimestamp() }); }
     if (b.dataset.a === 'reactivar') await F.updateDoc(ref, { estado: 'valida' });
-    if (b.dataset.a === 'manual') { if (!confirm(`¿Marcar que ${quien} ya ingresó?`)) return; await F.updateDoc(ref, { estado: 'usada', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'manual' }); }
-    if (b.dataset.a === 'deshacer') { if (!confirm(`¿Deshacer el ingreso de ${quien}? La entrada volverá a servir.`)) return; await F.updateDoc(ref, { estado: 'valida', usada: F.deleteField(), usadaPor: F.deleteField(), metodo: F.deleteField() }); }
+    if (b.dataset.a === 'manual') {
+      const u = usosDe(t) + 1, c = cuposDe(t);
+      if (!confirm(`¿Sumar un ingreso a ${quien}? (quedará ${u} de ${c})`)) return;
+      const d = { usos: u, estado: u >= c ? 'usada' : 'valida', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'manual' };
+      if (!t.primerIngreso) d.primerIngreso = F.serverTimestamp();
+      await F.updateDoc(ref, d);
+    }
+    if (b.dataset.a === 'cupos') {
+      const r = prompt(`Cupos de la entrada de ${quien} (personas que pueden entrar; ya usados: ${usosDe(t)}):`, cuposDe(t));
+      if (r === null) return; const c = Math.round(+r);
+      if (!(c >= 1 && c <= 20)) return alert('Escribe un número entre 1 y 20.');
+      if (c < usosDe(t)) return alert(`Ya entraron ${usosDe(t)} personas con esta entrada: los cupos no pueden ser menos.`);
+      await F.updateDoc(ref, { cupos: c, usos: usosDe(t), estado: usosDe(t) >= c ? 'usada' : 'valida' });
+    }
+    if (b.dataset.a === 'deshacer') {
+      const u = usosDe(t) - 1; if (u < 0) return;
+      if (!confirm(`¿Restar el último ingreso de ${quien}? (quedará ${u} de ${cuposDe(t)})`)) return;
+      await F.updateDoc(ref, u ? { usos: u, estado: 'valida' } : { usos: 0, estado: 'valida', usada: F.deleteField(), usadaPor: F.deleteField(), metodo: F.deleteField(), primerIngreso: F.deleteField() });
+    }
   } catch (err) { alert('No se pudo: ' + err.message); }
 });
 
@@ -482,7 +521,7 @@ function entradaHTML(t, i) {
   return `<div class="en"><div class="cab"><div style="min-width:0"><div class="marca">El Mundo de Felipe · Entrada</div><div class="ev">${esc(t.eventoNombre)}</div>
       <div class="cuando">${esc([fechaTxt(t.eventoFecha), t.lugar].filter(Boolean).join(' · '))}</div></div><div class="num">N° ${t.n}</div></div>
     <div class="izq"><div class="quien">${esc(t.nombre) || 'Entrada general'}</div><div class="det">${esc([t.curso, t.tipo].filter(Boolean).join(' · '))}${t.apoderado ? '<br>Apoderado/a: ' + esc(t.apoderado) : ''}</div>
-      <div class="inst">${t.nota ? esc(t.nota) + ' · ' : ''}Válida para un ingreso. No compartas el QR.</div></div>
+      <div class="inst">${t.nota ? esc(t.nota) + ' · ' : ''}Válida para ${personas(cuposDe(t))}. No compartas el QR.</div></div>
     <div class="der"><div class="qr" id="qr${i}"></div><div class="cod">${esc(agrupado(t.codigo))}</div></div></div>`;
 }
 async function imprimir() {
@@ -534,14 +573,14 @@ async function pngEntrada(t) {
   x.fillStyle = AZUL_OSC; x.font = `700 62px ${LETRA}`;
   for (const l of envolver(x, t.nombre || 'Entrada general', W - 120).slice(0, 2)) { x.fillText(l, W / 2, y); y += 70; }
   x.fillStyle = AZUL; x.font = `600 36px ${LETRA}`;
-  const det = [t.curso, t.tipo].filter(Boolean).join('  ·  '); if (det) { x.fillText(det, W / 2, y); y += 50; }
+  const det = [t.curso, t.tipo, 'Válida para ' + personas(cuposDe(t))].filter(Boolean).join('  ·  '); if (det) { x.fillText(det, W / 2, y); y += 50; }
   if (t.apoderado) { x.fillText('Apoderado/a: ' + t.apoderado, W / 2, y); y += 50; }
   x.fillStyle = DORADO_OSC; x.font = '700 32px ui-monospace,Menlo,Consolas,monospace'; x.fillText(agrupado(t.codigo), W / 2, Math.min(y + 10, H - 120));
   // pie azul con filete dorado
   x.fillStyle = DORADO; x.fillRect(0, H - 92, W, 6);
   x.fillStyle = AZUL; x.fillRect(0, H - 86, W, 86);
   x.fillStyle = '#fff'; x.font = `600 26px ${LETRA}`;
-  x.fillText((t.nota ? t.nota + '  ·  ' : '') + 'Válida para un ingreso. No compartas este QR.', W / 2, H - 34);
+  x.fillText((t.nota ? t.nota + '  ·  ' : '') + 'Válida para ' + personas(cuposDe(t)) + '. No compartas este QR.', W / 2, H - 34);
   return new Promise(ok => c.toBlob(ok, 'image/png'));
 }
 // El archivo de cada QR se llama como su titular (ej.: «Ana Pérez.png»); sin nombre: «Entrada 004.png».
@@ -607,9 +646,11 @@ async function zipSel() {
 }
 function exportarCSV() {
   const c = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-  const filas = [['N°', 'Estudiante', 'Curso/grupo', 'Tipo', 'Apoderado/a', 'Estado', 'Hora de ingreso', 'Verificó', 'Método', 'Observaciones', 'Observación en la puerta']].concat(
-    entradas.slice().sort((a, b) => a.n - b.n).map(t => [t.n, t.nombre, t.curso, t.tipo, t.apoderado || '', t.estado === 'usada' ? 'Ingresó' : t.estado === 'anulada' ? 'Anulada' : 'No ingresó',
-      t.usada ? new Date(ms(t.usada)).toLocaleString('es-CL') : '', t.usadaPor || '', t.metodo || '', (priv[t.id] || {}).obs || '', (priv[t.id] || {}).obsIngreso || '']));
+  const fh = x => x ? new Date(ms(x)).toLocaleString('es-CL') : '';
+  const filas = [['N°', 'Estudiante', 'Curso/grupo', 'Tipo', 'Apoderado/a', 'Cupos', 'Ingresaron', 'Estado', 'Primer ingreso', 'Último ingreso', 'Verificó (último)', 'Método', 'Observaciones', 'Observación en la puerta']].concat(
+    entradas.slice().sort((a, b) => a.n - b.n).map(t => [t.n, t.nombre, t.curso, t.tipo, t.apoderado || '', cuposDe(t), t.estado === 'anulada' ? 0 : usosDe(t),
+      t.estado === 'anulada' ? 'Anulada' : t.estado === 'usada' ? 'Completa' : usosDe(t) ? 'Con cupos libres' : 'No ingresó',
+      fh(t.primerIngreso || t.usada), fh(t.usada), t.usadaPor || '', t.metodo || '', (priv[t.id] || {}).obs || '', (priv[t.id] || {}).obsIngreso || '']));
   descargar(new Blob(['﻿' + filas.map(f => f.map(c).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'asistencia-' + (ev ? ev.nombre.replace(/[^\w]+/g, '-').toLowerCase() : 'evento') + '.csv');
 }
 $('impSel').addEventListener('click', imprimir);

@@ -86,6 +86,9 @@ const limpiar = c => String(c || '').toUpperCase().replace(/[IL]/g, '1').replace
 const agrupado = c => (c.match(/.{1,4}/g) || []).join('-');
 const fechaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : ''; };
 const horaTxt = t => { const m = ms(t); return m ? new Date(m).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''; };
+const cuposDe = t => Math.max(1, Math.round(+t.cupos || 1));
+const usosDe = t => t.usos != null ? t.usos : (t.estado === 'usada' ? cuposDe(t) : 0);
+const personas = n => n + (n === 1 ? ' persona' : ' personas');
 async function sha256(t) {
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
   return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
@@ -100,20 +103,22 @@ function pintar() {
   if (!codigo) { $('vista').innerHTML = '<div class="card"><p style="margin:0">Abre esta página escaneando el QR de tu entrada.</p></div>'; return; }
   if (!t) { $('vista').innerHTML = '<div class="card"><p style="margin:0">No encontramos esa entrada. Revisa el código o escanea de nuevo el QR.</p></div>'; return; }
   const cerrado = evento && evento.estado === 'cerrado';
-  const sello = t.estado === 'usada' ? `<div class="sello mal">Ya ingresó<small>${esc(horaTxt(t.usada))}${t.usadaPor && evento ? ' · verificó ' + esc(t.usadaPor) : ''}</small></div>`
+  const u = usosDe(t), c = cuposDe(t);
+  const sello = t.estado === 'usada' ? `<div class="sello mal">${c > 1 ? 'Cupos agotados' : 'Ya ingresó'}<small>${c > 1 ? `Ya entraron las ${c} personas · ` : ''}${esc(horaTxt(t.usada))}${t.usadaPor && evento ? ' · verificó ' + esc(t.usadaPor) : ''}</small></div>`
+    : t.estado === 'valida' && u > 0 && !(evento && evento.estado === 'cerrado') ? `<div class="sello ok">Quedan ${c - u} de ${c} cupos<small>Ya ${u === 1 ? 'entró 1 persona' : 'entraron ' + u + ' personas'} · último ingreso ${esc(horaTxt(t.usada))}</small></div>`
     : t.estado === 'anulada' ? '<div class="sello mal">Entrada anulada</div>'
-    : evento ? (cerrado ? '<div class="sello mal">Evento cerrado<small>La entrada es válida, pero el ingreso está cerrado.</small></div>' : '<div class="sello ok">✓ Entrada válida</div>') : '';
+    : evento ? (cerrado ? '<div class="sello mal">Evento cerrado<small>La entrada es válida, pero el ingreso está cerrado.</small></div>' : `<div class="sello ok">✓ Entrada válida<small>${personas(c)}</small></div>`) : '';
   $('vista').innerHTML = `<article class="ticket${t.estado !== 'valida' ? ' no' : ''}"><div class="azul">
     <div class="cab"><span class="marca">El Mundo de Felipe · Entrada</span><span class="num">N° ${esc(t.n)}</span></div>
     <h1>${esc(t.eventoNombre)}</h1>
     <div class="cuando">${t.eventoFecha ? '<i class="fa-regular fa-calendar"></i> ' + esc(fechaTxt(t.eventoFecha)) : ''}${t.lugar ? '<br><i class="fa-solid fa-location-dot"></i> ' + esc(t.lugar) : ''}</div></div>
     <div class="qrbox"><div class="qr" id="qr"></div></div>
     <div class="quien">${esc(t.nombre) || 'Entrada general'}</div>
-    <div class="det">${esc([t.curso, t.tipo].filter(Boolean).join(' · '))}</div>
+    <div class="det">${esc([t.curso, t.tipo, personas(cuposDe(t))].filter(Boolean).join(' · '))}</div>
     ${t.apoderado ? `<div class="det">Apoderado/a: ${esc(t.apoderado)}</div>` : ''}
     <div class="cod">${esc(agrupado(codigo))}</div>
     ${sello}
-    ${!evento ? `<p class="pie">${t.estado === 'valida' ? 'Muestra este QR en la entrada. ' : ''}${t.nota ? esc(t.nota) + ' · ' : ''}Válida para un ingreso: no la compartas.</p>` : ''}
+    ${!evento ? `<p class="pie">${t.estado === 'valida' ? 'Muestra este QR en la entrada. ' : ''}${t.nota ? esc(t.nota) + ' · ' : ''}Válida para ${personas(cuposDe(t))}: no la compartas.</p>` : ''}
   </article>`;
   if (typeof QRCode !== 'undefined') new QRCode($('qr'), { text: location.href.split('#')[0] + '#c=' + codigo, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
   pintarStaff();
@@ -132,8 +137,8 @@ function pintarStaff() {
     return;
   }
   s.innerHTML = `<div class="card staff"><p class="kick">Modo portero · ${esc(evento.nombre)}</p>${obs}${caja}
-    <button class="btn p grande" data-a="pasar"${marcando ? ' disabled' : ''}><i class="fa-solid fa-door-open"></i> Dejar pasar</button>
-    <p class="muted" style="margin:10px 0 0">Al tocar, la entrada queda usada y ya no sirve otra vez.</p></div>`;
+    <button class="btn p grande" data-a="pasar"${marcando ? ' disabled' : ''}><i class="fa-solid fa-door-open"></i> Dejar pasar (${usosDe(t) + 1} de ${cuposDe(t)})</button>
+    <p class="muted" style="margin:10px 0 0">Cada toque deja pasar a 1 persona. ${cuposDe(t) - usosDe(t) === 1 ? 'Es el último cupo: después la entrada ya no sirve.' : `Quedan ${cuposDe(t) - usosDe(t)} de ${cuposDe(t)} cupos.`}</p></div>`;
 }
 
 async function cargarEntrada() {
@@ -179,9 +184,12 @@ async function pasar() {
       const s = await tx.get(ref);
       if (!s.exists()) throw new Error('la entrada no existe');
       const d = s.data();
-      if (d.estado === 'usada') throw new Error('esta entrada YA SE USÓ (' + horaTxt(d.usada) + ')');
+      if (d.estado === 'usada') throw new Error('esta entrada YA USÓ SUS ' + cuposDe(d) + ' CUPOS (último ingreso ' + horaTxt(d.usada) + ')');
       if (d.estado !== 'valida') throw new Error('esta entrada está anulada');
-      tx.update(ref, { estado: 'usada', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'qr' });
+      const u = usosDe(d) + 1, c = cuposDe(d);
+      const up = { usos: u, estado: u >= c ? 'usada' : 'valida', usada: F.serverTimestamp(), usadaPor: usuario.email.toLowerCase(), metodo: 'qr' };
+      if (!d.primerIngreso) up.primerIngreso = F.serverTimestamp();
+      tx.update(ref, up);
     });
     if (navigator.vibrate) navigator.vibrate(120);
   } catch (e) {
