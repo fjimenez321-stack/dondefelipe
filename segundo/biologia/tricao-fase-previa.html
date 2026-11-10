@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La diversidad que nos protege · Fase previa Parque Tricao</title>
+<meta name="description" content="Clase introductoria de Biología 2° medio: de la selección natural a la diversidad genética y la biotecnología, antes de la salida a Parque Tricao.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Manrope:wght@400..800&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#0B2340; --teal:#1F7A70; --mint:#EAF7F5; --cream:#FDF6EC; --amber:#E08E3E; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:#061529; color:var(--cream); font-family:'Manrope', Arial, sans-serif; }
+  body { display:flex; flex-direction:column; overflow:hidden; }
+  .top { display:flex; align-items:center; gap:12px; padding:10px 16px; font-size:14px; }
+  .top a { color:#9FD3CB; text-decoration:none; }
+  .top .t { flex:1; text-align:center; opacity:.85; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .viewport { flex:1; min-height:0; position:relative; overflow:hidden; }
+  .stage { position:absolute; left:50%; top:50%; width:1920px; height:1080px; transform-origin:center center; }
+  .slide { position:absolute; inset:0; width:1920px; height:1080px; overflow:hidden; }
+  .slide:not(.on) { display:none !important; }
+  .slide h1, .slide h2, .slide h3, .slide p, .slide ul, .slide table { margin:0; }
+  .slide div:not([style*="display"]) { display:flex; flex-direction:column; }
+  .slide h1 { line-height:1.1; } .slide h2 { line-height:1.15; } .slide h3 { line-height:1.2; } .slide p { line-height:1.4; }
+  .slide p, .slide h1, .slide h2, .slide h3 { font-weight:inherit; }
+  .slide h1, .slide h2, .slide h3 { font-weight:600; }
+  .slide table { border-collapse:collapse; width:100%; }
+  .slide p[style*="border-radius:999px"] { align-self:flex-start; }
+  .slide td, .slide th { padding:20px 28px; border-top:1px solid #D9E4E2; }
+  .slide [style*="position:absolute"] { position:absolute; }
+  .bar { display:flex; align-items:center; justify-content:center; gap:16px; padding:10px 16px 14px; }
+  .bar button { background:#13304F; color:var(--cream); border:1px solid #24466b; border-radius:999px; padding:10px 22px; font:600 15px 'Manrope', sans-serif; cursor:pointer; }
+  .bar button:disabled { opacity:.35; cursor:default; }
+  .bar .n { min-width:70px; text-align:center; font-variant-numeric:tabular-nums; }
+  .prog { height:3px; background:#13304F; } .prog i { display:block; height:100%; background:var(--amber); width:0; transition:width .2s; }
+</style>
+</head>
+<body>
+<div class="top"><a href="../../index.html">← El Mundo de Felipe</a><span class="t">Biología 2° medio · Fase previa Parque Tricao</span><a href="tricao-refuerzo.pptx" download>Refuerzo (.pptx)</a></div>
+<div class="prog"><i id="prog"></i></div>
+<div class="viewport" id="vp"><div class="stage" id="stage">
+<section class="slide" id="cover" data-transition="fade" style="background:#0B2340;color:#FDF6EC;font-family:'Manrope', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:end;gap:32px">
+<div style="position:absolute;left:1180px;top:128px;width:560px;height:560px;background:#1F7A70;opacity:0.45;border-radius:50%"></div>
+<div style="position:absolute;left:1500px;top:560px;width:240px;height:240px;background:#E08E3E;border-radius:50%"></div>
+<div style="position:absolute;left:1110px;top:600px;width:96px;height:96px;background:#EAF7F5;opacity:0.9;border-radius:50%"></div>
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#9FD3CB;font-weight:700">Biología 2° medio · Fase previa salida a Parque Tricao</p>
+<div style="max-width:1000px;display:flex;flex-direction:column;gap:32px">
+<h1 style="font-family:'Fraunces', Georgia, serif;font-size:112px;font-weight:600;line-height:1.05;color:#FDF6EC">La diversidad que nos protege</h1>
+<p style="font-size:32px;line-height:1.4;color:#D7E6E4">De la selección natural de 1° medio a la diversidad genética y la biotecnología de 2° medio</p>
+</div>
+<p style="font-size:24px;color:#9FD3CB">Clase introductoria · 90 minutos</p>
+
+</section>
+
+<section class="slide" id="objetivo" data-transition="fade" style="background:#FDF6EC;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Inicio · Ruta de la clase</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">¿Qué vamos a lograr hoy?</h2>
+<div style="display:flex;gap:40px;flex:1">
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#0B2340;padding:56px;border-radius:24px">
+<h3 style="font-size:28px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9FD3CB">Objetivo de la clase</h3>
+<p style="font-family:'Fraunces', Georgia, serif;font-size:40px;line-height:1.3;color:#FDF6EC">Explicar por qué la diversidad genética permite que la selección natural actúe y protege a las especies, y evaluar cómo la biotecnología puede ayudar a conservarla.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:8px;background:#EAF7F5;padding:28px 32px;border-radius:16px">
+<p style="font-size:24px;font-weight:700;color:#1F7A70">1° medio · OA 2 · Reactivación</p>
+<p style="font-size:28px;line-height:1.35">Evidencias de la evolución y postulados de la selección natural</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#EAF7F5;padding:28px 32px;border-radius:16px">
+<p style="font-size:24px;font-weight:700;color:#1F7A70">2° medio · OA 6 · Conexión</p>
+<p style="font-size:28px;line-height:1.35">La meiosis como fuente de variabilidad genética</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#EAF7F5;padding:28px 32px;border-radius:16px">
+<p style="font-size:24px;font-weight:700;color:#1F7A70">2° medio · OA 8 · Puente</p>
+<p style="font-size:28px;line-height:1.35">Aplicaciones de la manipulación genética y sus implicancias éticas</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5A6B7D">Habilidad transversal: Afirmación · Evidencia · Razonamiento (AER)</p>
+
+</section>
+
+<section class="slide" id="pregunta" data-transition="fade" style="background:#EAF7F5;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;justify-content:center;gap:48px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Inicio · 10 min · Pregunta detonante</p>
+<p style="font-size:40px;line-height:1.35;max-width:1300px;color:#2C3E55">Un parque rescata cientos de aves que vivían en cautiverio. Las alimenta, las cuida y las deja volar en un aviario enorme.</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:104px;font-weight:600;line-height:1.05;max-width:1400px">¿Están a salvo esas especies?</h2>
+<p style="font-size:32px;line-height:1.4;color:#1F7A70;font-weight:600">Escribe tu respuesta en una línea. Volveremos a ella al final de la clase.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5A6B7D">Parque Tricao alberga un aviario con cientos de aves exóticas rescatadas de cautiverio</p>
+
+</section>
+
+<section class="slide" id="seleccion" data-transition="fade" style="background:#FDF6EC;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Reactivar 1° medio · Selección natural</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">Lo que Darwin y Wallace nos dejaron</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:40px;border-radius:20px">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1;color:#1F7A70">1</p>
+<h3 style="font-size:36px;font-weight:700">Variación</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Los individuos de una población no son idénticos.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:40px;border-radius:20px">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1;color:#1F7A70">2</p>
+<h3 style="font-size:36px;font-weight:700">Herencia</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Parte de esas diferencias pasa a la descendencia.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:40px;border-radius:20px">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1;color:#1F7A70">3</p>
+<h3 style="font-size:36px;font-weight:700">Sobreproducción</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Nacen más individuos de los que el ambiente puede sostener.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:40px;border-radius:20px">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1;color:#1F7A70">4</p>
+<h3 style="font-size:36px;font-weight:700">Selección</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Sobreviven y se reproducen más quienes tienen rasgos ventajosos.</p>
+</div>
+</div>
+<p style="font-size:32px;line-height:1.4;background:#0B2340;color:#FDF6EC;padding:28px 40px;border-radius:16px">Resultado: con el paso de las generaciones, la población cambia → <b>adaptación</b></p>
+
+</section>
+
+<section class="slide" id="evidencias" data-transition="fade" style="background:#EAF7F5;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Reactivar 1° medio · Evidencias de la evolución</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">Las pistas que respaldan la evolución</h2>
+<table style="font-family:'Manrope', Arial, sans-serif;font-size:28px;color:#0B2340;background:#FFFFFF;border-radius:16px">
+<tr style="background:#0B2340"><th style="width:26%;color:#FDF6EC;text-align:left;padding:20px 28px">Evidencia</th><th style="width:44%;color:#FDF6EC;text-align:left">Qué muestra</th><th style="width:30%;color:#FDF6EC;text-align:left">¿La veremos en Tricao?</th></tr>
+<tr><td>Registro fósil</td><td>Organismos de otras épocas y cómo cambiaron</td><td>No directamente</td></tr>
+<tr style="background:#F6FBFA"><td>Estructuras homólogas</td><td>Mismo plan óseo con distintas funciones: ala, aleta, brazo</td><td>Sí: alas y patas de aves</td></tr>
+<tr><td>Embriología</td><td>Etapas tempranas muy parecidas entre vertebrados</td><td>No</td></tr>
+<tr style="background:#F6FBFA"><td>Secuencias de ADN</td><td>Más parecido el ADN, más cercano el parentesco</td><td>De forma indirecta: estudios genéticos de conservación</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5A6B7D">La última fila es la que conecta con 2° medio: el ADN también sirve para medir la diversidad de una población</p>
+
+</section>
+
+<section class="slide" id="picos" data-transition="fade" style="background:#FDF6EC;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:36px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Desarrollo · Actividad 1 · 15 min</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">Picos que cuentan historias</h2>
+<p style="font-size:30px;line-height:1.4;color:#2C3E55">En parejas: para cada pico, propón qué come el ave y justifícalo.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;align-items:center;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:32px;border-radius:20px">
+<svg aria-label="Ave con pico corto, grueso y cónico" width="220" height="140" viewBox="0 0 220 140"><circle cx="80" cy="70" r="52" fill="#0B2340"/><circle cx="96" cy="56" r="7" fill="#FDF6EC"/><polygon points="126,46 186,70 126,96" fill="#E08E3E"/></svg>
+<h3 style="font-size:32px;font-weight:700;text-align:center">Corto y grueso</h3>
+<p style="font-size:26px;color:#5A6B7D;text-align:center">¿Qué come?</p>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:32px;border-radius:20px">
+<svg aria-label="Ave con pico largo y fino" width="220" height="140" viewBox="0 0 220 140"><circle cx="70" cy="70" r="52" fill="#0B2340"/><circle cx="86" cy="56" r="7" fill="#FDF6EC"/><polygon points="118,62 214,71 118,78" fill="#E08E3E"/></svg>
+<h3 style="font-size:32px;font-weight:700;text-align:center">Largo y fino</h3>
+<p style="font-size:26px;color:#5A6B7D;text-align:center">¿Qué come?</p>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:32px;border-radius:20px">
+<svg aria-label="Ave con pico curvo y ganchudo" width="220" height="140" viewBox="0 0 220 140"><circle cx="80" cy="70" r="52" fill="#0B2340"/><circle cx="96" cy="56" r="7" fill="#FDF6EC"/><path d="M124 46 Q186 46 176 110 Q160 82 124 92 Z" fill="#E08E3E"/></svg>
+<h3 style="font-size:32px;font-weight:700;text-align:center">Curvo y ganchudo</h3>
+<p style="font-size:26px;color:#5A6B7D;text-align:center">¿Qué come?</p>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:32px;border-radius:20px">
+<svg aria-label="Ave con pico ancho y plano" width="220" height="140" viewBox="0 0 220 140"><circle cx="76" cy="70" r="52" fill="#0B2340"/><circle cx="92" cy="56" r="7" fill="#FDF6EC"/><path d="M120 56 L190 58 Q204 70 190 84 L120 86 Z" fill="#E08E3E"/></svg>
+<h3 style="font-size:32px;font-weight:700;text-align:center">Ancho y plano</h3>
+<p style="font-size:26px;color:#5A6B7D;text-align:center">¿Qué come?</p>
+</div>
+</div>
+<div style="display:flex;gap:24px;background:#0B2340;padding:28px 36px;border-radius:16px">
+<p style="flex:1;font-size:26px;line-height:1.35;color:#FDF6EC"><span style="color:#E08E3E"><b>A</b></span> Este pico sirve para…</p>
+<p style="flex:1;font-size:26px;line-height:1.35;color:#FDF6EC"><span style="color:#E08E3E"><b>E</b></span> Su forma es…</p>
+<p style="flex:1;font-size:26px;line-height:1.35;color:#FDF6EC"><span style="color:#E08E3E"><b>R</b></span> Por lo tanto, le permite…</p>
+</div>
+
+</section>
+
+<section class="slide" id="frase" data-transition="fade" style="background:#0B2340;color:#FDF6EC;font-family:'Manrope', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:56px">
+<div style="position:absolute;left:1560px;top:128px;width:180px;height:180px;background:#E08E3E;border-radius:50%"></div>
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#9FD3CB;font-weight:700">Puente · De la Unidad 1 a la Unidad 4</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:88px;font-weight:600;line-height:1.15;max-width:1400px;color:#FDF6EC">La selección natural solo puede elegir entre la <span style="color:#E08E3E">variación</span> que ya existe.</h2>
+<p style="font-size:36px;line-height:1.4;color:#9FD3CB;max-width:1300px">Entonces, ¿de dónde sale esa variación? ¿Y qué le pasa a una especie cuando la pierde?</p>
+
+</section>
+
+<section class="slide" id="diversidad" data-transition="fade" style="background:#FDF6EC;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Puente · Diversidad genética</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">¿Qué es la diversidad genética?</h2>
+<p style="font-family:'Fraunces', Georgia, serif;font-size:44px;line-height:1.3;background:#EAF7F5;border-left:8px solid #1F7A70;padding:36px 44px">Es la variedad de <b>alelos</b>, las distintas versiones de un gen, que existe dentro de una población o especie.</p>
+<h3 style="font-size:32px;font-weight:700;color:#1F7A70">¿De dónde viene?</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:14px;background:#FFFFFF;border:1px solid #D9E4E2;padding:36px;border-radius:20px">
+<h3 style="font-size:36px;font-weight:700">Mutación</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Cambios en el ADN: la fuente original de alelos nuevos.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#FFFFFF;border:2px solid #1F7A70;padding:36px;border-radius:20px">
+<h3 style="font-size:36px;font-weight:700">Meiosis</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Recombinación y permutación cromosómica: cada gameto es distinto.</p>
+<p style="font-size:24px;font-weight:700;color:#FDF6EC;background:#1F7A70;padding:6px 16px;border-radius:999px">Visto en Unidad 3</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#FFFFFF;border:1px solid #D9E4E2;padding:36px;border-radius:20px">
+<h3 style="font-size:36px;font-weight:700">Fecundación</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">La unión al azar de gametos crea combinaciones nuevas.</p>
+</div>
+</div>
+
+</section>
+
+<section class="slide" id="enfermedad" data-transition="fade" style="background:#EAF7F5;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Desarrollo · Actividad 2 · 10 min</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">Dos poblaciones, una misma enfermedad</h2>
+<div style="display:flex;gap:40px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:24px;background:#FFFFFF;padding:36px;border-radius:20px">
+<h3 style="font-size:32px;font-weight:700">Población A · alta diversidad</h3>
+<div style="display:flex;flex-direction:row;flex-wrap:wrap;gap:16px;width:336px">
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#1F7A70;color:#FDF6EC;font-size:30px;font-weight:800;text-align:center;line-height:2.4">B</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#0B2340;color:#FDF6EC;font-size:30px;font-weight:800;text-align:center;line-height:2.4">C</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#9FD3CB;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">D</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#1F7A70;color:#FDF6EC;font-size:30px;font-weight:800;text-align:center;line-height:2.4">B</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#9FD3CB;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">D</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#0B2340;color:#FDF6EC;font-size:30px;font-weight:800;text-align:center;line-height:2.4">C</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#1F7A70;color:#FDF6EC;font-size:30px;font-weight:800;text-align:center;line-height:2.4">B</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#9FD3CB;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">D</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#0B2340;color:#FDF6EC;font-size:30px;font-weight:800;text-align:center;line-height:2.4">C</p>
+</div>
+<p style="font-size:26px;color:#2C3E55">3 de 12 portan el alelo A</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:24px;background:#FFFFFF;padding:36px;border-radius:20px">
+<h3 style="font-size:32px;font-weight:700">Población B · baja diversidad</h3>
+<div style="display:flex;flex-direction:row;flex-wrap:wrap;gap:16px;width:336px">
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#1F7A70;color:#FDF6EC;font-size:30px;font-weight:800;text-align:center;line-height:2.4">B</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+<p style="width:72px;height:72px;border-radius:50%;background:#E08E3E;color:#0B2340;font-size:30px;font-weight:800;text-align:center;line-height:2.4">A</p>
+</div>
+<p style="font-size:26px;color:#2C3E55">11 de 12 portan el alelo A</p>
+</div>
+</div>
+<p style="font-size:30px;line-height:1.4;background:#0B2340;color:#FDF6EC;padding:24px 36px;border-radius:16px">Una enfermedad nueva ataca solo a quienes portan el alelo A. <b>Predice</b> qué población sobrevive y justifica con AER.</p>
+
+</section>
+
+<section class="slide" id="guepardo" data-transition="fade" style="background:#FDF6EC;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Caso real · Cuello de botella</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">El guepardo: una especie casi sin variación</h2>
+<div style="display:flex;gap:56px;align-items:center">
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<p style="font-size:30px;line-height:1.45;color:#2C3E55">Hace miles de años su población se redujo drásticamente. Los sobrevivientes eran pocos y emparentados entre sí.</p>
+<p style="font-size:30px;line-height:1.45;color:#2C3E55">Hoy son tan parecidos genéticamente que, en estudios clásicos, aceptaron injertos de piel de individuos no emparentados, algo que en otras especies el cuerpo rechaza.</p>
+<p style="font-size:30px;line-height:1.45;font-weight:700">Si aparece una enfermedad nueva, muchos podrían ser vulnerables al mismo tiempo.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:16px;background:#FFFFFF;border:1px solid #D9E4E2;padding:40px;border-radius:20px">
+<p style="font-size:26px;font-weight:700;color:#1F7A70">Antes: muchos alelos</p>
+<svg aria-label="Ocho individuos con cuatro alelos distintos" width="520" height="64" viewBox="0 0 520 64"><circle cx="36" cy="32" r="26" fill="#E08E3E"/><circle cx="100" cy="32" r="26" fill="#1F7A70"/><circle cx="164" cy="32" r="26" fill="#0B2340"/><circle cx="228" cy="32" r="26" fill="#9FD3CB"/><circle cx="292" cy="32" r="26" fill="#1F7A70"/><circle cx="356" cy="32" r="26" fill="#9FD3CB"/><circle cx="420" cy="32" r="26" fill="#0B2340"/><circle cx="484" cy="32" r="26" fill="#E08E3E"/></svg>
+<svg aria-hidden="true" viewBox="0 0 36 56" style="width:36px;height:56px;"><path d="M10 0h16v32h10L18 56 0 32h10z" fill="#5A6B7D"/></svg>
+<p style="font-size:26px;font-weight:700;color:#1F7A70">Cuello de botella: pocos sobreviven</p>
+<svg aria-label="Solo dos individuos sobreviven" width="520" height="64" viewBox="0 0 520 64"><circle cx="228" cy="32" r="26" fill="#E08E3E"/><circle cx="292" cy="32" r="26" fill="#1F7A70"/></svg>
+<svg aria-hidden="true" viewBox="0 0 36 56" style="width:36px;height:56px;"><path d="M10 0h16v32h10L18 56 0 32h10z" fill="#5A6B7D"/></svg>
+<p style="font-size:26px;font-weight:700;color:#1F7A70">Hoy: muchos individuos, pocos alelos</p>
+<svg aria-label="Ocho individuos con solo dos alelos" width="520" height="64" viewBox="0 0 520 64"><circle cx="36" cy="32" r="26" fill="#E08E3E"/><circle cx="100" cy="32" r="26" fill="#E08E3E"/><circle cx="164" cy="32" r="26" fill="#1F7A70"/><circle cx="228" cy="32" r="26" fill="#E08E3E"/><circle cx="292" cy="32" r="26" fill="#E08E3E"/><circle cx="356" cy="32" r="26" fill="#1F7A70"/><circle cx="420" cy="32" r="26" fill="#E08E3E"/><circle cx="484" cy="32" r="26" fill="#E08E3E"/></svg>
+</div>
+</div>
+
+</section>
+
+<section class="slide" id="biotec" data-transition="fade" style="background:#EAF7F5;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Puente a Unidad 4 · Manipulación genética</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">¿Puede la biotecnología ayudar a conservar?</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:32px 40px;border-radius:20px">
+<h3 style="font-size:34px;font-weight:700">Análisis de ADN</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Mide cuánta diversidad tiene una población y detecta el parentesco entre individuos.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:32px 40px;border-radius:20px">
+<h3 style="font-size:34px;font-weight:700">Crianza planificada</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Registros genealógicos para cruzar individuos poco emparentados y evitar la endogamia.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:32px 40px;border-radius:20px">
+<h3 style="font-size:34px;font-weight:700">Bancos de germoplasma</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Semillas, gametos o tejidos congelados que guardan diversidad para el futuro.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFF;border:2px solid #E08E3E;padding:32px 40px;border-radius:20px">
+<h3 style="font-size:34px;font-weight:700">Clonación</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Copia un individuo. Sola no crea alelos nuevos, pero clonar células congeladas hace décadas puede devolver diversidad perdida.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5A6B7D">OA 8: toda aplicación genética tiene implicancias éticas y sociales que debemos evaluar</p>
+
+</section>
+
+<section class="slide" id="debate" data-transition="fade" style="background:#FDF6EC;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Desarrollo · Debate rápido · 10 min</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">¿Deberíamos clonar especies amenazadas?</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:14px;background:#FFFFFF;border:1px solid #D9E4E2;padding:36px;border-radius:20px">
+<p style="font-size:24px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1F7A70">Grupo 1</p>
+<h3 style="font-size:36px;font-weight:700">Defiende</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Argumenta por qué la clonación puede salvar una especie.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#FFFFFF;border:1px solid #D9E4E2;padding:36px;border-radius:20px">
+<p style="font-size:24px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1F7A70">Grupo 2</p>
+<h3 style="font-size:36px;font-weight:700">Cuestiona</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Señala límites, riesgos y costos frente a otras alternativas.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#FFFFFF;border:1px solid #D9E4E2;padding:36px;border-radius:20px">
+<p style="font-size:24px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1F7A70">Grupo 3</p>
+<h3 style="font-size:36px;font-weight:700">Evalúa</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Juzga qué grupo usó mejor la evidencia y por qué.</p>
+</div>
+</div>
+<div style="display:flex;gap:24px;background:#0B2340;padding:28px 36px;border-radius:16px">
+<p style="flex:1;font-size:26px;line-height:1.35;color:#FDF6EC"><span style="color:#E08E3E"><b>A</b></span> Nuestra postura es…</p>
+<p style="flex:1;font-size:26px;line-height:1.35;color:#FDF6EC"><span style="color:#E08E3E"><b>E</b></span> Lo sostenemos porque…</p>
+<p style="flex:1;font-size:26px;line-height:1.35;color:#FDF6EC"><span style="color:#E08E3E"><b>R</b></span> Esto demuestra que…</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5A6B7D">Cada grupo presenta en 2 minutos</p>
+
+</section>
+
+<section class="slide" id="tricao" data-transition="fade" style="background:#EAF7F5;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Cierre · Hacia Parque Tricao · 5 min</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">Tu misión en terreno</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:16px;background:#FFFFFF;padding:40px;border-radius:20px">
+<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" color="#1F7A70" style="color:#1F7A70" height="56" width="56" xmlns="http://www.w3.org/2000/svg"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"></path></svg>
+<h3 style="font-size:36px;font-weight:700">Variación</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">En el aviario, elige una especie y anota diferencias entre individuos: tamaño, color, plumaje.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#FFFFFF;padding:40px;border-radius:20px">
+<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" color="#1F7A70" style="color:#1F7A70" height="56" width="56" xmlns="http://www.w3.org/2000/svg"><path d="M448 360V24c0-13.3-10.7-24-24-24H96C43 0 0 43 0 96v320c0 53 43 96 96 96h328c13.3 0 24-10.7 24-24v-16c0-7.5-3.5-14.3-8.9-18.7-4.2-15.4-4.2-59.3 0-74.7 5.4-4.3 8.9-11.1 8.9-18.6zM128 134c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm0 64c0-3.3 2.7-6 6-6h212c3.3 0 6 2.7 6 6v20c0 3.3-2.7 6-6 6H134c-3.3 0-6-2.7-6-6v-20zm253.4 250H96c-17.7 0-32-14.3-32-32 0-17.6 14.4-32 32-32h285.4c-1.9 17.1-1.9 46.9 0 64z"></path></svg>
+<h3 style="font-size:36px;font-weight:700">Adaptaciones</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Registra tres aves distintas: pico, patas y hábitat. Propón qué come y dónde vive cada una.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#FFFFFF;padding:40px;border-radius:20px">
+<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 496 512" color="#1F7A70" style="color:#1F7A70" height="56" width="56" xmlns="http://www.w3.org/2000/svg"><path d="M248 8C111.03 8 0 119.03 0 256s111.03 248 248 248 248-111.03 248-248S384.97 8 248 8zm82.29 357.6c-3.9 3.88-7.99 7.95-11.31 11.28-2.99 3-5.1 6.7-6.17 10.71-1.51 5.66-2.73 11.38-4.77 16.87l-17.39 46.85c-13.76 3-28 4.69-42.65 4.69v-27.38c1.69-12.62-7.64-36.26-22.63-51.25-6-6-9.37-14.14-9.37-22.63v-32.01c0-11.64-6.27-22.34-16.46-27.97-14.37-7.95-34.81-19.06-48.81-26.11-11.48-5.78-22.1-13.14-31.65-21.75l-.8-.72a114.792 114.792 0 0 1-18.06-20.74c-9.38-13.77-24.66-36.42-34.59-51.14 20.47-45.5 57.36-82.04 103.2-101.89l24.01 12.01C203.48 89.74 216 82.01 216 70.11v-11.3c7.99-1.29 16.12-2.11 24.39-2.42l28.3 28.3c6.25 6.25 6.25 16.38 0 22.63L264 112l-10.34 10.34c-3.12 3.12-3.12 8.19 0 11.31l4.69 4.69c3.12 3.12 3.12 8.19 0 11.31l-8 8a8.008 8.008 0 0 1-5.66 2.34h-8.99c-2.08 0-4.08.81-5.58 2.27l-9.92 9.65a8.008 8.008 0 0 0-1.58 9.31l15.59 31.19c2.66 5.32-1.21 11.58-7.15 11.58h-5.64c-1.93 0-3.79-.7-5.24-1.96l-9.28-8.06a16.017 16.017 0 0 0-15.55-3.1l-31.17 10.39a11.95 11.95 0 0 0-8.17 11.34c0 4.53 2.56 8.66 6.61 10.69l11.08 5.54c9.41 4.71 19.79 7.16 30.31 7.16s22.59 27.29 32 32h66.75c8.49 0 16.62 3.37 22.63 9.37l13.69 13.69a30.503 30.503 0 0 1 8.93 21.57 46.536 46.536 0 0 1-13.72 32.98zM417 274.25c-5.79-1.45-10.84-5-14.15-9.97l-17.98-26.97a23.97 23.97 0 0 1 0-26.62l19.59-29.38c2.32-3.47 5.5-6.29 9.24-8.15l12.98-6.49C440.2 193.59 448 223.87 448 256c0 8.67-.74 17.16-1.82 25.54L417 274.25z"></path></svg>
+<h3 style="font-size:36px;font-weight:700">Conservación</h3>
+<p style="font-size:28px;line-height:1.4;color:#2C3E55">Distingue aves nativas libres de aves exóticas rescatadas. ¿Qué aporta cada grupo a la diversidad?</p>
+</div>
+</div>
+<p style="font-size:28px;line-height:1.4;background:#0B2340;color:#FDF6EC;padding:24px 36px;border-radius:16px">Lleva cuaderno, lápiz y celular para fotografiar evidencias, sin flash y sin perturbar a las aves.</p>
+
+</section>
+
+<section class="slide" id="cierre" data-transition="fade" style="background:#FDF6EC;color:#0B2340;font-family:'Manrope', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<p style="font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#1F7A70;font-weight:700">Cierre · Ticket de salida · 10 min</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:64px;font-weight:600;line-height:1.15">Antes de salir, responde</h2>
+<div style="display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;align-items:center;gap:36px;background:#FFFFFF;border:1px solid #D9E4E2;padding:32px 40px;border-radius:20px">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1;color:#1F7A70">1</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1F7A70">Recordar</p>
+<p style="font-size:30px;line-height:1.4">Nombra las tres fuentes de diversidad genética.</p>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:36px;background:#FFFFFF;border:1px solid #D9E4E2;padding:32px 40px;border-radius:20px">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1;color:#1F7A70">2</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1F7A70">Explicar</p>
+<p style="font-size:30px;line-height:1.4">¿Por qué una población con poca diversidad es más vulnerable a una enfermedad nueva?</p>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:36px;background:#0B2340;padding:32px 40px;border-radius:20px">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1;color:#E08E3E">3</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9FD3CB">Evaluar</p>
+<p style="font-size:30px;line-height:1.4;color:#FDF6EC">Vuelve a la pregunta inicial: las aves rescatadas del parque, ¿están a salvo como especie? Responde con AER.</p>
+</div>
+</div>
+</div>
+
+</section>
+
+</div></div>
+<div class="bar"><button id="prev" aria-label="Diapositiva anterior">← Anterior</button><span class="n" id="num"></span><button id="next" aria-label="Diapositiva siguiente">Siguiente →</button></div>
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide')), i=0;
+  var stage=document.getElementById('stage'), vp=document.getElementById('vp');
+  function fit(){ var s=Math.min(vp.clientWidth/1920, vp.clientHeight/1080); stage.style.transform='translate(-50%,-50%) scale('+s+')'; }
+  function show(k){ i=Math.max(0,Math.min(slides.length-1,k)); slides.forEach(function(el,j){ el.classList.toggle('on', j===i); });
+    document.getElementById('num').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('prev').disabled=i===0; document.getElementById('next').disabled=i===slides.length-1;
+    document.getElementById('prog').style.width=((i+1)/slides.length*100)+'%';
+    try{ history.replaceState(null,'','#'+(i+1)); }catch(e){} }
+  document.getElementById('prev').onclick=function(){show(i-1)}; document.getElementById('next').onclick=function(){show(i+1)};
+  document.addEventListener('keydown',function(e){ if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();show(i+1)} if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();show(i-1)} });
+  var x0=null; vp.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+  vp.addEventListener('touchend',function(e){ if(x0===null)return; var dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>40) show(i+(dx<0?1:-1)); x0=null; });
+  window.addEventListener('resize',fit); fit();
+  var h=parseInt((location.hash||'').slice(1),10); show(isNaN(h)?0:h-1);
+})();
+</script>
+</body>
+</html>
