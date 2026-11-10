@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08080c">
+<title>Apps para estudiar ciencia · El Mundo de Felipe</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#08080c; --ink:#0e0f16; --slab:#14161f; --slab-2:#1b1e2b; --slab-3:#232739;
+  --acid:#ccff00; --acid-deep:#5e7a00; --tyrian:#ff2e7e; --cyan:#22e3ff; --brass:#e9b949;
+  --bone:#f2f0e9; --mute:#9498ab; --line:rgba(204,255,0,.16); --line-2:rgba(255,255,255,.08);
+  --ff-display:'Big Shoulders Display','Impact',sans-serif;
+  --ff-body:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;
+  --r-sm:6px; --r-md:10px; --r-lg:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{min-height:100vh;font-family:var(--ff-body);color:var(--bone);background:var(--void);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 12% 0%,rgba(122,15,61,.5),transparent 62%),radial-gradient(ellipse 60% 45% at 88% 8%,rgba(94,122,0,.3),transparent 60%)}
+a{color:var(--acid);text-decoration:none} a:hover{color:var(--cyan)}
+button,textarea,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acid);outline-offset:3px}
+.frieze{position:relative;z-index:5;height:4px;background:linear-gradient(90deg,var(--void),var(--tyrian) 26%,var(--acid) 50%,var(--cyan) 74%,var(--void))}
+nav{position:sticky;top:0;z-index:50;background:rgba(10,11,16,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-2)}
+.nav-in{max-width:1140px;margin:0 auto;padding:0 1.2rem;height:56px;display:flex;align-items:center;gap:14px}
+.brand{font:900 1.3rem var(--ff-display);letter-spacing:2px;color:var(--acid)}
+.nav-in .esp{flex:1}
+.yo{font-size:.74rem;color:var(--mute);display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.yo b{color:var(--bone)}
+.lnk{background:none;border:0;color:var(--acid);text-decoration:underline;font-size:.74rem;padding:0}
+main{position:relative;z-index:5;max-width:1140px;margin:1.6rem auto 3rem;padding:0 1rem}
+.tablet{background:linear-gradient(170deg,rgba(20,22,31,.94),rgba(12,13,19,.96));border:1px solid var(--line-2);border-top:3px solid var(--acid);border-radius:var(--r-lg);padding:2.2rem 2.4rem}
+.cab{padding-bottom:1.4rem;margin-bottom:1.4rem;border-bottom:1px solid var(--line-2)}
+h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;text-transform:uppercase}
+.sub{font-size:.74rem;color:var(--mute);letter-spacing:2.4px;text-transform:uppercase;margin-top:10px}
+.intro{font-size:.92rem;color:var(--mute);max-width:62ch;margin-top:12px;line-height:1.6}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 1.6rem}
+.tab{padding:9px 16px;border-radius:2px;border:1.5px solid var(--line-2);background:transparent;color:var(--mute);font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:inline-flex;gap:8px;align-items:center}
+.tab:hover{color:var(--bone);border-color:rgba(255,255,255,.28)}
+.tab.on{background:var(--acid);border-color:var(--acid);color:#0a0c00}
+.tab small{font-weight:700;opacity:.7}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--r-sm);padding:.75rem 1.3rem;font-size:.74rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;background:var(--acid);color:#0a0c00}
+.btn:hover:not(:disabled){background:var(--cyan)}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn.s{background:transparent;color:var(--acid);border:1.5px solid rgba(204,255,0,.4)}
+.btn.s:hover{background:rgba(204,255,0,.1)}
+
+
+.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+.app{position:relative;display:flex;flex-direction:column;gap:10px;background:var(--slab);border:1px solid var(--line-2);border-top:3px solid var(--tc,var(--acid));border-radius:var(--r-md);padding:1.2rem 1.2rem 1.1rem;min-width:0}
+.app .ico{font-size:2rem;line-height:1}
+.app h2{font:800 1.35rem/1.1 var(--ff-display);text-transform:uppercase;letter-spacing:.5px;overflow-wrap:anywhere}
+.area{font-size:.62rem;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--tc,var(--acid))}
+.datos{display:flex;gap:6px;flex-wrap:wrap}
+.dato{font-size:.6rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:4px 8px;border-radius:2px;background:rgba(255,255,255,.06);color:var(--bone)}
+.dato.g{background:rgba(204,255,0,.12);color:var(--acid)}
+.desc{font-size:.9rem;color:#c6c9d6;line-height:1.55}
+.uso{font-size:.84rem;line-height:1.5;color:var(--bone);border-left:3px solid var(--tc,var(--acid));padding:4px 0 4px 10px;flex:1}
+.uso b{color:var(--tc,var(--acid))}
+.aviso{font-size:.8rem;line-height:1.5;color:var(--bone);background:rgba(233,185,73,.1);border:1px solid rgba(233,185,73,.35);border-radius:var(--r-sm);padding:8px 10px}
+.aviso b{color:var(--brass)}
+.info{border-left:4px solid var(--cyan);background:rgba(34,227,255,.06);padding:12px 16px;border-radius:0 var(--r-sm) var(--r-sm) 0;margin:0 0 1.6rem;font-size:.86rem;line-height:1.6;color:#c6c9d6}
+.info b{color:var(--cyan)}
+.fila{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.app[hidden]{display:none}
+@media (max-width:600px){.tablet{padding:1.4rem 1.1rem}}
+</style>
+</head>
+<body>
+<div class="frieze"></div>
+<nav><div class="nav-in">
+  <a class="brand" href="index.html" aria-label="Volver al inicio">EMF</a>
+  <a href="index.html" style="font-size:.74rem">← Volver al sitio</a>
+  <span class="esp"></span>
+</div></nav>
+
+<main><div class="tablet">
+  <div class="cab">
+    <h1>Apps para estudiar ciencia</h1>
+    <p class="sub">Recomendadas por el profe · todas gratis o con versión gratis</p>
+    <p class="intro">Tu celular puede ser un telescopio, un laboratorio o un tutor. Estas son las aplicaciones que recomiendo para aprender ciencia de verdad, con una idea concreta de cómo usar cada una.</p>
+  </div>
+  <div class="info"><b>Antes de instalar:</b> descarga siempre desde la tienda oficial (Play Store o App Store) o desde el sitio oficial de la app. Ninguna de estas apps te pide pagar para lo básico. Si te pide datos personales que no corresponden, avísame.</div>
+  <div class="tabs" id="tabs"><button class="tab on" data-f="todas">Todas</button><button class="tab" data-f="astro">Astronomía</button><button class="tab" data-f="fisica">Física</button><button class="tab" data-f="bio">Biología</button><button class="tab" data-f="quimica">Química</button><button class="tab" data-f="mate">Matemática</button><button class="tab" data-f="estudio">Estudiar</button><button class="tab" data-f="ia">IA</button></div>
+  <div class="lista" id="lista">
+<article class="app" data-area="astro" style="--tc:var(--cyan)">
+  <div class="ico">🔭</div><span class="area">Astronomía</span><h2>Sky Map</h2>
+  <div class="datos"><span class="dato g">Gratis · código abierto</span><span class="dato">Android</span></div>
+  <p class="desc">Apunta el celular al cielo y te muestra estrellas, planetas y constelaciones en tiempo real, aunque sea de día o haya techo. Nació como Google Sky Map.</p>
+  <p class="uso"><b>En clase:</b> busca la Cruz del Sur, apunta al suelo para ver el cielo del otro lado de la Tierra y usa el viaje en el tiempo para ver girar el cielo.</p>
+  <div class="fila"><a class="btn" href="https://play.google.com/store/apps/details?id=com.google.android.stardroid" target="_blank" rel="noopener">Play Store ↗</a><a class="btn s" href="https://stardroid.app" target="_blank" rel="noopener">Sitio ↗</a></div>
+</article>
+<article class="app" data-area="astro" style="--tc:var(--cyan)">
+  <div class="ico">🌌</div><span class="area">Astronomía</span><h2>Stellarium</h2>
+  <div class="datos"><span class="dato g">Gratis (Plus de pago en celular)</span><span class="dato">Android</span><span class="dato">iPhone</span><span class="dato">PC</span><span class="dato">Web</span></div>
+  <p class="desc">Planetario completo y muy realista. En celular es Stellarium Mobile; en computador es gratis y muy potente.</p>
+  <p class="uso"><b>La alternativa a Sky Map en iPhone.</b> En PC sirve para simular eclipses, el movimiento retrógrado de Marte o el cielo de otra época.</p>
+  <div class="fila"><a class="btn" href="https://stellarium.org" target="_blank" rel="noopener">Sitio ↗</a><a class="btn s" href="https://stellarium-web.org" target="_blank" rel="noopener">Versión web ↗</a></div>
+</article>
+<article class="app" data-area="astro" style="--tc:var(--cyan)">
+  <div class="ico">🛰️</div><span class="area">Astronomía</span><h2>NASA Eyes on the Solar System</h2>
+  <div class="datos"><span class="dato g">Gratis</span><span class="dato">Web</span><span class="dato">PC</span></div>
+  <p class="desc">El sistema solar en 3D con datos reales de la NASA: planetas, lunas y la posición actual de las sondas espaciales.</p>
+  <p class="uso"><b>Unidad El Universo:</b> compara distancias reales, sigue a la Voyager y viaja en el tiempo.</p>
+  <div class="fila"><a class="btn" href="https://eyes.nasa.gov" target="_blank" rel="noopener">Abrir ↗</a></div>
+</article>
+<article class="app" data-area="fisica" style="--tc:var(--acid)">
+  <div class="ico">📱</div><span class="area">Física</span><h2>phyphox</h2>
+  <div class="datos"><span class="dato g">Gratis · sin publicidad</span><span class="dato">Android</span><span class="dato">iPhone</span></div>
+  <p class="desc">Convierte tu celular en un laboratorio: usa el acelerómetro, el micrófono, el giroscopio y el magnetómetro para medir de verdad. Creada en la Universidad RWTH Aachen (Alemania).</p>
+  <p class="uso"><b>Experimentos:</b> mide g con un péndulo, la aceleración en un ascensor o la velocidad del sonido. Exporta los datos a Excel.</p>
+  <div class="fila"><a class="btn" href="https://phyphox.org" target="_blank" rel="noopener">Sitio ↗</a></div>
+</article>
+<article class="app" data-area="fisica" style="--tc:var(--acid)">
+  <div class="ico">⚛️</div><span class="area">Física</span><h2>PhET</h2>
+  <div class="datos"><span class="dato g">Gratis</span><span class="dato">Web</span></div>
+  <p class="desc">Simulaciones interactivas de física, química y biología de la Universidad de Colorado, en español.</p>
+  <p class="uso"><b>Ya la usamos:</b> Energy Skate Park (pista de energía). Hay simulaciones de fuerzas, circuitos, ondas y gravedad.</p>
+  <div class="fila"><a class="btn" href="https://phet.colorado.edu/es/" target="_blank" rel="noopener">Abrir ↗</a></div>
+</article>
+<article class="app" data-area="bio" style="--tc:#7bd88f">
+  <div class="ico">🌿</div><span class="area">Biología</span><h2>Seek · iNaturalist</h2>
+  <div class="datos"><span class="dato g">Gratis</span><span class="dato">Android</span><span class="dato">iPhone</span><span class="dato">Web</span></div>
+  <p class="desc">Apunta la cámara a una planta, un insecto o un hongo y la app te dice qué especie es. Seek funciona sin cuenta; iNaturalist registra tus observaciones para la ciencia.</p>
+  <p class="uso"><b>Salidas a terreno:</b> arma un inventario de especies del colegio o del bosque esclerófilo.</p>
+  <div class="fila"><a class="btn" href="https://www.inaturalist.org/pages/seek_app" target="_blank" rel="noopener">Seek ↗</a><a class="btn s" href="https://www.inaturalist.org" target="_blank" rel="noopener">iNaturalist ↗</a></div>
+</article>
+<article class="app" data-area="bio" style="--tc:#7bd88f">
+  <div class="ico">🐦</div><span class="area">Biología</span><h2>Merlin Bird ID</h2>
+  <div class="datos"><span class="dato g">Gratis</span><span class="dato">Android</span><span class="dato">iPhone</span></div>
+  <p class="desc">Identifica aves por foto o por su canto. La hizo el Laboratorio de Ornitología de la Universidad de Cornell.</p>
+  <p class="uso"><b>Pruébalo:</b> graba el canto de un pájaro en el patio y descarga el paquete de aves de tu región.</p>
+  <div class="fila"><a class="btn" href="https://merlin.allaboutbirds.org" target="_blank" rel="noopener">Sitio ↗</a></div>
+</article>
+<article class="app" data-area="quimica" style="--tc:var(--tyrian)">
+  <div class="ico">🧪</div><span class="area">Química</span><h2>Ptable</h2>
+  <div class="datos"><span class="dato g">Gratis</span><span class="dato">Web</span></div>
+  <p class="desc">Tabla periódica interactiva: propiedades, orbitales, isótopos y compuestos de cada elemento.</p>
+  <p class="uso"><b>Para estudiar:</b> compara electronegatividad o radio atómico y mira las tendencias en colores.</p>
+  <div class="fila"><a class="btn" href="https://ptable.com/?lang=es" target="_blank" rel="noopener">Abrir ↗</a></div>
+</article>
+<article class="app" data-area="mate" style="--tc:var(--brass)">
+  <div class="ico">📈</div><span class="area">Matemática</span><h2>GeoGebra</h2>
+  <div class="datos"><span class="dato g">Gratis</span><span class="dato">Android</span><span class="dato">iPhone</span><span class="dato">Web</span></div>
+  <p class="desc">Grafica funciones, construye geometría y hace cálculos. Tiene calculadora 3D y realidad aumentada.</p>
+  <p class="uso"><b>En física:</b> grafica posición vs tiempo, ajusta rectas a tus datos de phyphox.</p>
+  <div class="fila"><a class="btn" href="https://www.geogebra.org" target="_blank" rel="noopener">Abrir ↗</a></div>
+</article>
+<article class="app" data-area="mate" style="--tc:var(--brass)">
+  <div class="ico">📊</div><span class="area">Matemática</span><h2>Desmos</h2>
+  <div class="datos"><span class="dato g">Gratis</span><span class="dato">Android</span><span class="dato">iPhone</span><span class="dato">Web</span></div>
+  <p class="desc">Calculadora gráfica muy simple y rápida. Mueves un deslizador y ves cómo cambia la gráfica.</p>
+  <p class="uso"><b>Truco:</b> escribe y = a·x² y mueve «a» para entender qué hace cada parámetro.</p>
+  <div class="fila"><a class="btn" href="https://www.desmos.com/calculator?lang=es" target="_blank" rel="noopener">Abrir ↗</a></div>
+</article>
+<article class="app" data-area="estudio" style="--tc:#b48cff">
+  <div class="ico">🧠</div><span class="area">Estudiar</span><h2>Anki</h2>
+  <div class="datos"><span class="dato g">Gratis (iPhone de pago)</span><span class="dato">Android</span><span class="dato">PC</span><span class="dato">Web</span><span class="dato">iPhone</span></div>
+  <p class="desc">Tarjetas de memoria con repetición espaciada: te pregunta justo antes de que se te olvide. Es el método con más evidencia para memorizar.</p>
+  <p class="uso"><b>Para la PAES:</b> haz tarjetas de conceptos y fórmulas, y repásalas 10 minutos al día.</p>
+  <div class="fila"><a class="btn" href="https://apps.ankiweb.net" target="_blank" rel="noopener">Sitio ↗</a></div>
+</article>
+<article class="app" data-area="estudio" style="--tc:#b48cff">
+  <div class="ico">🎓</div><span class="area">Estudiar</span><h2>Khan Academy</h2>
+  <div class="datos"><span class="dato g">Gratis</span><span class="dato">Android</span><span class="dato">iPhone</span><span class="dato">Web</span></div>
+  <p class="desc">Videos y ejercicios de física, química, biología y matemática, en español y con progreso guardado.</p>
+  <p class="uso"><b>Para repasar:</b> si no entendiste algo en clase, busca el tema y haz los ejercicios.</p>
+  <div class="fila"><a class="btn" href="https://es.khanacademy.org" target="_blank" rel="noopener">Abrir ↗</a></div>
+</article>
+<article class="app" data-area="ia" style="--tc:#ff9f43">
+  <div class="ico">🤖</div><span class="area">IA en tu computador</span><h2>Pinokio</h2>
+  <div class="datos"><span class="dato g">Gratis · código abierto</span><span class="dato">PC (Windows · Mac · Linux)</span></div>
+  <p class="desc">Instala y corre aplicaciones de inteligencia artificial de código abierto en tu propio computador con un clic, sin usar la terminal. Todo queda en tu equipo, no en la nube.</p>
+  <p class="uso"><b>Para curiosos:</b> prueba modelos de lenguaje, generadores de imágenes o de voz, y entiende cómo funciona la IA por dentro.</p><p class="aviso"><b>Ojo:</b> es para computador, no para celular. Necesita un equipo potente (ideal con tarjeta gráfica) y mucho espacio libre (decenas de GB). Úsalo con un adulto.</p>
+  <div class="fila"><a class="btn" href="https://pinokio.co" target="_blank" rel="noopener">Sitio ↗</a></div>
+</article>
+  </div>
+  <p class="nota" style="margin-top:1.6rem">¿Conoces una app buena que no esté aquí? Cuéntamela en clase y la reviso para agregarla.</p>
+</div></main>
+<script>
+(function(){
+  var tabs=document.querySelectorAll('#tabs .tab'), apps=document.querySelectorAll('#lista .app');
+  tabs.forEach(function(t){t.addEventListener('click',function(){
+    tabs.forEach(function(x){x.classList.toggle('on',x===t)});
+    var f=t.dataset.f; apps.forEach(function(a){a.hidden=!(f==='todas'||a.dataset.area===f)});
+  })});
+})();
+</script>
+</body>
+</html>
