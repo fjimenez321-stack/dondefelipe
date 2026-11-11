@@ -134,10 +134,81 @@ h1 em{font-style:normal;color:var(--teal)}
   .rubric-wrap{overflow-x:auto}.rubric{min-width:820px}.rubric-intro,.foot,.two8{display:block}.foot span{display:block;margin-top:8px}.key{margin-top:8px;flex-wrap:wrap}
 }
 @media print{
-  @page{size:1440px 810px;margin:0}
-  body{background:#fff}
-  .slide{width:1440px;height:810px;min-height:0;margin:0;box-shadow:none;page-break-after:always;break-after:page}
-  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:landscape;margin:8mm}
+  html,body{background:#fff!important;margin:0}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:none!important}
+  /* 1440×810 escalado a 0,69: cabe en Carta y A4 apaisadas con márgenes de 8 mm */
+  .slide{zoom:.69;width:1440px;height:810px;margin:0 auto;background:#fff;box-shadow:none;
+    break-after:page;page-break-after:always;break-inside:avoid;overflow:hidden}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  .slide::before{height:4px}
+  :root{--muted:#3d555c}
+  /* Bloques oscuros → claros con borde: ahorran tinta y se leen en blanco y negro */
+  .takeaway,.evidence{background:#fff!important;color:var(--ink)!important;border:2px solid var(--teal)}
+  .takeaway::after{display:none}
+  .takeaway .label,.evidence b{color:var(--teal)!important}
+  .takeaway p,.evidence,.obs div{color:#26414a!important}
+  .obs div{background:#f1f6f3!important;border:1px solid #d3e0da}
+  .obs em{color:var(--teal)!important}
+  .figure,.reading,.qcard,.stages,.step,.log,.rubric-wrap{border:1px solid #c9d8d2}
+  .qcard{border-top:4px solid var(--c)}
+  .q6{border:1.5px dashed #9fb5ae;border-top:4px solid var(--c)}
+  .rubric th{background:#e4eeea!important;color:var(--deep)!important}
+  .rubric tr:nth-child(even) td{background:#fafbf8!important}
+  .box{border-color:#5f7f78}
+  .log td{height:34px;border-color:#cfdad5}
+  .sources a{border-bottom:0;color:#386b67}
+  /* Hoja apaisada es más alta que 16:9: la diapositiva crece a 1440×1050 y el texto sube de tamaño */
+  .slide{height:1050px;padding:44px 60px 30px;gap:22px}
+  .slide>main{display:flex;flex-direction:column;min-height:0}
+  h1{font-size:60px}
+  .dek{font-size:17px;max-width:470px}
+  .eyebrow,.index{font-size:13px}
+  .label{font-size:12px}
+  /* 01 */
+  .slide>main.s1-main{display:grid;grid-template-columns:2fr 1fr;align-items:start}
+  .figure{aspect-ratio:3/2}
+  .side{height:100%}
+  .takeaway h2{font-size:24px}
+  .takeaway p{font-size:15px}
+  .read b{font-size:15px}.read span{font-size:14px}
+  .route{font-size:13.5px}
+  .claim{font-size:19px}
+  .sources{font-size:11.5px;max-width:600px}
+  /* 02 */
+  .questions{flex:1;grid-auto-rows:1fr;gap:14px}
+  .qcard{padding:16px 18px}
+  .qcard .num{font-size:12px}
+  .qcard h2{font-size:18px}
+  .qcard p{font-size:14.5px}
+  .qcard .vars{font-size:13px}.qcard .vars b{font-size:11px}
+  .stage p{font-size:14.5px}
+  .foot strong{font-size:16px}.foot span{font-size:11.5px}
+  /* 03 */
+  .step{padding:16px}
+  .step .n{font-size:11.5px}
+  .step h2{font-size:16.5px}
+  .step p{font-size:13.5px}
+  .step .ex{font-size:13px}
+  .phase div{font-size:11px}
+  .evidence{font-size:14.5px}
+  .obs div{font-size:14px}.obs em{font-size:11px}
+  .log{flex:1;display:flex;flex-direction:column}
+  .log-head small{font-size:13px}
+  .log table{flex:1;height:100%}
+  .log th{font-size:11px}
+  .log td{height:auto;font-size:13px}
+  /* 04 */
+  .rubric-intro p{font-size:14px}
+  .key span{font-size:11px}
+  .rubric-wrap{flex:1;display:flex}
+  .rubric{height:100%;font-size:13.5px}
+  .rubric th{font-size:11.5px;padding:12px}
+  .rubric td{padding:11px 12px}
+  .rubric td:first-child{font-size:14.5px}
+  .rubric td:first-child small{font-size:12px}
+  .box{width:36px;height:30px}
+  .two8 .ex{font-size:13px}
 }
 </style></head><body>
 
