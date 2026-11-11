@@ -7,7 +7,8 @@
   // Cada gatito animado: carpeta de sus cuadros y cuántos cuadros tiene cada acción.
   var VEL = { caminar: [130, 4], correr: [85, 4], jugar: [260, 2], sentarse: [320, 1], dormir: [650, 1],
               bailar: [170, 3], guitarra: [1400, 1], girar: [110, 1],
-              contar: [300, 1], operar: [450, 1], estudiar: [700, 1] };   // ms por cuadro, vueltas
+              contar: [300, 1], operar: [450, 1], estudiar: [700, 1],
+              saltar: [110, 1], hechizo: [1300, 1], celebrar: [1100, 1] };   // ms por cuadro, vueltas
   var ANIMADOS = {
     ava:       { dir: 'gatitos/anim/',           n: { caminar: 4, correr: 5, jugar: 4, sentarse: 3, dormir: 4 } },
     calha:     { dir: 'gatitos/anim/',           n: { caminar: 4, correr: 5, jugar: 4, sentarse: 3, dormir: 4 } },
@@ -16,12 +17,14 @@
     sombra:    { dir: 'gatitos/anim/sombra/',    n: { sentarse: 3, caminar: 4 } },
     luna:      { dir: 'gatitos/anim/luna/',      n: { sentarse: 3, caminar: 4, correr: 4 } },
     cesar:     { dir: 'gatitos/anim/cesar/',     n: { caminar: 4, bailar: 5, sentarse: 3, guitarra: 1, dormir: 2, girar: 9 } },
+    jose:      { dir: 'gatitos/anim/jose/',      n: { caminar: 8, correr: 8, girar: 8, saltar: 6, hechizo: 1, estudiar: 1, dormir: 1, celebrar: 1 } },
     rick:      { dir: 'gatitos/anim/rick/',      n: { caminar: 4, girar: 8, sentarse: 4, jugar: 2, dormir: 4 } },
     grunona:   { dir: 'gatitos/anim/grunona/',   n: { contar: 10, operar: 5, estudiar: 8, sentarse: 3, girar: 6, jugar: 2, dormir: 2 } }
   };
   var RUTINAS = [['caminar'], ['correr'], ['jugar'], ['sentarse', 'dormir'], ['caminar', 'sentarse'], ['sentarse', 'sentarse'],
                  ['bailar'], ['bailar', 'girar'], ['sentarse', 'guitarra'], ['girar'],
-                 ['contar'], ['operar', 'sentarse'], ['estudiar'], ['contar', 'operar']];   // cada gatito usa solo las que puede
+                 ['contar'], ['operar', 'sentarse'], ['estudiar'], ['contar', 'operar'],
+                 ['saltar'], ['hechizo'], ['saltar', 'celebrar'], ['girar', 'hechizo']];   // cada gatito usa solo las que puede
   var guion = document.currentScript && document.currentScript.src || '';
   var raiz = guion.replace(/gatitos\/anim\.js.*$/, '');
   var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
