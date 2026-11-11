@@ -413,6 +413,19 @@ const state={ todas:[], semanas:[], semana:"", demo:false, area:null, mode:"prac
 // Si la retroalimentación nombra letras ("la B", "alternativa C"), barajar la confundiría.
 const NOMBRA_LETRAS=/\b(alternativa|opci[oó]n|letra|respuesta)\s+[A-E]\b|\b[A-E]\)|\bla\s+[A-E]\b/i;
 
+// Semana ISO ("2026-W46"). Las semanas futuras del Sheet quedan ocultas hasta que llegue su semana,
+// así se pueden cargar ensayos por adelantado sin que desaparezcan las demás áreas.
+function normSemana(w){ const m=String(w||"").trim().match(/^(\d{4})-?W(\d{1,2})$/i); return m ? m[1]+"-W"+m[2].padStart(2,"0") : String(w||"").trim(); }
+function semanaActual(){
+  const d=new Date(), t=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), dia=t.getUTCDay()||7;
+  t.setUTCDate(t.getUTCDate()+4-dia);
+  const y=t.getUTCFullYear(), n=Math.ceil(((t-Date.UTC(y,0,1))/86400000+1)/7);
+  return y+"-W"+String(n).padStart(2,"0");
+}
+// «Ciencias» es el ensayo general: junta sus propias preguntas con las de Biología, Física y Química.
+const SUB_CIENCIAS=["biologia","fisica","quimica"];
+const enArea=(q,area)=> q.area===area || (area==="ciencias" && SUB_CIENCIAS.includes(q.area));
+
 function prepararBanco(preguntas, lecturas){
   const lecMap={};
   (lecturas||[]).forEach(l=>{
@@ -426,20 +439,23 @@ function prepararBanco(preguntas, lecturas){
     const cl=String(p.correcta||"").trim().toLowerCase();
     const options=letters.filter(L=>String(p[L]||"").trim()!=="").map(L=>({ text:String(p[L]).trim(), correct:L===cl, letra:L.toUpperCase() }));
     if(!options.some(o=>o.correct)) { console.warn("Pregunta sin alternativa correcta válida (fila "+(idx+2)+"):", p.enunciado); return null; }
-    return { id:idx, semana:String(p.semana||"").trim(), area, eje:String(p.eje||p.tema||"").trim(),
+    return { id:idx, semana:normSemana(p.semana), area, eje:String(p.eje||p.tema||"").trim(),
       text:String(p.enunciado), options, retro:String(p.retro||""),
       imagen: imagenOk(p.imagen) ? imagenURL(p.imagen) : "",
       passage: p.lectura_id && lecMap[p.lectura_id] ? lecMap[p.lectura_id] : null,
       fija: NOMBRA_LETRAS.test(String(p.retro||"")) };
   }).filter(Boolean);
+  const hoy=semanaActual();
+  if(state.todas.some(q=>!q.semana || q.semana<=hoy)) state.todas=state.todas.filter(q=>!q.semana || q.semana<=hoy);
   state.semanas=[...new Set(state.todas.map(q=>q.semana).filter(Boolean))].sort();
   state.semana = state.semanas.length ? state.semanas[state.semanas.length-1] : "*";
 }
 function poolDe(area){
-  return state.todas.filter(q=>q.area===area && (state.semana==="*" || (q.semana||state.semana)===state.semana));
+  return state.todas.filter(q=>enArea(q,area) && (state.semana==="*" || (q.semana||state.semana)===state.semana));
 }
 function areasVisibles(){
   const ids=[...new Set(state.todas.filter(q=>state.semana==="*"||(q.semana||state.semana)===state.semana).map(q=>q.area))];
+  if(ids.some(a=>SUB_CIENCIAS.includes(a)) && !ids.includes("ciencias")) ids.push("ciencias");
   const orden=Object.keys(AREAS);
   return ids.sort((a,b)=>((orden.indexOf(a)+1)||99)-((orden.indexOf(b)+1)||99));
 }
@@ -475,7 +491,7 @@ function renderSubjects(){
   ids.forEach(id=>{
     const s=metaArea(id), n=poolDe(id).length;
     const card=document.createElement("button"); card.className="subject"+(state.area===id?" active":"");
-    card.innerHTML=`<div class="tag" style="background:${esc(s.color)}">${esc(s.short)}</div><h3>${esc(s.name)}</h3><span>${n} pregunta${n!==1?"s":""} en el banco</span>`;
+    card.innerHTML=`<div class="tag" style="background:${esc(s.color)}">${esc(s.short)}</div><h3>${esc(s.name)}</h3><span>${n} pregunta${n!==1?"s":""} en el banco${id==="ciencias"?" · incluye Biología, Física y Química":""}</span>`;
     card.onclick=()=>{ state.area=id; document.querySelectorAll(".subject").forEach(c=>c.classList.remove("active")); card.classList.add("active"); actualizarNota(); };
     list.appendChild(card);
   });
