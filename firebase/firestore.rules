@@ -817,7 +817,7 @@ service cloud.firestore {
               'siames': 60000, 'negro': 70000, 'estirado': 80000, 'jugueton': 100000,
               'caja': 150000, 'tronco': 200000, 'rick': 200000, 'barril': 250000,
               'muro': 400000, 'fantasma': 500000, 'masita': 500000, 'miauricio': 550000,
-              'cosmico': 750000, 'dorado': 1000000, 'cesar': 1000000, 'grunona': 5000000}.get(g, 0);
+              'cosmico': 750000, 'dorado': 1000000, 'cesar': 1000000, 'jose': 1000000, 'grunona': 5000000}.get(g, 0);
     }
     function rutaGatitos(uid) { return /databases/$(database)/documents/gatitos/$(uid); }
     function gatitosAntes(uid) { return exists(rutaGatitos(uid)) ? get(rutaGatitos(uid)).data.ids : []; }
