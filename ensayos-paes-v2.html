@@ -164,7 +164,7 @@
 <section class="screen on" id="loadScreen">
   <div class="wrap loader">
     <div class="spinner"></div>
-    <p>Cargando los ensayos de la semana…</p>
+    <p>Cargando el banco de preguntas…</p>
   </div>
 </section>
 
@@ -175,11 +175,11 @@
     <div class="hero">
       <div class="eyebrow" id="weekEyebrow">Facsímil interactivo</div>
       <h1 class="serif">Practica para la PAES y revisa cada respuesta al instante.</h1>
-      <p>Elige una prueba, responde un ensayo armado al azar desde el banco de la semana y recibe retroalimentación pregunta por pregunta.</p>
+      <p>Elige una prueba, responde un ensayo armado al azar desde el banco de preguntas y recibe retroalimentación pregunta por pregunta.</p>
     </div>
     <div class="resume" id="resumeBox" style="display:none"></div>
     <div class="section-label">1 · Elige la prueba</div>
-    <div class="week-row"><select id="weekSel" aria-label="Banco de preguntas"></select><span id="weekInfo"></span></div>
+    <div class="week-row" hidden style="display:none"><select id="weekSel" aria-label="Banco de preguntas"></select><span id="weekInfo"></span></div>
     <div class="subjects" id="subjectList" style="margin-top:14px"></div>
     <div class="section-label">2 · Elige el modo</div>
     <div class="modes">
@@ -413,15 +413,7 @@ const state={ todas:[], semanas:[], semana:"", demo:false, area:null, mode:"prac
 // Si la retroalimentación nombra letras ("la B", "alternativa C"), barajar la confundiría.
 const NOMBRA_LETRAS=/\b(alternativa|opci[oó]n|letra|respuesta)\s+[A-E]\b|\b[A-E]\)|\bla\s+[A-E]\b/i;
 
-// Semana ISO ("2026-W46"). Las semanas futuras del Sheet quedan ocultas hasta que llegue su semana,
-// así se pueden cargar ensayos por adelantado sin que desaparezcan las demás áreas.
 function normSemana(w){ const m=String(w||"").trim().match(/^(\d{4})-?W(\d{1,2})$/i); return m ? m[1]+"-W"+m[2].padStart(2,"0") : String(w||"").trim(); }
-function semanaActual(){
-  const d=new Date(), t=new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), dia=t.getUTCDay()||7;
-  t.setUTCDate(t.getUTCDate()+4-dia);
-  const y=t.getUTCFullYear(), n=Math.ceil(((t-Date.UTC(y,0,1))/86400000+1)/7);
-  return y+"-W"+String(n).padStart(2,"0");
-}
 // «Ciencias» es el ensayo general: junta sus propias preguntas con las de Biología, Física y Química.
 const SUB_CIENCIAS=["biologia","fisica","quimica"];
 const enArea=(q,area)=> q.area===area || (area==="ciencias" && SUB_CIENCIAS.includes(q.area));
@@ -445,10 +437,9 @@ function prepararBanco(preguntas, lecturas){
       passage: p.lectura_id && lecMap[p.lectura_id] ? lecMap[p.lectura_id] : null,
       fija: NOMBRA_LETRAS.test(String(p.retro||"")) };
   }).filter(Boolean);
-  const hoy=semanaActual();
-  if(state.todas.some(q=>!q.semana || q.semana<=hoy)) state.todas=state.todas.filter(q=>!q.semana || q.semana<=hoy);
-  state.semanas=[...new Set(state.todas.map(q=>q.semana).filter(Boolean))].sort();
-  state.semana = state.semanas.length ? state.semanas[state.semanas.length-1] : "*";
+  // Sin semanas: todo el Sheet es un solo banco. Cada ensayo saca preguntas al azar de todo lo que haya
+  // (la columna «semana» puede quedar o borrarse; ya no se usa).
+  state.semanas=[]; state.semana="*";
 }
 function poolDe(area){
   return state.todas.filter(q=>enArea(q,area) && (state.semana==="*" || (q.semana||state.semana)===state.semana));
@@ -482,12 +473,12 @@ function renderHome(){
   renderResume(); renderHistory();
 }
 function renderSubjects(){
-  $("#weekEyebrow").textContent = state.semana==="*" ? "Banco completo" : "Ensayo de la semana · "+state.semana;
+  $("#weekEyebrow").textContent = "Banco de preguntas";
   const total=state.todas.filter(q=>state.semana==="*"||(q.semana||state.semana)===state.semana).length;
   $("#weekInfo").textContent = total+" preguntas disponibles";
   const list=$("#subjectList"); list.innerHTML="";
   const ids=areasVisibles();
-  if(!ids.length) list.innerHTML=`<p style="color:var(--muted)">No hay preguntas para esta semana. Revisa la columna <b>semana</b> del Sheet.</p>`;
+  if(!ids.length) list.innerHTML=`<p style="color:var(--muted)">No hay preguntas en el banco. Revisa las columnas <b>area</b> y <b>enunciado</b> del Sheet.</p>`;
   ids.forEach(id=>{
     const s=metaArea(id), n=poolDe(id).length;
     const card=document.createElement("button"); card.className="subject"+(state.area===id?" active":"");
@@ -529,7 +520,7 @@ function reanudar(c){
     const opts=x.orden.map(L=>q.options.find(o=>o.letra===L)).filter(Boolean);
     return Object.assign({}, q, { options: opts.length===q.options.length ? opts : q.options }); });
   if(ens.some(q=>!q)){ alert("El banco cambió desde que empezaste ese ensayo; no se puede continuar."); store.del(K_CURSO); renderResume(); return; }
-  state.area=c.area; state.mode=c.mode; state.semana=c.semana||state.semana;
+  state.area=c.area; state.mode=c.mode; state.semana="*";
   iniciar(ens, c.answers, c.i||0, c.elapsed||0);
 }
 
@@ -651,7 +642,7 @@ function finishExam(){
   $("#pctNum").textContent=pct+"%";
   $("#stCorrect").textContent=correct; $("#stWrong").textContent=wrong; $("#stBlank").textContent=blank;
   $("#stScore").textContent="≈ "+pts; $("#stTime").textContent=fmt(elapsed);
-  $("#resultSub").textContent=`${s.name} · ${correct} de ${qs.length} correctas · ${state.semana==="*"?"banco completo":"semana "+state.semana}`;
+  $("#resultSub").textContent=`${s.name} · ${correct} de ${qs.length} correctas`;
   $("#resultHeadline").textContent= pct>=80?"¡Excelente dominio!":pct>=50?"Buen avance, sigue puliendo":"A reforzar lo esencial";
   $("#scoreNote").textContent="El puntaje es referencial: el puntaje PAES oficial se estandariza a nivel nacional y no puede calcularse aquí." + (state.demo?" (Ensayo con preguntas de ejemplo.)":"");
   const circ=2*Math.PI*62; $("#ringFill").style.stroke=s.color; $("#ringFill").style.strokeDashoffset=circ*(1-pct/100);
