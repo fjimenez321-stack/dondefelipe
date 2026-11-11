@@ -203,6 +203,9 @@ footer{
     var t = document.querySelector('.tab[data-tab="varones"]');
     t.style.background = TABCOLORS.varones;
     t.style.borderColor = TABCOLORS.varones;
+    // Abrir otra pestaña desde un enlace: campeonato-sa-2026.html#damas
+    var h = (location.hash || '').slice(1);
+    if (h && h !== 'varones' && document.getElementById('pane-' + h)) showPane(h);
   })();
 </script>
 

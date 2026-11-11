@@ -71,6 +71,14 @@ td{border-bottom:1px solid rgba(255,255,255,.12)}
 .match .win{color:#ffd700}
 .match .out{text-decoration:line-through;opacity:.5}
 .match.final{border-color:#ffd700;background:rgba(255,215,0,.08)}
+.campeonas{text-align:center;margin:0 0 22px;padding:18px 14px;border-radius:16px;border:2px solid #ffd700;
+ background:radial-gradient(circle at 50% 0,rgba(255,215,0,.28),transparent 70%),rgba(255,215,0,.06);box-shadow:0 0 26px rgba(255,215,0,.3)}
+.campeonas .copa{font-size:3rem;line-height:1;animation:brillo 2.4s ease-in-out infinite}
+.campeonas .k{color:#ff9ed0;font-size:.8rem;letter-spacing:3px;text-transform:uppercase;font-weight:bold;margin-top:6px}
+.campeonas .n{color:#ffd700;font-size:2rem;font-weight:900;letter-spacing:1px;margin:2px 0}
+.campeonas .s{color:#ffe7f2;font-size:.95rem}
+@keyframes brillo{50%{transform:scale(1.08) rotate(-4deg);filter:drop-shadow(0 0 12px rgba(255,215,0,.8))}}
+@media (prefers-reduced-motion:reduce){.campeonas .copa{animation:none}}
 .match-label.fin{color:#ffd700}
 .tbd{color:#ff9ed0;font-style:italic;font-weight:normal}
 .scorers{display:flex;justify-content:space-between;gap:10px;margin:-4px 6px 12px;font-size:.82rem;color:#ffc2e0}
@@ -83,6 +91,12 @@ td{border-bottom:1px solid rgba(255,255,255,.12)}
 </head>
 <body><div class="container">
 <h1>🏆 Liga Damas San Agustín</h1>
+<div class="campeonas" role="status">
+<div class="copa" aria-hidden="true">🏆</div>
+<div class="k">Campeonas 2026</div>
+<div class="n">4° Medio</div>
+<div class="s">¡Felicitaciones al equipo de 4° Medio, campeonas de la Liga Damas San Agustín 2026! 👑⚽</div>
+</div>
 <div class="semi" style="margin-top:0;margin-bottom:26px">
 <h2>⚔️ Semifinales</h2>
 <div class="match-label">Semifinal 1</div>
@@ -91,7 +105,7 @@ td{border-bottom:1px solid rgba(255,255,255,.12)}
 <div class="match-label">Semifinal 2</div>
 <div class="match"><span class="t l win">4° Medio 🏅</span><span class="vs">Ganó 4° M</span><span class="t r out">1° Medio</span></div>
 <div class="match-label fin">Final</div>
-<div class="match final"><span class="t l">2° Medio</span><span class="vs">VS</span><span class="t r">4° Medio</span></div>
+<div class="match final"><span class="t l out">2° Medio</span><span class="vs" style="color:#ffd700;border-color:#ffd700">🏆 Campeonas: 4° M</span><span class="t r win">4° Medio 🏆</span></div>
 </div>
 <div class="table-wrap"><table>
 <tr><th>#</th><th class="team">Equipo</th><th>PJ</th><th>GF</th><th>GC</th><th>DG</th><th>PG</th><th>PE</th><th>PP</th><th>PTS</th></tr>
