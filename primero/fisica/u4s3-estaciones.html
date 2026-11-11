@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las estaciones del año · U4 S3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --panel:#ffffff; --panel2:#eef3fb; --line:#dbe3f0;
+  --ink:#14213d; --muted:#5b6782; --moon:#14213d; --sun:#b8860b; --gold:#e0a82e; --blue:#1f4e9c; --red:#1f3c88; --green:#1f4e9c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;padding:5vh 6vw 9vh;display:none;flex-direction:column;gap:2.4vh;overflow:auto}
+.slide.active{display:flex;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.3vw,15px);letter-spacing:.14em;color:var(--sun);text-transform:uppercase}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(30px,5.2vw,72px);line-height:1.05;font-weight:700}
+h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(24px,3.4vw,46px);line-height:1.1;font-weight:700}
+h3{font-family:'Space Grotesk',sans-serif;font-size:clamp(16px,1.7vw,24px);font-weight:700;margin-bottom:.4em}
+p,li{font-size:clamp(15px,1.55vw,22px);line-height:1.45;color:var(--ink)}
+.muted{color:var(--muted)}
+.mono{font-family:'JetBrains Mono',monospace}
+.row{display:flex;gap:2vw;flex:1;min-height:0}
+.col{flex:1;display:flex;flex-direction:column;gap:1.6vh;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:2.2vh 1.6vw}
+.card.hl{background:var(--panel2)}
+.grid{display:grid;gap:1.4vw}
+.g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.1vw,14px);padding:.25em .7em;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-right:.4em}
+.big{font-family:'Space Grotesk',sans-serif;font-size:clamp(34px,4.6vw,64px);font-weight:700;line-height:1}
+.sun{color:var(--sun)} .red{color:var(--red)} .blue{color:var(--blue)} .moon{color:var(--moon)}
+ol.q{padding-left:1.3em;display:flex;flex-direction:column;gap:1.2vh}
+ul.b{padding-left:1.2em;display:flex;flex-direction:column;gap:.8vh}
+/* timeline pauta */
+.tl{display:grid;grid-template-columns:repeat(6,1fr);gap:1vw;margin-top:1vh}
+.tl .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.8vh 1vw;display:flex;flex-direction:column;gap:.6vh}
+.tl .min{font-family:'JetBrains Mono',monospace;color:var(--sun);font-size:clamp(13px,1.3vw,18px)}
+.tl .name{font-family:'Space Grotesk';font-weight:700;font-size:clamp(14px,1.45vw,21px)}
+.tl .what{font-size:clamp(12px,1.15vw,16px);color:var(--muted);line-height:1.35}
+.tl .step.now{border-color:var(--sun)}
+.bar{height:10px;border-radius:99px;display:flex;overflow:hidden;margin-top:1vh}
+.bar span{display:block;height:100%}
+/* phases grid */
+.phase{display:flex;flex-direction:column;align-items:center;gap:.8vh;text-align:center}
+.phase svg{width:min(9vw,13vh);height:min(9vw,13vh)}
+.phase .n{font-family:'Space Grotesk';font-weight:700;font-size:clamp(13px,1.35vw,19px)}
+.phase .d{font-family:'JetBrains Mono';font-size:clamp(11px,1vw,14px);color:var(--muted)}
+/* sim */
+.simwrap{display:grid;grid-template-columns:1.25fr 1fr;gap:2vw;flex:1;min-height:0}
+.simwrap svg{width:100%;height:100%;max-height:60vh}
+input[type=range]{width:100%;accent-color:var(--sun)}
+.btn{font:600 clamp(13px,1.2vw,16px) Inter;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:.55em 1em;cursor:pointer}
+.btn:hover{border-color:var(--sun)}
+.btn.on{background:var(--sun);color:#ffffff;border-color:var(--sun)}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw}
+.readout .card{padding:1.4vh 1vw}
+.readout .v{font-family:'Space Grotesk';font-weight:700;font-size:clamp(18px,2.1vw,30px)}
+.readout .l{font-size:clamp(11px,1vw,14px);color:var(--muted)}
+/* timer */
+.timer{font-family:'JetBrains Mono';font-size:clamp(48px,9vw,130px);font-weight:600;color:var(--moon);letter-spacing:.03em}
+/* chrome */
+.hud{position:fixed;left:0;right:0;bottom:0;height:6vh;display:flex;align-items:center;justify-content:space-between;padding:0 2vw;font-family:'JetBrains Mono';font-size:12px;color:var(--muted);pointer-events:none}
+.hud .keys span{border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin:0 2px}
+.prog{position:fixed;left:0;bottom:0;height:3px;background:var(--sun);transition:width .3s}
+.notes{position:fixed;left:2vw;right:2vw;bottom:7vh;max-height:42vh;overflow:auto;background:#fffffff5;border:1px solid var(--sun);border-radius:14px;padding:2vh 1.6vw;display:none;z-index:5}
+.notes.show{display:block}
+.notes h4{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.12em;color:var(--sun);margin-bottom:.8vh}
+.notes p,.notes li{font-size:clamp(13px,1.2vw,17px);color:var(--ink)}
+.notes ul{padding-left:1.2em}
+.cover-moon{position:absolute;right:6vw;top:12vh;width:min(30vw,48vh);height:min(30vw,48vh)}
+@media (max-width:820px){.row,.simwrap{flex-direction:column;display:flex}.tl{grid-template-columns:repeat(2,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.cover-moon{position:static;width:40vw;height:40vw}.readout{grid-template-columns:1fr 1fr 1fr}}
+.seg{display:flex;gap:.6vw;flex-wrap:wrap}
+table.t{width:100%;border-collapse:collapse;font-size:clamp(13px,1.35vw,19px)}
+table.t th{font-family:'JetBrains Mono';font-size:clamp(11px,1vw,14px);letter-spacing:.08em;color:var(--sun);text-align:left;padding:.7vh .8vw;border-bottom:1px solid var(--line)}
+table.t td{padding:.9vh .8vw;border-bottom:1px solid var(--line)}
+table.t tr.me td{background:var(--panel2);font-weight:600}
+
+h1,h2{color:#1f3c88}
+.kicker{color:var(--sun);font-weight:600}
+.card{box-shadow:0 2px 10px rgba(20,33,61,.06)}
+.card.hl{background:var(--panel2);border-left:4px solid var(--gold)}
+.btn{background:#fff;color:var(--ink);border:1px solid #c5d0e3}
+.btn:hover{border-color:var(--gold)}
+.btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tl .step{border-top:3px solid var(--blue);box-shadow:0 2px 10px rgba(20,33,61,.06)}
+.tl .min{color:var(--sun)}
+.prog{background:var(--gold)}
+.notes{background:#fffffff5;box-shadow:0 10px 30px rgba(20,33,61,.18);border-color:var(--gold)}
+input[type=range]{accent-color:var(--blue)}
+.slide.bookend h1,.slide.bookend p{color:#fff}
+.slide.bookend .kicker{color:#f2c75c}
+.slide.bookend .muted{color:#dbe6fb}
+table.t th{color:var(--sun)}
+.hud .keys span{background:#fff}
+.slide.quiz p,.slide.quiz li{font-size:clamp(17px,1.9vw,27px)}
+.slide.quiz .card{padding:2.6vh 2vw}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide" data-notes="<p>Sesión 3 de 10 · 90 min. Materiales: linterna (una por grupo si es posible), hojas cuadriculadas, una pelota o naranja con un palito (eje), y las cartulinas del gnomon de la Sesión 1.</p><p>Pregunta de portada: no la respondas; se responde en la diapositiva 4.</p>">
+  <div class="kicker">Unidad 4 · Estructuras cósmicas · Sesión 3</div>
+  <h1 style="max-width:70vw">¿Por qué hace frío en junio<br>y calor en diciembre?</h1>
+  <p class="muted" style="max-width:60vw">Las estaciones del año, el clima y la inclinación de los planetas</p>
+  <svg viewBox="0 0 300 300" style="position:absolute;right:6vw;top:14vh;width:min(28vw,44vh);height:min(28vw,44vh)">
+    <circle cx="150" cy="150" r="140" fill="#eef3fb"/>
+    <circle cx="80" cy="150" r="44" fill="#e0a82e"/>
+    <g stroke="#e0a82e" stroke-width="3" stroke-linecap="round">
+      <line x1="130" y1="150" x2="165" y2="150"/><line x1="124" y1="120" x2="160" y2="108"/><line x1="124" y1="180" x2="160" y2="192"/></g>
+    <circle cx="215" cy="150" r="34" fill="#173a7a"/>
+    <path d="M 215 116 A 34 34 0 0 0 215 184 Z" fill="#2f6fd6"/>
+    <line x1="199" y1="194" x2="231" y2="106" stroke="#14213d" stroke-width="3"/>
+    <text x="233" y="102" font-size="13" fill="#14213d" font-family="JetBrains Mono">N</text>
+    <text x="215" y="226" font-size="13" fill="#b8860b" text-anchor="middle" font-family="JetBrains Mono">23,4°</text>
+  </svg>
+  <div style="margin-top:auto;display:flex;flex-wrap:wrap;gap:1vw;max-width:75vw">
+    <div class="card"><div class="mono sun" style="font-size:13px">OA 14</div><p style="font-size:clamp(13px,1.2vw,17px)">Movimientos de la Tierra respecto del Sol y sus consecuencias: las estaciones.</p></div>
+    <div class="card"><div class="mono sun" style="font-size:13px">IE</div><p style="font-size:clamp(13px,1.2vw,17px)">Explican las estaciones climáticas con modelos del sistema Tierra-Sol.</p></div>
+    <div class="card"><div class="mono sun" style="font-size:13px">BLOOM</div><p style="font-size:clamp(13px,1.2vw,17px)">Comprender · Aplicar</p></div>
+  </div>
+</section>
+
+<!-- 2 PAUTA -->
+<section class="slide" data-notes="<p>Proyectar 30 segundos. Producto de la clase: el cómic, esquema o dibujo en el cuaderno (formativo) y la interrogación final de 8 preguntas.</p>">
+  <div class="kicker">Pauta de la clase · 90 min</div>
+  <h2>Lo que haremos hoy</h2>
+  <div class="tl" style="grid-template-columns:repeat(7,1fr)">
+    <div class="step"><div class="min">0–5'</div><div class="name">Gancho</div><div class="what">¿Es verano porque estamos más cerca del Sol?</div></div>
+    <div class="step"><div class="min">5–25'</div><div class="name">Contenido</div><div class="what">El eje inclinado y sus dos efectos.</div></div>
+    <div class="step"><div class="min">25–35'</div><div class="name">Chile en datos</div><div class="what">Altura del Sol y horas de luz durante el año.</div></div>
+    <div class="step"><div class="min">35–45'</div><div class="name">Linterna</div><div class="what">Luz vertical vs. inclinada sobre papel cuadriculado.</div></div>
+    <div class="step"><div class="min">45–55'</div><div class="name">Clima y planetas</div><div class="what">Clima en Chile e inclinación de otros planetas.</div></div>
+    <div class="step"><div class="min">55–75'</div><div class="name">Cuaderno</div><div class="what">Cómic, esquema o dibujo: clima y estaciones.</div></div>
+    <div class="step"><div class="min">75–90'</div><div class="name">Interrogación</div><div class="what">8 preguntas de alternativas.</div></div>
+  </div>
+  <div class="bar"><span style="width:5.6%;background:#e0a82e"></span><span style="width:22.2%;background:#2f6fd6"></span><span style="width:11.1%;background:#14213d"></span><span style="width:11.1%;background:#14213d"></span><span style="width:11.1%;background:#6b7893"></span><span style="width:22.2%;background:#14213d"></span><span style="width:16.7%;background:#1f3c88"></span></div>
+  <div class="row" style="flex:0 0 auto;margin-top:1vh">
+    <div class="card col"><h3 class="sun">Producto de la clase</h3><p>Cómic, esquema o dibujo en el cuaderno, e interrogación final.</p></div>
+    <div class="card col"><h3 class="sun">Materiales</h3><p>Linterna · papel cuadriculado · pelota con palito · cuaderno y lápices de colores · hoja de respuestas</p></div>
+  </div>
+</section>
+
+<!-- 3 GANCHO -->
+<section class="slide" data-notes="<p>Votación a mano alzada: ¿quién cree que es verano porque estamos más cerca del Sol? Suele ser la mayoría.</p><p>Luego mostrar el dato: la Tierra está más cerca del Sol a comienzos de enero (perihelio, unos 147 millones de km) y más lejos a comienzos de julio (afelio, unos 152 millones de km). Pregunta clave: si fuera por la distancia, ¿por qué en enero es invierno en España?</p>">
+  <div class="kicker">Gancho · 5 min</div>
+  <h2>¿Es verano porque estamos más cerca del Sol?</h2>
+  <div class="row">
+    <div class="col">
+      <div class="card"><div class="big sun">147 M km</div><p class="muted">Distancia Tierra-Sol a comienzos de <b>enero</b>: lo más cerca del año.</p></div>
+      <div class="card"><div class="big blue">152 M km</div><p class="muted">Distancia a comienzos de <b>julio</b>: lo más lejos del año.</p></div>
+    </div>
+    <div class="col" style="justify-content:center">
+      <div class="card hl"><h3 class="sun">Piensa</h3>
+        <p style="font-size:clamp(20px,2.3vw,32px);font-family:'Space Grotesk';font-weight:700">En enero estamos más cerca del Sol… y en España es pleno invierno.</p>
+        <p style="margin-top:1.4vh">Si la distancia causara las estaciones, ¿no debería ser verano en todo el planeta al mismo tiempo?</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 INCLINACIÓN -->
+<section class="slide" data-notes="<p>Presiona ▶ y deja que la Tierra dé una vuelta completa sin hablar. Luego usa el deslizador y detente en diciembre, marzo, junio y septiembre.</p><p>Que observen tres cosas: (1) la línea del eje nunca cambia de dirección; (2) en diciembre el polo sur mira hacia el Sol y en junio el polo norte; (3) al mismo tiempo cambian la altura del Sol y las horas de luz en Villa Alemana.</p><p>Después, repetirlo con la pelota y el palito: mantener el palito inclinado siempre hacia la misma pared mientras se da la vuelta a la linterna.</p>">
+  <div class="kicker">Contenido · 1 de 2 · simulador</div>
+  <h2>La causa: el eje de la Tierra está inclinado 23,4°</h2>
+  <div class="row">
+    <div class="col" style="flex:1.4">
+      <svg viewBox="0 0 640 370" id="orbitSvg" style="width:100%;max-height:52vh" font-family="Inter"></svg>
+      <input type="range" id="dayRange" min="0" max="364" step="1" value="0">
+      <div style="display:flex;gap:.8vw;flex-wrap:wrap;align-items:center">
+        <button class="btn" id="orbPlay">▶ Animar</button>
+        <span class="mono muted" style="font-size:13px">o arrastra para mover la Tierra</span>
+      </div>
+    </div>
+    <div class="col" style="justify-content:center">
+      <div class="card hl"><div class="mono muted" style="font-size:13px">FECHA</div><div class="v" id="oDate" style="font-family:'Space Grotesk';font-weight:700;font-size:clamp(20px,2.4vw,34px)">21 de diciembre</div>
+        <div id="oSeason" class="sun" style="font-family:'Space Grotesk';font-weight:700;font-size:clamp(16px,1.7vw,24px)">Verano en Chile</div></div>
+      <div class="card"><div class="mono muted" style="font-size:13px">HACIA EL SOL SE INCLINA</div><p id="oHemi" style="font-weight:600">El hemisferio sur</p></div>
+      <div class="readout" style="grid-template-columns:1fr 1fr">
+        <div class="card"><div class="v sun" id="oAlt">80°</div><div class="l">altura del Sol al mediodía en Villa Alemana</div></div>
+        <div class="card"><div class="v blue" id="oDay">14 h 20</div><div class="l">horas de luz en Villa Alemana</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 DOS EFECTOS -->
+<section class="slide" data-notes="<p>Los dos efectos de la inclinación:</p><ul><li>Altura del Sol: con el Sol alto, la luz llega concentrada; con el Sol bajo, la misma luz se reparte en más superficie y calienta menos.</li><li>Horas de luz: en verano el Sol está más horas sobre el horizonte, así que hay más tiempo para calentar.</li></ul><p>Conectar con la Sesión 1: la sombra del gnomon al mediodía es corta en diciembre (Sol alto) y larga en junio (Sol bajo).</p>">
+  <div class="kicker">Contenido · 2 de 2</div>
+  <h2>Dos efectos de la inclinación</h2>
+  <div class="row">
+    <div class="card col">
+      <h3 class="sun">1 · Altura del Sol</h3>
+      <svg viewBox="0 0 420 200" style="width:100%">
+        <g stroke="#e0a82e" stroke-width="3"><line x1="60" y1="20" x2="60" y2="150"/><line x1="90" y1="20" x2="90" y2="150"/><line x1="120" y1="20" x2="120" y2="150"/></g>
+        <rect x="50" y="150" width="80" height="10" fill="#e0a82e"/>
+        <text x="90" y="185" fill="#14213d" font-size="13" text-anchor="middle">verano: luz concentrada</text>
+        <g stroke="#2f6fd6" stroke-width="3"><line x1="230" y1="40" x2="290" y2="150"/><line x1="260" y1="40" x2="320" y2="150"/><line x1="290" y1="40" x2="350" y2="150"/></g>
+        <rect x="280" y="150" width="120" height="10" fill="#2f6fd6"/>
+        <text x="330" y="185" fill="#14213d" font-size="13" text-anchor="middle">invierno: luz repartida</text>
+      </svg>
+      <p>Con el Sol alto, la luz cae concentrada. Con el Sol bajo, la misma luz se reparte en más superficie y calienta menos.</p>
+    </div>
+    <div class="card col">
+      <h3 class="sun">2 · Horas de luz</h3>
+      <div style="display:flex;flex-direction:column;gap:1.4vh;margin:1vh 0">
+        <div><div class="mono muted" style="font-size:13px">21 DE DICIEMBRE · VILLA ALEMANA</div><div style="height:22px;border-radius:6px;background:linear-gradient(90deg,#e0a82e 59.7%,#e6ecf6 59.7%)"></div><div class="mono sun" style="font-size:14px;margin-top:4px">14 h 20 min de luz</div></div>
+        <div><div class="mono muted" style="font-size:13px">21 DE JUNIO · VILLA ALEMANA</div><div style="height:22px;border-radius:6px;background:linear-gradient(90deg,#2f6fd6 41.5%,#e6ecf6 41.5%)"></div><div class="mono blue" style="font-size:14px;margin-top:4px">9 h 58 min de luz</div></div>
+      </div>
+      <p>En verano el Sol pasa más horas sobre el horizonte: hay más tiempo para calentar el suelo y el aire.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 CHILE EN DATOS -->
+<section class="slide" data-notes="<p>Elige Villa Alemana y presiona ▶: el año avanza solo. Que miren cómo sube y baja el Sol del mediodía, cómo se acorta y alarga la sombra y cómo cambia la barra de horas de luz.</p><p>Luego cambia a Punta Arenas y a Arica con la animación andando. Pregunta: ¿dónde cambian más las horas de luz entre verano e invierno? (Punta Arenas: de casi 17 h a 7,5 h). ¿Dónde menos? (Arica). Conclusión: mientras más lejos del ecuador, más marcadas son las estaciones.</p><p>El esquema mira hacia el norte: el Sol sale por la derecha (este) y se pone por la izquierda (oeste).</p>">
+  <div class="kicker">Chile en datos · 10 min · simulador</div>
+  <h2>El Sol durante el año en Chile</h2>
+  <div class="seg" id="cities"></div>
+  <div class="row">
+    <div class="col" style="flex:1.4">
+      <div class="card" style="padding:1.2vh 1vw"><svg viewBox="0 0 600 250" id="skySvg" style="width:100%;max-height:40vh"></svg></div>
+      <div>
+        <div class="mono muted" style="font-size:12px;margin-bottom:4px">HORAS DE LUZ EN EL DÍA (24 h)</div>
+        <div style="height:20px;border-radius:6px;background:#e6ecf6;position:relative;overflow:hidden"><div id="dayBar" style="position:absolute;top:0;bottom:0;background:#e0a82e;border-radius:6px"></div></div>
+      </div>
+      <input type="range" id="cityDay" min="0" max="364" step="1" value="0">
+      <div style="display:flex;gap:.8vw;align-items:center;flex-wrap:wrap"><button class="btn" id="cityPlay">▶ Animar el año</button><span class="mono muted" style="font-size:13px">o arrastra para elegir la fecha</span></div>
+    </div>
+    <div class="col">
+      <div class="card hl"><div class="mono muted" style="font-size:13px">FECHA</div><div id="cDate" style="font-family:'Space Grotesk';font-weight:700;font-size:clamp(20px,2.4vw,34px)">21 de diciembre</div><div id="cSeason" style="font-family:'Space Grotesk';font-weight:700;font-size:clamp(15px,1.6vw,22px)"></div></div>
+      <div class="readout" style="grid-template-columns:1fr">
+        <div class="card"><div class="v sun" id="vAlt">–</div><div class="l">altura del Sol al mediodía</div></div>
+        <div class="card"><div class="v" id="vShadow">–</div><div class="l">sombra de un palo de 1 m al mediodía</div></div>
+        <div class="card"><div class="v blue" id="vDay">–</div><div class="l">horas de luz</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 ACTIVIDAD -->
+<section class="slide" data-notes="<p>Grupos de 3 con roles: Sol (sostiene la linterna a 20 cm del papel), Medidor (marca el borde de la mancha de luz), Registrador (cuenta cuadros y anota).</p><p>Resultado esperado: con la linterna inclinada la mancha es más grande y menos brillante: la misma luz se reparte en más cuadros. Eso es el invierno.</p><p>Pregunta 4: con la cartulina del gnomon de la Sesión 1, la sombra de mediodía de hoy (noviembre) es corta porque el Sol está alto: se acerca el verano.</p>">
+  <div class="kicker">Actividad · 10 min</div>
+  <h2>La misma luz, dos inclinaciones</h2>
+  <div class="row">
+    <div class="col">
+      <div class="card"><h3 class="sun">1 · Vertical</h3><p>Apunten la linterna perpendicular al papel cuadriculado, a 20 cm. Marquen el borde de la mancha y cuenten los cuadros.</p></div>
+      <div class="card"><h3 class="sun">2 · Inclinada</h3><p>Misma distancia, linterna inclinada unos 45°. Marquen y cuenten de nuevo.</p></div>
+      <p class="muted mono" style="font-size:13px">Roles: Sol · Medidor · Registrador</p>
+    </div>
+    <div class="card col hl">
+      <h3>Respondan en el cuaderno</h3>
+      <ol class="q">
+        <li>¿En qué caso la mancha cubrió más cuadros?</li>
+        <li>¿En qué caso la luz se veía más intensa?</li>
+        <li>¿Qué posición representa el verano y cuál el invierno? Expliquen.</li>
+        <li>Miren su cartulina del gnomon: ¿cómo será la sombra del mediodía en diciembre comparada con la de junio?</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 8 CLIMA -->
+<section class="slide" data-notes="<p>Diferencia clave: el tiempo atmosférico es lo que pasa hoy; el clima es el patrón de muchos años.</p><p>En Chile el clima no depende solo de la estación: influyen la latitud, la altura (cordillera), el océano y la corriente de Humboldt, que es fría y deja el norte costero templado y seco.</p>">
+  <div class="kicker">Clima · 5 min</div>
+  <h2>Estación, tiempo y clima no son lo mismo</h2>
+  <div class="grid g3">
+    <div class="card"><h3 class="sun">Tiempo atmosférico</h3><p>Lo que pasa hoy: «está lloviendo», «hace 28 °C».</p></div>
+    <div class="card"><h3 class="sun">Clima</h3><p>El patrón de muchos años en un lugar: el norte es seco y el sur, lluvioso.</p></div>
+    <div class="card"><h3 class="sun">Estación</h3><p>La época del año, que depende de la inclinación del eje.</p></div>
+  </div>
+  <div class="card hl"><h3>En Chile, el clima también depende de…</h3>
+    <ul class="b"><li><b>Latitud:</b> desierto en el norte, clima mediterráneo en el centro, lluvioso y frío en el sur.</li><li><b>Altura:</b> en la cordillera hace más frío que en el valle a la misma latitud.</li><li><b>Océano:</b> la corriente de Humboldt, que es fría, deja la costa norte templada y seca.</li></ul></div>
+</section>
+
+<!-- 9 PLANETAS -->
+<section class="slide" data-notes="<p>Marte tiene una inclinación parecida a la Tierra, así que tiene estaciones, pero cada una dura casi el doble porque su año es de 687 días.</p><p>Urano está prácticamente acostado: cada polo pasa unos 42 años de luz continua y 42 de oscuridad.</p><p>Júpiter casi no tiene inclinación: casi no tiene estaciones. Venus gira «de cabeza» (177°).</p>">
+  <div class="kicker">Otros planetas · 5 min</div>
+  <h2>¿Tienen estaciones los otros planetas?</h2>
+  <table class="t">
+    <tr><th>Planeta</th><th>Inclinación del eje</th><th>¿Estaciones?</th></tr>
+    <tr><td>Mercurio</td><td class="mono">≈ 0°</td><td>Prácticamente no</td></tr>
+    <tr><td>Venus</td><td class="mono">177°</td><td>Casi no; gira «de cabeza»</td></tr>
+    <tr class="me"><td>Tierra</td><td class="mono">23,4°</td><td>Sí, cuatro estaciones</td></tr>
+    <tr><td>Marte</td><td class="mono">25,2°</td><td>Sí, pero cada una dura casi el doble</td></tr>
+    <tr><td>Júpiter</td><td class="mono">3,1°</td><td>Casi no</td></tr>
+    <tr><td>Saturno</td><td class="mono">26,7°</td><td>Sí, de unos 7 años cada una</td></tr>
+    <tr><td>Urano</td><td class="mono">97,8°</td><td>Extremas: 42 años de luz y 42 de noche en cada polo</td></tr>
+    <tr><td>Neptuno</td><td class="mono">28,3°</td><td>Sí, de unos 40 años cada una</td></tr>
+  </table>
+</section>
+
+<!-- 10 CUADERNO -->
+<section class="slide" data-notes="<p>Individual o en parejas (cada uno en su cuaderno). 20 minutos. Que elijan UNA de las tres opciones.</p><p>Revisión rápida al circular: ¿aparece el eje inclinado? ¿Dice que la causa NO es la distancia? ¿Aparece la altura del Sol o las horas de luz? ¿Distingue clima de tiempo?</p><p>Si alguien termina antes: que agregue una viñeta o un recuadro sobre Urano o Marte.</p>">
+  <div class="kicker">Actividad en el cuaderno · 20 min</div>
+  <h2>Explícalo en tu cuaderno</h2>
+  <div class="grid g3">
+    <div class="card"><h3 class="sun">Opción A · Cómic</h3><p>4 viñetas: un rayo de Sol llega a Villa Alemana en diciembre y otro en junio. ¿Qué les pasa en el camino y al llegar?</p></div>
+    <div class="card"><h3 class="sun">Opción B · Esquema</h3><p>Mapa conceptual con las palabras: <i>eje inclinado, altura del Sol, horas de luz, estación, clima, tiempo atmosférico</i>.</p></div>
+    <div class="card"><h3 class="sun">Opción C · Dibujo rotulado</h3><p>La Tierra en 4 posiciones alrededor del Sol, con el eje inclinado y la estación que vive Chile en cada una.</p></div>
+  </div>
+  <div class="card hl"><h3>Tu trabajo debe incluir</h3>
+    <ul class="b">
+      <li>El eje de la Tierra inclinado 23,4°.</li>
+      <li>Que la causa de las estaciones <b>no</b> es la distancia al Sol.</li>
+      <li>Al menos un efecto: la altura del Sol o las horas de luz.</li>
+      <li>Una diferencia entre clima y tiempo atmosférico.</li>
+      <li>Título, colores y rótulos claros.</li>
+    </ul></div>
+</section>
+
+<!-- 11 INTERROGACIÓN 1 -->
+<section class="slide quiz" data-notes="<p>Interrogación individual y en silencio: 8 preguntas en 4 diapositivas, unos 2 minutos por diapositiva. Respuestas en la hoja (o en hoja ZipGrade si la usas).</p><p>Clave: <b>1 C · 2 A</b> · 3 E · 4 B · 5 D · 6 A · 7 C · 8 E.</p>">
+  <div class="kicker">Interrogación · 15 min · preguntas 1 y 2</div>
+  <div class="card"><p><b class="sun">1.</b> La principal causa de las estaciones del año es:</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5vh;margin-top:.8vh">
+      <li><b>A)</b> la distancia variable entre la Tierra y el Sol.</li>
+      <li><b>B)</b> la rotación de la Tierra sobre su eje.</li>
+      <li><b>C)</b> la inclinación del eje terrestre respecto del plano de su órbita.</li>
+      <li><b>D)</b> los cambios en la energía que emite el Sol durante el año.</li>
+      <li><b>E)</b> la posición de la Luna respecto de la Tierra.</li></ul></div>
+  <div class="card"><p><b class="sun">2.</b> ¿En qué mes la Tierra está más cerca del Sol?</p>
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:.8vh"><p><b>A)</b> Enero</p><p><b>B)</b> Marzo</p><p><b>C)</b> Junio</p><p><b>D)</b> Julio</p><p><b>E)</b> Septiembre</p></div></div>
+</section>
+
+<!-- 12 INTERROGACIÓN 2 -->
+<section class="slide quiz" data-notes="<p>Clave: 3 E · 4 B.</p>">
+  <div class="kicker">Interrogación · preguntas 3 y 4</div>
+  <div class="card"><p><b class="sun">3.</b> El 21 de junio, en Villa Alemana:</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5vh;margin-top:.8vh">
+      <li><b>A)</b> el Sol del mediodía queda justo sobre nuestras cabezas.</li>
+      <li><b>B)</b> hay más horas de luz que de noche.</li>
+      <li><b>C)</b> la sombra del mediodía es la más corta del año.</li>
+      <li><b>D)</b> el hemisferio sur está inclinado hacia el Sol.</li>
+      <li><b>E)</b> el Sol del mediodía está más bajo que en cualquier otra fecha del año.</li></ul></div>
+  <div class="card"><p><b class="sun">4.</b> Cuando el Sol está bajo, el suelo se calienta menos porque:</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5vh;margin-top:.8vh">
+      <li><b>A)</b> en invierno el Sol emite menos luz.</li>
+      <li><b>B)</b> la misma luz se reparte en una superficie mayor.</li>
+      <li><b>C)</b> la luz viaja más lento cuando llega inclinada.</li>
+      <li><b>D)</b> en invierno la Tierra está más lejos del Sol.</li>
+      <li><b>E)</b> el suelo refleja toda la luz que recibe.</li></ul></div>
+</section>
+
+<!-- 13 INTERROGACIÓN 3 -->
+<section class="slide quiz" data-notes="<p>Clave: 5 D · 6 A.</p>">
+  <div class="kicker">Interrogación · preguntas 5 y 6</div>
+  <div class="card"><p><b class="sun">5.</b> ¿En qué ciudad cambian más las horas de luz entre verano e invierno?</p>
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:.8vh"><p><b>A)</b> Arica</p><p><b>B)</b> Santiago</p><p><b>C)</b> Villa Alemana</p><p><b>D)</b> Punta Arenas</p><p><b>E)</b> Igual en todo Chile</p></div></div>
+  <div class="card"><p><b class="sun">6.</b> Cuando es verano en Chile, en el hemisferio norte es:</p>
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:.8vh"><p><b>A)</b> Invierno</p><p><b>B)</b> Verano</p><p><b>C)</b> Primavera</p><p><b>D)</b> Otoño</p><p><b>E)</b> No hay estaciones</p></div></div>
+</section>
+
+<!-- 14 INTERROGACIÓN 4 -->
+<section class="slide quiz" data-notes="<p>Clave: 7 C · 8 E. Recoger las hojas al terminar.</p><p>Clave completa: 1 C · 2 A · 3 E · 4 B · 5 D · 6 A · 7 C · 8 E.</p>">
+  <div class="kicker">Interrogación · preguntas 7 y 8</div>
+  <div class="card"><p><b class="sun">7.</b> «Hoy llueve y hace 12 °C en Villa Alemana». Esta frase describe:</p>
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:.8vh"><p><b>A)</b> el clima</p><p><b>B)</b> la estación</p><p><b>C)</b> el tiempo atmosférico</p><p><b>D)</b> la latitud</p><p><b>E)</b> la inclinación del eje</p></div></div>
+  <div class="card"><p><b class="sun">8.</b> ¿Qué planeta tiene estaciones extremas porque su eje está casi acostado (98°)?</p>
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:.8vh"><p><b>A)</b> Marte</p><p><b>B)</b> Júpiter</p><p><b>C)</b> Venus</p><p><b>D)</b> Mercurio</p><p><b>E)</b> Urano</p></div></div>
+</section>
+
+<!-- 11 BOOKEND -->
+<section class="slide bookend" style="background:#1f4e9c" data-notes="<p>Cierre del Bloque 1 (Tierra-Luna-Sol). Si quieres hacer el Kahoot de bloque, este es el momento o al inicio de la próxima clase.</p>">
+  <div class="kicker">Próxima sesión</div>
+  <h1>Meteoros, cometas y asteroides</h1>
+  <p class="muted" style="max-width:60vw">Terminamos el sistema Tierra-Luna-Sol. La próxima clase salimos a buscar lo que cruza el cielo: estrellas fugaces, cometas y asteroides.</p>
+</section>
+
+</div>
+<div class="notes" id="notes"><h4>PAUTA DOCENTE · tecla N para cerrar</h4><div id="notesBody"></div></div>
+<div class="hud"><div id="count">1 / 11</div><div class="keys"><span>←</span><span>→</span> navegar · <span>N</span> notas · <span>F</span> pantalla completa</div></div>
+<div class="prog" id="prog"></div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')]; let cur=0;
+function show(i){ cur=Math.max(0,Math.min(slides.length-1,i)); slides.forEach((s,k)=>s.classList.toggle('active',k===cur));
+  document.getElementById('count').textContent=(cur+1)+' / '+slides.length;
+  document.getElementById('prog').style.width=((cur+1)/slides.length*100)+'%';
+  document.getElementById('notesBody').innerHTML=slides[cur].dataset.notes||'';
+  try{history.replaceState(null,'','#'+(cur+1));}catch(e){} }
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(cur+1);}
+  else if(['ArrowLeft','PageUp'].includes(e.key)) show(cur-1);
+  else if(e.key==='n'||e.key==='N') document.getElementById('notes').classList.toggle('show');
+  else if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }
+});
+let tx=null; document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{ if(tx===null) return; const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>60 && e.target.tagName!=='INPUT') show(cur+(dx<0?1:-1)); tx=null; });
+
+// Orbit simulator
+(function(){ const svg=document.getElementById('orbitSvg'), rng=document.getElementById('dayRange');
+  const cx=320,cy=185,rx=250,ry=105,tilt=23.4*Math.PI/180, LAT=-33.04;
+  const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const marks=[{a:0,t:'DIC'},{a:Math.PI/2,t:'MAR'},{a:Math.PI,t:'JUN'},{a:3*Math.PI/2,t:'SEP'}];
+  function dayLen(dec){ const h0=-0.833*Math.PI/180, L=LAT*Math.PI/180, d=dec*Math.PI/180;
+    let c=(Math.sin(h0)-Math.sin(L)*Math.sin(d))/(Math.cos(L)*Math.cos(d)); c=Math.max(-1,Math.min(1,c)); return 2*Math.acos(c)*180/Math.PI/15; }
+  function draw(d){ const a=d/365*2*Math.PI, x=cx+rx*Math.cos(a), y=cy-ry*Math.sin(a), R=26;
+    let s=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#c5d0e3" stroke-width="2" stroke-dasharray="6 6"/>`;
+    marks.forEach(m=>{ const mx=cx+rx*Math.cos(m.a), my=cy-ry*Math.sin(m.a); const ty= m.a===Math.PI/2? my-14 : (m.a===3*Math.PI/2? my+24 : my+44);
+      s+=`<circle cx="${mx}" cy="${my}" r="4" fill="#a9b6cf"/><text x="${mx}" y="${ty}" fill="#7b88a6" font-size="12" text-anchor="middle" font-family="JetBrains Mono">${m.t}</text>`; });
+    s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e0a82e" stroke-opacity=".35" stroke-width="2"/>`;
+    s+=`<circle cx="${cx}" cy="${cy}" r="34" fill="#e0a82e"/><text x="${cx}" y="${cy+54}" fill="#b8860b" font-size="13" text-anchor="middle" font-family="JetBrains Mono">SOL</text>`;
+    const ux=cx-x, uy=cy-y, ang=Math.atan2(uy,ux), a1=ang-Math.PI/2, a2=ang+Math.PI/2;
+    s+=`<circle cx="${x}" cy="${y}" r="${R}" fill="#173a7a"/><path d="M ${x+R*Math.cos(a1)} ${y+R*Math.sin(a1)} A ${R} ${R} 0 0 1 ${x+R*Math.cos(a2)} ${y+R*Math.sin(a2)} Z" fill="#2f6fd6"/>`;
+    const dx=Math.sin(tilt)*40, dy=Math.cos(tilt)*40;
+    s+=`<line x1="${x-dx}" y1="${y+dy}" x2="${x+dx}" y2="${y-dy}" stroke="#14213d" stroke-width="2.5"/>`;
+    s+=`<text x="${x+dx+4}" y="${y-dy-4}" fill="#14213d" font-size="12" font-family="JetBrains Mono">N</text><text x="${x-dx-14}" y="${y+dy+12}" fill="#14213d" font-size="12" font-family="JetBrains Mono">S</text>`;
+    svg.innerHTML=s;
+    // readouts
+    const date=new Date(Date.UTC(2026,11,21)+d*864e5); document.getElementById('oDate').textContent=date.getUTCDate()+' de '+MESES[date.getUTCMonth()];
+    const se= d<89?'Verano en Chile': d<182?'Otoño en Chile': d<275?'Invierno en Chile':'Primavera en Chile';
+    const col= d<89?'#b8860b': d<182?'#14213d': d<275?'#2f6fd6':'#14213d';
+    const sEl=document.getElementById('oSeason'); sEl.textContent=se; sEl.style.color=col;
+    const c=Math.cos(a); document.getElementById('oHemi').textContent= c>0.35?'El hemisferio sur (Chile recibe la luz más directa)': c<-0.35?'El hemisferio norte (Chile recibe la luz más inclinada)':'Ninguno de los dos: equinoccio, el día y la noche duran casi lo mismo';
+    const dec=-23.44*Math.cos(a), alt=90-Math.abs(LAT-dec), dl=dayLen(dec);
+    document.getElementById('oAlt').textContent=Math.round(alt)+'°';
+    document.getElementById('oDay').textContent=Math.floor(dl)+' h '+String(Math.round((dl%1)*60)).padStart(2,'0');
+  }
+  rng.addEventListener('input',()=>draw(+rng.value));
+  let t=null; document.getElementById('orbPlay').onclick=function(){ if(t){clearInterval(t);t=null;this.textContent='▶ Animar';return;} this.textContent='❚❚ Pausa';
+    t=setInterval(()=>{ let v=(+rng.value+1)%365; rng.value=v; draw(v); },40); };
+  draw(0); })();
+
+// Chile sky simulator
+(function(){ const LATS={'Arica':-18.48,'Villa Alemana':-33.04,'Punta Arenas':-53.16}; let city='Villa Alemana';
+  const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const rng=document.getElementById('cityDay'), svg=document.getElementById('skySvg');
+  function dayLen(lat,dec){ const h0=-0.833*Math.PI/180, L=lat*Math.PI/180, d=dec*Math.PI/180;
+    let c=(Math.sin(h0)-Math.sin(L)*Math.sin(d))/(Math.cos(L)*Math.cos(d)); c=Math.max(-1,Math.min(1,c)); return 2*Math.acos(c)*180/Math.PI/15; }
+  const fmt=(v,n)=>v.toFixed(n).replace('.',',');
+  function buttons(){ const el=document.getElementById('cities'); el.innerHTML=''; Object.keys(LATS).forEach(k=>{ const b=document.createElement('button'); b.className='btn'+(k===city?' on':''); b.textContent=k; b.onclick=()=>{city=k;buttons();draw(+rng.value);}; el.appendChild(b); }); }
+  function draw(d){ const lat=LATS[city], dec=-23.44*Math.cos(2*Math.PI*d/365), alt=90-Math.abs(lat-dec), sh=1/Math.tan(alt*Math.PI/180), dl=dayLen(lat,dec);
+    const gy=215, cx=190, w=150, hgt=alt/90*175;
+    let s=`<line x1="10" y1="${gy}" x2="360" y2="${gy}" stroke="#6b7893" stroke-width="1.5"/><line x1="390" y1="${gy}" x2="590" y2="${gy}" stroke="#6b7893" stroke-width="1.5"/><line x1="375" y1="20" x2="375" y2="240" stroke="#c5d0e3"/><text x="490" y="${gy+20}" fill="#6b7893" font-size="12" text-anchor="middle" font-family="JetBrains Mono">SOMBRA AL MEDIODÍA</text>`;
+    s+=`<text x="${cx+w}" y="${gy+20}" fill="#6b7893" font-size="12" text-anchor="middle" font-family="JetBrains Mono">ESTE</text><text x="${cx-w}" y="${gy+20}" fill="#6b7893" font-size="12" text-anchor="middle" font-family="JetBrains Mono">OESTE</text><text x="${cx}" y="${gy+20}" fill="#6b7893" font-size="12" text-anchor="middle" font-family="JetBrains Mono">NORTE</text>`;
+    s+=`<path d="M ${cx+w} ${gy} Q ${cx} ${gy-2*hgt} ${cx-w} ${gy}" fill="none" stroke="#e0a82e" stroke-width="2" stroke-dasharray="6 5"/>`;
+    s+=`<line x1="${cx}" y1="${gy}" x2="${cx}" y2="${gy-hgt}" stroke="#e0a82e" stroke-opacity=".3"/>`;
+    s+=`<circle cx="${cx}" cy="${gy-hgt}" r="15" fill="#e0a82e"/><text x="${cx+22}" y="${gy-hgt+5}" fill="#b8860b" font-size="14" font-family="JetBrains Mono">${Math.round(alt)}°</text>`;
+    const px=570, pole=55, shL=Math.min(sh*pole,170);
+    s+=`<line x1="${px}" y1="${gy}" x2="${px}" y2="${gy-pole}" stroke="#14213d" stroke-width="4"/><text x="${px}" y="${gy-pole-8}" fill="#14213d" font-size="12" text-anchor="middle" font-family="JetBrains Mono">1 m</text>`;
+    s+=`<line x1="${px}" y1="${gy}" x2="${px-shL}" y2="${gy}" stroke="#2f6fd6" stroke-width="7" opacity=".85"/>`;
+    if(sh*pole>170) s+=`<text x="${px-170}" y="${gy-8}" fill="#2f6fd6" font-size="11" font-family="JetBrains Mono">sigue…</text>`;
+    svg.innerHTML=s;
+    const date=new Date(Date.UTC(2026,11,21)+d*864e5); document.getElementById('cDate').textContent=date.getUTCDate()+' de '+MESES[date.getUTCMonth()];
+    const se= d<89?['Verano','#b8860b']: d<182?['Otoño','#14213d']: d<275?['Invierno','#2f6fd6']:['Primavera','#14213d'];
+    const sEl=document.getElementById('cSeason'); sEl.textContent=se[0]+' en '+city; sEl.style.color=se[1];
+    document.getElementById('vAlt').textContent=fmt(alt,1)+'°';
+    document.getElementById('vShadow').textContent=fmt(sh,2)+' m';
+    document.getElementById('vDay').textContent=Math.floor(dl)+' h '+String(Math.round((dl%1)*60)).padStart(2,'0')+' min';
+    const bar=document.getElementById('dayBar'); const frac=dl/24; bar.style.left=((1-frac)/2*100)+'%'; bar.style.width=(frac*100)+'%'; }
+  rng.addEventListener('input',()=>draw(+rng.value));
+  let t=null; document.getElementById('cityPlay').onclick=function(){ if(t){clearInterval(t);t=null;this.textContent='▶ Animar el año';return;} this.textContent='❚❚ Pausa';
+    t=setInterval(()=>{ const v=(+rng.value+1)%365; rng.value=v; draw(v); },45); };
+  buttons(); draw(0); })();
+const h=parseInt((location.hash||'').slice(1)); show(isNaN(h)?0:h-1);
+</script>
+</body>
+</html>
