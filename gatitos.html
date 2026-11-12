@@ -271,7 +271,7 @@ h1 span{color:var(--acid)}
     </div>
     <a class="card cofres-promo" href="ruleta.html#cofres">
       <img src="cofres/cerrado.webp" alt="" width="84" height="84"><img src="cofres/especial.webp" alt="" width="84" height="84">
-      <span><b>🧰 Cofres sorpresa</b><small>Cofre <b>₣100.000</b> · Cofre especial <b>₣500.000</b>. Pueden traer Hipopesos, gatitos o beneficios… o un castigo. Se compran y se abren en la Ruleta.</small></span>
+      <span><b>🧰 Cofres sorpresa</b><small>Cofre <b>₣75.000</b> · Cofre especial <b>₣400.000</b> · Llaves desde <b>₣25.000</b>. Pueden traer Hipopesos, gatitos o beneficios… o un castigo. Para abrirlos necesitas una llave (que puede romperse). Se compran y se abren en la Ruleta.</small></span>
       <span class="btn p">Ir a los cofres <i class="fa-solid fa-arrow-right"></i></span>
     </a>
     <div class="card" id="tCupon" hidden style="border:2px dashed var(--acid);font-size:15px"></div>
@@ -792,9 +792,10 @@ async function cargar() {
           misBenef = todos.filter(m => m.canje === 'pendiente' && m.item && m.item !== 'Ruleta: disertación' && m.tipo !== 'poder-gatito' && m.tipo !== 'poder-mensual' && m.tipo !== 'premio-gatito');
           pintar(); }, () => {}));
         // cofres sin abrir (se pueden poner a la venta)
-        unsubs.push(F.onSnapshot(F.query(F.collection(db, 'cofres'), F.where('cuenta', '==', cuentaId)), s => {
-          misCofres = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(c => c.cuenta === cuentaId && (c.estado === 'cerrado' || c.estado === 'en-venta'));
-          pintar(); }, () => {}));
+        // (solo los vivos: los abiertos no se leen)
+        const alCofres = s => { misCofres = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(c => c.cuenta === cuentaId && (c.estado === 'cerrado' || c.estado === 'en-venta')); pintar(); };
+        unsubs.push(F.onSnapshot(F.query(F.collection(db, 'cofres'), F.where('cuenta', '==', cuentaId), F.where('estado', 'in', ['cerrado', 'en-venta'])), alCofres,
+          () => unsubs.push(F.onSnapshot(F.query(F.collection(db, 'cofres'), F.where('cuenta', '==', cuentaId)), alCofres, () => {}))));
         // regalos recibidos y enviados
         const msR = t => (t && t.toMillis ? t.toMillis() : 0);
         unsubs.push(F.onSnapshot(F.query(F.collection(db, 'regalos'), F.where('para', '==', cuentaId)), s => { regRec = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => msR(b.creada) - msR(a.creada)); pintar(); avisoRegalos(); }, () => {}));
@@ -1100,7 +1101,7 @@ function pintarMio() {
   const congeladas = publicaciones.filter(p => p.uid === usuario.uid && p.tipo !== 'fisico' && (p.estado === 'venta' || p.estado === 'reservado'));
   const items = misBenef.map(m => ({ tipo: 'beneficio', mov: m.id, item: m.item, ico: ref(m.item).ico || '🎟️', ref: ref(m.item).precio || '' }))
     .concat((coleccion.ids || []).map(id => { const g = gato(id) || { nombre: id, precio: '' }; return { tipo: 'gatito', gatito: id, item: g.nombre, ico: '🐱', ref: g.precio }; }))
-    .concat(misCofres.filter(c => c.estado === 'cerrado').map(c => ({ tipo: 'cofre', cofre: c.id, item: c.tipo === 'raro' ? 'Cofre especial' : 'Cofre', ico: '🧰', ref: c.tipo === 'raro' ? 500000 : 100000 })))
+    .concat(misCofres.filter(c => c.estado === 'cerrado').map(c => ({ tipo: 'cofre', cofre: c.id, item: c.tipo === 'raro' ? 'Cofre especial' : 'Cofre', ico: '🧰', ref: c.tipo === 'raro' ? 400000 : 75000 })))
     .filter(x => !congeladas.some(p => p.id === claveMia(x)))
     .concat(congeladas.map(p => ({ tipo: p.tipo, mov: p.mov, gatito: p.gatito, cofre: p.cofre, item: p.item, ico: p.ico })));
   $('mios').innerHTML = !cuenta ? '<div class="vacio-merc">Necesitas tu cuenta del banco vinculada para vender.</div>'
