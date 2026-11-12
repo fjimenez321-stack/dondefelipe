@@ -996,6 +996,7 @@ function cofresPintar() {
   const saldoYa = cuenta ? cuenta.saldo || 0 : 0;
   const tienda = `<div class="cf-tienda">${['comun', 'raro'].map(t => `<button class="cf-comprar ${t}" type="button" data-cfcomprar="${t}"${saldoYa < COFRES.precio[t] ? ' disabled title="No te alcanza"' : ''}>
       <img src="cofres/${t === 'raro' ? 'especial' : 'cerrado'}.webp" alt="" width="56" height="56"><span><b>Comprar ${COFRES.nombre[t].toLowerCase()}</b><small>${fmt(COFRES.precio[t])}</small></span></button>`).join('')}</div>`;
+  if (location.hash === '#cofres' && !cofresPintar.ya) { cofresPintar.ya = true; setTimeout(() => box.scrollIntoView({ behavior: reducido ? 'auto' : 'smooth', block: 'start' }), 300); }
   box.innerHTML = `<h2>🧰 Tus cofres</h2>${tienda}
     ${cerrados.length ? `<p class="nota" style="margin:8px 0 0">Ábrelos cuando quieras: pueden traer Hipopesos, un gatito, un beneficio… o un castigo.</p>
     <div class="cf-lista">${cerrados.map(c => `<button class="cf-item ${c.tipo === 'raro' ? 'raro' : ''}" type="button" data-cofre="${esc(c.id)}">
