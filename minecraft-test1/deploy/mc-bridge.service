@@ -1,0 +1,13 @@
+[Unit]
+Description=Puente HTTP del server Test 1
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/dondefelipe/minecraft-test1/bridge
+ExecStart=/usr/bin/python3 %h/dondefelipe/minecraft-test1/bridge/agent.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

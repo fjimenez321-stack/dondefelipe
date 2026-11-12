@@ -1,0 +1,20 @@
+[Unit]
+Description=Minecraft Test 1 (Fabric 1.21.11)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/minecraft-test1
+ExecStart=/usr/lib/jvm/java-21-graalvm/bin/java -Xms1G -Xmx2G -XX:+UseG1GC -jar fabric-server-launch.jar nogui
+StandardInput=null
+StandardOutput=append:%h/minecraft-test1/console.log
+StandardError=inherit
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=90
+KillSignal=SIGTERM
+SuccessExitStatus=0 143
+Nice=5
+
+[Install]
+WantedBy=default.target

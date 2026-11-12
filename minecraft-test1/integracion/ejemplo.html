@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integración · Test 1</title>
+<style>
+  body{margin:0;background:#08080c;color:#f2f0e9;font:400 15px/1.6 "Space Grotesk",system-ui,sans-serif;padding:24px}
+  h1{font-family:"Big Shoulders Display",sans-serif;font-weight:800;font-size:26px;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px}
+  p{color:#8f9585;margin:0 0 18px;font-size:13px}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  button{font:700 10.5px/1 "Space Grotesk",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#f2f0e9;background:rgba(255,255,255,.06);border:1px solid #242835;border-radius:999px;padding:10px 15px;cursor:pointer}
+  input{font:inherit;font-size:13px;color:#f2f0e9;background:#12141c;border:1px solid #242835;border-radius:10px;padding:10px 12px;flex:1;min-width:120px}
+  code{background:#12141c;padding:1px 6px;border:1px solid #242835;border-radius:6px;font-size:12px}
+  #log{font-size:12px;color:#ccff00;min-height:1.4em;letter-spacing:.06em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<h1>Integración del server Test 1</h1>
+<p>Así queda el widget dentro de otra página, y así se le mandan órdenes desde fuera.</p>
+
+<div id="hueco"></div>
+
+<div class="bar">
+  <button data-a="start">Encender</button>
+  <button data-a="stop">Apagar</button>
+  <button data-a="restart">Reiniciar</button>
+</div>
+<div class="bar">
+  <input id="txt" placeholder="Mensaje al chat" maxlength="200">
+  <button id="say">Enviar</button>
+</div>
+<div class="bar">
+  <input id="url" placeholder="Dirección del puente">
+  <input id="key" type="password" placeholder="Clave">
+  <button id="save">Conectar</button>
+</div>
+<p id="log">esperando estado…</p>
+
+<script src="bridge.js"></script>
+<script>
+  const mc = MCTest1.mount(document.getElementById("hueco"), {
+    src: "../embed.html",
+    height: 340,
+    onState: (s) => {
+      document.getElementById("log").textContent =
+        (s.online ? "abierto" : "cerrado") + " · " + s.count + "/" + s.max + " jugando · " + s.hours + " h";
+    }
+  });
+
+  document.querySelectorAll("[data-a]").forEach((b) =>
+    b.addEventListener("click", () => mc.action(b.dataset.a))
+  );
+  document.getElementById("save").addEventListener("click", () => {
+    mc.config(document.getElementById("url").value.trim(), document.getElementById("key").value.trim());
+    document.getElementById("log").textContent = "puente configurado";
+  });
+  document.getElementById("say").addEventListener("click", () => {
+    const v = document.getElementById("txt").value.trim();
+    if (v) mc.say(v);
+  });
+</script>
+</body>
+</html>
