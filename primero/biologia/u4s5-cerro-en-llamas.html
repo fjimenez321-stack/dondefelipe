@@ -66,6 +66,7 @@ ul.clean li{padding:5px 0 5px 22px;position:relative}
 ul.clean li::before{content:"";position:absolute;left:4px;top:13px;width:8px;height:8px;border-radius:2px;background:var(--gold);transform:rotate(45deg)}
 .btn{border:none;border-radius:10px;padding:9px 16px;font-weight:700;font-size:.9rem;background:var(--blue);color:#fff}
 .btn:hover{filter:brightness(1.08)}
+a.btn{text-decoration:none;display:inline-block}
 .btn.gold{background:var(--gold)}
 .btn.ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -389,6 +390,53 @@ ol.qs li.on{background:var(--gold-l);border-radius:8px;font-weight:700;padding-l
   </div>
 </section>
 
+<!-- 6b · TUTORIAL DEL JUEGO -->
+<section class="slide" data-title="Cómo se juega">
+  <div class="wrap">
+    <div class="step"><b>5</b> Antes de jugar · tutorial rápido</div>
+    <h2>Cerro en llamas en 4 pasos</h2>
+    <div class="row" style="margin-bottom:14px">
+      <a class="btn gold" href="../../juegos/cerro-en-llamas.html" target="_blank" rel="noopener">🔥 Abrir el juego: reglas completas y tabla del dado ↗</a>
+      <a class="btn ghost" href="../../juegos/cerro-en-llamas-reglas.pdf" target="_blank" rel="noopener">Reglas en PDF ↗</a>
+    </div>
+    <div class="grid g4" style="align-items:start">
+      <div class="card blue"><span class="tag">1 · Diseñen el paisaje · 8 min</span>
+        <ul class="clean">
+          <li><b>Planificador:</b> pone de 4 a 10 casas, solo en las filas 6, 7 y 8.</li>
+          <li><b>Forestal y ecólogo:</b> reparten 24 árboles (eucalipto, pino o nativo), máximo 16 de cada tipo.</li>
+          <li><b>Brigadista:</b> pone hasta 6 cortafuegos.</li>
+          <li>Las casillas vacías son matorral, y también se queman.</li>
+        </ul></div>
+      <div class="card blue"><span class="tag">2 · Revelen las cartas</span>
+        <ul class="clean">
+          <li>La carta de <b>Clima</b> está boca arriba desde el inicio.</li>
+          <li>Saquen una foto del tablero.</li>
+          <li>Den vuelta <b>Inicio</b>: pongan el fuego en esa casilla y <b>predigan</b> hacia dónde irá.</li>
+          <li>Den vuelta <b>Viento</b>: la flecha muestra hacia dónde empuja el fuego.</li>
+        </ul></div>
+      <div class="card gold"><span class="tag g">3 · El fuego avanza</span>
+        <ul class="clean">
+          <li>Un dado por turno. El fuego puede pasar <b>adelante</b> (hacia el viento) y a <b>los lados</b>; nunca atrás ni en diagonal.</li>
+          <li>Cada casilla alcanzada se quema si el dado sale <b>igual o mayor</b> que su número en la tabla.</li>
+          <li><b>Pavesas:</b> con un 6 (o 5 y 6 en megasequía), si hay un eucalipto ardiendo, el fuego salta 2 casillas con el viento.</li>
+          <li>Al final de los turnos 2 y 4 llega un <b>bombero</b>: esa casilla ya no se quema.</li>
+          <li>El incendio termina con 2 turnos seguidos sin quemas, o al completar 8 turnos.</li>
+        </ul></div>
+      <div class="card gold"><span class="tag g">4 · Puntos y Ronda 2</span>
+        <ul class="clean">
+          <li>Cada rol suma sus puntos; el total es el puntaje del grupo.</li>
+          <li>Anoten los datos en la tabla del grupo.</li>
+          <li>Ronda 2: mismas cartas, cambien <b>solo</b> su variable independiente.</li>
+        </ul></div>
+    </div>
+    <table class="tb mt">
+      <tr><th>Tabla del dado</th><th>Eucalipto</th><th>Pino</th><th>Matorral</th><th>Nativo</th><th>Casa</th><th>Cortafuego</th></tr>
+      <tr><td class="k">Año normal</td><td>2 o más</td><td>3 o más</td><td>3 o más</td><td>4 o más</td><td>4 o más</td><td>nunca</td></tr>
+      <tr><td class="k">Sequía o megasequía</td><td>2 o más</td><td>2 o más</td><td>2 o más</td><td>3 o más</td><td>3 o más</td><td>nunca</td></tr>
+    </table>
+  </div>
+</section>
+
 <!-- 7 · EXPERIMENTO -->
 <section class="slide" data-title="5 · Experimento">
   <div class="wrap">
@@ -422,7 +470,7 @@ ol.qs li.on{background:var(--gold-l);border-radius:8px;font-weight:700;padding-l
       <div><b>REGISTRO</b>La brigadista anota en la tabla de datos (siguiente lámina).</div>
     </div>
     <div class="card mt">
-      <div class="row"><h3 style="margin:0;flex:1">¿Dudas con las reglas?</h3><a class="btn ghost" href="https://fjimenez321-stack.github.io/dondefelipe/juegos/cerro-en-llamas.html" target="_blank" rel="noopener">Ver reglas y tabla del dado ↗</a></div>
+      <div class="row"><h3 style="margin:0;flex:1">¿Dudas con las reglas?</h3><a class="btn ghost" href="../../juegos/cerro-en-llamas.html" target="_blank" rel="noopener">Ver reglas y tabla del dado ↗</a></div>
       <p class="small" style="margin:6px 0 0">Las reglas impresas también están en su mesa.</p>
     </div>
     <div class="mission" data-mission="m4" data-pts="25"><span class="txt"><b>Misión 4 · +25 F$</b> Todos los grupos jugaron las dos rondas cambiando una sola variable.</span><button class="btn gold">Misión cumplida</button><button class="btn ghost" data-timer="35">⏱ 35 min</button></div>
