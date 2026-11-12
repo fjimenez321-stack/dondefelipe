@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U4 · Cerro en llamas · Investigar un incendio</title>
+<style>
+:root{
+  --bg:#ffffff; --paper:#ffffff; --soft:#f5f8fd; --ink:#13254a; --ink-soft:#4b5d80; --line:#d9e2f1;
+  --blue:#1f4fb3; --blue-d:#13306f; --blue-l:#e6eefc; --sky:#3d7be0;
+  --gold:#c9961f; --gold-d:#8f6812; --gold-l:#fbf3dd; --gold-b:#ecd28f;
+  --red:#b3362b; --red-l:#fbe7e4;
+  --hud-h:58px; --nav-h:58px; --r:14px; --shadow:0 4px 18px rgba(19,37,74,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Segoe UI",Calibri,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;line-height:1.45}
+button,input,textarea,select{font-family:inherit}
+button{cursor:pointer}
+
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;height:var(--hud-h);display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--paper);border-bottom:3px solid var(--gold);z-index:20}
+.bloom{display:inline-flex;align-items:center;gap:6px;background:var(--blue-d);color:#fff;border-radius:999px;padding:4px 12px;font-size:.75rem;font-weight:700;letter-spacing:.08em;white-space:nowrap}
+.bloom i{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block}
+#hud .unit{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hud .unit b{color:var(--ink)}
+#hud .spacer{flex:1}
+#fp{display:flex;align-items:center;gap:10px;white-space:nowrap}
+#fp .coin{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f6dc8a,#c9961f);display:grid;place-items:center;font-weight:800;color:#5c4108;font-size:.8rem;box-shadow:inset 0 -2px 0 rgba(0,0,0,.15)}
+#fp .val{font-weight:800;font-size:1.1rem;min-width:3ch;text-align:right}
+#fp .bar{width:120px;height:8px;border-radius:99px;background:var(--blue-l);overflow:hidden}
+#fp .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--gold));transition:width .5s}
+.small{font-size:.85rem;color:var(--ink-soft)}
+
+/* slides */
+#deck{position:fixed;top:var(--hud-h);bottom:var(--nav-h);left:0;right:0}
+.slide{position:absolute;inset:0;padding:26px clamp(16px,4vw,56px) 40px;overflow-y:auto;opacity:0;visibility:hidden;transform:translateX(30px);transition:opacity .35s,transform .35s,visibility .35s}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.slide.prev{transform:translateX(-30px)}
+.wrap{max-width:1160px;margin:0 auto}
+.step{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-d)}
+.step b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--blue-d);color:#fff;font-size:.8rem;letter-spacing:0}
+.time{margin-left:6px;padding:2px 8px;border-radius:6px;background:var(--gold-l);color:var(--gold-d);letter-spacing:.04em}
+h1{font-size:clamp(2rem,4.4vw,3.3rem);line-height:1.08;margin:.25em 0 .3em;color:var(--blue-d)}
+h2{font-size:clamp(1.4rem,2.8vw,2.1rem);line-height:1.15;margin:.25em 0 .5em;color:var(--blue-d)}
+h3{font-size:1.05rem;margin-bottom:.35em;color:var(--blue-d)}
+p{margin-bottom:.6em}
+.lead{font-size:clamp(1.05rem,1.6vw,1.22rem);color:var(--ink-soft)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+.card.blue{background:var(--blue-l);border-color:#c7d7f6}
+.card.gold{background:var(--gold-l);border-color:var(--gold-b)}
+.card.navy{background:var(--blue-d);border-color:var(--blue-d);color:#fff}
+.card.navy h3{color:var(--gold-b)}
+.tag{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--blue);color:#fff;margin-bottom:6px}
+.tag.g{background:var(--gold);color:#fff}
+.tag.r{background:var(--red)}
+.num{font-size:2.3rem;font-weight:800;line-height:1;color:var(--blue-d)}
+.num small{font-size:1rem;font-weight:700;color:var(--ink-soft)}
+.src{font-size:.74rem;color:var(--ink-soft);margin-top:6px;font-style:italic}
+ul.clean{list-style:none}
+ul.clean li{padding:5px 0 5px 22px;position:relative}
+ul.clean li::before{content:"";position:absolute;left:4px;top:13px;width:8px;height:8px;border-radius:2px;background:var(--gold);transform:rotate(45deg)}
+.btn{border:none;border-radius:10px;padding:9px 16px;font-weight:700;font-size:.9rem;background:var(--blue);color:#fff}
+.btn:hover{filter:brightness(1.08)}
+.btn.gold{background:var(--gold)}
+.btn.ghost{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.mt{margin-top:16px}.mt2{margin-top:26px}
+
+/* WHO/WHAT */
+.wwhr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
+.wwhr div{background:var(--paper);border-left:5px solid var(--gold);border-radius:8px;padding:10px 12px;box-shadow:var(--shadow);font-size:.9rem}
+.wwhr b{display:block;font-size:.72rem;letter-spacing:.1em;color:var(--gold-d)}
+
+/* campos */
+.field{margin-top:12px}
+.field label{display:block;font-size:.8rem;font-weight:800;letter-spacing:.04em;color:var(--blue-d);margin-bottom:4px;text-transform:uppercase}
+.field textarea,.field input,.field select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:1rem;color:var(--ink);background:#fff;resize:vertical}
+.field textarea{min-height:64px}
+.field textarea:focus,.field input:focus,.field select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-l)}
+.hint{font-size:.8rem;color:var(--ink-soft);margin-top:3px}
+.saved{font-size:.75rem;color:var(--gold-d);margin-left:8px;opacity:0;transition:opacity .3s}
+.saved.on{opacity:1}
+
+/* ruta */
+.route{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.route div{border:1.5px solid var(--line);border-radius:12px;padding:12px;background:#fff;position:relative}
+.route div b{display:block;color:var(--blue-d)}
+.route div span{font-size:.78rem;color:var(--gold-d);font-weight:800}
+.route div.hl{border-color:var(--gold);background:var(--gold-l)}
+@media(max-width:760px){.route{grid-template-columns:repeat(2,1fr)}}
+
+/* comparación preguntas */
+.qcmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.qcmp .no{border-left:5px solid var(--red)}
+.qcmp .si{border-left:5px solid var(--blue)}
+@media(max-width:700px){.qcmp{grid-template-columns:1fr}}
+
+/* tabla juego-realidad */
+table.tb{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);font-size:.92rem}
+table.tb th{background:var(--blue-d);color:#fff;text-align:left;padding:9px 10px}
+table.tb th:first-child{background:var(--gold);color:#fff}
+table.tb td{border-top:1px solid var(--line);padding:9px 10px;vertical-align:top}
+table.tb tr:nth-child(even) td{background:var(--soft)}
+table.tb input{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:7px 8px;font-size:1rem;text-align:center}
+table.tb input:focus{outline:none;border-color:var(--gold)}
+table.tb td.k{font-weight:700;color:var(--blue-d)}
+table.tb td.calc{text-align:center;font-weight:800;color:var(--blue-d)}
+
+/* triángulo */
+.tri{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.tri svg{width:220px;height:auto;flex:0 0 auto}
+
+/* ruleta */
+#roulette .big{font-size:clamp(1.4rem,3vw,2rem);font-weight:800;color:var(--blue-d);min-height:2.6em;display:flex;align-items:center}
+#roulette .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#roulette .chips span{padding:6px 12px;border-radius:999px;background:var(--gold-l);border:1px solid var(--gold-b);font-weight:700;color:var(--gold-d)}
+ol.qs{padding-left:22px}
+ol.qs li{padding:5px 0}
+ol.qs li.on{background:var(--gold-l);border-radius:8px;font-weight:700;padding-left:6px;margin-left:-6px}
+
+/* misión */
+.mission{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;padding:12px 16px;border:1.5px dashed var(--gold);border-radius:12px;background:#fffdf6}
+.mission .txt{flex:1;min-width:220px;font-size:.92rem}
+.mission .txt b{color:var(--gold-d)}
+.mission .btn.done{background:var(--blue-d)}
+
+/* timer */
+#timer{position:fixed;right:16px;bottom:calc(var(--nav-h) + 12px);background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:8px 12px;display:flex;align-items:center;gap:8px;z-index:25}
+#timer.off{display:none}
+#timer .t{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.25rem;min-width:4.2ch;text-align:center;color:var(--blue-d)}
+#timer.end{background:var(--gold-l);border-color:var(--gold)}
+#timer button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 8px;font-size:.78rem}
+
+/* nav */
+#nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);display:flex;align-items:center;justify-content:center;gap:12px;background:#fff;border-top:1px solid var(--line);z-index:20;padding:0 10px}
+#nav .arr{width:42px;height:38px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:1.1rem;color:var(--ink)}
+#dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:70vw}
+#dots button{width:11px;height:11px;border-radius:50%;border:none;background:#cdd8ec;padding:0}
+#dots button.on{background:var(--gold);transform:scale(1.35)}
+#counter{font-size:.8rem;color:var(--ink-soft);min-width:52px;text-align:center}
+
+/* portada */
+.cover{display:grid;grid-template-columns:1.25fr 1fr;gap:30px;align-items:center;min-height:calc(100dvh - var(--hud-h) - var(--nav-h) - 70px)}
+.pill{border:1px solid var(--gold-b);background:var(--gold-l);color:var(--gold-d);border-radius:999px;padding:5px 12px;font-size:.82rem;font-weight:700}
+.cover .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.flame{width:100%;max-width:360px;justify-self:center}
+@media(max-width:820px){.cover{grid-template-columns:1fr}.flame{max-width:220px}#fp .bar{display:none}#hud .unit{display:none}}
+
+/* bitácora compilada */
+.bit{background:#fff;border:1.5px solid var(--blue-d);border-radius:var(--r);overflow:hidden}
+.bit .bh{background:var(--blue-d);color:#fff;padding:10px 14px;font-weight:800;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.bit .bh span{color:var(--gold-b);font-weight:600}
+.bit dl{display:grid;grid-template-columns:220px 1fr}
+.bit dt,.bit dd{padding:8px 12px;border-top:1px solid var(--line);font-size:.92rem}
+.bit dt{font-weight:800;color:var(--blue-d);background:var(--soft)}
+.bit dd{white-space:pre-wrap;min-height:2.2em}
+.bit dd.empty{color:#9aa8c3;font-style:italic}
+@media(max-width:640px){.bit dl{grid-template-columns:1fr}.bit dt{border-top:1px solid var(--line)}.bit dd{border-top:none}}
+
+/* PRINT */
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  html,body{height:auto!important}
+  body{overflow:visible;background:#fff}
+  .bit{page-break-inside:auto}
+  #hud,#nav,#timer,.slide:not(#s-bitacora),.no-print{display:none!important}
+  #deck{position:static}
+  #s-bitacora{position:static;opacity:1;visibility:visible;transform:none;overflow:visible;padding:0}
+  .bit{border-color:#000}
+  .bit .bh{background:#fff!important;color:#000;border-bottom:1.5px solid #000}
+  .bit .bh span{color:#000}
+  .bit dt{background:#eee!important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bit dt,.bit dd{border-top:1px solid #000;font-size:10.5pt}
+  .bit dd.empty{color:#fff}
+  .bit dd{min-height:12mm}
+  h2{color:#000}
+}
+</style>
+</head>
+<body>
+
+<header id="hud">
+  <span class="bloom"><i></i> EVALUAR</span>
+  <span class="unit"><b>Biología 1° Medio</b> · Unidad 4 · Sesión 5 · OA 8</span>
+  <span class="spacer"></span>
+  <div id="fp" title="Felipesos del curso en esta sesión">
+    <span class="coin">F$</span><span class="val" id="fpVal">0</span><span class="small">/ 100</span>
+    <span class="bar"><i id="fpBar"></i></span>
+  </div>
+</header>
+
+<main id="deck">
+
+<!-- 1 · PORTADA -->
+<section class="slide" data-title="Portada">
+  <div class="wrap cover">
+    <div>
+      <div class="step">Unidad 4 · Impactos en ecosistemas y sustentabilidad</div>
+      <h1>Cerro en llamas</h1>
+      <p class="lead">El 2 de febrero de 2024 el fuego bajó de los cerros hacia Viña del Mar, Quilpué y Villa Alemana. Hoy vamos a investigarlo como científicos: ¿qué variables hacen que un incendio forestal termine destruyendo una ciudad?</p>
+      <div class="meta">
+        <span class="pill">OA 8</span><span class="pill">Grupos de 4</span><span class="pill">90 minutos</span><span class="pill">Método científico</span>
+      </div>
+    </div>
+    <svg class="flame" viewBox="0 0 300 300" role="img" aria-label="Cerro con llamas junto a una ciudad">
+      <circle cx="150" cy="150" r="140" fill="#e6eefc"/>
+      <path d="M10 230 Q80 120 150 150 T290 220 L290 300 L10 300Z" fill="#13306f"/>
+      <path d="M10 250 Q90 190 170 205 T290 245 L290 300 L10 300Z" fill="#1f4fb3"/>
+      <g fill="#ffffff"><rect x="190" y="228" width="18" height="16"/><rect x="214" y="222" width="14" height="22"/><rect x="234" y="230" width="20" height="14"/><rect x="258" y="226" width="14" height="18"/></g>
+      <path d="M118 150 C100 120 128 105 120 78 C150 95 158 120 150 136 C160 128 162 116 160 106 C180 126 182 150 168 168 C156 182 128 178 118 150Z" fill="#c9961f"/>
+      <path d="M134 158 C126 142 140 132 138 118 C152 130 156 146 150 158 C146 166 138 166 134 158Z" fill="#fbf3dd"/>
+      <g fill="#c9961f"><circle cx="186" cy="110" r="3"/><circle cx="200" cy="96" r="2.5"/><circle cx="176" cy="88" r="2"/></g>
+    </svg>
+  </div>
+</section>
+
+<!-- 2 · RUTA -->
+<section class="slide" data-title="Ruta de la clase">
+  <div class="wrap">
+    <div class="step">Ruta de la clase · 90 minutos</div>
+    <h2>Investigamos como lo hace la ciencia</h2>
+    <p class="lead">Cada paso deja una huella en la <b>bitácora del grupo</b>. Al final, el profesor interrogará a cualquier integrante: todos deben poder explicar lo que hicieron.</p>
+    <div class="route">
+      <div><span>1 · 10’</span><b>Problemática</b>¿Qué nos preocupa de los incendios?</div>
+      <div><span>2 · 8’</span><b>Pregunta</b>¿Qué queremos averiguar?</div>
+      <div><span>3 · 10’</span><b>Variables e hipótesis</b>¿Qué cambiamos, qué medimos, qué esperamos?</div>
+      <div><span>4 · 7’</span><b>Contexto conceptual</b>¿Qué dice la ciencia del fuego?</div>
+      <div class="hl"><span>5 · 35’</span><b>Experimento</b>Cerro en llamas: dos rondas</div>
+      <div><span>6 · 8’</span><b>Conclusiones</b>¿Qué respondieron los datos?</div>
+      <div><span>7 · todo el tiempo</span><b>Bitácora</b>El registro del grupo</div>
+      <div class="hl"><span>8 · 10’</span><b>Interrogación grupal</b>Cualquiera puede ser elegido</div>
+    </div>
+    <div class="grid g4 mt2">
+      <div class="card"><h3>🌲 Gerenta forestal</h3><p class="small" style="margin:0">Planta eucaliptos y pinos.</p></div>
+      <div class="card"><h3>🌿 Ecólogo/a</h3><p class="small" style="margin:0">Defiende el bosque nativo.</p></div>
+      <div class="card"><h3>🏠 Planificador/a</h3><p class="small" style="margin:0">Construye las casas.</p></div>
+      <div class="card"><h3>🚒 Jefa/e de brigadistas</h3><p class="small" style="margin:0">Pone cortafuegos y bomberos. Además, escribe la bitácora.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · PROBLEMÁTICA -->
+<section class="slide" data-title="1 · Problemática">
+  <div class="wrap">
+    <div class="step"><b>1</b> Problemática <span class="time">10 min</span></div>
+    <h2>Lo que el fuego ya hizo en nuestra región</h2>
+    <div class="grid g3">
+      <div class="card gold">
+        <span class="tag g">Febrero de 2024 · Viña, Quilpué, Villa Alemana</span>
+        <div class="num">138 <small>víctimas fatales</small></div>
+        <p class="mt">7.236 hogares con su vivienda destruida · 11.349 hectáreas quemadas · 21.229 personas damnificadas.</p>
+        <p class="src">Fuentes: Fiscalía, vía CNN Chile; Ministerio de Desarrollo Social, Plan de Reconstrucción (2025).</p>
+      </div>
+      <div class="card blue">
+        <span class="tag">Abril de 2014 · Valparaíso</span>
+        <div class="num">15 <small>personas fallecidas</small></div>
+        <p class="mt">Más de 2.500 viviendas destruidas y cerca de 11.000 personas sin hogar. Comenzó en Camino La Pólvora, con fuertes vientos.</p>
+        <p class="src">Fuente: Wikipedia, «Great Fire of Valparaíso».</p>
+      </div>
+      <div class="card">
+        <span class="tag">Chile · causas</span>
+        <div class="num">99,7%</div>
+        <p class="mt">de los incendios forestales en Chile los provocan personas, por descuido o de manera intencional.</p>
+        <p class="src">Fuente: CONAF (2025).</p>
+      </div>
+      <div class="card">
+        <span class="tag">Chile central · dónde vivimos</span>
+        <div class="num">3 <small>millones</small></div>
+        <p class="mt">de personas viven en la <b>interfaz urbano-rural</b>, donde las casas tocan la vegetación. Ahí se origina el 60% de los incendios.</p>
+        <p class="src">Fuente: Centro de Ciencia del Clima y la Resiliencia (CR)², 2020.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Chile · qué se quema</span>
+        <div class="num">50%</div>
+        <p class="mt">de la superficie quemada en megaincendios entre 1985 y 2018 eran plantaciones, principalmente de pino y eucalipto.</p>
+        <p class="src">Fuente: citado en El Mostrador (17-02-2024).</p>
+      </div>
+      <div class="card navy">
+        <h3>Tarea del grupo</h3>
+        <p style="margin:0">Elijan <b>una problemática</b> que les preocupe de estos datos y escríbanla como un problema: <i>¿qué ocurre, dónde y a quién afecta?</i></p>
+      </div>
+    </div>
+    <div class="card mt">
+      <div class="field"><label for="f-problema">Nuestra problemática <span class="saved" data-for="f-problema">guardado</span></label>
+        <textarea id="f-problema" data-k="problema" placeholder="Ej.: En los cerros de Viña del Mar las casas están pegadas a plantaciones, y cuando hay un incendio el fuego llega a las viviendas antes de que se pueda controlar."></textarea></div>
+    </div>
+    <div class="mission" data-mission="m1" data-pts="10"><span class="txt"><b>Misión 1 · +10 F$</b> Todos los grupos tienen su problemática escrita.</span><button class="btn gold">Misión cumplida</button><button class="btn ghost" data-timer="10">⏱ 10 min</button></div>
+  </div>
+</section>
+
+<!-- 4 · PREGUNTA -->
+<section class="slide" data-title="2 · Pregunta">
+  <div class="wrap">
+    <div class="step"><b>2</b> Pregunta de investigación <span class="time">8 min</span></div>
+    <h2>Una buena pregunta se puede responder con un experimento</h2>
+    <p class="lead">En <b>Cerro en llamas</b> el clima, el punto de inicio y el viento vienen en cartas. Lo único que ustedes deciden es <b>el paisaje</b>. Por eso, su pregunta debe tratar de algo del paisaje que puedan <b>cambiar</b> entre la Ronda 1 y la Ronda 2.</p>
+    <div class="qcmp mt">
+      <div class="card no"><span class="tag r">No sirve</span>
+        <ul class="clean"><li>¿Por qué hay incendios? <span class="small">(demasiado amplia)</span></li><li>¿Quién quemó Viña del Mar? <span class="small">(no se responde con el juego)</span></li><li>¿El eucalipto es malo? <span class="small">(no dice qué medir)</span></li></ul>
+      </div>
+      <div class="card si"><span class="tag">Sí sirve</span>
+        <ul class="clean"><li>¿Cómo influye <b>el tipo de árbol más cercano a las casas</b> en <b>el número de casas quemadas</b>?</li><li>¿Cómo influye <b>la ubicación de los cortafuegos</b> en <b>el número de casillas quemadas</b>?</li><li>¿Cómo influye <b>la cantidad de eucaliptos</b> en <b>los saltos de fuego (pavesas)</b>?</li></ul>
+      </div>
+    </div>
+    <div class="card gold mt">
+      <h3>Molde para su pregunta</h3>
+      <p style="margin:0;font-size:1.1rem">¿Cómo influye <b>[lo que cambiamos en el paisaje]</b> en <b>[lo que medimos al final del incendio]</b>?</p>
+    </div>
+    <div class="card mt">
+      <div class="field"><label for="f-pregunta">Nuestra pregunta de investigación <span class="saved" data-for="f-pregunta">guardado</span></label>
+        <textarea id="f-pregunta" data-k="pregunta" placeholder="¿Cómo influye … en …?"></textarea></div>
+    </div>
+    <div class="mission" data-mission="m2" data-pts="10"><span class="txt"><b>Misión 2 · +10 F$</b> Cada grupo tiene una pregunta que se puede responder cambiando el paisaje.</span><button class="btn gold">Misión cumplida</button><button class="btn ghost" data-timer="8">⏱ 8 min</button></div>
+  </div>
+</section>
+
+<!-- 5 · VARIABLES E HIPÓTESIS -->
+<section class="slide" data-title="3 · Variables e hipótesis">
+  <div class="wrap">
+    <div class="step"><b>3</b> Variables e hipótesis <span class="time">10 min</span></div>
+    <h2>Cambiar una sola cosa a la vez</h2>
+    <div class="grid g3">
+      <div class="card blue"><span class="tag">Variable independiente</span><h3>Lo que ustedes cambian</h3><p class="small" style="margin:0">Una sola característica del paisaje: tipo de árbol, ubicación de los cortafuegos, distancia entre casas y plantación…</p></div>
+      <div class="card blue"><span class="tag">Variable dependiente</span><h3>Lo que miden</h3><p class="small" style="margin:0">Un número que se cuenta al final: casas quemadas, casillas quemadas, árboles nativos salvados, puntaje del grupo…</p></div>
+      <div class="card gold"><span class="tag g">Variables controladas</span><h3>Lo que se mantiene igual</h3><p class="small" style="margin:0">Las <b>mismas cartas</b> de clima, inicio y viento; la misma cantidad de casas y de árboles; todo el resto del paisaje.</p></div>
+    </div>
+    <div class="card mt" style="border-left:5px solid var(--red)">
+      <h3>Una variable que nadie controla: el dado</h3>
+      <p style="margin:0">El azar puede cambiar el resultado aunque el paisaje sea el mismo. Por eso, al concluir, compararemos con <b>otros grupos</b> que probaron algo parecido. Un solo experimento no basta.</p>
+    </div>
+    <div class="grid g2 mt">
+      <div class="card">
+        <div class="field"><label for="f-vi">Variable independiente <span class="saved" data-for="f-vi">guardado</span></label><input id="f-vi" data-k="vi" placeholder="Ej.: tipo de árbol en la fila 5, junto a las casas"></div>
+        <div class="field"><label for="f-vd">Variable dependiente <span class="saved" data-for="f-vd">guardado</span></label><input id="f-vd" data-k="vd" placeholder="Ej.: número de casas quemadas"></div>
+        <div class="field"><label for="f-vc">Variables controladas <span class="saved" data-for="f-vc">guardado</span></label><input id="f-vc" data-k="vc" placeholder="Ej.: mismas cartas, 8 casas, 24 árboles, mismos cortafuegos"></div>
+      </div>
+      <div class="card gold">
+        <h3>Hipótesis</h3>
+        <p class="small">Si [cambio en el paisaje], entonces [resultado esperado], porque [explicación científica].</p>
+        <div class="field"><label for="f-hipotesis">Nuestra hipótesis <span class="saved" data-for="f-hipotesis">guardado</span></label>
+          <textarea id="f-hipotesis" data-k="hipotesis" style="min-height:110px" placeholder="Si cambiamos los eucaliptos de la fila 5 por bosque nativo, entonces se quemarán menos casas, porque…"></textarea></div>
+        <p class="hint">El «porque» lo completarán mejor después del paso 4.</p>
+      </div>
+    </div>
+    <div class="mission" data-mission="m3" data-pts="15"><span class="txt"><b>Misión 3 · +15 F$</b> Cada grupo tiene sus tres variables y su hipótesis «si… entonces… porque».</span><button class="btn gold">Misión cumplida</button><button class="btn ghost" data-timer="10">⏱ 10 min</button></div>
+  </div>
+</section>
+
+<!-- 6 · CONTEXTO CONCEPTUAL -->
+<section class="slide" data-title="4 · Contexto conceptual">
+  <div class="wrap">
+    <div class="step"><b>4</b> Contexto conceptual <span class="time">7 min</span></div>
+    <h2>Lo que la ciencia sabe del fuego</h2>
+    <div class="grid g2">
+      <div class="card tri">
+        <svg viewBox="0 0 220 200" role="img" aria-label="Triángulo del fuego: combustible, oxígeno y calor">
+          <polygon points="110,14 206,182 14,182" fill="#fbf3dd" stroke="#c9961f" stroke-width="4"/>
+          <text x="110" y="120" text-anchor="middle" font-size="34">🔥</text>
+          <text x="110" y="10" text-anchor="middle" font-size="13" font-weight="700" fill="#13306f">CALOR</text>
+          <text x="6" y="198" font-size="13" font-weight="700" fill="#13306f">COMBUSTIBLE</text>
+          <text x="214" y="198" text-anchor="end" font-size="13" font-weight="700" fill="#13306f">OXÍGENO</text>
+        </svg>
+        <div style="flex:1;min-width:200px">
+          <h3>Triángulo del fuego</h3>
+          <p class="small">El fuego necesita los tres. Si se quita uno, se apaga. Un <b>cortafuego</b> es una franja sin combustible: rompe el triángulo.</p>
+        </div>
+      </div>
+      <div class="card gold">
+        <h3>Regla 30-30-30</h3>
+        <p class="small">El peligro se dispara cuando coinciden <b>más de 30 °C</b>, <b>menos de 30% de humedad</b> y <b>vientos de más de 30 km/h</b>. Con la <b>megasequía</b>, la vegetación de Chile central está más seca y arde con más facilidad.</p>
+        <p class="src">Fuente: Meteored Chile, «Factor 30-30-30».</p>
+      </div>
+    </div>
+    <table class="tb mt">
+      <tr><th>En el juego</th><th>En la realidad</th></tr>
+      <tr><td class="k">El eucalipto se quema con 2 o más</td><td>Sus hojas tienen aceites inflamables y su corteza se desprende en tiras secas que arden con facilidad.</td></tr>
+      <tr><td class="k">Pavesas: el fuego salta 2 casillas</td><td>Trozos de corteza encendida vuelan con el viento y prenden nuevos focos lejos del frente del incendio.</td></tr>
+      <tr><td class="k">El nativo resiste más (4 o más)</td><td>El bosque nativo es más húmedo y menos continuo que una plantación; en Chile, la mitad de lo quemado en megaincendios eran plantaciones.</td></tr>
+      <tr><td class="k">La carta de clima «Sequía» baja los números</td><td>Con menos agua en el suelo y en las plantas, todo combustible se enciende antes.</td></tr>
+      <tr><td class="k">El viento empuja el fuego hacia adelante</td><td>El viento aporta oxígeno e inclina las llamas hacia el combustible siguiente.</td></tr>
+      <tr><td class="k">Casas en las filas 6 a 8</td><td>La <b>interfaz urbano-rural</b>: barrios que tocan el cerro, como en Viña del Mar, Quilpué y Villa Alemana.</td></tr>
+    </table>
+    <p class="hint mt">Vuelvan a su hipótesis: ¿pueden mejorar el «porque» con alguna de estas ideas?</p>
+  </div>
+</section>
+
+<!-- 7 · EXPERIMENTO -->
+<section class="slide" data-title="5 · Experimento">
+  <div class="wrap">
+    <div class="step"><b>5</b> Experimento: Cerro en llamas <span class="time">35 min</span></div>
+    <h2>Dos rondas, una sola diferencia</h2>
+    <div class="grid g2">
+      <div class="card blue">
+        <span class="tag">Ronda 1 · paisaje base</span>
+        <ul class="clean">
+          <li>Diseñen el paisaje según las reglas (8 min).</li>
+          <li><b>Saquen una foto del tablero.</b></li>
+          <li>Den vuelta la carta de Inicio y <b>predigan</b>: ¿hacia dónde irá el fuego? ¿qué casas están en peligro?</li>
+          <li>Den vuelta la carta de Viento y jueguen el incendio.</li>
+          <li>Cuenten y anoten los resultados en la tabla de datos.</li>
+        </ul>
+      </div>
+      <div class="card gold">
+        <span class="tag g">Ronda 2 · experimento</span>
+        <ul class="clean">
+          <li>Saquen el fuego y vuelvan el tablero a la foto de la Ronda 1.</li>
+          <li>Cambien <b>solo su variable independiente</b>. Nada más.</li>
+          <li>Usen <b>las mismas cartas</b>: mismo clima, mismo inicio, mismo viento.</li>
+          <li>Jueguen el incendio y anoten los resultados.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="wwhr">
+      <div><b>QUIÉN</b>Grupos de 4, un rol por persona.</div>
+      <div><b>QUÉ</b>Ronda 1 (paisaje base) y Ronda 2 (con el cambio).</div>
+      <div><b>CUÁNTO</b>35 minutos para las dos rondas.</div>
+      <div><b>REGISTRO</b>La brigadista anota en la tabla de datos (siguiente lámina).</div>
+    </div>
+    <div class="card mt">
+      <div class="row"><h3 style="margin:0;flex:1">¿Dudas con las reglas?</h3><a class="btn ghost" href="https://fjimenez321-stack.github.io/dondefelipe/juegos/cerro-en-llamas.html" target="_blank" rel="noopener">Ver reglas y tabla del dado ↗</a></div>
+      <p class="small" style="margin:6px 0 0">Las reglas impresas también están en su mesa.</p>
+    </div>
+    <div class="mission" data-mission="m4" data-pts="25"><span class="txt"><b>Misión 4 · +25 F$</b> Todos los grupos jugaron las dos rondas cambiando una sola variable.</span><button class="btn gold">Misión cumplida</button><button class="btn ghost" data-timer="35">⏱ 35 min</button></div>
+  </div>
+</section>
+
+<!-- 8 · DATOS -->
+<section class="slide" data-title="5 · Tabla de datos">
+  <div class="wrap">
+    <div class="step"><b>5</b> Registro de datos</div>
+    <h2>Tabla de datos del grupo</h2>
+    <p class="lead">Anoten al apagarse cada incendio. El porcentaje y la diferencia se calculan solos.</p>
+    <table class="tb" id="datos">
+      <tr><th>Dato</th><th>Ronda 1 · base</th><th>Ronda 2 · con el cambio</th><th>Diferencia (R2 − R1)</th></tr>
+      <tr data-row="casas"><td class="k">Casas construidas</td><td><input type="number" min="0" data-k="r1_casas"></td><td><input type="number" min="0" data-k="r2_casas"></td><td class="calc">—</td></tr>
+      <tr data-row="casasq"><td class="k">Casas quemadas</td><td><input type="number" min="0" data-k="r1_casasq"></td><td><input type="number" min="0" data-k="r2_casasq"></td><td class="calc">—</td></tr>
+      <tr data-row="pct"><td class="k">% de casas quemadas</td><td class="calc" id="pct1">—</td><td class="calc" id="pct2">—</td><td class="calc" id="pctd">—</td></tr>
+      <tr data-row="euc"><td class="k">Eucaliptos quemados</td><td><input type="number" min="0" data-k="r1_euc"></td><td><input type="number" min="0" data-k="r2_euc"></td><td class="calc">—</td></tr>
+      <tr data-row="pin"><td class="k">Pinos quemados</td><td><input type="number" min="0" data-k="r1_pin"></td><td><input type="number" min="0" data-k="r2_pin"></td><td class="calc">—</td></tr>
+      <tr data-row="nat"><td class="k">Nativos quemados</td><td><input type="number" min="0" data-k="r1_nat"></td><td><input type="number" min="0" data-k="r2_nat"></td><td class="calc">—</td></tr>
+      <tr data-row="tot"><td class="k">Casillas quemadas en total</td><td><input type="number" min="0" data-k="r1_tot"></td><td><input type="number" min="0" data-k="r2_tot"></td><td class="calc">—</td></tr>
+      <tr data-row="pav"><td class="k">Saltos de fuego (pavesas)</td><td><input type="number" min="0" data-k="r1_pav"></td><td><input type="number" min="0" data-k="r2_pav"></td><td class="calc">—</td></tr>
+      <tr data-row="tur"><td class="k">Turnos que duró el incendio</td><td><input type="number" min="0" data-k="r1_tur"></td><td><input type="number" min="0" data-k="r2_tur"></td><td class="calc">—</td></tr>
+      <tr data-row="pts"><td class="k">Puntaje del grupo</td><td><input type="number" data-k="r1_pts"></td><td><input type="number" data-k="r2_pts"></td><td class="calc">—</td></tr>
+    </table>
+    <div class="card mt">
+      <div class="field"><label for="f-pred">Nuestra predicción antes de ver el viento (Ronda 1) <span class="saved" data-for="f-pred">guardado</span></label>
+        <input id="f-pred" data-k="prediccion" placeholder="Ej.: el fuego bajará por la columna D y quemará las casas de D6 y E6"></div>
+      <div class="field"><label for="f-obs">Algo que observamos durante el incendio <span class="saved" data-for="f-obs">guardado</span></label>
+        <input id="f-obs" data-k="observacion" placeholder="Ej.: una pavesa saltó el cortafuego de la fila 4"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · CONCLUSIONES -->
+<section class="slide" data-title="6 · Conclusiones">
+  <div class="wrap">
+    <div class="step"><b>6</b> Conclusiones <span class="time">8 min</span></div>
+    <h2>¿Qué respondieron los datos?</h2>
+    <div class="grid g2">
+      <div class="card">
+        <div class="field"><label for="f-hcump">¿Se cumplió la hipótesis? <span class="saved" data-for="f-hcump">guardado</span></label>
+          <select id="f-hcump" data-k="cumple"><option value="">Elijan…</option><option>Sí, se cumplió</option><option>No se cumplió</option><option>En parte</option><option>No podemos saberlo</option></select></div>
+        <div class="field"><label for="f-evid">Evidencia: el dato que lo demuestra <span class="saved" data-for="f-evid">guardado</span></label>
+          <textarea id="f-evid" data-k="evidencia" placeholder="Ej.: En la Ronda 1 se quemaron 5 de 8 casas (63%); en la Ronda 2, 2 de 8 (25%)."></textarea></div>
+        <div class="field"><label for="f-razon">Razonamiento: por qué pasó <span class="saved" data-for="f-razon">guardado</span></label>
+          <textarea id="f-razon" data-k="razonamiento" placeholder="Usen el contexto conceptual: combustible, pavesas, cortafuegos, sequía…"></textarea></div>
+      </div>
+      <div class="card gold">
+        <h3>Antes de confiar en su conclusión</h3>
+        <ul class="clean">
+          <li>¿Cambiaron <b>solo una</b> variable? Si cambiaron dos, no saben cuál produjo el resultado.</li>
+          <li>¿Cuánto pudo influir <b>el dado</b>? ¿Otro grupo obtuvo lo mismo?</li>
+          <li>¿Qué <b>no</b> tiene el juego? Pendiente del cerro, quebradas, basurales, personas que inician el fuego…</li>
+        </ul>
+        <div class="field"><label for="f-limite">Un límite de nuestro experimento <span class="saved" data-for="f-limite">guardado</span></label>
+          <textarea id="f-limite" data-k="limite"></textarea></div>
+        <div class="field"><label for="f-real">Consecuencia en la realidad: ¿qué medida proponemos para un cerro de nuestra región? <span class="saved" data-for="f-real">guardado</span></label>
+          <textarea id="f-real" data-k="medida"></textarea></div>
+      </div>
+    </div>
+    <div class="mission" data-mission="m5" data-pts="20"><span class="txt"><b>Misión 5 · +20 F$</b> Cada grupo tiene una conclusión con dato, razonamiento y un límite del experimento.</span><button class="btn gold">Misión cumplida</button><button class="btn ghost" data-timer="8">⏱ 8 min</button></div>
+  </div>
+</section>
+
+<!-- 10 · BITÁCORA -->
+<section class="slide" id="s-bitacora" data-title="7 · Bitácora">
+  <div class="wrap">
+    <div class="step no-print"><b>7</b> Bitácora de trabajo</div>
+    <h2>Bitácora del grupo · Cerro en llamas</h2>
+    <p class="lead no-print">Todo lo que escribieron en la clase queda reunido aquí. Revisen que no falte nada y guárdenla en PDF o impriman.</p>
+    <div class="card no-print" style="margin-bottom:14px">
+      <div class="grid g2" style="gap:10px">
+        <div class="field" style="margin:0"><label for="f-grupo">Grupo N° / integrantes <span class="saved" data-for="f-grupo">guardado</span></label><input id="f-grupo" data-k="grupo" placeholder="Grupo 3 · Nombres…"></div>
+        <div class="field" style="margin:0"><label for="f-curso">Curso y fecha <span class="saved" data-for="f-curso">guardado</span></label><input id="f-curso" data-k="curso" placeholder="1° Medio · fecha"></div>
+      </div>
+    </div>
+    <div class="bit" id="bitacora"></div>
+    <div class="row mt no-print"><button class="btn gold" id="btnPrint">🖨 Imprimir / guardar PDF</button><button class="btn ghost" id="btnClear">Borrar todo (nuevo grupo)</button></div>
+    <div class="mission no-print" data-mission="m6" data-pts="10"><span class="txt"><b>Misión 6 · +10 F$</b> Todos los grupos tienen su bitácora completa.</span><button class="btn gold">Misión cumplida</button></div>
+  </div>
+</section>
+
+<!-- 11 · INTERROGACIÓN -->
+<section class="slide" data-title="8 · Interrogación grupal">
+  <div class="wrap">
+    <div class="step"><b>8</b> Interrogación grupal <span class="time">10 min</span></div>
+    <h2>Cualquiera puede ser elegido</h2>
+    <p class="lead">La ruleta elige un grupo, un rol y una pregunta. Responde la persona que tiene ese rol, en voz alta y sin mirar la bitácora. Su grupo puede ayudar solo si el profesor lo permite.</p>
+    <div class="grid g2">
+      <div class="card navy" id="roulette">
+        <h3>Ruleta de la interrogación</h3>
+        <div class="row" style="gap:8px">
+          <label class="small" style="color:#fff" for="nGroups">Grupos en la sala:</label>
+          <input id="nGroups" type="number" min="1" max="15" value="8" style="width:70px;padding:6px;border-radius:8px;border:none;font-size:1rem">
+          <button class="btn gold" id="spin">Girar</button>
+        </div>
+        <div class="chips" id="rChips"><span>Grupo —</span><span>Rol —</span></div>
+        <div class="big" id="rQ" style="color:#fff">Pulsen «Girar».</div>
+      </div>
+      <div class="card">
+        <h3>Preguntas posibles</h3>
+        <ol class="qs" id="qList">
+          <li>¿Cuál era su pregunta de investigación?</li>
+          <li>¿Cuál fue su variable independiente y cuál la dependiente?</li>
+          <li>¿Qué mantuvieron igual entre la Ronda 1 y la Ronda 2? ¿Por qué era necesario?</li>
+          <li>¿Se cumplió su hipótesis? Muéstrenme el dato que lo prueba.</li>
+          <li>¿Por qué su resultado podría deberse al azar del dado?</li>
+          <li>¿Qué hace el eucalipto en el juego y por qué ocurre eso en la realidad?</li>
+          <li>¿Qué medida propondrían para un cerro de Viña, Quilpué o Villa Alemana? ¿Qué consecuencia evitaría?</li>
+          <li>¿Qué tiene un incendio real que el juego no considera?</li>
+        </ol>
+      </div>
+    </div>
+    <div class="mission" data-mission="m7" data-pts="10"><span class="txt"><b>Misión 7 · +10 F$</b> Al menos cuatro integrantes elegidos respondieron con datos de su grupo.</span><button class="btn gold">Misión cumplida</button><button class="btn ghost" data-timer="10">⏱ 10 min</button></div>
+  </div>
+</section>
+
+<!-- 12 · CIERRE -->
+<section class="slide" data-title="Cierre">
+  <div class="wrap">
+    <div class="step">Cierre</div>
+    <h2>Lo que nos llevamos</h2>
+    <div class="grid g3">
+      <div class="card blue"><span class="tag">Sobre los incendios</span><p style="margin:0">Casi todos los inicia una persona, pero lo que decide cuánto destruyen es el <b>paisaje</b>: qué se planta, dónde se construye y si hay franjas sin combustible.</p></div>
+      <div class="card gold"><span class="tag g">Sobre investigar</span><p style="margin:0">Un experimento justo cambia <b>una sola variable</b> y mantiene todo lo demás igual. Y como el azar existe, un solo resultado no basta: hay que repetir y comparar.</p></div>
+      <div class="card navy"><h3>Para pensar en casa</h3><p style="margin:0">Mira el cerro más cercano a tu casa. ¿Qué tiene plantado? ¿Hay algún cortafuego entre la vegetación y las viviendas?</p></div>
+    </div>
+    <div class="card mt" style="text-align:center">
+      <p class="small">Felipesos ganados por el curso en esta sesión</p>
+      <div class="num" id="fpFinal">0</div>
+      <p class="small">de 100</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div id="timer" class="off"><span class="t" id="tVal">--:--</span><button id="tToggle">▶</button><button id="tReset">↺</button><button id="tClose" title="Ocultar">✕</button></div>
+<nav id="nav">
+  <button class="arr" id="prev" aria-label="Anterior">←</button>
+  <div id="dots"></div>
+  <span id="counter"></span>
+  <button class="arr" id="next" aria-label="Siguiente">→</button>
+</nav>
+
+<script>
+(function(){
+  var KEY='u4_cerro_';
+  function sget(k,d){try{var v=localStorage.getItem(KEY+k);return v===null?d:JSON.parse(v);}catch(e){return d;}}
+  function sset(k,v){try{localStorage.setItem(KEY+k,JSON.stringify(v));}catch(e){}}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  /* navegación */
+  var slides=[].slice.call(document.querySelectorAll('.slide')),dots=document.getElementById('dots');
+  var cur=Math.min(sget('slide',0),slides.length-1);
+  slides.forEach(function(s,i){var b=document.createElement('button');b.title=(i+1)+'. '+(s.dataset.title||'');b.setAttribute('aria-label','Ir a lámina '+(i+1));b.addEventListener('click',function(){go(i);});dots.appendChild(b);});
+  function go(i){
+    if(i<0||i>=slides.length)return;
+    slides.forEach(function(s,j){s.classList.toggle('active',j===i);s.classList.toggle('prev',j<i);});
+    [].forEach.call(dots.children,function(d,j){d.classList.toggle('on',j===i);});
+    document.getElementById('counter').textContent=(i+1)+' / '+slides.length;
+    slides[i].scrollTop=0;cur=i;sset('slide',i);
+    if(slides[i].id==='s-bitacora')renderBit();
+  }
+  document.getElementById('prev').addEventListener('click',function(){go(cur-1);});
+  document.getElementById('next').addEventListener('click',function(){go(cur+1);});
+  document.addEventListener('keydown',function(e){
+    var t=e.target;if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable)return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(cur+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1);}
+    else if(e.key==='Home')go(0);else if(e.key==='End')go(slides.length-1);
+  });
+  var tx=null,ty=null,deck=document.getElementById('deck');
+  deck.addEventListener('touchstart',function(e){var t=e.target;if(t.closest('input,textarea,select'))return;tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+  deck.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)go(cur+(dx<0?1:-1));tx=null;},{passive:true});
+
+  /* Felipesos */
+  var done=sget('missions',{});
+  function paintFp(){
+    var t=0;[].forEach.call(document.querySelectorAll('.mission'),function(m){var ok=!!done[m.dataset.mission];if(ok)t+=+m.dataset.pts;var b=m.querySelector('.btn.gold');b.classList.toggle('done',ok);b.textContent=ok?'✓ Cumplida':'Misión cumplida';});
+    document.getElementById('fpVal').textContent=t;document.getElementById('fpBar').style.width=t+'%';document.getElementById('fpFinal').textContent=t;
+  }
+  [].forEach.call(document.querySelectorAll('.mission'),function(m){m.querySelector('.btn.gold').addEventListener('click',function(){done[m.dataset.mission]=!done[m.dataset.mission];sset('missions',done);paintFp();});});
+
+  /* campos guardados */
+  var data=sget('data',{});
+  [].forEach.call(document.querySelectorAll('[data-k]'),function(el){
+    var k=el.dataset.k;if(data[k]!==undefined)el.value=data[k];
+    var ev=el.tagName==='SELECT'?'change':'input';
+    el.addEventListener(ev,function(){
+      data[k]=el.value;sset('data',data);
+      if(el.id){var s=document.querySelector('.saved[data-for="'+el.id+'"]');if(s){s.classList.add('on');clearTimeout(s._t);s._t=setTimeout(function(){s.classList.remove('on');},900);}}
+      if(el.closest('#datos'))calcTable();
+    });
+  });
+
+  /* tabla de datos */
+  function num(k){var v=data[k];return(v===undefined||v==='')?null:+v;}
+  function fmt(n){return(n>0?'+':'')+n.toLocaleString('es-CL',{maximumFractionDigits:1});}
+  function calcTable(){
+    [].forEach.call(document.querySelectorAll('#datos tr[data-row]'),function(tr){
+      var r=tr.dataset.row;if(r==='pct')return;
+      var a=num('r1_'+r),b=num('r2_'+r),c=tr.querySelector('.calc');
+      c.textContent=(a!==null&&b!==null)?fmt(b-a):'—';
+    });
+    var p1=(num('r1_casas')&&num('r1_casasq')!==null)?num('r1_casasq')/num('r1_casas')*100:null;
+    var p2=(num('r2_casas')&&num('r2_casasq')!==null)?num('r2_casasq')/num('r2_casas')*100:null;
+    document.getElementById('pct1').textContent=p1===null?'—':Math.round(p1)+'%';
+    document.getElementById('pct2').textContent=p2===null?'—':Math.round(p2)+'%';
+    document.getElementById('pctd').textContent=(p1!==null&&p2!==null)?fmt(Math.round(p2-p1))+' pts':'—';
+  }
+  calcTable();
+
+  /* bitácora */
+  function v(k){return data[k]&&String(data[k]).trim()?data[k]:'';}
+  function renderBit(){
+    function row(lbl,val){return '<dt>'+lbl+'</dt><dd class="'+(val?'':'empty')+'">'+(val?esc(val):'(sin completar)')+'</dd>';}
+    function pair(r){var a=v('r1_'+r),b=v('r2_'+r);return(a||b)?('R1: '+(a||'—')+'   ·   R2: '+(b||'—')):'';}
+    var h='<div class="bh">Bitácora · Cerro en llamas<span>'+esc(v('grupo')||'Grupo ___')+' · '+esc(v('curso')||'1° Medio')+'</span></div><dl>'+
+      row('1 · Problemática',v('problema'))+
+      row('2 · Pregunta de investigación',v('pregunta'))+
+      row('3 · Variable independiente',v('vi'))+
+      row('Variable dependiente',v('vd'))+
+      row('Variables controladas',v('vc'))+
+      row('Hipótesis',v('hipotesis'))+
+      row('5 · Predicción (Ronda 1)',v('prediccion'))+
+      row('Casas quemadas / construidas',(v('r1_casasq')||v('r2_casasq'))?('R1: '+(v('r1_casasq')||'—')+' de '+(v('r1_casas')||'—')+'   ·   R2: '+(v('r2_casasq')||'—')+' de '+(v('r2_casas')||'—')):'')+
+      row('Casillas quemadas en total',pair('tot'))+
+      row('Árboles quemados (E · P · N)',(v('r1_euc')||v('r2_euc')||v('r1_nat')||v('r2_nat'))?('R1: '+(v('r1_euc')||0)+' · '+(v('r1_pin')||0)+' · '+(v('r1_nat')||0)+'   ·   R2: '+(v('r2_euc')||0)+' · '+(v('r2_pin')||0)+' · '+(v('r2_nat')||0)):'')+
+      row('Pavesas · turnos · puntaje',(v('r1_pav')||v('r1_tur')||v('r1_pts'))?('R1: '+(v('r1_pav')||'—')+' · '+(v('r1_tur')||'—')+' · '+(v('r1_pts')||'—')+'   ·   R2: '+(v('r2_pav')||'—')+' · '+(v('r2_tur')||'—')+' · '+(v('r2_pts')||'—')):'')+
+      row('Observación',v('observacion'))+
+      row('6 · ¿Se cumplió la hipótesis?',v('cumple'))+
+      row('Evidencia',v('evidencia'))+
+      row('Razonamiento',v('razonamiento'))+
+      row('Límite del experimento',v('limite'))+
+      row('Medida para nuestra región',v('medida'))+'</dl>';
+    document.getElementById('bitacora').innerHTML=h;
+  }
+  document.getElementById('btnPrint').addEventListener('click',function(){renderBit();window.print();});
+  document.getElementById('btnClear').addEventListener('click',function(){
+    if(!document.getElementById('btnClear').dataset.arm){var b=document.getElementById('btnClear');b.dataset.arm='1';b.textContent='¿Seguro? Pulsa otra vez';setTimeout(function(){delete b.dataset.arm;b.textContent='Borrar todo (nuevo grupo)';},3000);return;}
+    data={};sset('data',data);[].forEach.call(document.querySelectorAll('[data-k]'),function(el){el.value='';});calcTable();renderBit();
+    var b=document.getElementById('btnClear');delete b.dataset.arm;b.textContent='Borrar todo (nuevo grupo)';
+  });
+
+  /* ruleta (scoped a #roulette) */
+  var R=document.getElementById('roulette'),qs=[].slice.call(document.querySelectorAll('#qList li'));
+  var roles=['Gerenta forestal','Ecólogo/a','Planificador/a','Jefa/e de brigadistas'];
+  R.querySelector('#spin').addEventListener('click',function(){
+    var n=Math.max(1,Math.min(15,+R.querySelector('#nGroups').value||8)),k=0,btn=this;btn.disabled=true;
+    var iv=setInterval(function(){
+      var g=1+Math.floor(Math.random()*n),r=roles[Math.floor(Math.random()*4)],qi=Math.floor(Math.random()*qs.length);
+      R.querySelector('#rChips').innerHTML='<span>Grupo '+g+'</span><span>'+r+'</span>';
+      R.querySelector('#rQ').textContent=qs[qi].textContent;
+      qs.forEach(function(li,j){li.classList.toggle('on',j===qi);});
+      if(++k>14){clearInterval(iv);btn.disabled=false;}
+    },90);
+  });
+
+  /* temporizador */
+  var tEl=document.getElementById('timer'),tVal=document.getElementById('tVal'),tTog=document.getElementById('tToggle'),remain=0,base=0,iv=null;
+  function f2(s){s=Math.max(0,Math.round(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+  function paintT(){tVal.textContent=base?f2(remain):'--:--';}
+  function stopT(){clearInterval(iv);iv=null;tTog.textContent='▶';}
+  function startT(){if(!base)return;if(remain<=0)remain=base;tEl.classList.remove('end');tTog.textContent='❚❚';var last=Date.now();iv=setInterval(function(){var n=Date.now();remain-=(n-last)/1000;last=n;if(remain<=0){remain=0;stopT();tEl.classList.add('end');}paintT();},250);}
+  tTog.addEventListener('click',function(){iv?stopT():startT();});
+  document.getElementById('tReset').addEventListener('click',function(){stopT();remain=base;tEl.classList.remove('end');paintT();});
+  document.getElementById('tClose').addEventListener('click',function(){stopT();tEl.classList.add('off');});
+  [].forEach.call(document.querySelectorAll('[data-timer]'),function(b){b.addEventListener('click',function(){stopT();tEl.classList.remove('off');base=remain=(+b.dataset.timer)*60;paintT();startT();});});
+
+  paintFp();paintT();go(cur);
+})();
+</script>
+</body>
+</html>
