@@ -379,6 +379,7 @@ const R = window.RAREZAS, G = window.GATITOS, gato = id => G.find(g => g.id === 
 const ms = t => (t && t.toMillis ? t.toMillis() : (t && t.toDate ? t.toDate().getTime() : (typeof t === 'number' ? t : 0)));
 let usuario = null, esProfe = false, cuentaId = null, cuenta = null, coleccion = { ids: [], favorito: null };
 let regRec = [], regEnv = [], cuentasDir = null;
+let misCofres = [];   // cofres sin abrir de mi cuenta (se pueden vender)
 let publicaciones = [], misPedidos = [], misVentas = [], misBenef = [], poderHoy = null, poderMes = {}, premios = {}, reclamando = false;
 // Fecha de adquisición: se consultan solo los movimientos de los gatitos que tienes (una vez por gatito),
 // no todos los movimientos de la cuenta.
@@ -758,7 +759,7 @@ async function cargar() {
   unsubs.push(F.onSnapshot(F.collection(db, 'tienda_articulos'), s => { articulos = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); }, () => {}));
   unsubs.push(F.onSnapshot(F.collection(db, 'gatitos_ofertas'), s => { ofertas = s.docs.map(d => Object.assign({ id: d.id }, d.data())); pintar(); },
     e => aviso('No se pudieron leer las ofertas: ' + esc(e.message), 'err')));
-  regRec = []; regEnv = []; misPedidos = []; misVentas = []; misBenef = []; publicaciones = []; poderHoy = null; poderMes = {}; premios = {}; adquiridos = {}; fechasPedidas = new Set();
+  regRec = []; regEnv = []; misPedidos = []; misVentas = []; misBenef = []; misCofres = []; publicaciones = []; poderHoy = null; poderMes = {}; premios = {}; adquiridos = {}; fechasPedidas = new Set();
   if (usuario) {
     // Antes se escuchaba mercado_items completo (incluidas las publicaciones vendidas y retiradas, que
     // nunca se borran). Ahora: las activas de todos + todas las propias (para poder republicar).
@@ -789,6 +790,10 @@ async function cargar() {
         unsubs.push(F.onSnapshot(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('canje', '==', 'pendiente')), s => {
           const todos = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
           misBenef = todos.filter(m => m.canje === 'pendiente' && m.item && m.item !== 'Ruleta: disertación' && m.tipo !== 'poder-gatito' && m.tipo !== 'poder-mensual' && m.tipo !== 'premio-gatito');
+          pintar(); }, () => {}));
+        // cofres sin abrir (se pueden poner a la venta)
+        unsubs.push(F.onSnapshot(F.query(F.collection(db, 'cofres'), F.where('cuenta', '==', cuentaId)), s => {
+          misCofres = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(c => c.cuenta === cuentaId && (c.estado === 'cerrado' || c.estado === 'en-venta'));
           pintar(); }, () => {}));
         // regalos recibidos y enviados
         const msR = t => (t && t.toMillis ? t.toMillis() : 0);
@@ -1038,7 +1043,10 @@ async function accionArticulo(a, id) {
 const EST_P = { pendiente: '<span class="chip lim">Retenido · esperando al profe</span>', aprobada: '<span class="chip ok">Autorizada</span>', rechazada: '<span class="chip hot">Rechazada</span>', cancelada: '<span class="chip">Cancelada</span>' };
 const nombreCorto = () => DF.nombreCorto(usuario.displayName, usuario.email).slice(0, 40);
 const nombreCuenta = () => ((cuenta.nombre || '') + ' ' + (cuenta.apellido || '')).trim() || nombreCorto();
-const icoHtml = x => x.tipo === 'gatito' || x.gatito ? `<img src="gatitos/img/${esc(x.gatito)}.webp" alt="">` : esc(x.ico || '🎟️');
+const icoHtml = x => x.tipo === 'cofre' ? `<img src="cofres/${x.item === 'Cofre especial' ? 'especial' : 'cerrado'}.webp" alt="">`
+  : x.tipo === 'gatito' || x.gatito ? `<img src="gatitos/img/${esc(x.gatito)}.webp" alt="">` : esc(x.ico || '🎟️');
+// Id de la publicación de cada cosa mía: gatito g-<uid>-<gatito> · beneficio b-<mov> · cofre c-<cofre>-<cuenta>
+const claveMia = x => x.tipo === 'gatito' ? 'g-' + usuario.uid + '-' + x.gatito : x.tipo === 'cofre' ? 'c-' + x.cofre + '-' + cuentaId : 'b-' + x.mov;
 function botonPedir(clave, precio, extra) {
   if (!usuario) return '<button class="btn" data-a="entrar">Entrar</button>';
   if (!cuenta) return '<button class="btn" disabled>Sin cuenta</button>';
@@ -1068,21 +1076,21 @@ function pintarEstudiantes() {
         <span class="chip">📦 Artículo físico</span><h3>${esc(x.item)}</h3><p>${esc(x.desc || '')}</p><p><i class="fa-solid fa-user"></i> Vende <a href="perfil.html?u=${encodeURIComponent(x.uid)}" style="color:inherit">${esc(x.vendedorNombre)}</a></p>
         <div class="pie"><span class="precio">${fmt(x.precio)}</span>${acc}</div></article>`; }
     return `<article class="item"${r ? ` style="--rc:${r.color}"` : ''}><div class="ico">${icoHtml(x)}</div>
-      ${r ? `<span class="rz" style="background:${r.color}">${esc(r.nombre)}</span>` : '<span class="chip">Beneficio sin usar</span>'}
+      ${r ? `<span class="rz" style="background:${r.color}">${esc(r.nombre)}</span>` : x.tipo === 'cofre' ? `<span class="chip">🧰 Cofre sin abrir${x.item === 'Cofre especial' ? ' · ✨ especial' : ''}</span>` : '<span class="chip">Beneficio sin usar</span>'}
       <h3>${esc(x.item)}</h3><p><i class="fa-solid fa-user"></i> Vende <a href="perfil.html?u=${encodeURIComponent(x.uid)}" style="color:inherit">${esc(x.vendedorNombre)}</a></p>
       <div class="pie"><span class="precio">${fmt(x.precio)}</span>${acc}</div></article>`;
   }).join('') || '<div class="vacio-merc" style="grid-column:1/-1"><img src="mercado/sprites/gato-duerme.webp" alt=""><p>Nadie está vendiendo nada por ahora. ¿Tienes algo sin usar? Véndelo en «Vender lo mío».</p></div>';
 }
 function filaMia(x, pub) {
-  const clave = x.tipo === 'gatito' ? 'g-' + usuario.uid + '-' + x.gatito : 'b-' + x.mov;
+  const clave = claveMia(x);
   const est = pub ? pub.estado : '';
   if (est === 'reservado') return `<div class="it"><span class="ico-m">${icoHtml(x)}</span><div class="t"><b>${esc(x.item)}</b>
     <small>🔒 Reservado por un comprador a ${fmt(pub.precio)} · congelado hasta que el profe autorice</small></div><span class="chip lim">Esperando al profe</span></div>`;
   const enVenta = est === 'venta';
   return `<div class="it" data-mia="${esc(clave)}"><span class="ico-m">${icoHtml(x)}</span><div class="t"><b>${esc(x.item)}</b>
-    <small>${x.tipo === 'gatito' ? 'Gatito' : 'Beneficio sin usar'}${enVenta ? ' · 🔒 <b style="color:var(--acid)">en venta a ' + fmt(pub.precio) + '</b> (congelado: no está en tu cuenta mientras se vende)' : ''}</small></div>
+    <small>${x.tipo === 'gatito' ? 'Gatito' : x.tipo === 'cofre' ? 'Cofre sin abrir (quien lo compre lo abre)' : 'Beneficio sin usar'}${enVenta ? ' · 🔒 <b style="color:var(--acid)">en venta a ' + fmt(pub.precio) + '</b> (congelado: no está en tu cuenta mientras se vende)' : ''}</small></div>
     <input type="number" min="100" step="500" placeholder="Precio ₣" value="${pub ? pub.precio : (x.ref || '')}" aria-label="Precio">
-    <button class="btn ${enVenta ? '' : 'p'}" data-publicar>${enVenta ? 'Cambiar precio' : 'Poner a la venta'}</button>${enVenta ? '<button class="btn" data-retirar>Retirar y recuperar</button>' : '<button class="btn" data-regalar>🎁 Regalar</button>'}</div>`;
+    <button class="btn ${enVenta ? '' : 'p'}" data-publicar>${enVenta ? 'Cambiar precio' : 'Poner a la venta'}</button>${enVenta ? '<button class="btn" data-retirar>Retirar y recuperar</button>' : x.tipo === 'cofre' ? '' : '<button class="btn" data-regalar>🎁 Regalar</button>'}</div>`;
 }
 function pintarMio() {
   if (!usuario || esProfe) return;
@@ -1092,10 +1100,11 @@ function pintarMio() {
   const congeladas = publicaciones.filter(p => p.uid === usuario.uid && p.tipo !== 'fisico' && (p.estado === 'venta' || p.estado === 'reservado'));
   const items = misBenef.map(m => ({ tipo: 'beneficio', mov: m.id, item: m.item, ico: ref(m.item).ico || '🎟️', ref: ref(m.item).precio || '' }))
     .concat((coleccion.ids || []).map(id => { const g = gato(id) || { nombre: id, precio: '' }; return { tipo: 'gatito', gatito: id, item: g.nombre, ico: '🐱', ref: g.precio }; }))
-    .filter(x => !congeladas.some(p => p.id === (x.tipo === 'gatito' ? 'g-' + usuario.uid + '-' + x.gatito : 'b-' + x.mov)))
-    .concat(congeladas.map(p => ({ tipo: p.tipo, mov: p.mov, gatito: p.gatito, item: p.item, ico: p.ico })));
+    .concat(misCofres.filter(c => c.estado === 'cerrado').map(c => ({ tipo: 'cofre', cofre: c.id, item: c.tipo === 'raro' ? 'Cofre especial' : 'Cofre', ico: '🧰', ref: c.tipo === 'raro' ? 500000 : 100000 })))
+    .filter(x => !congeladas.some(p => p.id === claveMia(x)))
+    .concat(congeladas.map(p => ({ tipo: p.tipo, mov: p.mov, gatito: p.gatito, cofre: p.cofre, item: p.item, ico: p.ico })));
   $('mios').innerHTML = !cuenta ? '<div class="vacio-merc">Necesitas tu cuenta del banco vinculada para vender.</div>'
-    : items.map(x => filaMia(x, pubDe(x.tipo === 'gatito' ? 'g-' + usuario.uid + '-' + x.gatito : 'b-' + x.mov))).join('') || '<p class="intro">No tienes beneficios sin usar ni gatitos para vender.</p>';
+    : items.map(x => filaMia(x, pubDe(claveMia(x)))).join('') || '<p class="intro">No tienes beneficios sin usar, gatitos ni cofres para vender.</p>';
   $('misVentas').innerHTML = misVentas.length ? misVentas.map(p => `<div class="it"><span class="ico-m">${icoHtml(p)}</span><div class="t"><b>${esc(p.item)}</b><small>${esc(p.compradorNombre)} lo pidió por ${fmt(p.precio)}${p.nota ? ' · ' + esc(p.nota) : ''}</small></div>${EST_P[p.estado] || ''}</div>`).join('')
     : '<p class="intro">Todavía nadie te ha comprado nada.</p>';
   pintarRegalos();
@@ -1385,19 +1394,24 @@ async function publicarMio(fila) {
   if (precio < 100) return aviso('Pon un precio de al menos 100 ₣.', 'err');
   const { F, db } = await DF.listo(), ref = F.doc(db, 'mercado_items', clave), prev = publicaciones.find(p => p.id === clave);
   const esG = clave.indexOf('g-') === 0, gid = esG ? clave.slice(('g-' + usuario.uid + '-').length) : null;
+  const esC = clave.indexOf('c-') === 0, cid = esC ? clave.slice(2, clave.length - ('-' + cuentaId).length) : null, cof = esC ? misCofres.find(c => c.id === cid) : null;
   try {
     if (prev && prev.estado === 'venta') {   // solo cambia el precio (el objeto ya está congelado)
       await F.updateDoc(ref, { precio, actualizado: F.serverTimestamp() });
     } else {
-      if (!confirm(`¿Poner a la venta «${prev ? prev.item : esG ? (gato(gid) || {}).nombre : (misBenef.find(x => 'b-' + x.id === clave) || {}).item}» a ${fmt(precio)}?\nMientras esté publicado sale de tu cuenta (queda congelado). Puedes retirarlo y recuperarlo cuando quieras, salvo que alguien ya lo haya pedido.`)) return;
+      if (esC && !cof) return aviso('Ese cofre ya no está en tu cuenta.', 'err');
+      if (!confirm(`¿Poner a la venta «${prev ? prev.item : esG ? (gato(gid) || {}).nombre : esC ? (cof.tipo === 'raro' ? 'Cofre especial' : 'Cofre') : (misBenef.find(x => 'b-' + x.id === clave) || {}).item}» a ${fmt(precio)}?\nMientras esté publicado sale de tu cuenta (queda congelado). Puedes retirarlo y recuperarlo cuando quieras, salvo que alguien ya lo haya pedido.`)) return;
       await F.runTransaction(db, async b => {
       const rgc = F.doc(db, 'gatitos', usuario.uid), sgc = esG ? await b.get(rgc) : null;
+      const rcf = esC ? F.doc(db, 'cofres', cid) : null, scf = rcf ? await b.get(rcf) : null;
+      if (esC && (!scf.exists() || scf.data().estado !== 'cerrado' || scf.data().cuenta !== cuentaId)) throw new Error('ese cofre ya no está disponible (¿lo abriste?)');
       const col = sgc && sgc.exists() ? sgc.data() : coleccion;
       if (esG && !(col.ids || []).includes(gid)) throw new Error('ese gatito ya no está en tu colección');
       if (prev) b.update(ref, { precio, estado: 'venta', actualizado: F.serverTimestamp() });
       else {
-        const base = { tipo: esG ? 'gatito' : 'beneficio', vendedor: cuentaId, vendedorNombre: nombreCorto(), uid: usuario.uid, precio, estado: 'venta', creada: F.serverTimestamp(), actualizado: F.serverTimestamp() };
+        const base = { tipo: esG ? 'gatito' : esC ? 'cofre' : 'beneficio', vendedor: cuentaId, vendedorNombre: nombreCorto(), uid: usuario.uid, precio, estado: 'venta', creada: F.serverTimestamp(), actualizado: F.serverTimestamp() };
         if (esG) { const g = gato(gid); Object.assign(base, { gatito: gid, item: g ? g.nombre : gid, ico: '🐱' }); }
+        else if (esC) Object.assign(base, { cofre: cid, item: scf.data().tipo === 'raro' ? 'Cofre especial' : 'Cofre', ico: '🧰' });
         else { const m = misBenef.find(x => 'b-' + x.id === clave); Object.assign(base, { mov: m.id, item: m.item, ico: (BENEF.find(x => x.nombre === m.item) || {}).ico || '🎟️' }); }
         b.set(ref, base);
       }
@@ -1406,7 +1420,8 @@ async function publicarMio(fila) {
         const ids = (col.ids || []).filter(x => x !== gid);
         b.set(rgc, { uid: usuario.uid, nombre: String(col.nombre || nombreCorto()).slice(0, 80), ids,
           favorito: ids.includes(col.favorito) ? col.favorito : (ids[0] || null), actualizado: F.serverTimestamp() });
-      } else b.update(F.doc(db, 'banco_movs', (prev && prev.mov) || clave.slice(2)), { canje: 'en-venta' });
+      } else if (esC) b.update(rcf, { estado: 'en-venta' });
+      else b.update(F.doc(db, 'banco_movs', (prev && prev.mov) || clave.slice(2)), { canje: 'en-venta' });
       });
     }
     aviso(`✓ Publicado a ${fmt(precio)}. Aparece en «Entre estudiantes».`, 'ok');
@@ -1428,7 +1443,8 @@ async function retirarMio(fila) {
         const ids = (col.ids || []).concat([pub.gatito]);
         b.set(rgc, { uid: usuario.uid, nombre: String(col.nombre || nombreCorto()).slice(0, 80), ids,
           favorito: ids.includes(col.favorito) ? col.favorito : pub.gatito, actualizado: F.serverTimestamp() });
-      } else b.update(F.doc(db, 'banco_movs', pub.mov), { canje: 'pendiente' });
+      } else if (pub.tipo === 'cofre') b.update(F.doc(db, 'cofres', pub.cofre), { estado: 'cerrado' });
+      else b.update(F.doc(db, 'banco_movs', pub.mov), { canje: 'pendiente' });
     });
     aviso('Publicación retirada: lo recuperaste.', 'ok'); }
   catch (e) { aviso('No se pudo retirar: ' + esc(e.message), 'err'); }

@@ -192,7 +192,7 @@ h1 span{color:var(--acid)}
         <h2>Probabilidades</h2>
         <table class="prob" id="prob"></table>
         <p class="nota">La ruleta tiene 32 casillas iguales y cada una sale con la misma probabilidad (1 de 32). Si un castigo es mayor que tu saldo, quedas en 0. Si ganas un gatito que ya tenías, recibes su precio en Hipopesos. Si un castigo cae sobre algo que no tienes, se paga en Hipopesos. Solo se pueden escapar gatitos comunes y poco comunes.</p>
-        <p class="nota">🔒 <b>Juego limpio:</b> al girar se retienen hasta 330.000 ₣ y el servidor anota su hora exacta; el resultado sale de esa hora, así que nadie puede saberlo antes. Lo retenido vuelve con tu premio en el mismo giro. Máximo 3 tiros por día, de 08:00 a 16:00 (hora de Chile).</p>
+        <p class="nota">🔒 <b>Juego limpio:</b> al girar se retienen hasta 330.000 ₣ y el servidor anota su hora exacta; el resultado sale de esa hora, así que nadie puede saberlo antes. Lo retenido vuelve con tu premio en el mismo giro. Máximo 5 tiros por día, de 08:00 a 16:00 (hora de Chile).</p>
       </section>
       <section class="card" id="disert" hidden></section>
       <section class="card">
@@ -251,11 +251,12 @@ const TEMAS = [
 //  d dinero · b beneficio o décimas por canjear · D disertación · g gatito común · G gatito sorpresa
 //  A acciones de regalo por ₣v · V pierde acciones por hasta ₣v · E se escapa un gatito · P pierde un beneficio.
 //  (A, V, E y P: si no tiene esa cosa, recibe o paga v en Hipopesos.)
+//  C cofre: 1 de 32 por tiro; el 4º carácter del hash decide si es especial ('f', 1 de 16) o básico.
 const TABLA = [
   ['d', 500000], ['D', DISERTACION], ['b', 'Ruleta: 1 décima formativa'], ['d', -120000],
   ['A', 100000], ['d', -60000], ['g'], ['V', 150000],
   ['d', 200000], ['d', -30000], ['b', 'Ruleta: pase de tarea'], ['E', 60000],
-  ['d', 90000], ['d', -200000], ['b', 'Ruleta: 1 décima sumativa'], ['d', 0],
+  ['d', 90000], ['d', -200000], ['b', 'Ruleta: 1 décima sumativa'], ['C'],
   ['d', 300000], ['D', DISERTACION], ['b', 'Ruleta: 2 décimas formativas'], ['d', -90000],
   ['G'], ['P', 100000], ['d', 60000], ['d', -300000],
   ['b', 'Ruleta: 5 minutos extra en una prueba'], ['d', -60000], ['d', 120000], ['g'],
@@ -288,6 +289,7 @@ const CASILLA = i => {
     case 'V': return { tipo: 'pierdeAcciones', emoji: '📉', txt: '−Acciones', color: '#b23a48', v: t[1], castigo: true };
     case 'E': return { tipo: 'escapa', emoji: '🏃', txt: 'Se escapa', color: '#c2410c', v: t[1], castigo: true };
     case 'P': return { tipo: 'pierdeBenef', emoji: '🗑️', txt: '−Benef.', color: '#9f2a5a', v: t[1], castigo: true };
+    case 'C': return { tipo: 'cofre', emoji: '🧰', txt: 'Cofre', color: '#b8860b' };
   }
   const d = t[1], e = ESTILO[d];
   return { tipo: d > 0 ? 'premio' : d < 0 ? 'castigo' : 'nada', emoji: e[1], txt: corto(d), color: e[0], dinero: d, castigo: d < 0 };
@@ -323,6 +325,7 @@ function resultadoDe(h, retenido, ids, cosas) {
     if (r.yaTenia) r.premio = precioGatito(r.gatito);
   } else if (cas.tipo === 'beneficio') r.beneficio = cas.beneficio;
   else if (cas.tipo === 'disertacion') r.tema = TEMAS[parseInt(h[3], 16)];
+  else if (cas.tipo === 'cofre') r.cofreTipo = h[3] === 'f' ? 'raro' : 'comun';
   else if (cas.tipo === 'acciones') {
     const l = cosas.activas;
     if (l.length) { const t = l[sub % l.length], p = cosas.empresas[t].precio; r.accion = { ticker: t, precio: p, acciones: p >= cas.v ? 1 : Math.floor(cas.v / p) }; }
@@ -353,6 +356,7 @@ function motivoDe(r, n) {
     case 'escapa': return base + (r.escapa ? 'se escapa ' + nombreGatito(r.escapa) : 'se escapa un gatito (no tenía: −' + fmt(-r.premio) + ')') + neto;
     case 'pierdeBenef': return base + (r.pierde ? 'pierde «' + String(r.pierde.item).replace(/^Ruleta: /, '') + '»' : 'pierde un beneficio (no tenía: −' + fmt(-r.premio) + ')') + neto;
     case 'nada': return base + 'casilla vacía' + neto;
+    case 'cofre': return base + 'gana un ' + (r.cofreTipo === 'raro' ? 'cofre especial' : 'cofre') + neto;
   }
   return base + (r.premio > 0 ? 'gana ' : 'pierde ') + fmt(Math.abs(r.premio)) + (r.alCero ? ', saldo queda en 0' : '') + neto;
 }
@@ -600,8 +604,14 @@ async function resolver() {
     if (rm) mov.pierde = res.pierde.id;
     const idMov = 'op-' + cuentaId + '-' + ops;
     tx.set(F.doc(db, 'banco_movs', idMov), mov);
+    if (res.tipo === 'cofre') {   // el cofre nace cerrado en la misma escritura
+      mov.cofre = 'r-' + cuentaId + '-' + n; res.cofreId = mov.cofre;
+      tx.set(F.doc(db, 'banco_movs', idMov), mov);
+      tx.set(F.doc(db, 'cofres', mov.cofre), { cuenta: cuentaId, nombre: nom.slice(0, 120), curso: String(c.curso || '').slice(0, 40), tipo: res.cofreTipo,
+        estado: 'cerrado', motivo: 'Ganado en la ruleta (tiro ' + n + ')', creado: F.serverTimestamp(), profe: '' });
+    }
     // Resumen para la página (las reglas comprueban que el balance sume exactamente este tiro).
-    const entrada = entradaHist(n, res.monto - ret, res.motivo, res.beneficio ? 'b' : gatoNuevo || res.tipo === 'acciones' ? 'g' : '');
+    const entrada = entradaHist(n, res.monto - ret, res.motivo, res.beneficio || res.tipo === 'cofre' ? 'b' : gatoNuevo || res.tipo === 'acciones' ? 'g' : '');
     const base = Array.isArray(r.ult) ? r.ult : (hist && !hist.error ? hist.ult || [] : []);
     const cierre = { pendiente: false, actualizado: F.serverTimestamp(), ult: [entrada].concat(base.filter(x => x.t !== n)).slice(0, 8) };
     const netoAntes = typeof r.neto === 'number' ? r.neto : (hist && typeof hist.neto === 'number' ? hist.neto : null);
@@ -676,7 +686,8 @@ function pintarProbabilidades() {
     acciones: 'Acciones de regalo por 100.000 ₣ (sin acciones en la Bolsa: +100.000 ₣)',
     pierdeAcciones: 'Pierdes acciones por hasta 150.000 ₣ (si no tienes: −150.000 ₣)',
     escapa: 'Se escapa un gatito común o poco común (si no tienes: −60.000 ₣)',
-    pierdeBenef: 'Pierdes un beneficio por canjear, el más antiguo (si no tienes: −100.000 ₣)', nada: 'Nada (solo pierdes el tiro)'
+    pierdeBenef: 'Pierdes un beneficio por canjear, el más antiguo (si no tienes: −100.000 ₣)', nada: 'Nada (solo pierdes el tiro)',
+    cofre: 'Cofre 🧰 (1 de cada 16 es ✨ especial: 0,2% por tiro)'
   };
   const grupo = f => f.tipo === 'premio' || f.tipo === 'nada' || f.tipo === 'castigo' ? 0 : f.castigo ? 2 : 1;
   const orden = Object.values(filas).sort((a, b) => grupo(a) - grupo(b) || (b.dinero ?? 0) - (a.dinero ?? 0));
@@ -812,6 +823,11 @@ function mostrar(r) {
   switch (r.tipo) {
     case 'premio': badge = '¡Premio!'; titulo = '+' + fmt(r.premio); texto = `Ganaste ${fmt(r.premio)} y el tiro costó ${fmt(RULETA.costo)}: tu saldo sube ${fmt(r.neto)}.`; break;
     case 'castigo': badge = 'Castigo'; titulo = '−' + fmt(-r.premio); texto = r.alCero ? 'El castigo era mayor que tu saldo: quedaste en 0.' : `Pierdes ${fmt(-r.premio)} más el tiro (${fmt(RULETA.costo)}): en total ${fmt(-r.neto)}.`; break;
+    case 'cofre':
+      cabeza = `<img src="cofres/${r.cofreTipo === 'raro' ? 'especial' : 'cerrado'}.webp" alt="">`;
+      badge = r.cofreTipo === 'raro' ? '¡Cofre especial!' : '¡Cofre!'; titulo = r.cofreTipo === 'raro' ? 'Cofre especial' : 'Cofre';
+      texto = `Ganaste un ${titulo.toLowerCase()}. Está en <b>Tus cofres</b>, aquí abajo: ábrelo cuando quieras o véndelo en el <a href="gatitos.html">Mercado</a>.` + neto;
+      break;
     case 'nada': badge = 'Nada'; titulo = 'Casilla vacía'; texto = `No ganas ni pierdes nada más: solo el tiro (${fmt(RULETA.costo)}).`; break;
     case 'beneficio': badge = /décima/.test(r.beneficio) ? '¡Décimas!' : 'Beneficio'; titulo = r.beneficio.replace(/^Ruleta: /, ''); texto = /descuento en un artículo de la Tienda/.test(r.beneficio) ? 'Es un cupón: úsalo en <a href="gatitos.html">Mercado → 🛍️ Tienda</a> con el botón «Usar cupón» del artículo que quieras (pagas el 80%).' : 'Quedó en <a href="cuenta.html">Mi cuenta</a> como «por usar». Pídele al profe que te lo aplique.'; break;
     case 'disertacion':
@@ -856,6 +872,7 @@ function mostrar(r) {
   $('velo').classList.add('on');
   ($('modal').querySelector('[data-a="otra"]') || $('modal').querySelector('[data-a="cerrar"]')).focus({ preventScroll: true });
   $('anuncio').textContent = badge + ': ' + titulo;
+  if (r.tipo === 'cofre' && window.cofresCargar) setTimeout(() => { cofresUlt = ''; cofresCargar(); }, 400);
   if (malo) { sonCastigo(); const s = $('stage'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); }
   else if (r.tipo === 'nada') { beep(300, .25, 'triangle', .12); }
   else { sonPremio(); if (!reducido) confeti(r.premio >= 300000 || r.tipo === 'gatito' || r.tipo === 'sorpresa' ? 180 : 100); }
@@ -987,7 +1004,8 @@ async function cofresCargar() {
 }
 function cofresPintar() {
   const box = $('cofres');
-  const cerrados = misCofres.filter(c => c.estado !== 'abierto').sort((a, b) => msTs(a.creado) - msTs(b.creado));
+  const cerrados = misCofres.filter(c => c.estado === 'cerrado' || c.estado === 'abriendo').sort((a, b) => msTs(a.creado) - msTs(b.creado));
+  const enVenta = misCofres.filter(c => c.estado === 'en-venta');
   const abiertos = misCofres.filter(c => c.estado === 'abierto').sort((a, b) => msTs(b.abiertoEn) - msTs(a.abiertoEn)).slice(0, 6);
   box.hidden = !cuentaId;
   if (box.hidden) return;
@@ -1002,6 +1020,7 @@ function cofresPintar() {
       <small>${esc(c.motivo || (c.profe === '' ? 'Comprado' : 'Regalo del profe'))}</small><span class="btn p" style="padding:5px 12px;font-size:12px">Abrir</span></button>`).join('')}</div>`
       : '<p class="nota" style="margin:8px 0 0">No tienes cofres por abrir. Cómpralos aquí o gánalos: el profe los entrega por buen trabajo y participación.</p>'}
     <details style="margin-top:10px"><summary class="nota" style="cursor:pointer">¿Qué puede salir? (cada resultado 1 de 16 = 6,25%)</summary>${probCofres()}</details>
+    ${enVenta.length ? `<p class="nota" style="margin:8px 0 0">🔒 ${enVenta.length === 1 ? 'Tienes 1 cofre' : 'Tienes ' + enVenta.length + ' cofres'} a la venta en el <a href="gatitos.html#mio">Mercado</a> (no se pueden abrir mientras estén publicados).</p>` : ''}
     ${abiertos.length ? `<ul class="cf-hist">${abiertos.map(c => `<li>${c.tipo === 'raro' ? '✨' : '🧰'} <b>${esc(c.premio || '')}</b></li>`).join('')}</ul>` : ''}`;
 }
 
