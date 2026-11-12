@@ -140,6 +140,13 @@ h1 span{color:var(--acid)}
 @keyframes cfGira{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.cf-item img,.cf-escena img.agita,.cf-rayos{animation:none}}
 .cf-form{display:grid;gap:8px;margin-top:10px}
+.cf-tienda{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.cf-comprar{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:14px;background:var(--slab2);border:1px solid var(--line2);cursor:pointer;transition:border-color .2s,transform .2s}
+.cf-comprar:hover:not([disabled]),.cf-comprar:focus-visible{border-color:var(--acid);transform:translateY(-2px);outline:none}
+.cf-comprar.raro{border-color:rgba(255,214,10,.5)}
+.cf-comprar[disabled]{opacity:.5;cursor:not-allowed}
+.cf-comprar img{width:56px;height:56px;flex:none}
+.cf-comprar span{display:grid;line-height:1.2}.cf-comprar b{font-size:13px}.cf-comprar small{color:var(--acid);font-weight:800;font-size:13px}
 .cf-form label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
 .cf-form input,.cf-form select{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:9px 10px;font:500 14px var(--ff)}
 .cf-fila{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -935,22 +942,26 @@ setInterval(() => { if (!girando && !document.hidden) pintar(); }, 60000);
 /* ═══════════════════════════════════════════════════════════════
    COFRES — los entrega el profe; cada estudiante abre los suyos aquí.
    Debe coincidir con firebase/firestore.rules (sección "Cofres"). Mismo azar que la ruleta:
-   (1) abrir: se retiene min(saldo, 300.000) y el servidor anota su hora exacta (tFecha);
+   (0) comprar (opcional): 100.000 el básico y 500.000 el especial;
+   (1) abrir: se retiene min(saldo, peor castigo del cofre) y el servidor anota su hora exacta (tFecha);
    (2) resolver: premio = tabla[1er carácter de sha256(sal | id | ms)], se devuelve max(0, retenido + premio).
    ═══════════════════════════════════════════════════════════════ */
 const COFRES = {
   sal: 'dondefelipe-cofre-v1',
-  retenerMax: 300000,
+  // Lo máximo que se retiene al abrir = el peor castigo en dinero de cada tipo.
+  retenerMax: { comun: 150000, raro: 400000 },
+  precio: { comun: 100000, raro: 500000 },
   nombre: { comun: 'Cofre', raro: 'Cofre especial' },
+  // 16 casillas iguales (1/16 = 6,25% cada una). En promedio devuelven ~93% de su precio.
   tabla: {
-    comun: [['d', 50000], ['d', 80000], ['d', 100000], ['d', 150000],
-            ['g'], ['g'], ['b', 'Cofre: 1 décima formativa'], ['b', 'Cofre: pase de tarea'],
-            ['b', 'Ruleta: 20% de descuento en un artículo de la Tienda'], ['d', 250000], ['d', -50000], ['d', -80000],
-            ['d', -100000], ['D'], ['d', 0], ['b', 'Cofre: 1 décima formativa']],
-    raro:  [['d', 300000], ['d', 500000], ['d', 1000000], ['G'],
-            ['G'], ['G'], ['b', 'Cofre: 1 décima sumativa'], ['b', 'Cofre: 2 décimas formativas'],
-            ['b', 'Cofre: 5 minutos extra en una prueba'], ['b', 'Ruleta: 20% de descuento en un artículo de la Tienda'], ['g'], ['d', 200000],
-            ['d', -150000], ['d', -300000], ['D'], ['b', 'Cofre: 1 décima sumativa']]
+    comun: [['d', 50000], ['d', 100000], ['d', 200000], ['d', 200000],
+            ['d', 250000], ['d', 600000], ['g'], ['G'],
+            ['b', 'Cofre: 1 décima formativa'], ['b', 'Cofre: pase de tarea'], ['b', 'Ruleta: 20% de descuento en un artículo de la Tienda'], ['d', 0],
+            ['d', -50000], ['d', -100000], ['d', -150000], ['D']],
+    raro:  [['d', 600000], ['d', 800000], ['d', 1000000], ['d', 1200000],
+            ['d', 1500000], ['d', 2000000], ['G'], ['G'],
+            ['G'], ['b', 'Cofre: 1 décima sumativa'], ['b', 'Cofre: 2 décimas formativas'], ['b', 'Cofre: 5 minutos extra en una prueba'],
+            ['d', -200000], ['d', -300000], ['d', -400000], ['D']]
   }
 };
 let misCofres = [], cofreAbriendo = false;
@@ -980,17 +991,60 @@ function cofresPintar() {
   const box = $('cofres');
   const cerrados = misCofres.filter(c => c.estado !== 'abierto').sort((a, b) => msTs(a.creado) - msTs(b.creado));
   const abiertos = misCofres.filter(c => c.estado === 'abierto').sort((a, b) => msTs(b.abiertoEn) - msTs(a.abiertoEn)).slice(0, 6);
-  box.hidden = !cerrados.length && !abiertos.length;
+  box.hidden = !cuentaId;
   if (box.hidden) return;
-  box.innerHTML = `<h2>🧰 Tus cofres</h2>
-    ${cerrados.length ? `<p class="nota" style="margin:4px 0 0">Te los entregó el profe. Ábrelos cuando quieras: pueden traer Hipopesos, un gatito, un beneficio… o un castigo.</p>
+  const saldoYa = cuenta ? cuenta.saldo || 0 : 0;
+  const tienda = `<div class="cf-tienda">${['comun', 'raro'].map(t => `<button class="cf-comprar ${t}" type="button" data-cfcomprar="${t}"${saldoYa < COFRES.precio[t] ? ' disabled title="No te alcanza"' : ''}>
+      <img src="cofres/${t === 'raro' ? 'especial' : 'cerrado'}.webp" alt="" width="56" height="56"><span><b>Comprar ${COFRES.nombre[t].toLowerCase()}</b><small>${fmt(COFRES.precio[t])}</small></span></button>`).join('')}</div>`;
+  box.innerHTML = `<h2>🧰 Tus cofres</h2>${tienda}
+    ${cerrados.length ? `<p class="nota" style="margin:8px 0 0">Ábrelos cuando quieras: pueden traer Hipopesos, un gatito, un beneficio… o un castigo.</p>
     <div class="cf-lista">${cerrados.map(c => `<button class="cf-item ${c.tipo === 'raro' ? 'raro' : ''}" type="button" data-cofre="${esc(c.id)}">
       <img src="${cofreImg(c)}" alt="" width="92" height="92"><b>${esc(COFRES.nombre[c.tipo] || 'Cofre')}</b>
-      <small>${esc(c.motivo || 'Regalo del profe')}</small><span class="btn p" style="padding:5px 12px;font-size:12px">Abrir</span></button>`).join('')}</div>`
-      : '<p class="nota" style="margin:4px 0 0">No tienes cofres por abrir. El profe los entrega por buen trabajo y participación.</p>'}
+      <small>${esc(c.motivo || (c.profe === '' ? 'Comprado' : 'Regalo del profe'))}</small><span class="btn p" style="padding:5px 12px;font-size:12px">Abrir</span></button>`).join('')}</div>`
+      : '<p class="nota" style="margin:8px 0 0">No tienes cofres por abrir. Cómpralos aquí o gánalos: el profe los entrega por buen trabajo y participación.</p>'}
+    <details style="margin-top:10px"><summary class="nota" style="cursor:pointer">¿Qué puede salir? (cada resultado 1 de 16 = 6,25%)</summary>${probCofres()}</details>
     ${abiertos.length ? `<ul class="cf-hist">${abiertos.map(c => `<li>${c.tipo === 'raro' ? '✨' : '🧰'} <b>${esc(c.premio || '')}</b></li>`).join('')}</ul>` : ''}`;
 }
 
+function nombreCasillaCofre(k) {
+  if (k[0] === 'd') return k[1] > 0 ? '+' + fmt(k[1]) : k[1] < 0 ? '−' + fmt(-k[1]) : 'Vacío';
+  if (k[0] === 'b') return k[1].replace(/^(Cofre|Ruleta): /, '');
+  return { g: 'Gatito común', G: 'Gatito sorpresa (hasta ₣1.000.000)', D: 'Disertación' }[k[0]];
+}
+function probCofres() {
+  return ['comun', 'raro'].map(t => {
+    const l = COFRES.tabla[t], cnt = {};
+    l.forEach(k => { const n = nombreCasillaCofre(k); cnt[n] = (cnt[n] || 0) + 1; });
+    const malo = k => (k[0] === 'd' && k[1] < 0) || k[0] === 'D';
+    const nMal = l.filter(malo).length, nVac = l.filter(k => k[0] === 'd' && k[1] === 0).length;
+    return `<p class="nota"><b>${t === 'raro' ? '✨' : '🧰'} ${COFRES.nombre[t]} (${fmt(COFRES.precio[t])})</b> · premio ${Math.round((16 - nMal - nVac) / 16 * 100)}% · castigo ${Math.round(nMal / 16 * 100)}%${nVac ? ' · vacío ' + Math.round(nVac / 16 * 100) + '%' : ''}<br>`
+      + Object.keys(cnt).map(n => esc(n) + (cnt[n] > 1 ? ' (×' + cnt[n] + ')' : '')).join(' · ') + '</p>';
+  }).join('') + '<p class="nota">En promedio, un cofre devuelve cerca de lo que cuesta: es suerte, no inversión. Al abrir se retiene lo del peor castigo y vuelve con tu premio.</p>';
+}
+async function comprarCofre(tipo) {
+  if (!cuentaId || cofreAbriendo) return;
+  const precio = COFRES.precio[tipo];
+  if (!confirm(`¿Comprar un ${COFRES.nombre[tipo].toLowerCase()} por ${fmt(precio)}?`)) return;
+  try {
+    const { F, db } = await DF.listo();
+    const rc = F.doc(db, 'banco_cuentas', cuentaId);
+    const nuevo = await F.runTransaction(db, async tx => {
+      const sc = await tx.get(rc), c = sc.data();
+      if ((c.saldo || 0) < precio) throw new Error('no te alcanza: tienes ' + fmt(c.saldo || 0));
+      const ops = (c.ops || 0) + 1, saldo = (c.saldo || 0) - precio, id = 'c-' + cuentaId + '-' + ops;
+      const nom = ((c.nombre || '') + ' ' + (c.apellido || '')).trim();
+      tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+      tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), { cuenta: cuentaId, numero: String(c.numero || ''), nombre: nom, curso: c.curso || '',
+        monto: -precio, motivo: 'Compra: ' + COFRES.nombre[tipo].toLowerCase(), tipo: 'cofre-compra', saldoDespues: saldo, profe: '', fecha: F.serverTimestamp(), cofre: id });
+      const f = { cuenta: cuentaId, nombre: nom.slice(0, 120), curso: String(c.curso || '').slice(0, 40), tipo, estado: 'cerrado', motivo: 'Comprado', creado: F.serverTimestamp(), profe: '' };
+      tx.set(F.doc(db, 'cofres', id), f);
+      return Object.assign({ id, saldo }, f, { creado: { toMillis: () => Date.now() } });
+    });
+    if (cuenta) cuenta.saldo = nuevo.saldo;
+    misCofres.push(nuevo); cofresPintar(); pintar();
+    if (confirm('¡Listo! ¿Abrirlo ahora?')) abrirCofre(nuevo.id);
+  } catch (e) { aviso('No se pudo comprar el cofre: ' + esc(e.message || e), 'err'); }
+}
 // Qué sale (solo para mostrar y escribir; las reglas lo recalculan y lo exigen).
 function premioCofre(c, h, ids) {
   const k = (COFRES.tabla[c.tipo] || COFRES.tabla.comun)[parseInt(h[0], 16)], ret = c.retenido || 0;
@@ -1027,7 +1081,7 @@ async function abrirCofre(id) {
       const f = sf.data();
       if (f.estado === 'abierto') throw new Error('ese cofre ya fue abierto');
       if (f.estado === 'abriendo') return;
-      const c = sc.data(), ret = Math.min(c.saldo || 0, COFRES.retenerMax), saldo = (c.saldo || 0) - ret, ops = (c.ops || 0) + 1;
+      const c = sc.data(), ret = Math.min(c.saldo || 0, COFRES.retenerMax[f.tipo] || COFRES.retenerMax.comun), saldo = (c.saldo || 0) - ret, ops = (c.ops || 0) + 1;
       tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
       tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), Object.assign(datosMov(c, ops, saldo), {
         monto: -ret, motivo: (COFRES.nombre[f.tipo] || 'Cofre') + ': retenido mientras se abre', tipo: 'cofre-abrir' }));
@@ -1112,9 +1166,7 @@ async function cofresProfe() {
       <button class="btn p" type="button" id="cfDar">Entregar</button>
       <p class="nota" id="cfMsg" style="margin:0"></p>
     </div>
-    <details style="margin-top:10px"><summary class="nota" style="cursor:pointer">Qué trae cada cofre (16 casillas iguales)</summary>
-      <p class="nota">🧰 <b>Cofre</b>: +50K, +80K, +100K, +150K, +250K · 2 gatitos comunes · 2× 1 décima formativa · pase de tarea · −20% Tienda · vacío · castigos: −50K, −80K, −100K y disertación (4 de 16).</p>
-      <p class="nota">✨ <b>Especial</b>: +200K, +300K, +500K, +1.000.000 · 3 gatitos sorpresa y 1 común · 2× 1 décima sumativa · 2 décimas formativas · 5 min extra · −20% Tienda · castigos: −150K, −300K y disertación (3 de 16).</p></details>
+    <details style="margin-top:10px"><summary class="nota" style="cursor:pointer">Qué trae cada cofre (16 casillas iguales)</summary>${probCofres()}</details>
     ${rec.length ? `<ul class="cf-hist">${rec.map(c => `<li>${c.tipo === 'raro' ? '✨' : '🧰'} <b>${esc(c.nombre || c.cuenta)}</b> ${esc(c.curso || '')} · ${c.estado === 'abierto' ? esc(c.premio || 'abierto') : c.estado === 'abriendo' ? 'abriéndose…' : 'sin abrir'}
       ${c.estado === 'cerrado' ? `<button class="btn" type="button" style="padding:2px 9px;font-size:11px" data-cfborrar="${esc(c.id)}">Quitar</button>` : ''}</li>`).join('')}</ul>` : ''}`;
 }
@@ -1144,6 +1196,7 @@ async function darCofres() {
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-cofre]'); if (b) { abrirCofre(b.dataset.cofre); return; }
+  const bc = e.target.closest('[data-cfcomprar]'); if (bc && !bc.disabled) { comprarCofre(bc.dataset.cfcomprar); return; }
   if (e.target.id === 'cfOk') { $('cfVelo').hidden = true; return; }
   if (e.target.id === 'cfDar') { darCofres(); return; }
   const q = e.target.closest('[data-cfborrar]');
