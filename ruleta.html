@@ -188,7 +188,6 @@ h1 span{color:var(--acid)}
 
     <div class="lado">
       <section class="card cofres" id="cofres" hidden></section>
-      <section class="card cofres" id="cofresProfe" hidden></section>
       <section class="card">
         <h2>Probabilidades</h2>
         <table class="prob" id="prob"></table>
@@ -940,7 +939,7 @@ setInterval(() => { if (!girando && !document.hidden) pintar(); }, 60000);
 <script>
 'use strict';
 /* ═══════════════════════════════════════════════════════════════
-   COFRES — los entrega el profe; cada estudiante abre los suyos aquí.
+   COFRES — se compran aquí o los entrega el profe (Panel del profe → Cofres); cada estudiante abre los suyos aquí.
    Debe coincidir con firebase/firestore.rules (sección "Cofres"). Mismo azar que la ruleta:
    (0) comprar (opcional): 100.000 el básico y 500.000 el especial;
    (1) abrir: se retiene min(saldo, peor castigo del cofre) y el servidor anota su hora exacta (tFecha);
@@ -982,7 +981,6 @@ async function cofresCargar() {
     misCofres = sn.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(c => c.cuenta === cuentaId);
   } catch (e) { console.warn('cofres', e); }
   cofresPintar();
-  if (usuario && DF.esProfe(usuario)) cofresProfe();
   // Si quedó uno a medio abrir (se cortó internet), se termina solo: lo retenido vuelve con su premio.
   const pend = misCofres.find(c => c.estado === 'abriendo');
   if (pend && !cofreAbriendo) abrirCofre(pend.id);
@@ -1140,71 +1138,10 @@ async function abrirCofre(id) {
   cofreAbriendo = false;
 }
 
-/* ── Para el profe: entregar cofres a mano ── */
-let cuentasProfe = null;
-async function cofresProfe() {
-  const box = $('cofresProfe'); box.hidden = false;
-  const { F, db } = await DF.listo();
-  if (!cuentasProfe) {
-    const sn = await F.getDocs(F.collection(db, 'banco_cuentas'));
-    cuentasProfe = sn.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(c => c.estado !== 'Cerrada')
-      .sort((a, b) => String(a.curso || '').localeCompare(String(b.curso || '')) || String(a.nombre || '').localeCompare(String(b.nombre || '')));
-  }
-  let rec = [];
-  try {
-    const sn = await F.getDocs(F.query(F.collection(db, 'cofres'), F.orderBy('creado', 'desc'), F.limit(25)));
-    rec = sn.docs.map(d => Object.assign({ id: d.id }, d.data()));
-  } catch (e) { }
-  const cursos = [...new Set(cuentasProfe.map(c => c.curso).filter(Boolean))];
-  box.innerHTML = `<h2>🎁 Entregar cofres <small style="font-size:12px;color:var(--mute);font-weight:600">(solo profe)</small></h2>
-    <div class="cf-form">
-      <label>Estudiante (o un curso completo)
-        <input id="cfQuien" list="cfLista" placeholder="Escribe nombre o curso…" autocomplete="off">
-        <datalist id="cfLista">${cursos.map(c => `<option value="Todo ${esc(c)}">`).join('')}${cuentasProfe.map(c => `<option value="${esc((c.nombre || '') + ' ' + (c.apellido || '') + ' · ' + (c.curso || '') + ' · #' + c.id)}">`).join('')}</datalist></label>
-      <div class="cf-fila"><label>Tipo<select id="cfTipo"><option value="comun">🧰 Cofre</option><option value="raro">✨ Cofre especial</option></select></label>
-      <label>Cantidad<input id="cfCant" type="number" min="1" max="5" value="1"></label></div>
-      <label>Motivo (lo ve el estudiante)<input id="cfMotivo" maxlength="120" placeholder="Ej: excelente trabajo en el laboratorio"></label>
-      <button class="btn p" type="button" id="cfDar">Entregar</button>
-      <p class="nota" id="cfMsg" style="margin:0"></p>
-    </div>
-    <details style="margin-top:10px"><summary class="nota" style="cursor:pointer">Qué trae cada cofre (16 casillas iguales)</summary>${probCofres()}</details>
-    ${rec.length ? `<ul class="cf-hist">${rec.map(c => `<li>${c.tipo === 'raro' ? '✨' : '🧰'} <b>${esc(c.nombre || c.cuenta)}</b> ${esc(c.curso || '')} · ${c.estado === 'abierto' ? esc(c.premio || 'abierto') : c.estado === 'abriendo' ? 'abriéndose…' : 'sin abrir'}
-      ${c.estado === 'cerrado' ? `<button class="btn" type="button" style="padding:2px 9px;font-size:11px" data-cfborrar="${esc(c.id)}">Quitar</button>` : ''}</li>`).join('')}</ul>` : ''}`;
-}
-async function darCofres() {
-  const q = $('cfQuien').value.trim(), tipo = $('cfTipo').value, cant = Math.min(5, Math.max(1, parseInt($('cfCant').value, 10) || 1));
-  const motivo = $('cfMotivo').value.trim().slice(0, 120) || 'Regalo del profe';
-  let dest = [];
-  const mCurso = q.match(/^Todo (.+)$/);
-  if (mCurso) dest = cuentasProfe.filter(c => c.curso === mCurso[1]);
-  else { const m = q.match(/#([^#\s]+)$/); dest = m ? cuentasProfe.filter(c => c.id === m[1]) : []; }
-  if (!dest.length) { $('cfMsg').textContent = 'Elige un estudiante o un curso de la lista.'; return; }
-  if (!confirm(`¿Entregar ${cant} ${tipo === 'raro' ? 'cofre(s) especial(es)' : 'cofre(s)'} a ${dest.length === 1 ? (dest[0].nombre || '') + ' ' + (dest[0].apellido || '') : dest.length + ' estudiantes de ' + mCurso[1]}?`)) return;
-  try {
-    const { F, db } = await DF.listo();
-    const yo = (DF.usuario() || {}).email || '';
-    for (let i = 0; i < dest.length; i += 120) {
-      const b = F.writeBatch(db);
-      dest.slice(i, i + 120).forEach(c => { for (let k = 0; k < cant; k++) b.set(F.doc(F.collection(db, 'cofres')), {
-        cuenta: c.id, nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim().slice(0, 120), curso: c.curso || '', tipo, estado: 'cerrado',
-        motivo, creado: F.serverTimestamp(), profe: yo }); });
-      await b.commit();
-    }
-    await cofresProfe();
-    $('cfMsg').textContent = '✅ Entregado' + (dest.length > 1 ? ' a ' + dest.length + ' estudiantes.' : '.');
-    if (dest.some(c => c.id === cuentaId)) cofresCargar();
-  } catch (e) { $('cfMsg').textContent = 'No se pudo entregar: ' + e.message; }
-}
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-cofre]'); if (b) { abrirCofre(b.dataset.cofre); return; }
   const bc = e.target.closest('[data-cfcomprar]'); if (bc && !bc.disabled) { comprarCofre(bc.dataset.cfcomprar); return; }
   if (e.target.id === 'cfOk') { $('cfVelo').hidden = true; return; }
-  if (e.target.id === 'cfDar') { darCofres(); return; }
-  const q = e.target.closest('[data-cfborrar]');
-  if (q && confirm('¿Quitar este cofre sin abrir?')) {
-    const { F, db } = await DF.listo();
-    try { await F.deleteDoc(F.doc(db, 'cofres', q.dataset.cfborrar)); cofresProfe(); } catch (er) { alert('No se pudo: ' + er.message); }
-  }
 });
 // Si la cuenta terminó de cargar antes que este bloque, se cargan los cofres ahora.
 Promise.resolve(typeof cargando !== 'undefined' ? cargando : null).then(() => cofresCargar()).catch(() => {});
