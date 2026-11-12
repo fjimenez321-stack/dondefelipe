@@ -1,0 +1,732 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Cerro en llamas · Simulador</title><meta name="theme-color" content="#131815"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: mesa de juego — tablero cuadrado a la izquierda (o arriba en móvil), panel de fase a la derecha. Estética de carta de brigada: verde-gris de terreno, fuego como único acento fuerte. */
+:root {
+  --bg: #e9ede8;
+  --surface: #f8faf7;
+  --surface-2: #dfe5df;
+  --ink: #1d2420;
+  --muted: #56645b;
+  --line: #bfc9c1;
+  --fire: #cf3f12;
+  --ember: #f0a12e;
+  --char: #3b3431;
+  --char-ink: #e9d9c9;
+  --matorral: #e8e2cb;
+  --matorral-dot: #b8ab83;
+  --urb: #d9dddb;
+  --urb-dot: #98a09c;
+  --euc: #a9c6b8;
+  --pino: #5a8a61;
+  --nat: #d2d88f;
+  --casa: #ecbe92;
+  --corta: #8a7a63;
+  --corta-bg: #f3efe7;
+  --ok: #2f7a45;
+  --warn: #a05a00;
+  --focus: #1f5fa8;
+  --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131815; --surface: #1b211e; --surface-2: #242c27; --ink: #e6ebe7; --muted: #9aa69f; --line: #34413a;
+    --fire: #ff6a33; --ember: #ffb347; --char: #0c0a09; --char-ink: #c9b8a6;
+    --matorral: #3a3829; --matorral-dot: #625c40; --urb: #2a2f31; --urb-dot: #4c5457;
+    --euc: #557a6b; --pino: #3f6c47; --nat: #75803a; --casa: #92603a; --corta: #b8a88f; --corta-bg: #2b2823;
+    --ok: #5fc27c; --warn: #f0a640; --focus: #7fb2ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131815; --surface: #1b211e; --surface-2: #242c27; --ink: #e6ebe7; --muted: #9aa69f; --line: #34413a;
+  --fire: #ff6a33; --ember: #ffb347; --char: #0c0a09; --char-ink: #c9b8a6;
+  --matorral: #3a3829; --matorral-dot: #625c40; --urb: #2a2f31; --urb-dot: #4c5457;
+  --euc: #557a6b; --pino: #3f6c47; --nat: #75803a; --casa: #92603a; --corta: #b8a88f; --corta-bg: #2b2823;
+  --ok: #5fc27c; --warn: #f0a640; --focus: #7fb2ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; margin-bottom: 14px; }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: .9; margin: 0; letter-spacing: .5px; text-transform: uppercase; }
+h1 span { color: var(--fire); }
+.tag { color: var(--muted); font-size: .9rem; margin: 4px 0 0; }
+.phasebar { display: flex; gap: 4px; flex-wrap: wrap; }
+.phasebar span { font-family: var(--mono); font-size: .72rem; padding: 4px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.phasebar span.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.phasebar span.done { color: var(--ink); }
+
+.table { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .table { grid-template-columns: minmax(0,1fr); } }
+
+/* Board */
+.boardcol { min-width: 0; }
+.edge { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; font-size: .95rem; text-align: center; padding: 5px; border-radius: 6px; }
+.edge.top { background: var(--char); color: var(--char-ink); margin-bottom: 4px; }
+.edge.bot { background: var(--urb); color: var(--muted); margin-top: 4px; border: 1px solid var(--line); }
+.boardgrid { display: grid; grid-template-columns: 22px repeat(8, minmax(0, 1fr)); gap: 3px; }
+.lab { font-family: var(--mono); font-size: .72rem; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+.cell { position: relative; aspect-ratio: 1; border-radius: 5px; border: 1px solid var(--line); padding: 0; cursor: pointer; overflow: hidden;
+  background-color: var(--matorral); background-image: radial-gradient(var(--matorral-dot) 1px, transparent 1.3px); background-size: 7px 7px; }
+.cell.urb { background-color: var(--urb); background-image: radial-gradient(var(--urb-dot) 1px, transparent 1.3px); }
+.cell:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; z-index: 2; }
+.cell svg.ic { position: absolute; inset: 12%; width: 76%; height: 76%; }
+.cell.t-E { background: var(--euc); } .cell.t-P { background: var(--pino); } .cell.t-N { background: var(--nat); } .cell.t-C { background: var(--casa); }
+.cell.t-X { background: repeating-linear-gradient(45deg, var(--corta-bg) 0 6px, var(--corta) 6px 9px); }
+.cell .coord { position: absolute; left: 3px; top: 1px; font-family: var(--mono); font-size: .55rem; color: var(--ink); opacity: 0; }
+.board.design .cell:hover .coord { opacity: .55; }
+.cell.burn { background: var(--char) !important; border-color: var(--char); }
+.cell.burn svg.ic { opacity: .22; filter: grayscale(1); }
+.cell .fl { position: absolute; inset: 14%; width: 72%; height: 72%; display: none; }
+.cell.burn .fl { display: block; opacity: .55; }
+.cell.new .fl { opacity: 1; animation: flick .5s ease-in-out infinite alternate; }
+.cell.new { box-shadow: 0 0 0 2px var(--ember) inset; }
+.cell.jump { box-shadow: 0 0 0 3px var(--fire) inset; }
+.cell.jump::after { content: "pavesa"; position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; font-family: var(--mono); font-size: .5rem; color: var(--ember); }
+.cell .ff { position: absolute; inset: 14%; width: 72%; height: 72%; z-index: 2; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
+.cell.hasff { box-shadow: 0 0 0 3px #f2c230 inset; }
+.board.placing .cell:not(.burn):not(.hasff) { cursor: crosshair; outline: 2px dashed #f2c230; outline-offset: -3px; }
+.ffbox { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: center; background: var(--surface-2); border-radius: 9px; padding: 8px 10px; font-size: .88rem; }
+.ffbox svg { width: 44px; height: 44px; }
+.ffbox.call { background: #f2c230; color: #1d1a10; font-weight: 700; }
+.cell.ignite::before { content: ""; position: absolute; inset: -2px; border: 2px dashed var(--ember); border-radius: 6px; }
+@keyframes flick { from { transform: scale(.92) translateY(2%); } to { transform: scale(1.04) translateY(-3%); } }
+.board.locked .cell { cursor: default; }
+.windflag { font-family: var(--mono); font-size: .8rem; color: var(--muted); text-align: center; margin-top: 8px; min-height: 1.3em; }
+.windflag b { color: var(--fire); font-size: 1rem; }
+.example { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: .82rem; color: var(--muted); margin-top: 10px; }
+
+/* Panel */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.panel h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: .8px; font-size: 1.45rem; margin: 0; line-height: 1; }
+.panel h3 { font-size: .78rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 0 0 6px; font-weight: 700; }
+.panel p { margin: 0; }
+.hint { color: var(--muted); font-size: .88rem; }
+.tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.tool { display: grid; grid-template-columns: 30px 1fr; align-items: center; gap: 6px; text-align: left; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: .82rem; cursor: pointer; }
+.tool .sw { width: 30px; height: 30px; border-radius: 5px; border: 1px solid var(--line); position: relative; overflow: hidden; }
+.tool .sw svg { position: absolute; inset: 8%; width: 84%; height: 84%; }
+.tool small { display: block; font-family: var(--mono); font-size: .68rem; color: var(--muted); }
+.tool[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink) inset; }
+.tool:focus-visible, .btn:focus-visible, select:focus-visible, input:focus-visible, .flip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.reqs { display: grid; gap: 4px; font-size: .86rem; }
+.req { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.req b { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.req.ok b { color: var(--ok); } .req.no b { color: var(--warn); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn { font: inherit; font-weight: 700; padding: 10px 16px; border-radius: 9px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); font-weight: 400; }
+.btn.fire { background: var(--fire); border-color: var(--fire); color: #fff; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.climate { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; background: var(--surface-2); border-radius: 9px; padding: 8px 10px; }
+.climate b { font-family: var(--display); font-size: 1.15rem; letter-spacing: .5px; text-transform: uppercase; }
+.climate .hint { font-size: .8rem; }
+select, input[type=number] { font: inherit; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+
+/* Cards */
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.flip { perspective: 900px; background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.flip .inner { position: relative; height: 148px; transition: transform .6s cubic-bezier(.3,.7,.2,1); transform-style: preserve-3d; }
+.flip.open .inner { transform: rotateY(180deg); }
+.flip .face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid var(--ink); }
+.flip .back { background: repeating-linear-gradient(135deg, var(--char) 0 10px, color-mix(in srgb, var(--char) 82%, var(--fire)) 10px 20px); color: var(--char-ink); }
+.flip .back .k { font-family: var(--display); font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+.flip .front { background: var(--surface); transform: rotateY(180deg); }
+.flip .front .k { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--fire); font-weight: 700; }
+.flip .front .t { font-weight: 700; font-size: 1rem; line-height: 1.2; }
+.flip .front .big { font-family: var(--display); font-weight: 900; font-size: 2.2rem; line-height: 1; color: var(--fire); }
+.flip:disabled { cursor: default; }
+.predict { background: var(--surface-2); border-radius: 9px; padding: 10px 12px; font-size: .92rem; }
+.predict b { font-family: var(--display); font-size: 1.1rem; text-transform: uppercase; letter-spacing: .5px; }
+
+/* Dice + log */
+.dicezone { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+.die { width: 82px; height: 82px; border-radius: 16px; background: var(--surface); border: 3px solid var(--ink); display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 11px; }
+.die i { width: 13px; height: 13px; border-radius: 50%; background: var(--ink); place-self: center; visibility: hidden; }
+.die.rolling { animation: shake .12s linear infinite; }
+@keyframes shake { 0% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(-8deg); } }
+.turninfo { font-size: .92rem; }
+.turninfo .tn { font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+.turninfo .msg { font-weight: 700; font-size: 1.05rem; }
+.dtab { border-collapse: separate; border-spacing: 3px; width: 100%; font-size: .8rem; }
+.dtab th { font-family: var(--mono); font-weight: 700; font-size: .78rem; color: var(--muted); text-align: center; padding: 0; }
+.dtab th.cur, .dtab td.cur { outline: 2px solid var(--ink); outline-offset: -1px; border-radius: 5px; }
+.dtab td { text-align: center; padding: 3px 0; border-radius: 5px; font-family: var(--mono); font-size: .78rem; }
+.dtab td.nm { text-align: left; font-family: var(--body); font-size: .82rem; padding-right: 4px; white-space: nowrap; }
+.dtab td.y { background: var(--fire); color: #fff; font-weight: 700; }
+.dtab td.n { background: var(--surface-2); color: var(--muted); }
+.dtab td.pr { color: var(--muted); font-size: .72rem; white-space: nowrap; padding-left: 4px; }
+.dexp { font-size: .84rem; color: var(--muted); margin: 0 0 6px; }
+.verdict { font-size: .88rem; margin-top: 4px; }
+.verdict .yes { color: var(--fire); font-weight: 700; }
+.verdict .no { color: var(--muted); }
+.log { max-height: 190px; overflow: auto; font-family: var(--mono); font-size: .74rem; border-top: 1px solid var(--line); padding-top: 8px; display: grid; gap: 3px; }
+.log div { color: var(--muted); }
+.log div b { color: var(--ink); }
+
+/* Scores */
+.scores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sc { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
+.sc .r { font-size: .75rem; color: var(--muted); }
+.sc .n { font-family: var(--display); font-weight: 900; font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.sc .d { font-size: .72rem; color: var(--muted); }
+.bd { display: grid; gap: 8px; }
+.role-bd { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; display: grid; gap: 3px; }
+.role-bd .rh { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: .92rem; border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 2px; }
+.role-bd .rh b { font-family: var(--display); font-weight: 900; font-size: 1.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.role-bd .li { display: grid; grid-template-columns: 1fr auto 3.2em; gap: 8px; font-size: .84rem; align-items: baseline; }
+.role-bd .li .calc { font-family: var(--mono); font-size: .76rem; color: var(--muted); white-space: nowrap; }
+.role-bd .li b { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.role-bd .lost { font-size: .76rem; color: var(--muted); }
+.total { display: flex; justify-content: space-between; align-items: baseline; border-top: 2px solid var(--ink); padding-top: 8px; }
+.total .n { font-family: var(--display); font-weight: 900; font-size: 2.6rem; line-height: 1; }
+.facts { display: flex; gap: 14px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); }
+.facts b { color: var(--ink); font-family: var(--mono); }
+.aer { background: var(--surface-2); border-radius: 9px; padding: 10px 12px; font-size: .9rem; display: grid; gap: 4px; }
+.aer b { font-weight: 700; }
+
+/* History + model */
+.lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; margin-top: 22px; }
+@media (max-width: 860px) { .lower { grid-template-columns: minmax(0,1fr); } }
+.block { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.block h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: .8px; font-size: 1.3rem; margin: 0 0 4px; }
+.tablewrap { overflow-x: auto; }
+table.hist { border-collapse: collapse; width: 100%; font-size: .85rem; font-variant-numeric: tabular-nums; }
+table.hist th, table.hist td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table.hist th:first-child, table.hist td:first-child { text-align: left; }
+table.hist th { font-size: .72rem; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 700; }
+.model { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+.model label { display: grid; gap: 3px; font-size: .8rem; color: var(--muted); }
+.model input, .model select { width: 100%; }
+.roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin-top: 22px; }
+.role { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.role .who { font-size: .78rem; color: var(--muted); }
+.role h3 { margin: 2px 0 6px; font-size: 1rem; }
+.role .pts { font-family: var(--mono); font-size: .78rem; background: var(--surface-2); border-radius: 6px; padding: 5px 8px; }
+footer { color: var(--muted); font-size: .78rem; margin-top: 22px; }
+@media (prefers-reduced-motion: reduce) { .flip .inner { transition: none; } .cell.new .fl, .die.rolling { animation: none; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-P" viewBox="0 0 40 40"><rect x="18" y="30" width="4" height="8" fill="#3b2a1a"/><polygon points="20,2 8,16 14,16 5,26 13,26 3,33 37,33 27,26 35,26 26,16 32,16" fill="#1f4a28" stroke="#0e2a15" stroke-width="1"/></symbol>
+    <symbol id="i-E" viewBox="0 0 40 40"><rect x="18.5" y="14" width="3" height="24" fill="#6b5a45"/><path d="M20 16 C 12 12, 9 5, 11 2 C 16 4, 19 10, 20 16Z" fill="#2f5a4a"/><path d="M20 16 C 28 12, 31 5, 29 2 C 24 4, 21 10, 20 16Z" fill="#2f5a4a"/><path d="M20 24 C 11 22, 6 16, 6 12 C 12 13, 17 18, 20 24Z" fill="#3f6d5a"/><path d="M20 24 C 29 22, 34 16, 34 12 C 28 13, 23 18, 20 24Z" fill="#3f6d5a"/></symbol>
+    <symbol id="i-N" viewBox="0 0 40 40"><rect x="17.5" y="24" width="5" height="14" fill="#4a3522"/><ellipse cx="20" cy="15" rx="16" ry="12" fill="#5f6d1f" stroke="#3e4712" stroke-width="1"/><circle cx="12" cy="13" r="2" fill="#8b9a3e"/><circle cx="24" cy="10" r="2" fill="#8b9a3e"/><circle cx="27" cy="18" r="2" fill="#8b9a3e"/></symbol>
+    <symbol id="i-C" viewBox="0 0 40 40"><polygon points="20,4 3,19 37,19" fill="#7a2f12"/><rect x="7" y="19" width="26" height="18" fill="#f4e3cf" stroke="#7a2f12" stroke-width="1.5"/><rect x="17" y="26" width="6" height="11" fill="#7a2f12"/><rect x="10" y="23" width="5" height="5" fill="#7fa7c9"/><rect x="25" y="23" width="5" height="5" fill="#7fa7c9"/></symbol>
+    <symbol id="i-B" viewBox="0 0 40 40"><path d="M6 27 C 6 14, 13 7, 20 7 C 27 7, 34 14, 34 27 Z" fill="#f2c230" stroke="#3a2a0a" stroke-width="1.6"/><path d="M2 27 H 38 V 31 H 2 Z" fill="#e0a810" stroke="#3a2a0a" stroke-width="1.6"/><path d="M20 7 V 27" stroke="#3a2a0a" stroke-width="1.4"/><path d="M15 13 H 25 V 22 L 20 25 L 15 22 Z" fill="#c62f0e" stroke="#3a2a0a" stroke-width="1.2"/></symbol>
+    <symbol id="i-F" viewBox="0 0 40 40"><path d="M20 3 C 23 12, 33 15, 31 27 C 30 34, 25 38, 20 38 C 13 38, 8 33, 9 26 C 10 19, 15 18, 15 11 C 18 14, 18 18, 19 20 C 22 15, 21 9, 20 3Z" fill="#e0451a"/><path d="M20 20 C 22 25, 27 27, 26 32 C 25 36, 15 36, 14 31 C 14 27, 18 26, 20 20Z" fill="#ffcb47"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Cerro en <span>llamas</span></h1>
+      <p class="tag">Simulador de propagación de incendios · Biología 1° Medio · OA 8</p>
+    </div>
+    <div class="phasebar" id="phasebar" aria-label="Fases de la ronda"></div>
+  </header>
+
+  <div class="table">
+    <div class="boardcol">
+      <div class="edge top">▲ Cumbre del cerro</div>
+      <div class="boardgrid board" id="board" role="grid" aria-label="Tablero de 8 por 8"></div>
+      <div class="edge bot">▼ Ciudad</div>
+      <div class="windflag" id="windflag"></div>
+      <div class="example" id="example"></div>
+    </div>
+    <section class="panel" id="panel" aria-live="polite"></section>
+  </div>
+
+  <div class="lower">
+    <section class="block">
+      <h2>Rondas jugadas</h2>
+      <p class="hint" id="histHint">Aquí se comparan las rondas. En la ronda 2 las cartas son las mismas: solo cambia el paisaje.</p>
+      <div class="tablewrap"><table class="hist" id="hist"></table></div>
+    </section>
+    <section class="block">
+      <h2>Reglas del modelo</h2>
+      <p class="hint">Un modelo es una simplificación. ¿Estos números representan bien la realidad? Cada número es el mínimo que debe sacar el dado para que esa casilla se queme. Cámbienlos, vuelvan a jugar y comparen. (7 = nunca se quema)</p>
+      <div class="model" id="model"></div>
+      <p class="hint" style="margin-top:10px">Cartas: los inicios en el borde (A2 y H2) salen con menos frecuencia (entre los dos, 1 de cada 7 partidas), y el viento hacia la ciudad sale 4 de cada 6 veces.</p>
+    </section>
+  </div>
+
+  <div class="roles" id="roles"></div>
+  <footer><p style="margin:0 0 6px"><a href="../index.html" style="color:var(--ink);font-weight:700">← Volver a El Mundo de Felipe</a> · <a href="cerro-en-llamas.html" style="color:var(--ink)">Reglas y tabla del dado</a></p>Las cartas de inicio son causas humanas: en Chile, CONAF atribuye más del 99% de los incendios forestales a la acción de personas. El tablero es un modelo didáctico, no una predicción.</footer>
+</div>
+
+<script>
+(() => {
+const COLS = "ABCDEFGH";
+const TYPES = {
+  E: { name: "Eucalipto", icon: "i-E" },
+  P: { name: "Pino", icon: "i-P" },
+  N: { name: "Bosque nativo", icon: "i-N" },
+  C: { name: "Casa", icon: "i-C" },
+  X: { name: "Cortafuego", icon: null },
+  ".": { name: "Matorral", icon: null }
+};
+const IGN = [
+  { t: "Quema de basura en un sitio eriazo", c: "C1", w: 3 },
+  { t: "Chispa de un tendido eléctrico", c: "F1", w: 3 },
+  { t: "Fogata mal apagada", c: "A2", w: 1 },
+  { t: "Incendio intencional", c: "D1", w: 3 },
+  { t: "Esmeril o soldadura al aire libre", c: "H2", w: 1 },
+  { t: "Colilla lanzada desde un auto", c: "E2", w: 3 }
+];
+const WIND = {
+  S: { t: "Hacia la ciudad", a: "↓", fwd: [1, 0], sides: [[0, -1], [0, 1]] },
+  E: { t: "Hacia el este", a: "→", fwd: [0, 1], sides: [[-1, 0], [1, 0]] },
+  W: { t: "Hacia el oeste", a: "←", fwd: [0, -1], sides: [[-1, 0], [1, 0]] }
+};
+const WIND_W = { S: 4, E: 1, W: 1 };
+function pickWeighted(items, wOf) { const tot = items.reduce((a, x) => a + wOf(x), 0); let r = Math.random() * tot; for (const x of items) { r -= wOf(x); if (r < 0) return x; } return items[items.length - 1]; }
+const CLIMA = {
+  normal: { t: "Año normal", d: "Los números no cambian." },
+  sequia: { t: "Sequía", d: "Vegetación más seca: −1 a los números (mínimo 2)." },
+  mega: { t: "Megasequía + ola de calor", d: "−1 a los números y las pavesas saltan con 5 o 6." }
+};
+const EXAMPLE = [
+  "..EEEE..",
+  "NNEEPP..",
+  "NNPPPP..",
+  "NN.EE.NN",
+  "......NN",
+  "XXX.CXXX",
+  "C.C.C.C.",
+  ".C...C.."
+];
+
+const S = {
+  phase: "design",       // design | reveal | fire | score
+  grid: EXAMPLE.map(r => r.split("")),
+  isExample: true,
+  tool: "E",
+  clima: "sequia",
+  ign: null, wind: null,
+  revealed: { ign: false, wind: false },
+  fire: new Set(), newFire: new Set(), jumps: new Set(), ff: new Set(), placing: false,
+  turn: 0, quiet: 0, roll: null, log: [], ended: false, endReason: "",
+  round: 1, history: [], cardsFixed: false, savedDesign: null,
+  model: { E: 2, P: 3, ".": 3, N: 4, C: 4, maxTurns: 8, sequiaScope: "all" }
+};
+
+const $ = id => document.getElementById(id);
+const key = (r, c) => r * 8 + c;
+const rc = k => [Math.floor(k / 8), k % 8];
+const nameOf = (r, c) => COLS[c] + (r + 1);
+const parseCoord = s => [parseInt(s.slice(1), 10) - 1, COLS.indexOf(s[0])];
+const rnd = n => Math.floor(Math.random() * n);
+const icon = id => id ? `<svg class="ic" viewBox="0 0 40 40" aria-hidden="true"><use href="#${id}"/></svg>` : "";
+
+function counts(g = S.grid) {
+  const n = { E: 0, P: 0, N: 0, C: 0, X: 0, ".": 0 };
+  g.forEach(r => r.forEach(ch => n[ch]++));
+  return n;
+}
+function reqs() {
+  const n = counts();
+  const veg = n.E + n.P + n.N;
+  return [
+    { label: "Vegetación (exactamente 24)", v: `${veg}/24`, ok: veg === 24 },
+    { label: "Máximo 16 de cada especie", v: `E${n.E} · P${n.P} · N${n.N}`, ok: n.E <= 16 && n.P <= 16 && n.N <= 16 },
+    { label: "Casas (entre 4 y 10)", v: `${n.C}`, ok: n.C >= 4 && n.C <= 10 },
+    { label: "Cortafuegos (hasta 6)", v: `${n.X}/6`, ok: n.X <= 6 }
+  ];
+}
+function threshold(ch) {
+  if (ch === "X") return 99;
+  let t = S.model[ch];
+  if (t >= 7) return 99;
+  const dry = S.clima === "sequia" || S.clima === "mega";
+  if (dry && (S.model.sequiaScope === "all" || ch === "." || ch === "N")) t = Math.max(2, t - 1);
+  return t;
+}
+const pavesaMin = () => S.clima === "mega" ? 5 : 6;
+
+/* ---------- scoring ---------- */
+function score(burned = S.fire) {
+  const g = S.grid; let f = 0, e = 0, b = 0, p = 0, saved = 0, lost = 0, cellsBurned = 0, vista = 0;
+  const n = { Ea: 0, Eb: 0, Pa: 0, Pb: 0, Na: 0, Nb: 0 };
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    const ch = g[r][c], burnt = burned.has(key(r, c));
+    if (burnt) cellsBurned++;
+    if ("EPN".includes(ch)) n[ch + (burnt ? "b" : "a")]++;
+    if (ch === "E" && !burnt) f += 4;
+    if (ch === "P" && !burnt) f += 3;
+    if (ch === "N" && !burnt) e += 2;
+    if (ch === "C") {
+      p += 2;
+      if (burnt) { b -= 3; lost++; }
+      else {
+        b += 3; saved++;
+        const nb = [[1,0],[-1,0],[0,1],[0,-1]].some(([dr, dc]) => {
+          const rr = r + dr, cc = c + dc;
+          return rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && "EPN".includes(g[rr][cc]) && !burned.has(key(rr, cc));
+        });
+        if (nb) { p += 1; vista++; }
+      }
+    }
+  }
+  return { f, e, b, p, total: f + e + b + p, saved, lost, cellsBurned, vista, ...n };
+}
+
+/* ---------- fire engine ---------- */
+function startFire() {
+  const [r, c] = parseCoord(S.ign.c);
+  S.fire = new Set([key(r, c)]);
+  S.newFire = new Set([key(r, c)]);
+  S.jumps = new Set(); S.ff = new Set(); S.placing = false;
+  S.turn = 0; S.quiet = 0; S.ended = false; S.roll = null; S.endReason = "";
+  S.log = [`<b>Inicio</b> · ${S.ign.t} en ${S.ign.c}`];
+}
+function step(d) {
+  const w = WIND[S.wind];
+  const dirs = [w.fwd, ...w.sides];
+  const nf = new Set(); let jump = null;
+  S.fire.forEach(k => {
+    const [r, c] = rc(k);
+    dirs.forEach(([dr, dc]) => {
+      const rr = r + dr, cc = c + dc;
+      if (rr < 0 || rr > 7 || cc < 0 || cc > 7) return;
+      const kk = key(rr, cc);
+      if (S.fire.has(kk) || S.ff.has(kk)) return;
+      if (d >= threshold(S.grid[rr][cc])) nf.add(kk);
+    });
+  });
+  if (d >= pavesaMin()) {
+    const euc = [...S.fire].filter(k => { const [r, c] = rc(k); return S.grid[r][c] === "E"; });
+    if (euc.length) {
+      const along = k => { const [r, c] = rc(k); return r * w.fwd[0] + c * w.fwd[1]; };
+      euc.sort((a, b) => along(b) - along(a));
+      const [r, c] = rc(euc[0]);
+      const rr = r + 2 * w.fwd[0], cc = c + 2 * w.fwd[1];
+      if (rr >= 0 && rr < 8 && cc >= 0 && cc < 8) {
+        const kk = key(rr, cc);
+        if (S.grid[rr][cc] !== "X" && !S.ff.has(kk) && !S.fire.has(kk)) { jump = kk; nf.add(kk); }
+      }
+    }
+  }
+  S.turn++;
+  nf.forEach(k => S.fire.add(k));
+  S.newFire = nf;
+  S.jumps = jump !== null ? new Set([jump]) : new Set();
+  const names = [...nf].map(k => { const [r, c] = rc(k); return nameOf(r, c); }).sort();
+  const houses = [...nf].filter(k => { const [r, c] = rc(k); return S.grid[r][c] === "C"; }).length;
+  let line = `T${S.turn} · dado <b>${d}</b> · `;
+  line += nf.size ? `se encienden ${names.join(", ")}` : "calma, no avanza";
+  if (jump !== null) { const [r, c] = rc(jump); line += ` · <b>¡pavesas! salto a ${nameOf(r, c)}</b>`; }
+  if (houses) line += ` · <b>${houses} casa${houses > 1 ? "s" : ""}</b>`;
+  S.log.unshift(line);
+  S.quiet = nf.size ? 0 : S.quiet + 1;
+  if (S.quiet >= 2) { S.ended = true; S.endReason = "Dos turnos seguidos sin avanzar: el incendio se apagó."; }
+  else if (S.turn >= S.model.maxTurns) { S.ended = true; S.endReason = `Se cumplieron ${S.model.maxTurns} turnos: llegaron los refuerzos.`; }
+  if (!S.ended && (S.turn === 2 || S.turn === 4) && S.ff.size < 2) S.placing = true;
+  return { nf, jump };
+}
+
+/* ---------- rendering ---------- */
+function renderPhasebar() {
+  const ph = [["design", "1 Diseño"], ["reveal", "2 Revelación"], ["fire", "3 Fuego"], ["score", "4 Puntaje"]];
+  const idx = ph.findIndex(p => p[0] === S.phase);
+  $("phasebar").innerHTML = `<span class="done">Ronda ${S.round}</span>` + ph.map((p, i) => `<span class="${i === idx ? "on" : i < idx ? "done" : ""}">${p[1]}</span>`).join("");
+}
+function renderBoard() {
+  const b = $("board");
+  b.classList.toggle("design", S.phase === "design");
+  b.classList.toggle("locked", S.phase !== "design" && !S.placing);
+  b.classList.toggle("placing", S.placing);
+  let h = `<div class="lab"></div>` + [...COLS].map(c => `<div class="lab">${c}</div>`).join("");
+  const ignK = S.ign && S.revealed.ign ? key(...parseCoord(S.ign.c)) : -1;
+  for (let r = 0; r < 8; r++) {
+    h += `<div class="lab">${r + 1}</div>`;
+    for (let c = 0; c < 8; c++) {
+      const ch = S.grid[r][c], k = key(r, c);
+      const cls = ["cell"];
+      if (r >= 5) cls.push("urb");
+      if (ch !== ".") cls.push("t-" + ch);
+      if (S.fire.has(k)) cls.push("burn");
+      if (S.newFire.has(k) && S.phase === "fire") cls.push("new");
+      if (S.jumps.has(k) && S.phase === "fire") cls.push("jump");
+      if (k === ignK && S.phase === "reveal") cls.push("ignite");
+      if (S.ff.has(k)) cls.push("hasff");
+      const label = `${nameOf(r, c)}: ${TYPES[ch].name}${S.fire.has(k) ? ", quemada" : ""}${S.ff.has(k) ? ", con bombero" : ""}`;
+      h += `<button class="${cls.join(" ")}" data-k="${k}" aria-label="${label}" ${(S.phase !== "design" && !S.placing) ? 'tabindex="-1"' : ""}>`
+        + `<span class="coord">${nameOf(r, c)}</span>${icon(TYPES[ch].icon)}${S.ff.has(k) ? '<svg class="ff" viewBox="0 0 40 40" aria-hidden="true"><use href="#i-B"/></svg>' : ''}`
+        + `<svg class="fl" viewBox="0 0 40 40" aria-hidden="true"><use href="#i-F"/></svg></button>`;
+    }
+  }
+  b.innerHTML = h;
+  $("windflag").innerHTML = S.wind && S.revealed.wind ? `Viento: <b>${WIND[S.wind].a}</b> ${WIND[S.wind].t}` : (S.phase === "design" ? "Toquen una casilla para colocar la ficha elegida. Toquen de nuevo para quitarla." : "");
+  $("example").innerHTML = S.phase === "design"
+    ? `<span>${S.isExample ? "Paisaje de ejemplo cargado. Pueden modificarlo o partir de cero." : (S.round > 1 ? "Este es el paisaje de la ronda anterior. Cámbienlo." : "Su paisaje.")}</span>
+       <span class="row"><button class="btn ghost" id="clearBtn">Tablero vacío</button><button class="btn ghost" id="exBtn">Cargar ejemplo</button></span>`
+    : "";
+}
+function swatch(t) {
+  const bg = { E: "var(--euc)", P: "var(--pino)", N: "var(--nat)", C: "var(--casa)", ".": "var(--matorral)" }[t];
+  const style = t === "X" ? "background:repeating-linear-gradient(45deg,var(--corta-bg) 0 4px,var(--corta) 4px 6px)" : `background:${bg}`;
+  return `<span class="sw" style="${style}">${TYPES[t].icon ? `<svg viewBox="0 0 40 40"><use href="#${TYPES[t].icon}"/></svg>` : ""}</span>`;
+}
+function thrStrip() {
+  const cur = S.phase === "fire" && S.roll ? S.roll : null;
+  const head = `<tr><th></th>${[1,2,3,4,5,6].map(n => `<th class="${n === cur ? "cur" : ""}">${n}</th>`).join("")}<th></th></tr>`;
+  const rows = ["E", "P", ".", "N", "C", "X"].map(t => {
+    const th = threshold(t);
+    const k = th >= 99 ? 0 : 7 - th;
+    return `<tr><td class="nm">${TYPES[t].name}</td>${[1,2,3,4,5,6].map(n => `<td class="${n >= th ? "y" : "n"}${n === cur ? " cur" : ""}">${n >= th ? "🔥" : "·"}</td>`).join("")}<td class="pr">${k} de 6</td></tr>`;
+  }).join("");
+  return `<p class="dexp">Cada casilla tiene un <b>número mínimo</b>. Si el dado saca <b>ese número o uno mayor</b>, la casilla se quema. Por ejemplo, "3 o más" significa que se quema con 3, 4, 5 o 6. Mientras más bajo el número, más caras del dado la queman: más inflamable.</p>
+  <div class="tablewrap"><table class="dtab" aria-label="Caras del dado que queman cada tipo de casilla">${head}${rows}</table></div>`;
+}
+function verdict() {
+  if (!S.roll || S.phase !== "fire") return "";
+  const yes = [], no = [];
+  ["E", "P", ".", "N", "C"].forEach(t => (S.roll >= threshold(t) ? yes : no).push(TYPES[t].name.toLowerCase()));
+  return `<div class="verdict">Salió <b>${S.roll}</b>: ${yes.length ? `<span class="yes">se queman ${yes.join(", ")}</span>` : `<span class="yes">no se quema nada</span>`}${no.length ? ` · <span class="no">resisten ${no.join(", ")}</span>` : ""} (si las toca el fuego).</div>`;
+}
+function climaBox(editable) {
+  const c = CLIMA[S.clima];
+  return `<div class="climate"><div><h3 style="margin:0">Clima · boca arriba</h3><b>${c.t}</b><div class="hint">${c.d}</div></div>
+    ${editable ? `<select id="climaSel" aria-label="Carta de clima">${Object.entries(CLIMA).map(([k, v]) => `<option value="${k}" ${k === S.clima ? "selected" : ""}>${v.t}</option>`).join("")}</select>` : ""}</div>`;
+}
+function renderPanel() {
+  const p = $("panel");
+  if (S.phase === "design") {
+    const rq = reqs(); const allOk = rq.every(r => r.ok);
+    const sc = score(new Set());
+    p.innerHTML = `
+      <h2>${S.round > 1 ? "Rediseño" : "Diseño del paisaje"}</h2>
+      <p class="hint">Orden sugerido: el planificador pone las casas (filas 6 a 8), forestal y ecólogo se reparten las 24 fichas de vegetación, y la brigadista pone los cortafuegos al final.</p>
+      ${climaBox(!S.cardsFixed)}
+      <div><h3>Ficha para colocar</h3><div class="tools">
+        ${["E", "P", "N", "C", "X", "."].map(t => `<button class="tool" data-tool="${t}" aria-pressed="${S.tool === t}">${swatch(t)}<span>${t === "." ? "Matorral" : TYPES[t].name}<small>${t === "C" ? "filas 6–8" : t === "." ? "borrar" : t === "X" ? "no se quema" : ""}</small></span></button>`).join("")}
+      </div></div>
+      <div><h3>Reglas del diseño</h3><div class="reqs">${rq.map(r => `<div class="req ${r.ok ? "ok" : "no"}"><span>${r.label}</span><b>${r.v}</b></div>`).join("")}</div></div>
+      <div class="facts"><span>Si nada se quemara: <b>${sc.total} pts</b></span><span>Forestal <b>${sc.f}</b></span><span>Ecólogo <b>${sc.e}</b></span><span>Brigadista <b>${sc.b}</b></span><span>Planificador <b>${sc.p}</b></span></div>
+      <div class="row"><button class="btn fire" id="doneDesign" ${allOk ? "" : "disabled"}>Terminar diseño</button>${allOk ? "" : `<span class="hint">Cumplan las reglas para continuar.</span>`}</div>`;
+  }
+  else if (S.phase === "reveal") {
+    const ignOpen = S.revealed.ign, windOpen = S.revealed.wind;
+    p.innerHTML = `
+      <h2>Revelación</h2>
+      <p class="hint">${S.cardsFixed ? "Ronda " + S.round + ": las mismas cartas que antes. Dénlas vuelta otra vez." : "¡Manos arriba! Nadie toca el tablero. Den vuelta las cartas en orden."}</p>
+      ${climaBox(false)}
+      <div class="cards">
+        <button class="flip ${ignOpen ? "open" : ""}" id="flipIgn" ${ignOpen ? "disabled" : ""} aria-label="${ignOpen ? "Inicio: " + S.ign.t + ", " + S.ign.c : "Dar vuelta la carta de inicio del fuego"}">
+          <div class="inner"><div class="face back"><span class="k">Inicio</span><span>Toca para revelar</span></div>
+          <div class="face front"><span class="k">Inicio · causa humana</span><span class="t">${S.ign.t}</span><span class="big">${S.ign.c}</span></div></div>
+        </button>
+        <button class="flip ${windOpen ? "open" : ""}" id="flipWind" ${(!ignOpen || windOpen) ? "disabled" : ""} aria-label="${windOpen ? "Viento: " + WIND[S.wind].t : "Dar vuelta la carta de viento"}">
+          <div class="inner"><div class="face back"><span class="k">Viento</span><span>${ignOpen ? "Toca para revelar" : "Primero el inicio"}</span></div>
+          <div class="face front"><span class="k">Viento</span><span class="t">${WIND[S.wind].t}</span><span class="big">${WIND[S.wind].a}</span></div></div>
+        </button>
+      </div>
+      ${ignOpen && !windOpen ? `<div class="predict"><b>Predigan</b><br>Antes de ver el viento: ¿hacia dónde creen que se va a ir el fuego? ¿Qué casas están en peligro?</div>` : ""}
+      ${windOpen ? `<div class="row"><button class="btn fire" id="startFire">Encender el fuego</button></div>` : ""}`;
+  }
+  else if (S.phase === "fire") {
+    const last = S.log[0] || "";
+    p.innerHTML = `
+      <h2>Fuego · turno ${S.turn}</h2>
+      <div class="dicezone">
+        <div class="die" id="die" aria-label="${S.roll ? "Dado: " + S.roll : "Dado sin lanzar"}">${"<i></i>".repeat(9)}</div>
+        <div class="turninfo"><div class="tn">Turno ${S.turn} de ${S.model.maxTurns} máximo</div>
+          <div class="msg">${S.ended ? S.endReason : (S.turn === 0 ? "El fuego partió en " + S.ign.c + ". Lancen el dado." : (S.newFire.size ? S.newFire.size + " casilla" + (S.newFire.size > 1 ? "s nuevas" : " nueva") + " en llamas" : "Calma. Si el próximo turno tampoco avanza, se apaga."))}</div>${S.ended ? "" : verdict()}</div>
+      </div>
+      ${ffBox()}
+      <div><h3>¿Qué caras del dado queman cada casilla?</h3>${thrStrip()}<p class="hint" style="margin-top:6px">El fuego avanza hacia adelante y a los lados según el viento, nunca hacia atrás. Pavesas: con ${pavesaMin()}${pavesaMin() === 5 ? " o 6" : ""}, si arde un eucalipto, el fuego salta 2 casillas (un cortafuego o un bombero lo detiene).</p></div>
+      <div class="row">
+        ${S.ended ? `<button class="btn fire" id="toScore">Ver puntaje</button>` : `<button class="btn fire" id="rollBtn" ${S.placing ? "disabled" : ""}>Lanzar dado</button><button class="btn ghost" id="autoBtn" ${S.placing ? "disabled" : ""}>Jugar hasta el final</button>`}
+      </div>
+      <div class="log" id="log">${S.log.map(l => `<div>${l}</div>`).join("")}</div>`;
+    paintDie(S.roll);
+  }
+  else if (S.phase === "score") {
+    const sc = score();
+    const prev = S.history.length > 1 ? S.history[S.history.length - 2] : null;
+    p.innerHTML = `
+      <h2>Puntaje · ronda ${S.round}</h2>
+      ${breakdown(sc)}
+      <div class="total"><span>Total del grupo${prev ? ` <span class="hint">(ronda anterior: ${prev.total})</span>` : ""}</span><span class="n">${sc.total}</span></div>
+      <div class="facts"><span>Si nada se hubiera quemado: <b>${score(new Set()).total} pts</b></span><span>El incendio les costó <b>${score(new Set()).total - sc.total} pts</b></span></div>
+      <div class="facts"><span>Casillas quemadas <b>${sc.cellsBurned}/64</b></span><span>Casas quemadas <b>${sc.lost}</b></span><span>Duró <b>${S.turn}</b> turnos</span></div>
+      <div class="aer"><b>Para el AER del grupo</b>
+        <span>Creemos que el fuego avanzó por ______, porque en el tablero vimos que ______. Esto ocurre porque ______.</span></div>
+      <div class="row">
+        <button class="btn" id="round2">Ronda ${S.round + 1}: rediseñar con las mismas cartas</button>
+        <button class="btn ghost" id="newGame">Partida nueva</button>
+      </div>`;
+  }
+}
+function ffBox() {
+  const ic = '<svg viewBox="0 0 40 40" aria-hidden="true"><use href="#i-B"/></svg>';
+  if (S.placing) return `<div class="ffbox call">${ic}<span>¡Llegó un bombero! La jefa de brigadistas toca una casilla que no esté quemada. Esa casilla ya no se podrá quemar.</span></div>`;
+  const next = S.ff.size === 0 ? "El primero llega al terminar el turno 2." : S.ff.size === 1 ? "El segundo llega al terminar el turno 4." : "Ya llegaron los dos.";
+  return `<div class="ffbox">${ic}<span><b>Bomberos: ${S.ff.size} de 2.</b> ${next} No se mueven y no apagan lo que ya se quemó.</span></div>`;
+}
+function breakdown(sc) {
+  const line = (n, label, v) => {
+    const sub = n * v;
+    return `<div class="li"><span>${n} ${label}</span><span class="calc">${n} × ${v > 0 ? v : "(" + v + ")"}</span><b>${sub > 0 ? "+" : ""}${sub}</b></div>`;
+  };
+  const lost = (txt) => txt ? `<div class="lost">${txt}</div>` : "";
+  const pl = (n, a, b) => n === 1 ? a : b;
+  return `<div class="bd">
+    <div class="role-bd"><div class="rh"><span>Gerenta forestal</span><b>${sc.f}</b></div>
+      ${line(sc.Ea, pl(sc.Ea, "eucalipto sin quemar", "eucaliptos sin quemar"), 4)}
+      ${line(sc.Pa, pl(sc.Pa, "pino sin quemar", "pinos sin quemar"), 3)}
+      ${lost((sc.Eb || sc.Pb) ? `Se quemaron ${sc.Eb} eucalipto${sc.Eb === 1 ? "" : "s"} y ${sc.Pb} pino${sc.Pb === 1 ? "" : "s"}: perdió ${sc.Eb * 4 + sc.Pb * 3} pts` : "")}</div>
+    <div class="role-bd"><div class="rh"><span>Ecólogo</span><b>${sc.e}</b></div>
+      ${line(sc.Na, pl(sc.Na, "casilla de nativo sin quemar", "casillas de nativo sin quemar"), 2)}
+      ${lost(sc.Nb ? `Se quemaron ${sc.Nb} casilla${sc.Nb === 1 ? "" : "s"} de nativo: perdió ${sc.Nb * 2} pts` : "")}</div>
+    <div class="role-bd"><div class="rh"><span>Jefa de brigadistas</span><b>${sc.b}</b></div>
+      ${line(sc.saved, pl(sc.saved, "casa salvada", "casas salvadas"), 3)}
+      ${line(sc.lost, pl(sc.lost, "casa quemada", "casas quemadas"), -3)}</div>
+    <div class="role-bd"><div class="rh"><span>Planificador</span><b>${sc.p}</b></div>
+      ${line(sc.saved + sc.lost, pl(sc.saved + sc.lost, "casa construida", "casas construidas"), 2)}
+      ${line(sc.vista, pl(sc.vista, "casa salvada con vista al cerro", "casas salvadas con vista al cerro"), 1)}
+      <div class="lost">"Con vista" = la casa no se quemó y tiene al lado (arriba, abajo o a un costado) un árbol sin quemar.</div></div>
+  </div>`;
+}
+function paintDie(n) {
+  const pips = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+  const die = $("die"); if (!die) return;
+  [...die.children].forEach((el, i) => el.style.visibility = n && pips[n].includes(i) ? "visible" : "hidden");
+}
+function renderHistory() {
+  const t = $("hist");
+  if (!S.history.length) { t.innerHTML = `<tr><td class="hint" style="text-align:left;white-space:normal">Todavía no terminan una ronda.</td></tr>`; return; }
+  t.innerHTML = `<tr><th>Ronda</th><th>Clima</th><th>Viento</th><th>Forestal</th><th>Ecólogo</th><th>Brigadista</th><th>Planif.</th><th>Total</th><th>Casas quemadas</th></tr>`
+    + S.history.map(h => `<tr><td>${h.round}</td><td>${CLIMA[h.clima].t}</td><td>${WIND[h.wind].a}</td><td>${h.f}</td><td>${h.e}</td><td>${h.b}</td><td>${h.p}</td><td><b>${h.total}</b></td><td>${h.lost}</td></tr>`).join("");
+}
+function renderModel() {
+  const m = S.model;
+  const num = (k, label) => `<label>${label}<input type="number" min="2" max="7" step="1" id="m-${k === "." ? "M" : k}" data-m="${k}" value="${m[k]}"></label>`;
+  $("model").innerHTML = num("E", "Eucalipto") + num("P", "Pino") + num(".", "Matorral") + num("N", "Bosque nativo") + num("C", "Casa")
+    + `<label>Turnos máximos<select id="m-turns" data-mt="1">${[6, 8, 10].map(v => `<option ${v === m.maxTurns ? "selected" : ""}>${v}</option>`).join("")}</select></label>`
+    + `<label>La sequía afecta a<select id="m-scope" data-ms="1"><option value="all" ${m.sequiaScope === "all" ? "selected" : ""}>Toda la vegetación</option><option value="dry" ${m.sequiaScope === "dry" ? "selected" : ""}>Solo matorral y nativo</option></select></label>`
+    + `<label style="align-self:end"><button class="btn ghost" id="m-reset" type="button">Valores originales</button></label>`;
+}
+function renderRoles() {
+  $("roles").innerHTML = [
+    ["Andrea Muñoz", "Gerenta de empresa forestal", "Eucalipto 4 · Pino 3 (sin quemar)", "¿Cuánto riesgo vale la ganancia?"],
+    ["Tomás Herrera", "Ecólogo del bosque esclerófilo", "Bosque nativo 2 (sin quemar)", "¿Qué pierde el ecosistema cuando lo reemplazamos?"],
+    ["Camila Rojas", "Jefa de cuadrilla de brigadistas", "Casa salvada +3 · quemada −3 · controla 2 bomberos", "¿Dónde se detiene el fuego?"],
+    ["Diego Fuentes", "Planificador urbano municipal", "+2 por casa · +1 si se salva junto a vegetación", "¿Dónde es seguro vivir?"]
+  ].map(([w, r, p, q]) => `<div class="role"><div class="who">${w}</div><h3>${r}</h3><div class="pts">${p}</div><p class="hint" style="margin-top:6px"><i>${q}</i></p></div>`).join("");
+}
+function render() { renderPhasebar(); renderBoard(); renderPanel(); renderHistory(); }
+
+/* ---------- actions ---------- */
+function placeAt(k) {
+  if (S.phase === "fire" && S.placing) {
+    if (S.fire.has(k)) { flash("Esa casilla ya se quemó. Elijan una que no esté quemada."); return; }
+    if (S.ff.has(k)) { flash("Ahí ya hay un bombero."); return; }
+    S.ff.add(k); S.placing = false;
+    const [r0, c0] = rc(k);
+    S.log.unshift(`<b>Bombero</b> en ${nameOf(r0, c0)}`);
+    renderBoard(); renderPanel(); return;
+  }
+  if (S.phase !== "design") return;
+  const [r, c] = rc(k);
+  const cur = S.grid[r][c];
+  let t = S.tool;
+  if (t === "C" && r < 5) { flash("Las casas solo se construyen en las filas 6 a 8."); return; }
+  S.grid[r][c] = cur === t ? "." : t;
+  S.isExample = false;
+  renderBoard(); renderPanel();
+  const btn = document.querySelector(`.cell[data-k="${k}"]`); if (btn) btn.focus();
+}
+function flash(msg) {
+  $("windflag").innerHTML = `<b>${msg}</b>`;
+  clearTimeout(flash._t); flash._t = setTimeout(() => renderBoard(), 1800);
+}
+function finishDesign() {
+  S.savedDesign = S.grid.map(r => r.slice());
+  if (!S.cardsFixed) {
+    S.ign = pickWeighted(IGN, x => x.w);
+    S.wind = pickWeighted(Object.keys(WIND_W), k => WIND_W[k]);
+  }
+  S.revealed = { ign: false, wind: false };
+  S.fire = new Set(); S.newFire = new Set(); S.jumps = new Set(); S.ff = new Set(); S.placing = false;
+  S.phase = "reveal"; render();
+}
+const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let busy = false;
+function roll() {
+  if (busy || S.ended || S.placing) return Promise.resolve();
+  busy = true;
+  const d = 1 + rnd(6);
+  const die = $("die");
+  return new Promise(res => {
+    const finish = () => {
+      if (die) die.classList.remove("rolling");
+      S.roll = d; step(d); busy = false; renderBoard(); renderPanel(); res();
+    };
+    if (reduced() || !die) { finish(); return; }
+    die.classList.add("rolling");
+    let i = 0; const iv = setInterval(() => { paintDie(1 + rnd(6)); if (++i > 6) { clearInterval(iv); finish(); } }, 80);
+  });
+}
+async function autoplay() {
+  while (!S.ended && !S.placing) { await roll(); await new Promise(r => setTimeout(r, reduced() ? 50 : 500)); }
+}
+function toScore() {
+  const sc = score();
+  S.history.push({ round: S.round, clima: S.clima, wind: S.wind, ...sc });
+  S.phase = "score"; render();
+}
+function nextRound() {
+  S.round++; S.cardsFixed = true;
+  S.grid = S.savedDesign.map(r => r.slice());
+  S.fire = new Set(); S.newFire = new Set(); S.jumps = new Set(); S.ff = new Set(); S.placing = false; S.turn = 0; S.roll = null; S.log = [];
+  S.isExample = false; S.phase = "design"; render();
+}
+function newGame() {
+  S.round = 1; S.cardsFixed = false; S.history = []; S.ign = null; S.wind = null;
+  S.grid = EXAMPLE.map(r => r.split("")); S.isExample = true;
+  S.fire = new Set(); S.newFire = new Set(); S.jumps = new Set(); S.ff = new Set(); S.placing = false; S.turn = 0; S.roll = null; S.log = [];
+  S.phase = "design"; render();
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.classList.contains("cell")) return placeAt(+t.dataset.k);
+  if (t.dataset.tool) { S.tool = t.dataset.tool; renderPanel(); document.querySelector(`[data-tool="${CSS.escape(S.tool)}"]`)?.focus(); return; }
+  switch (t.id) {
+    case "clearBtn": S.grid = Array.from({ length: 8 }, () => Array(8).fill(".")); S.isExample = false; render(); break;
+    case "exBtn": S.grid = EXAMPLE.map(r => r.split("")); S.isExample = true; render(); break;
+    case "doneDesign": finishDesign(); break;
+    case "flipIgn": S.revealed.ign = true; render(); break;
+    case "flipWind": S.revealed.wind = true; render(); break;
+    case "startFire": startFire(); S.phase = "fire"; render(); break;
+    case "rollBtn": roll(); break;
+    case "autoBtn": t.disabled = true; autoplay(); break;
+    case "toScore": toScore(); break;
+    case "round2": nextRound(); break;
+    case "newGame": newGame(); break;
+    case "m-reset": S.model = { E: 2, P: 3, ".": 3, N: 4, C: 4, maxTurns: 8, sequiaScope: "all" }; renderModel(); renderPanel(); break;
+  }
+});
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.id === "climaSel") { S.clima = el.value; renderPanel(); return; }
+  if (el.dataset.m) { let v = Math.min(7, Math.max(2, parseInt(el.value, 10) || 2)); el.value = v; S.model[el.dataset.m] = v; renderPanel(); return; }
+  if (el.dataset.mt) { S.model.maxTurns = +el.value; renderPanel(); return; }
+  if (el.dataset.ms) { S.model.sequiaScope = el.value; renderPanel(); return; }
+});
+
+renderModel(); renderRoles(); render();
+})();
+</script>
+
+</body></html>
