@@ -23,6 +23,11 @@ header.top h1 small{display:block;font-size:13px;color:var(--ink2);font-weight:4
 .btn.p{background:var(--lime);color:#14121f}
 .btn.r{background:#3a1622;color:#ffb3c7}
 .btn.sm{padding:6px 10px;font-size:13px}
+.cf-form{display:grid;gap:8px}
+.cf-form label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+.cf-form input,.cf-form select{background:var(--slab2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 10px;font:500 14px system-ui,sans-serif}
+.cf-fila{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cf-form [hidden]{display:none}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .card{background:var(--slab);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
 .aviso{padding:14px 16px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-bottom:16px}
@@ -139,6 +144,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
       <button data-t="trabajos">Trabajos</button>
       <button data-t="alumnos">Usuarios</button>
       <button data-t="visitas">Visitas</button>
+      <button data-t="cofres">🧰 Cofres</button>
     </nav>
 
     <!-- ═════════ BANCO ═════════ -->
@@ -328,6 +334,43 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
     </section>
 
     <!-- ═════════ VISITAS ═════════ -->
+    <!-- ═════════ COFRES ═════════ -->
+    <section id="t-cofres" class="oculto">
+      <div class="kpis">
+        <div class="kpi"><b id="cfKCerr">—</b><span>Cofres sin abrir</span></div>
+        <div class="kpi"><b id="cfKAb">—</b><span>Abiertos</span></div>
+        <div class="kpi"><b id="cfKComp">—</b><span>Comprados por estudiantes</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="barra" style="margin:0 0 8px"><h3 style="margin:0;flex:1">Últimos cofres</h3>
+            <select id="cfFiltro"><option value="">Todos</option><option value="cerrado">Sin abrir</option><option value="abierto">Abiertos</option><option value="comprado">Comprados</option></select>
+            <button class="btn sm" id="cfRecargar">Actualizar</button></div>
+          <div class="tabla-wrap" style="max-height:60vh"><table><thead><tr><th>Fecha</th><th>Estudiante</th><th>Cofre</th><th>Origen</th><th>Resultado</th><th></th></tr></thead><tbody id="cfTabla"></tbody></table></div>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 6px">Entregar cofres</h3>
+          <p class="muted" style="margin:0 0 10px;font-size:13px">Los estudiantes los abren en la Ruleta («Tus cofres»). También pueden comprarlos: básico ₣100.000, especial ₣500.000.</p>
+          <div class="cf-form">
+            <label>¿A quién?
+              <select id="cfModo"><option value="uno">Un estudiante</option><option value="curso">Un curso completo</option><option value="sel">Las cuentas seleccionadas en Banco</option></select></label>
+            <label id="cfUnoL">Estudiante<input id="cfQuien" list="cfLista" placeholder="Escribe nombre o N°…" autocomplete="off"><datalist id="cfLista"></datalist></label>
+            <label id="cfCursoL" hidden>Curso<select id="cfCurso"></select></label>
+            <p id="cfSelL" class="muted" hidden style="margin:0;font-size:13px"></p>
+            <div class="cf-fila"><label>Tipo<select id="cfTipo"><option value="comun">🧰 Cofre</option><option value="raro">✨ Cofre especial</option></select></label>
+              <label>Cantidad<input id="cfCant" type="number" min="1" max="5" value="1"></label></div>
+            <label>Motivo (lo ve el estudiante)<input id="cfMotivo" maxlength="120" placeholder="Ej.: excelente trabajo en el laboratorio"></label>
+            <button class="btn p" type="button" id="cfDar">Entregar</button>
+            <p class="muted" id="cfMsg" style="margin:0"></p>
+          </div>
+          <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">Qué trae cada cofre (16 resultados iguales, 6,25% c/u)</summary>
+            <p class="muted" style="font-size:13px">🧰 <b>Cofre</b> (₣100.000) · premio 69%: +50K, +100K, +200K ×2, +250K, +600K, gatito común, gatito sorpresa, 1 décima formativa, pase de tarea, −20% Tienda · castigo 25%: −50K, −100K, −150K, disertación · vacío 6% · devuelve ~94% en promedio.</p>
+            <p class="muted" style="font-size:13px">✨ <b>Especial</b> (₣500.000) · premio 75%: +600K, +800K, +1M, +1,2M, +1,5M, +2M, gatito sorpresa ×3, 1 décima sumativa, 2 décimas formativas, 5 min extra · castigo 25%: −200K, −300K, −400K, disertación · devuelve ~92% en promedio.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
     <section id="t-visitas" class="oculto">
       <div class="kpis">
         <div class="kpi"><b id="vTotal">—</b><span>Visitas totales (sesiones)</span></div>
@@ -491,7 +534,8 @@ DF.listo().then(fb => {
 $('tabs').onclick = ev => {
   const t = ev.target.dataset.t; if (!t) return;
   [...$('tabs').children].forEach(b => b.classList.toggle('on', b.dataset.t === t));
-  ['banco', 'juegos', 'sims', 'trabajos', 'alumnos', 'visitas'].forEach(x => $('t-' + x).classList.toggle('oculto', x !== t));
+  ['banco', 'juegos', 'sims', 'trabajos', 'alumnos', 'visitas', 'cofres'].forEach(x => $('t-' + x).classList.toggle('oculto', x !== t));
+  if (t === 'cofres') cofresPanel();
   if (t === 'alumnos') cargarAlumnos();
   if (t === 'trabajos') cargarTrabajos();
   if (t === 'juegos') cargarJuegos();
@@ -1915,6 +1959,79 @@ $('wExportar').onclick = () => {
   descargarCSV(`trabajos-${$('wRec').value}-${DF.hoy()}.csv`, [['Nombre', 'Correo', 'Avance', 'Felipesos', 'Último guardado'].concat(cols)]
     .concat(l.map(w => { const m = {}; (w.datos.detalle || []).forEach(x => m[x.k] = x.v); return [w.a.nombre, w.a.email, w.datos.avance || '', w.datos.felipesos != null ? w.datos.felipesos : '', fecha(w.fecha)].concat(cols.map(c => m[c] || '')); })));
 };
+
+/* ═════════ COFRES: entregar y revisar (se abren en ruleta.html) ═════════ */
+let cofresLista = [];
+const msC = t => t && t.toMillis ? t.toMillis() : 0;
+function cofresForm() {
+  const act = cuentas.filter(c => c.estado !== 'Cerrada')
+    .sort((a, b) => String(a.curso || '').localeCompare(String(b.curso || '')) || String(a.nombre || '').localeCompare(String(b.nombre || '')));
+  $('cfLista').innerHTML = act.map(c => `<option value="${esc(((c.nombre || '') + ' ' + (c.apellido || '')).trim() + ' · ' + (c.curso || '') + ' · #' + c.id)}">`).join('');
+  const cursos = [...new Set(act.map(c => c.curso).filter(Boolean))].sort();
+  $('cfCurso').innerHTML = cursos.map(c => `<option>${esc(c)}</option>`).join('');
+  const m = $('cfModo').value;
+  $('cfUnoL').hidden = m !== 'uno'; $('cfCursoL').hidden = m !== 'curso'; $('cfSelL').hidden = m !== 'sel';
+  $('cfSelL').textContent = seleccion.size ? seleccion.size + ' cuenta(s) seleccionada(s) en la pestaña Banco.' : 'No hay cuentas seleccionadas: márcalas en la pestaña Banco.';
+  return act;
+}
+async function cofresPanel() {
+  cofresForm();
+  const { F, db } = FB;
+  try {
+    const sn = await F.getDocs(F.query(F.collection(db, 'cofres'), F.orderBy('creado', 'desc'), F.limit(300)));
+    cofresLista = sn.docs.map(d => Object.assign({ id: d.id }, d.data()));
+  } catch (e) { aviso('No se pudieron leer los cofres: ' + esc(e.message), true); }
+  cofresTabla();
+}
+function cofresTabla() {
+  const f = $('cfFiltro').value;
+  const comprado = c => c.profe === '';
+  $('cfKCerr').textContent = cofresLista.filter(c => c.estado !== 'abierto').length;
+  $('cfKAb').textContent = cofresLista.filter(c => c.estado === 'abierto').length;
+  $('cfKComp').textContent = cofresLista.filter(comprado).length;
+  const l = cofresLista.filter(c => !f || (f === 'comprado' ? comprado(c) : f === 'cerrado' ? c.estado !== 'abierto' : c.estado === f));
+  $('cfTabla').innerHTML = l.map(c => `<tr><td>${msC(c.creado) ? new Date(msC(c.creado)).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+    <td>${esc(c.nombre || c.cuenta)} <span class="muted">${esc(c.curso || '')}</span></td>
+    <td>${c.tipo === 'raro' ? '✨ Especial' : '🧰 Básico'}</td>
+    <td>${comprado(c) ? 'Comprado' : esc(c.motivo || 'Regalo')}</td>
+    <td>${c.estado === 'abierto' ? esc(c.premio || 'Abierto') : c.estado === 'abriendo' ? '<span class="muted">abriéndose…</span>' : '<span class="muted">sin abrir</span>'}</td>
+    <td>${c.estado === 'cerrado' && !comprado(c) ? `<button class="btn sm r" data-cfborrar="${esc(c.id)}">Quitar</button>` : ''}</td></tr>`).join('')
+    || '<tr><td colspan="6" class="muted">Aún no hay cofres.</td></tr>';
+}
+$('cfModo').onchange = cofresForm;
+$('cfFiltro').onchange = cofresTabla;
+$('cfRecargar').onclick = cofresPanel;
+$('cfDar').onclick = async () => {
+  const act = cofresForm(), m = $('cfModo').value, tipo = $('cfTipo').value;
+  const cant = Math.min(5, Math.max(1, parseInt($('cfCant').value, 10) || 1));
+  const motivo = $('cfMotivo').value.trim().slice(0, 120) || 'Regalo del profe';
+  let dest = [];
+  if (m === 'uno') { const x = $('cfQuien').value.match(/#([^#\s]+)$/); dest = x ? act.filter(c => c.id === x[1]) : []; }
+  if (m === 'curso') dest = act.filter(c => c.curso === $('cfCurso').value);
+  if (m === 'sel') dest = act.filter(c => seleccion.has(c.id));
+  if (!dest.length) { $('cfMsg').textContent = 'Elige a quién entregar.'; return; }
+  const quien = dest.length === 1 ? ((dest[0].nombre || '') + ' ' + (dest[0].apellido || '')).trim() : dest.length + ' estudiantes';
+  if (!confirm(`¿Entregar ${cant} ${tipo === 'raro' ? 'cofre(s) especial(es)' : 'cofre(s)'} a ${quien}?`)) return;
+  const { F, db } = FB, yo = (DF.usuario() || {}).email || 'profe';
+  try {
+    const docs = [];
+    dest.forEach(c => { for (let k = 0; k < cant; k++) docs.push(c); });
+    for (let i = 0; i < docs.length; i += 400) {
+      const b = F.writeBatch(db);
+      docs.slice(i, i + 400).forEach(c => b.set(F.doc(F.collection(db, 'cofres')), {
+        cuenta: c.id, nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim().slice(0, 120), curso: c.curso || '', tipo, estado: 'cerrado',
+        motivo, creado: F.serverTimestamp(), profe: yo }));
+      await b.commit();
+    }
+    await cofresPanel();
+    $('cfMsg').textContent = `✅ Entregado${dest.length > 1 ? ' a ' + dest.length + ' estudiantes' : ' a ' + quien}. Lo verán en la Ruleta → Tus cofres.`;
+  } catch (e) { $('cfMsg').textContent = 'No se pudo entregar: ' + e.message; }
+};
+$('cfTabla').onclick = async ev => {
+  const b = ev.target.closest('[data-cfborrar]'); if (!b || !confirm('¿Quitar este cofre sin abrir?')) return;
+  try { await FB.F.deleteDoc(FB.F.doc(FB.db, 'cofres', b.dataset.cfborrar)); await cofresPanel(); } catch (e) { aviso('No se pudo: ' + esc(e.message), true); }
+};
+
 </script>
 </body>
 </html>
