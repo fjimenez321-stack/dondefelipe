@@ -350,7 +350,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
         </div>
         <div class="card">
           <h3 style="margin:0 0 6px">Entregar cofres</h3>
-          <p class="muted" style="margin:0 0 10px;font-size:13px">Los estudiantes los abren en la Ruleta («Tus cofres»). También pueden comprarlos: básico ₣100.000, especial ₣500.000.</p>
+          <p class="muted" style="margin:0 0 10px;font-size:13px">Los estudiantes los abren en la Ruleta («Tus cofres»). También pueden comprarlos: básico ₣75.000, especial ₣400.000. Para abrirlos necesitan una llave: 🗝️ ₣25.000 (se rompe ≈19%) o 🔑 dorada ₣100.000 (abre especiales, se rompe 25%).</p>
           <div class="cf-form">
             <label>¿A quién?
               <select id="cfModo"><option value="uno">Un estudiante</option><option value="curso">Un curso completo</option><option value="sel">Las cuentas seleccionadas en Banco</option></select></label>
@@ -364,8 +364,8 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
             <p class="muted" id="cfMsg" style="margin:0"></p>
           </div>
           <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">Qué trae cada cofre (16 resultados iguales, 6,25% c/u)</summary>
-            <p class="muted" style="font-size:13px">🧰 <b>Cofre</b> (₣100.000) · premio 69%: +50K, +100K, +200K ×2, +250K, +600K, gatito común, gatito sorpresa, 1 décima formativa, pase de tarea, −20% Tienda · castigo 25%: −50K, −100K, −150K, disertación · vacío 6% · devuelve ~94% en promedio.</p>
-            <p class="muted" style="font-size:13px">✨ <b>Especial</b> (₣500.000) · premio 75%: +600K, +800K, +1M, +1,2M, +1,5M, +2M, gatito sorpresa ×3, 1 décima sumativa, 2 décimas formativas, 5 min extra · castigo 25%: −200K, −300K, −400K, disertación · devuelve ~92% en promedio.</p>
+            <p class="muted" style="font-size:13px">🧰 <b>Cofre</b> (₣75.000 + llave) · premio 69%: +50K, +100K, +200K ×2, +250K, +600K, gatito común, gatito sorpresa, 1 décima formativa, pase de tarea, −20% Tienda · castigo 25%: −50K, −100K, −150K, disertación · vacío 6% · en promedio devuelve ≈89% de lo gastado (cofre + llave).</p>
+            <p class="muted" style="font-size:13px">✨ <b>Especial</b> (₣400.000 + llave dorada) · premio 75%: +600K, +800K, +1M, +1,2M, +1,5M, +2M, gatito sorpresa ×3, 1 décima sumativa, 2 décimas formativas, 5 min extra · castigo 25%: −200K, −300K, −400K, disertación · en promedio devuelve ≈86% de lo gastado (cofre + llave).</p>
           </details>
         </div>
       </div>
@@ -535,7 +535,7 @@ $('tabs').onclick = ev => {
   const t = ev.target.dataset.t; if (!t) return;
   [...$('tabs').children].forEach(b => b.classList.toggle('on', b.dataset.t === t));
   ['banco', 'juegos', 'sims', 'trabajos', 'alumnos', 'visitas', 'cofres'].forEach(x => $('t-' + x).classList.toggle('oculto', x !== t));
-  if (t === 'cofres') cofresPanel();
+  if (t === 'cofres') cofresPanel(false);   // usa lo ya leído; «Actualizar» vuelve a leer
   if (t === 'alumnos') cargarAlumnos();
   if (t === 'trabajos') cargarTrabajos();
   if (t === 'juegos') cargarJuegos();
@@ -566,7 +566,7 @@ function iniciarBanco() {
     cfgBanco = s.exists() ? s.data() : {}; pintarAuto();
   }, e => console.info(e)));
   desuscribir.push(F.onSnapshot(F.query(F.collection(db, 'banco_movs'), F.where('canje', '==', 'pendiente')), s => {
-    pendientes = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    pendientes = s.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => !/^Llave (de cofre|dorada)$/.test(m.item || ''));   // las llaves no se canjean con el profe
     pendientes.sort((a, b) => (ms(a.fecha) - ms(b.fecha)));
     pintarPendientes();
   }, e => console.info(e)));
@@ -1985,11 +1985,14 @@ function cofresForm() {
   $('cfSelL').textContent = seleccion.size ? seleccion.size + ' cuenta(s) seleccionada(s) en la pestaña Banco.' : 'No hay cuentas seleccionadas: márcalas en la pestaña Banco.';
   return act;
 }
-async function cofresPanel() {
+let cofresLeidos = false;
+async function cofresPanel(releer = true) {
   cofresForm();
+  if (cofresLeidos && !releer) return cofresTabla();
   const { F, db } = FB;
   try {
-    const sn = await F.getDocs(F.query(F.collection(db, 'cofres'), F.orderBy('creado', 'desc'), F.limit(300)));
+    const sn = await F.getDocs(F.query(F.collection(db, 'cofres'), F.orderBy('creado', 'desc'), F.limit(150)));
+    cofresLeidos = true;
     cofresLista = sn.docs.map(d => Object.assign({ id: d.id }, d.data()));
   } catch (e) { aviso('No se pudieron leer los cofres: ' + esc(e.message), true); }
   cofresTabla();
@@ -2011,7 +2014,7 @@ function cofresTabla() {
 }
 $('cfModo').onchange = cofresForm;
 $('cfFiltro').onchange = cofresTabla;
-$('cfRecargar').onclick = cofresPanel;
+$('cfRecargar').onclick = () => cofresPanel(true);
 $('cfDar').onclick = async () => {
   const act = cofresForm(), m = $('cfModo').value, tipo = $('cfTipo').value;
   const cant = Math.min(5, Math.max(1, parseInt($('cfCant').value, 10) || 1));
