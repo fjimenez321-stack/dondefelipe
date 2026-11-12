@@ -112,6 +112,37 @@ h1 span{color:var(--acid)}
   .dis{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:12px;background:var(--slab2);border-left:3px solid #8e2bd1;margin-top:8px}
   .dis small{display:block;color:var(--mute);font-size:12px}.dis-acc{display:flex;gap:6px;flex-wrap:wrap}.dis-acc .btn{padding:6px 12px;font-size:13px}
   .comprobante{margin:6px 0 12px;font-size:12.5px;text-align:left;opacity:.9}.comprobante summary{cursor:pointer;font-weight:600}.comprobante code{font-size:12px;word-break:break-all}
+
+/* ── Cofres ── */
+.cofres h2{display:flex;align-items:center;gap:8px}
+.cf-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-top:10px}
+.cf-item{all:unset;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 12px;border-radius:14px;background:var(--slab2);border:1px solid var(--line2);cursor:pointer;text-align:center;transition:transform .2s,border-color .2s}
+.cf-item:hover,.cf-item:focus-visible{transform:translateY(-3px);border-color:var(--acid);outline:none}
+.cf-item img{width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+.cf-item.raro{border-color:rgba(255,214,10,.6);box-shadow:0 0 18px rgba(255,214,10,.25)}
+.cf-item b{font-size:13px}.cf-item small{color:var(--mute);font-size:11.5px;line-height:1.25}
+.cf-item.cf-vencido{cursor:default;opacity:.75}
+.cf-item:not(.cf-vencido) img{animation:cfLat 3.2s ease-in-out infinite}
+@keyframes cfLat{0%,86%,100%{transform:none}89%{transform:rotate(-5deg)}92%{transform:rotate(5deg)}95%{transform:rotate(-3deg)}}
+.cf-hist{list-style:none;margin:10px 0 0;padding:0;font-size:13px}.cf-hist li{padding:6px 0;border-bottom:1px solid var(--line);color:var(--mute)}.cf-hist b{color:var(--ink)}
+.cf-velo{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(4,4,8,.82);backdrop-filter:blur(4px);padding:16px}
+.cf-velo[hidden]{display:none}
+.cf-modal{width:min(420px,100%);background:var(--slab);border:1px solid var(--line2);border-radius:22px;padding:22px 20px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.cf-modal h2{text-align:center;margin:6px 0 0;font:900 26px/1.1 var(--ff-d)}
+.cf-escena{position:relative;height:220px;display:grid;place-items:center}
+.cf-escena img{position:relative;z-index:1;width:200px;height:200px}
+.cf-escena img.agita{animation:cfAgita .45s ease-in-out infinite}
+@keyframes cfAgita{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg) translateY(-3px)}75%{transform:rotate(6deg) translateY(-3px)}}
+.cf-rayos{position:absolute;inset:0;border-radius:50%;opacity:0;transition:opacity .4s;
+  background:conic-gradient(from 0deg,rgba(255,214,10,.0),rgba(255,214,10,.35),rgba(255,214,10,0) 12%,rgba(31,221,108,.3) 25%,rgba(255,214,10,0) 37%,rgba(255,43,61,.3) 50%,rgba(255,214,10,0) 62%,rgba(255,214,10,.35) 75%,rgba(255,214,10,0) 87%);
+  -webkit-mask:radial-gradient(circle,#000 20%,transparent 68%);mask:radial-gradient(circle,#000 20%,transparent 68%);animation:cfGira 6s linear infinite}
+.cf-rayos.on{opacity:1}.cf-rayos.mal{filter:hue-rotate(-50deg) saturate(2) brightness(.7)}
+@keyframes cfGira{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.cf-item img,.cf-escena img.agita,.cf-rayos{animation:none}}
+.cf-form{display:grid;gap:8px;margin-top:10px}
+.cf-form label{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+.cf-form input,.cf-form select{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:9px 10px;font:500 14px var(--ff)}
+.cf-fila{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="fuentes/fuentes.css?v=20261110b">
@@ -149,6 +180,8 @@ h1 span{color:var(--acid)}
     </div>
 
     <div class="lado">
+      <section class="card cofres" id="cofres" hidden></section>
+      <section class="card cofres" id="cofresProfe" hidden></section>
       <section class="card">
         <h2>Probabilidades</h2>
         <table class="prob" id="prob"></table>
@@ -166,6 +199,11 @@ h1 span{color:var(--acid)}
 
 <div class="velo" id="velo"><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitulo"></div></div>
 <canvas class="confeti" id="confeti"></canvas>
+<div class="cf-velo" id="cfVelo" hidden><div class="cf-modal" role="dialog" aria-modal="true" aria-labelledby="cfTit">
+  <div class="cf-escena"><div class="cf-rayos" id="cfRayos"></div><img id="cfImg" alt="" width="200" height="200"></div>
+  <h2 id="cfTit">Abriendo el cofre…</h2><p id="cfTxt" class="nota" style="text-align:center"></p>
+  <div style="text-align:center;margin-top:12px"><button class="btn p" type="button" id="cfOk" hidden>Seguir</button></div>
+</div></div>
 <p class="sr" id="anuncio" aria-live="assertive"></p>
 
 <script src="gatitos/catalogo.js?v=20261111"></script>
@@ -358,6 +396,7 @@ async function cargarAhora() {
     }
   } catch (e) { aviso('No se pudo cargar tu cuenta: ' + esc(e.message), 'err'); }
   pintar();
+  if (window.cofresCargar) cofresCargar();   // no espera al historial
   await cargarHistorial();
   cargarDisertaciones();
   if (estado && estado.pendiente && cuenta) {
@@ -421,7 +460,7 @@ function pintarDisertaciones() {
   if (!disert.length) return;
   box.innerHTML = `<h2>🎤 Disertaciones pendientes</h2>
     <p class="nota" style="margin:0 0 10px">Castigo de la ruleta: una disertación breve frente al curso, cuando el profe lo indique. Puedes cambiar el tema hasta que la hagas.</p>
-    ${disert.map(m => `<div class="dis" data-id="${esc(m.id)}"><div><small>Tiro #${esc(m.tiro)}</small><b>${esc(m.tema || '(sin tema)')}</b></div>
+    ${disert.map(m => `<div class="dis" data-id="${esc(m.id)}"><div><small>${m.tipo === 'cofre' ? '🧰 Cofre' : 'Tiro #' + esc(m.tiro)}</small><b>${esc(m.tema || '(sin tema)')}</b></div>
       <div class="dis-acc"><button class="btn" type="button" data-a="temaAzar" data-id="${esc(m.id)}">🎲 Otro tema</button>
       <button class="btn" type="button" data-a="temaPropio" data-id="${esc(m.id)}">✏️ Elegir mi tema</button></div></div>`).join('')}`;
 }
@@ -890,6 +929,232 @@ pintar();
 DF.alCambiarUsuario(() => { if (!girando) cargar(); });
 // El horario se revisa en el reloj local (sin leer Firebase) para abrir o cerrar el botón a tiempo.
 setInterval(() => { if (!girando && !document.hidden) pintar(); }, 60000);
+</script>
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════════════
+   COFRES — los entrega el profe; cada estudiante abre los suyos aquí.
+   Debe coincidir con firebase/firestore.rules (sección "Cofres"). Mismo azar que la ruleta:
+   (1) abrir: se retiene min(saldo, 300.000) y el servidor anota su hora exacta (tFecha);
+   (2) resolver: premio = tabla[1er carácter de sha256(sal | id | ms)], se devuelve max(0, retenido + premio).
+   ═══════════════════════════════════════════════════════════════ */
+const COFRES = {
+  sal: 'dondefelipe-cofre-v1',
+  retenerMax: 300000,
+  nombre: { comun: 'Cofre', raro: 'Cofre especial' },
+  tabla: {
+    comun: [['d', 50000], ['d', 80000], ['d', 100000], ['d', 150000],
+            ['g'], ['g'], ['b', 'Cofre: 1 décima formativa'], ['b', 'Cofre: pase de tarea'],
+            ['b', 'Ruleta: 20% de descuento en un artículo de la Tienda'], ['d', 250000], ['d', -50000], ['d', -80000],
+            ['d', -100000], ['D'], ['d', 0], ['b', 'Cofre: 1 décima formativa']],
+    raro:  [['d', 300000], ['d', 500000], ['d', 1000000], ['G'],
+            ['G'], ['G'], ['b', 'Cofre: 1 décima sumativa'], ['b', 'Cofre: 2 décimas formativas'],
+            ['b', 'Cofre: 5 minutos extra en una prueba'], ['b', 'Ruleta: 20% de descuento en un artículo de la Tienda'], ['g'], ['d', 200000],
+            ['d', -150000], ['d', -300000], ['D'], ['b', 'Cofre: 1 décima sumativa']]
+  }
+};
+let misCofres = [], cofreAbriendo = false;
+const cofreImg = c => 'cofres/' + (c.estado === 'abierto' ? (c.malo ? 'danado' : 'vacio') : c.tipo === 'raro' ? 'especial' : 'cerrado') + '.webp';
+const msTs = t => t && t.toMillis ? t.toMillis() : (t && t.seconds ? t.seconds * 1000 : 0);
+
+let cofresUlt = '';
+async function cofresCargar() {
+  const clave = (cuentaId || '') + '|' + Math.floor(Date.now() / 1500);
+  if (clave === cofresUlt) return;   // evita cargar dos veces seguidas lo mismo
+  cofresUlt = clave;
+  misCofres = [];
+  const box = $('cofres');
+  if (cuentaId) try {
+    const { F, db } = await DF.listo();
+    const sn = await F.getDocs(F.query(F.collection(db, 'cofres'), F.where('cuenta', '==', cuentaId)));
+    lect('tus cofres', Math.max(1, sn.size));
+    misCofres = sn.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(c => c.cuenta === cuentaId);
+  } catch (e) { console.warn('cofres', e); }
+  cofresPintar();
+  if (usuario && DF.esProfe(usuario)) cofresProfe();
+  // Si quedó uno a medio abrir (se cortó internet), se termina solo: lo retenido vuelve con su premio.
+  const pend = misCofres.find(c => c.estado === 'abriendo');
+  if (pend && !cofreAbriendo) abrirCofre(pend.id);
+}
+function cofresPintar() {
+  const box = $('cofres');
+  const cerrados = misCofres.filter(c => c.estado !== 'abierto').sort((a, b) => msTs(a.creado) - msTs(b.creado));
+  const abiertos = misCofres.filter(c => c.estado === 'abierto').sort((a, b) => msTs(b.abiertoEn) - msTs(a.abiertoEn)).slice(0, 6);
+  box.hidden = !cerrados.length && !abiertos.length;
+  if (box.hidden) return;
+  box.innerHTML = `<h2>🧰 Tus cofres</h2>
+    ${cerrados.length ? `<p class="nota" style="margin:4px 0 0">Te los entregó el profe. Ábrelos cuando quieras: pueden traer Hipopesos, un gatito, un beneficio… o un castigo.</p>
+    <div class="cf-lista">${cerrados.map(c => `<button class="cf-item ${c.tipo === 'raro' ? 'raro' : ''}" type="button" data-cofre="${esc(c.id)}">
+      <img src="${cofreImg(c)}" alt="" width="92" height="92"><b>${esc(COFRES.nombre[c.tipo] || 'Cofre')}</b>
+      <small>${esc(c.motivo || 'Regalo del profe')}</small><span class="btn p" style="padding:5px 12px;font-size:12px">Abrir</span></button>`).join('')}</div>`
+      : '<p class="nota" style="margin:4px 0 0">No tienes cofres por abrir. El profe los entrega por buen trabajo y participación.</p>'}
+    ${abiertos.length ? `<ul class="cf-hist">${abiertos.map(c => `<li>${c.tipo === 'raro' ? '✨' : '🧰'} <b>${esc(c.premio || '')}</b></li>`).join('')}</ul>` : ''}`;
+}
+
+// Qué sale (solo para mostrar y escribir; las reglas lo recalculan y lo exigen).
+function premioCofre(c, h, ids) {
+  const k = (COFRES.tabla[c.tipo] || COFRES.tabla.comun)[parseInt(h[0], 16)], ret = c.retenido || 0;
+  const r = { monto: ret, k };
+  if (k[0] === 'd') { r.monto = Math.max(0, ret + k[1]); r.dinero = k[1]; r.malo = k[1] < 0; r.texto = k[1] > 0 ? '+' + fmt(k[1]) : k[1] < 0 ? '−' + fmt(-k[1]) + ' (castigo)' : 'Cofre vacío'; r.emoji = k[1] > 0 ? '💰' : k[1] < 0 ? '💸' : '🕸️'; r.nada = k[1] === 0; }
+  if (k[0] === 'b') { r.item = k[1]; r.texto = k[1].replace(/^(Cofre|Ruleta): /, ''); r.emoji = /décima/.test(k[1]) ? '📝' : /descuento/.test(k[1]) ? '🛍️' : /minutos/.test(k[1]) ? '⏱️' : '🎟️'; }
+  if (k[0] === 'D') { r.item = DISERTACION; r.tema = temaAlAzar(''); r.malo = true; r.texto = 'Castigo: disertación sobre «' + r.tema + '»'; r.emoji = '🎤'; }
+  if (k[0] === 'g' || k[0] === 'G') {
+    const g = k[0] === 'g' ? RULETA.gatito(h[2]) : RULETA.sorpresa[parseInt(h[2], 16)];
+    r.gatito = g; r.emoji = '🐱';
+    if (ids.includes(g)) { r.yaTenia = true; r.monto = ret + precioGatito(g); r.texto = nombreGatito(g) + ' (ya lo tenías: +' + fmt(precioGatito(g)) + ')'; }
+    else r.texto = '¡Nuevo gatito: ' + nombreGatito(g) + '!';
+  }
+  return r;
+}
+async function abrirCofre(id) {
+  if (cofreAbriendo || !cuentaId) return;
+  cofreAbriendo = true;
+  const c0 = misCofres.find(c => c.id === id) || { tipo: 'comun' };
+  const img = $('cfImg'), rayos = $('cfRayos');
+  $('cfVelo').hidden = false; $('cfOk').hidden = true; rayos.className = 'cf-rayos';
+  $('cfTit').textContent = 'Abriendo el ' + (COFRES.nombre[c0.tipo] || 'cofre').toLowerCase() + '…'; $('cfTxt').textContent = '';
+  img.src = 'cofres/' + (c0.tipo === 'raro' ? 'especial' : 'abrir-1') + '.webp'; img.className = 'agita';
+  if (sonido) { iniciarAudio(); beep(220, .1, 'square', .06); beep(260, .1, 'square', .06, .15); }
+  const t0 = Date.now();
+  try {
+    const { F, db } = await DF.listo(); await (DF.reloj ? DF.reloj() : null);
+    const rc = F.doc(db, 'banco_cuentas', cuentaId), rf = F.doc(db, 'cofres', id), rg = F.doc(db, 'gatitos', usuario.uid);
+    const datosMov = (c, ops, saldo) => ({ cuenta: cuentaId, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '', saldoDespues: saldo, profe: '', fecha: F.serverTimestamp(), cofre: id });
+    // PASO 1 · abrir (si no estaba ya a medio abrir)
+    await F.runTransaction(db, async tx => {
+      const [sc, sf] = await Promise.all([tx.get(rc), tx.get(rf)]);
+      if (!sf.exists()) throw new Error('ese cofre ya no existe');
+      const f = sf.data();
+      if (f.estado === 'abierto') throw new Error('ese cofre ya fue abierto');
+      if (f.estado === 'abriendo') return;
+      const c = sc.data(), ret = Math.min(c.saldo || 0, COFRES.retenerMax), saldo = (c.saldo || 0) - ret, ops = (c.ops || 0) + 1;
+      tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+      tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), Object.assign(datosMov(c, ops, saldo), {
+        monto: -ret, motivo: (COFRES.nombre[f.tipo] || 'Cofre') + ': retenido mientras se abre', tipo: 'cofre-abrir' }));
+      tx.update(rf, { estado: 'abriendo', tFecha: F.serverTimestamp(), retenido: ret });
+    });
+    // PASO 2 · resolver con la hora que anotó el servidor
+    const res = await F.runTransaction(db, async tx => {
+      const [sc, sf] = await Promise.all([tx.get(rc), tx.get(rf)]);
+      const f = sf.data();
+      if (f.estado !== 'abriendo' || !f.tFecha) throw new Error('el cofre no quedó listo para abrirse; intenta de nuevo');
+      const h = await sha256hex(COFRES.sal + '|' + id + '|' + Math.floor(f.tFecha.toMillis()));
+      const tipoK = (COFRES.tabla[f.tipo] || COFRES.tabla.comun)[parseInt(h[0], 16)][0];
+      let prev = { ids: [], favorito: null };
+      if (tipoK === 'g' || tipoK === 'G') { const sg = await tx.get(rg); if (sg.exists()) prev = sg.data(); }
+      const ids = prev.ids || [], r = premioCofre(f, h, ids), c = sc.data();
+      const saldo = (c.saldo || 0) + r.monto, ops = (c.ops || 0) + 1;
+      const mov = Object.assign(datosMov(c, ops, saldo), { monto: r.monto, tipo: 'cofre',
+        motivo: ((COFRES.nombre[f.tipo] || 'Cofre') + ': ' + r.texto + (f.retenido ? ' (vuelve lo retenido)' : '')).slice(0, 200) });
+      if (r.item) { mov.item = r.item; mov.canje = 'pendiente'; }
+      if (r.tema) mov.tema = r.tema;
+      const gatoNuevo = r.gatito && !r.yaTenia;
+      if (gatoNuevo) mov.gatito = r.gatito;
+      tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+      tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), mov);
+      tx.update(rf, { estado: 'abierto', abiertoEn: F.serverTimestamp(), premio: (r.emoji + ' ' + r.texto).slice(0, 200) });
+      if (gatoNuevo) {
+        const nuevos = ids.concat([r.gatito]);
+        tx.set(rg, { uid: usuario.uid, nombre: DF.nombreCorto(usuario.displayName, usuario.email).slice(0, 80), ids: nuevos,
+          favorito: prev.favorito && nuevos.includes(prev.favorito) ? prev.favorito : r.gatito, actualizado: F.serverTimestamp() });
+      }
+      return Object.assign(r, { saldo, tipo: f.tipo, idMov: 'op-' + cuentaId + '-' + ops });
+    });
+    // Animación: un poco de suspenso y luego se abre (o sale el cofre dañado si es castigo).
+    await new Promise(ok => setTimeout(ok, Math.max(0, 1400 - (Date.now() - t0))));
+    img.className = '';
+    if (res.malo || res.nada) { img.src = 'cofres/' + (res.malo ? 'danado' : 'vacio') + '.webp'; rayos.className = 'cf-rayos' + (res.malo ? ' on mal' : ''); if (sonido) sonCastigo(); }
+    else {
+      for (let i = 2; i <= 7; i++) { img.src = 'cofres/abrir-' + i + '.webp'; await new Promise(ok => setTimeout(ok, reducido ? 0 : 110)); }
+      rayos.className = 'cf-rayos on'; confeti(res.tipo === 'raro' ? 160 : 90);
+      if (sonido) [523, 659, 784, 1047].forEach((f, i) => beep(f, .16, 'triangle', .12, i * .1));
+    }
+    $('cfTit').textContent = res.emoji + ' ' + (res.malo ? '¡Uy!' : res.nada ? 'Vacío…' : '¡Premio!');
+    $('cfTxt').innerHTML = esc(res.texto) + (res.item && !res.tema ? '<br>Quedó en <a href="cuenta.html">Mi cuenta</a> como «por usar».' : '')
+      + (res.tema ? '<br>Puedes cambiar el tema en «Disertaciones pendientes».' : '') + '<br><small>Saldo: ' + fmt(res.saldo) + '</small>';
+    $('anuncio').textContent = $('cfTit').textContent + '. ' + res.texto;
+    const f = misCofres.find(x => x.id === id); if (f) Object.assign(f, { estado: 'abierto', premio: res.emoji + ' ' + res.texto, abiertoEn: { toMillis: () => Date.now() }, malo: res.malo });
+    if (cuenta) cuenta.saldo = res.saldo;
+    if (res.tema) { disert.push({ id: res.idMov, tema: res.tema, tipo: 'cofre' }); pintarDisertaciones(); }
+    cofresPintar(); pintar();
+  } catch (e) {
+    img.className = ''; $('cfTit').textContent = 'No se pudo abrir';
+    $('cfTxt').textContent = (e.message || String(e)) + '. Si algo quedó retenido, vuelve a entrar: el cofre se termina de abrir solo.';
+  }
+  $('cfOk').hidden = false; $('cfOk').focus();
+  cofreAbriendo = false;
+}
+
+/* ── Para el profe: entregar cofres a mano ── */
+let cuentasProfe = null;
+async function cofresProfe() {
+  const box = $('cofresProfe'); box.hidden = false;
+  const { F, db } = await DF.listo();
+  if (!cuentasProfe) {
+    const sn = await F.getDocs(F.collection(db, 'banco_cuentas'));
+    cuentasProfe = sn.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(c => c.estado !== 'Cerrada')
+      .sort((a, b) => String(a.curso || '').localeCompare(String(b.curso || '')) || String(a.nombre || '').localeCompare(String(b.nombre || '')));
+  }
+  let rec = [];
+  try {
+    const sn = await F.getDocs(F.query(F.collection(db, 'cofres'), F.orderBy('creado', 'desc'), F.limit(25)));
+    rec = sn.docs.map(d => Object.assign({ id: d.id }, d.data()));
+  } catch (e) { }
+  const cursos = [...new Set(cuentasProfe.map(c => c.curso).filter(Boolean))];
+  box.innerHTML = `<h2>🎁 Entregar cofres <small style="font-size:12px;color:var(--mute);font-weight:600">(solo profe)</small></h2>
+    <div class="cf-form">
+      <label>Estudiante (o un curso completo)
+        <input id="cfQuien" list="cfLista" placeholder="Escribe nombre o curso…" autocomplete="off">
+        <datalist id="cfLista">${cursos.map(c => `<option value="Todo ${esc(c)}">`).join('')}${cuentasProfe.map(c => `<option value="${esc((c.nombre || '') + ' ' + (c.apellido || '') + ' · ' + (c.curso || '') + ' · #' + c.id)}">`).join('')}</datalist></label>
+      <div class="cf-fila"><label>Tipo<select id="cfTipo"><option value="comun">🧰 Cofre</option><option value="raro">✨ Cofre especial</option></select></label>
+      <label>Cantidad<input id="cfCant" type="number" min="1" max="5" value="1"></label></div>
+      <label>Motivo (lo ve el estudiante)<input id="cfMotivo" maxlength="120" placeholder="Ej: excelente trabajo en el laboratorio"></label>
+      <button class="btn p" type="button" id="cfDar">Entregar</button>
+      <p class="nota" id="cfMsg" style="margin:0"></p>
+    </div>
+    <details style="margin-top:10px"><summary class="nota" style="cursor:pointer">Qué trae cada cofre (16 casillas iguales)</summary>
+      <p class="nota">🧰 <b>Cofre</b>: +50K, +80K, +100K, +150K, +250K · 2 gatitos comunes · 2× 1 décima formativa · pase de tarea · −20% Tienda · vacío · castigos: −50K, −80K, −100K y disertación (4 de 16).</p>
+      <p class="nota">✨ <b>Especial</b>: +200K, +300K, +500K, +1.000.000 · 3 gatitos sorpresa y 1 común · 2× 1 décima sumativa · 2 décimas formativas · 5 min extra · −20% Tienda · castigos: −150K, −300K y disertación (3 de 16).</p></details>
+    ${rec.length ? `<ul class="cf-hist">${rec.map(c => `<li>${c.tipo === 'raro' ? '✨' : '🧰'} <b>${esc(c.nombre || c.cuenta)}</b> ${esc(c.curso || '')} · ${c.estado === 'abierto' ? esc(c.premio || 'abierto') : c.estado === 'abriendo' ? 'abriéndose…' : 'sin abrir'}
+      ${c.estado === 'cerrado' ? `<button class="btn" type="button" style="padding:2px 9px;font-size:11px" data-cfborrar="${esc(c.id)}">Quitar</button>` : ''}</li>`).join('')}</ul>` : ''}`;
+}
+async function darCofres() {
+  const q = $('cfQuien').value.trim(), tipo = $('cfTipo').value, cant = Math.min(5, Math.max(1, parseInt($('cfCant').value, 10) || 1));
+  const motivo = $('cfMotivo').value.trim().slice(0, 120) || 'Regalo del profe';
+  let dest = [];
+  const mCurso = q.match(/^Todo (.+)$/);
+  if (mCurso) dest = cuentasProfe.filter(c => c.curso === mCurso[1]);
+  else { const m = q.match(/#([^#\s]+)$/); dest = m ? cuentasProfe.filter(c => c.id === m[1]) : []; }
+  if (!dest.length) { $('cfMsg').textContent = 'Elige un estudiante o un curso de la lista.'; return; }
+  if (!confirm(`¿Entregar ${cant} ${tipo === 'raro' ? 'cofre(s) especial(es)' : 'cofre(s)'} a ${dest.length === 1 ? (dest[0].nombre || '') + ' ' + (dest[0].apellido || '') : dest.length + ' estudiantes de ' + mCurso[1]}?`)) return;
+  try {
+    const { F, db } = await DF.listo();
+    const yo = (DF.usuario() || {}).email || '';
+    for (let i = 0; i < dest.length; i += 120) {
+      const b = F.writeBatch(db);
+      dest.slice(i, i + 120).forEach(c => { for (let k = 0; k < cant; k++) b.set(F.doc(F.collection(db, 'cofres')), {
+        cuenta: c.id, nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim().slice(0, 120), curso: c.curso || '', tipo, estado: 'cerrado',
+        motivo, creado: F.serverTimestamp(), profe: yo }); });
+      await b.commit();
+    }
+    await cofresProfe();
+    $('cfMsg').textContent = '✅ Entregado' + (dest.length > 1 ? ' a ' + dest.length + ' estudiantes.' : '.');
+    if (dest.some(c => c.id === cuentaId)) cofresCargar();
+  } catch (e) { $('cfMsg').textContent = 'No se pudo entregar: ' + e.message; }
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-cofre]'); if (b) { abrirCofre(b.dataset.cofre); return; }
+  if (e.target.id === 'cfOk') { $('cfVelo').hidden = true; return; }
+  if (e.target.id === 'cfDar') { darCofres(); return; }
+  const q = e.target.closest('[data-cfborrar]');
+  if (q && confirm('¿Quitar este cofre sin abrir?')) {
+    const { F, db } = await DF.listo();
+    try { await F.deleteDoc(F.doc(db, 'cofres', q.dataset.cfborrar)); cofresProfe(); } catch (er) { alert('No se pudo: ' + er.message); }
+  }
+});
+// Si la cuenta terminó de cargar antes que este bloque, se cargan los cofres ahora.
+Promise.resolve(typeof cargando !== 'undefined' ? cargando : null).then(() => cofresCargar()).catch(() => {});
+$('cfVelo').addEventListener('click', e => { if (e.target === $('cfVelo') && !$('cfOk').hidden) $('cfVelo').hidden = true; });
 </script>
 <script src="adornos/adornos.js?v=20261110" defer></script>
 </body>

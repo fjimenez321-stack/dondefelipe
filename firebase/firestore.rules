@@ -362,15 +362,16 @@ service cloud.firestore {
       return d.cuenta == miCuentaBanco() && d.cuenta != ''
         && opsDespues(d.cuenta) == opsAntes(d.cuenta) + 1
         && id == 'op-' + d.cuenta + '-' + string(opsDespues(d.cuenta))
-        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta', 'giftcard'])
-        && (d.tipo == 'ruleta' || !d.keys().hasAny(['tema', 'escapa', 'pierde']))
+        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta', 'giftcard', 'cofre'])
+        && (d.tipo in ['ruleta', 'cofre'] || !d.keys().hasAny(['tema', 'escapa', 'pierde']))
+        && (d.tipo in ['cofre', 'cofre-abrir'] || !d.keys().hasAny(['cofre']))
         && d.profe == '' && d.fecha == request.time
         && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200)
         && d.monto is int
         && d.saldoDespues == getAfter(rutaCuenta(d.cuenta)).data.saldo
         // Solo la ruleta puede dejar un beneficio por canjear (así nadie cuela canjes falsos al panel).
         // Una compra del Mercado entra «retenida» (congelada) y solo el profe la deja «por usar».
-        && (d.tipo in ['ruleta', 'ruleta-apuesta'] || (d.tipo == 'compra' && d.get('canje', '') == 'retenida' && !d.keys().hasAny(['tiro']))
+        && (d.tipo in ['ruleta', 'ruleta-apuesta'] || (d.tipo == 'cofre' && !d.keys().hasAny(['tiro'])) || (d.tipo == 'compra' && d.get('canje', '') == 'retenida' && !d.keys().hasAny(['tiro']))
             || (d.tipo in ['poder-gatito', 'poder-mensual', 'premio-gatito'] && !d.keys().hasAny(['tiro']))
             || !d.keys().hasAny(['tiro', 'item', 'canje']))
         && ((d.tipo in ['bolsa-compra', 'bolsa-venta'] && opBolsa(d)) || (d.tipo == 'bono-ingreso' && opBono(d))
@@ -381,7 +382,8 @@ service cloud.firestore {
             || (d.tipo == 'subasta-oferta' && opSubasta(id, d))
             || (d.tipo == 'apuesta' && opApuestaPartido(id, d))
             || (d.tipo == 'juego-envio' && opJuego(d))
-            || (d.tipo == 'giftcard' && opGiftcard(id, d)));
+            || (d.tipo == 'giftcard' && opGiftcard(id, d))
+            || (d.tipo == 'cofre-abrir' && opCofreAbrir(d)) || (d.tipo == 'cofre' && opCofre(d)));
     }
 
     // ═════ Mascotas (como Pou / Tamagotchi) ═════
@@ -717,6 +719,62 @@ service cloud.firestore {
       return m.cuenta == d.cuenta && m.get('canje', '') == 'pendiente' && m.get('item', '') != itemDisertacion()
         && getAfter(rutaMov(d.pierde)).data.canje == 'perdida';
     }
+    // ═════ Cofres (los entrega el profe; el estudiante los abre en la ruleta) ═════
+    // Mismo azar que la ruleta, en dos pasos:
+    //  1) ABRIR (movimiento 'cofre-abrir'): se retiene min(saldo, 300.000) y cofres/<id> anota la hora
+    //     EXACTA del servidor (tFecha). Nadie la conoce antes.
+    //  2) RESOLVER (movimiento 'cofre'): premio = tablaCofre(tipo)[1er carácter de sha256(sal | id | ms)];
+    //     se devuelve max(0, retenido + premio). Dejar un cofre a medio abrir no sirve: lo retenido sigue retenido.
+    // Debe coincidir con COFRES en ruleta.html.
+    function salCofre() { return 'dondefelipe-cofre-v1'; }
+    function maxRetCofre() { return 300000; }
+    function rutaCofre(id) { return /databases/$(database)/documents/cofres/$(id); }
+    function hashCofre(id, ms) { return hashing.sha256(salCofre() + '|' + id + '|' + string(ms)).toHexString().lower(); }
+    // 16 casillas iguales (1/16 cada una). 'd' dinero · 'b' beneficio por canjear · 'D' disertación ·
+    // 'g' gatito común · 'G' gatito sorpresa (si ya lo tiene, recibe su precio).
+    function tablaCofre(tipo) {
+      return tipo == 'raro' ? [
+        {'t':'d','v':300000}, {'t':'d','v':500000}, {'t':'d','v':1000000}, {'t':'G','v':0},
+        {'t':'G','v':0}, {'t':'G','v':0}, {'t':'b','v':'Cofre: 1 décima sumativa'}, {'t':'b','v':'Cofre: 2 décimas formativas'},
+        {'t':'b','v':'Cofre: 5 minutos extra en una prueba'}, {'t':'b','v':'Ruleta: 20% de descuento en un artículo de la Tienda'}, {'t':'g','v':0}, {'t':'d','v':200000},
+        {'t':'d','v':-150000}, {'t':'d','v':-300000}, {'t':'D','v':0}, {'t':'b','v':'Cofre: 1 décima sumativa'}
+      ] : [
+        {'t':'d','v':50000}, {'t':'d','v':80000}, {'t':'d','v':100000}, {'t':'d','v':150000},
+        {'t':'g','v':0}, {'t':'g','v':0}, {'t':'b','v':'Cofre: 1 décima formativa'}, {'t':'b','v':'Cofre: pase de tarea'},
+        {'t':'b','v':'Ruleta: 20% de descuento en un artículo de la Tienda'}, {'t':'d','v':250000}, {'t':'d','v':-50000}, {'t':'d','v':-80000},
+        {'t':'d','v':-100000}, {'t':'D','v':0}, {'t':'d','v':0}, {'t':'b','v':'Cofre: 1 décima formativa'}
+      ];
+    }
+    function pagoCofre(ret, v) { return ret + v < 0 ? 0 : ret + v; }
+    function opCofreAbrir(d) {
+      let c = get(rutaCofre(d.cofre)).data;
+      let saldo = get(rutaCuenta(d.cuenta)).data.saldo;
+      let ret = saldo < maxRetCofre() ? saldo : maxRetCofre();
+      return c.cuenta == d.cuenta && c.estado == 'cerrado' && !d.keys().hasAny(['tiro'])
+        && d.monto == 0 - ret && soloCosas(d, [])
+        && getAfter(rutaCofre(d.cofre)).data.estado == 'abriendo'
+        && getAfter(rutaCofre(d.cofre)).data.retenido == ret;
+    }
+    function opCofre(d) {
+      let c = get(rutaCofre(d.cofre)).data;
+      let h = hashCofre(d.cofre, c.tFecha.toMillis());
+      let k = tablaCofre(c.tipo)[hexv(h[0:1])];
+      let ret = c.retenido;
+      return c.cuenta == d.cuenta && c.estado == 'abriendo'
+        && getAfter(rutaCofre(d.cofre)).data.estado == 'abierto'
+        && (k.t == 'd' ? (d.monto == pagoCofre(ret, k.v) && soloCosas(d, []))
+          : (k.t == 'b' ? (d.monto == ret && d.item == k.v && d.canje == 'pendiente' && soloCosas(d, ['item', 'canje']))
+          : (k.t == 'D' ? (d.monto == ret && d.item == itemDisertacion() && d.canje == 'pendiente' && soloCosas(d, ['item', 'canje', 'tema'])
+                           && texto(d.tema, 120) && d.tema.size() >= 3)
+          : (k.t == 'g' ? gatitoCofre(d, gatitoRuleta(h), ret)
+          : (k.t == 'G' && gatitoCofre(d, gatitoSorpresa(h), ret))))));
+    }
+    function gatitoCofre(d, g, ret) {
+      return g in gatitosAntes(request.auth.uid)
+        ? (d.monto == ret + precioGatito(g) && soloCosas(d, []))
+        : (d.monto == ret && d.gatito == g && soloCosas(d, ['gatito'])
+           && getAfter(rutaGatitos(request.auth.uid)).data.ids.hasAll([g]));
+    }
     // Resumen guardado en ruleta/<cuenta>: ult = últimos 8 tiros (solo para mostrarlos), neto = balance
     // en Hipopesos y nres = tiros resueltos. Desde que existe, cada tiro lo suma exactamente; la primera vez
     // se siembra con el cálculo de la página (solo lo ve su dueño y el profe).
@@ -756,6 +814,22 @@ service cloud.firestore {
             && request.resource.data.pendiente == false
             && resumenRuleta(resource.data, request.resource.data, getAfter(rutaOp(c, opsDespues(c))).data))
         );
+    }
+    // Cofres: el profe los crea (cuenta, tipo 'comun' o 'raro', motivo); el dueño los abre en dos pasos.
+    match /cofres/{id} {
+      allow read: if esProfe() || (esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco());
+      allow create, update, delete: if esProfe();
+      allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
+        && opsDespues(resource.data.cuenta) == opsAntes(resource.data.cuenta) + 1
+        && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.get('cofre', '') == id
+        && ((resource.data.estado == 'cerrado' && request.resource.data.estado == 'abriendo'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'tFecha', 'retenido'])
+              && request.resource.data.tFecha == request.time
+              && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.tipo == 'cofre-abrir')
+          || (resource.data.estado == 'abriendo' && request.resource.data.estado == 'abierto'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'abiertoEn', 'premio'])
+              && request.resource.data.abiertoEn == request.time && texto(request.resource.data.premio, 200)
+              && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.tipo == 'cofre'));
     }
     // ═════ Perfil público (opcional) ═════
     // Lo ven solo las personas del colegio con sesión, y solo si la persona lo hizo público y el profe no lo ocultó.
@@ -1622,7 +1696,7 @@ service cloud.firestore {
     function compraDeGatito(uid) {
       let c = miCuentaBanco();
       return c != '' && opsDespues(c) == opsAntes(c) + 1
-        && getAfter(rutaOp(c, opsDespues(c))).data.tipo in ['gatito-compra', 'ruleta']
+        && getAfter(rutaOp(c, opsDespues(c))).data.tipo in ['gatito-compra', 'ruleta', 'cofre']
         && request.resource.data.ids == gatitosAntes(uid).concat([getAfter(rutaOp(c, opsDespues(c))).data.gatito]);
     }
     // Castigo de la ruleta: se escapa el gatito que indica el movimiento de la misma escritura.
