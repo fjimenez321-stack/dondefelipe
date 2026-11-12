@@ -339,12 +339,12 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
       <div class="kpis">
         <div class="kpi"><b id="cfKCerr">—</b><span>Cofres sin abrir</span></div>
         <div class="kpi"><b id="cfKAb">—</b><span>Abiertos</span></div>
-        <div class="kpi"><b id="cfKComp">—</b><span>Comprados por estudiantes</span></div>
+        <div class="kpi"><b id="cfKComp">—</b><span>Comprados o ganados en la ruleta</span></div>
       </div>
       <div class="grid2">
         <div class="card">
           <div class="barra" style="margin:0 0 8px"><h3 style="margin:0;flex:1">Últimos cofres</h3>
-            <select id="cfFiltro"><option value="">Todos</option><option value="cerrado">Sin abrir</option><option value="abierto">Abiertos</option><option value="comprado">Comprados</option></select>
+            <select id="cfFiltro"><option value="">Todos</option><option value="cerrado">Sin abrir</option><option value="abierto">Abiertos</option><option value="comprado">Comprados / ruleta</option></select>
             <button class="btn sm" id="cfRecargar">Actualizar</button></div>
           <div class="tabla-wrap" style="max-height:60vh"><table><thead><tr><th>Fecha</th><th>Estudiante</th><th>Cofre</th><th>Origen</th><th>Resultado</th><th></th></tr></thead><tbody id="cfTabla"></tbody></table></div>
         </div>
@@ -796,7 +796,7 @@ function pintarPublicaciones() {
   const l = publicaciones.filter(x => x.estado === 'venta' || x.estado === 'reservado').sort((a, b) => ms(b.actualizado || b.creada) - ms(a.actualizado || a.creada));
   $('nPub').textContent = l.length;
   $('listaPub').innerHTML = l.map(x => `<div class="m"><div class="t"><b>${esc(x.ico || '')} ${esc(x.item)}</b> · ${esc(x.vendedorNombre || '')} <span class="pill">$${fmt(x.precio)}</span>
-      <small>${x.tipo === 'gatito' ? '🐱 gatito' : x.tipo === 'fisico' ? '📦 artículo físico' : '🎟️ beneficio'} · publicada el ${fecha(x.creada)}${x.estado === 'reservado' ? ' · <b>reservada</b> (hay un pedido pendiente)' : ''}</small></div>
+      <small>${x.tipo === 'gatito' ? '🐱 gatito' : x.tipo === 'fisico' ? '📦 artículo físico' : x.tipo === 'cofre' ? '🧰 cofre sin abrir' : '🎟️ beneficio'} · publicada el ${fecha(x.creada)}${x.estado === 'reservado' ? ' · <b>reservada</b> (hay un pedido pendiente)' : ''}</small></div>
       ${x.estado === 'venta' ? `<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm p" data-pub="comprar:${esc(x.id)}">Comprar</button><button class="btn sm" data-pub="precio:${esc(x.id)}">Precio</button><button class="btn sm" data-pub="retirar:${esc(x.id)}">Retirar</button></div>` : ''}</div>`).join('')
     || '<div class="muted">No hay publicaciones a la venta.</div>';
 }
@@ -839,9 +839,11 @@ async function accionPublicacion(accion, id) {
         tx.update(rv, { saldo, actualizado: F.serverTimestamp() });
         movProfe(F, db, tx, pub.vendedor, v, pub.precio, saldo, `Mercado: el profe compró ${pub.item}`, 'reventa', { publicacion: id });
         if (rmv) tx.update(rmv, { canje: 'traspasada', canjeNota: 'Comprado por el profe', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
+        if (pub.tipo === 'cofre') tx.update(F.doc(db, 'cofres', pub.cofre), { estado: 'abierto', premio: '🏦 Lo compró el profe (sale de circulación)', abiertoEn: F.serverTimestamp() });
         tx.update(rpub, { estado: 'vendido', actualizado: F.serverTimestamp() });
       } else {
         if (rmv) tx.update(rmv, { canje: 'pendiente', canjeNota: 'Retirado de la venta por el profe', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
+        else if (pub.tipo === 'cofre') tx.update(F.doc(db, 'cofres', pub.cofre), { estado: 'cerrado' });
         else if (pub.tipo === 'gatito') {
           const prev = sg.exists() ? sg.data() : { nombre: pub.vendedorNombre, ids: [], favorito: null }, ids = (prev.ids || []).includes(pub.gatito) ? prev.ids : (prev.ids || []).concat([pub.gatito]);
           tx.set(rg, { uid: pub.uid, nombre: String(prev.nombre || pub.vendedorNombre || '').slice(0, 80), ids, favorito: prev.favorito && ids.includes(prev.favorito) ? prev.favorito : pub.gatito, actualizado: F.serverTimestamp() });
@@ -1235,8 +1237,13 @@ async function autorizarPedido(p) {
       if (!spub.exists() || spub.data().estado !== 'reservado' || spub.data().reservadoPor !== p.id) throw new Error('la publicación no está reservada para este pedido');
       if (!sv.exists()) throw new Error('la cuenta del vendedor ya no existe');
       const pub = spub.data(), v = sv.data(), sV = (v.saldo || 0) + p.precio;
-      let rmv = null, rgc = null, sgc = null;
+      let rmv = null, rgc = null, sgc = null, rcf = null;
       if (pub.tipo === 'fisico') { /* artículo físico: no hay objeto que traspasar en el sitio */ }
+      else if (pub.tipo === 'cofre') {
+        rcf = F.doc(db, 'cofres', pub.cofre);
+        const scf = await tx.get(rcf);
+        if (!scf.exists() || scf.data().estado !== 'en-venta') throw new Error('el cofre del vendedor no está congelado (¿ya se abrió?)');
+      }
       else if (pub.tipo === 'beneficio') {
         rmv = F.doc(db, 'banco_movs', pub.mov);
         const smv = await tx.get(rmv);
@@ -1251,6 +1258,10 @@ async function autorizarPedido(p) {
       // entrega al comprador
       if (pub.tipo === 'fisico') {
         tx.update(rmc, { canje: 'entregada', canjeNota: 'Artículo de ' + p.vendedorNombre, canjeFecha: F.serverTimestamp(), canjeProfe: profe });
+      } else if (pub.tipo === 'cofre') {   // el cofre pasa cerrado a la cuenta del comprador
+        const cc = cuentas.find(c => c.id === p.comprador) || {};
+        tx.update(rcf, { cuenta: p.comprador, nombre: String(p.compradorNombre || '').slice(0, 120), curso: cc.curso || '', estado: 'cerrado', motivo: 'Comprado a ' + String(p.vendedorNombre || '').slice(0, 80) });
+        tx.update(rmc, { canje: 'entregada', canjeNota: 'Cofre de ' + p.vendedorNombre, canjeFecha: F.serverTimestamp(), canjeProfe: profe });
       } else if (pub.tipo === 'beneficio') {
         tx.update(rmv, { canje: 'traspasada', canjeNota: 'Vendido a ' + p.compradorNombre, canjeFecha: F.serverTimestamp(), canjeProfe: profe });
         tx.update(rmc, { canje: 'pendiente', canjeNota: 'Comprado a ' + p.vendedorNombre, canjeFecha: F.serverTimestamp(), canjeProfe: profe });
@@ -1985,7 +1996,7 @@ async function cofresPanel() {
 }
 function cofresTabla() {
   const f = $('cfFiltro').value;
-  const comprado = c => c.profe === '';
+  const comprado = c => !c.profe;   // comprado, ganado en la ruleta o comprado a otro estudiante
   $('cfKCerr').textContent = cofresLista.filter(c => c.estado !== 'abierto').length;
   $('cfKAb').textContent = cofresLista.filter(c => c.estado === 'abierto').length;
   $('cfKComp').textContent = cofresLista.filter(comprado).length;
@@ -1993,8 +2004,8 @@ function cofresTabla() {
   $('cfTabla').innerHTML = l.map(c => `<tr><td>${msC(c.creado) ? new Date(msC(c.creado)).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
     <td>${esc(c.nombre || c.cuenta)} <span class="muted">${esc(c.curso || '')}</span></td>
     <td>${c.tipo === 'raro' ? '✨ Especial' : '🧰 Básico'}</td>
-    <td>${comprado(c) ? 'Comprado' : esc(c.motivo || 'Regalo')}</td>
-    <td>${c.estado === 'abierto' ? esc(c.premio || 'Abierto') : c.estado === 'abriendo' ? '<span class="muted">abriéndose…</span>' : '<span class="muted">sin abrir</span>'}</td>
+    <td>${comprado(c) ? esc(c.motivo || 'Comprado') : '🎁 ' + esc(c.motivo || 'Regalo')}</td>
+    <td>${c.estado === 'abierto' ? esc(c.premio || 'Abierto') : c.estado === 'abriendo' ? '<span class="muted">abriéndose…</span>' : c.estado === 'en-venta' ? '<span class="muted">🔒 a la venta en el Mercado</span>' : '<span class="muted">sin abrir</span>'}</td>
     <td>${c.estado === 'cerrado' && !comprado(c) ? `<button class="btn sm r" data-cfborrar="${esc(c.id)}">Quitar</button>` : ''}</td></tr>`).join('')
     || '<tr><td colspan="6" class="muted">Aún no hay cofres.</td></tr>';
 }

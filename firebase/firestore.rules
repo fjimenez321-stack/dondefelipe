@@ -364,7 +364,7 @@ service cloud.firestore {
         && id == 'op-' + d.cuenta + '-' + string(opsDespues(d.cuenta))
         && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta', 'giftcard', 'cofre'])
         && (d.tipo in ['ruleta', 'cofre'] || !d.keys().hasAny(['tema', 'escapa', 'pierde']))
-        && (d.tipo in ['cofre', 'cofre-abrir', 'cofre-compra'] || !d.keys().hasAny(['cofre']))
+        && (d.tipo in ['cofre', 'cofre-abrir', 'cofre-compra', 'ruleta'] || !d.keys().hasAny(['cofre']))
         && d.profe == '' && d.fecha == request.time
         && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200)
         && d.monto is int
@@ -614,7 +614,7 @@ service cloud.firestore {
         {'t':'d','v':500000}, {'t':'D','v':'Ruleta: disertación'}, {'t':'b','v':'Ruleta: 1 décima formativa'}, {'t':'d','v':-120000},
         {'t':'A','v':100000}, {'t':'d','v':-60000}, {'t':'g','v':0}, {'t':'V','v':150000},
         {'t':'d','v':200000}, {'t':'d','v':-30000}, {'t':'b','v':'Ruleta: pase de tarea'}, {'t':'E','v':60000},
-        {'t':'d','v':90000}, {'t':'d','v':-200000}, {'t':'b','v':'Ruleta: 1 décima sumativa'}, {'t':'d','v':0},
+        {'t':'d','v':90000}, {'t':'d','v':-200000}, {'t':'b','v':'Ruleta: 1 décima sumativa'}, {'t':'C','v':0},
         {'t':'d','v':300000}, {'t':'D','v':'Ruleta: disertación'}, {'t':'b','v':'Ruleta: 2 décimas formativas'}, {'t':'d','v':-90000},
         {'t':'G','v':0}, {'t':'P','v':100000}, {'t':'d','v':60000}, {'t':'d','v':-300000},
         {'t':'b','v':'Ruleta: 5 minutos extra en una prueba'}, {'t':'d','v':-60000}, {'t':'d','v':120000}, {'t':'g','v':0},
@@ -681,8 +681,17 @@ service cloud.firestore {
           : (k.t == 'E' ? (d.keys().hasAny(['escapa']) ? (d.monto == pagoRuleta(r.retenido, 0) && soloCosas(d, ['escapa']) && gatitoEscapa(d))
                                                        : (d.monto == pagoRuleta(r.retenido, 0 - k.v) && soloCosas(d, [])
                                                           && !gatitosAntes(request.auth.uid).hasAny(escapables())))
+          : (k.t == 'C' ? (d.monto == pagoRuleta(r.retenido, 0) && soloCosas(d, []) && cofreRuleta(d, h, r.n))
           : (k.t == 'P' && (d.keys().hasAny(['pierde']) ? (d.monto == pagoRuleta(r.retenido, 0) && soloCosas(d, ['pierde']) && beneficioPerdido(d))
-                                                       : (d.monto == pagoRuleta(r.retenido, 0 - k.v) && soloCosas(d, []))))))))))));
+                                                       : (d.monto == pagoRuleta(r.retenido, 0 - k.v) && soloCosas(d, [])))))))))))));
+    }
+    // Casilla 🧰 (1 de 32 por tiro): gana un cofre que nace cerrado como cofres/r-<cuenta>-<n° de tiro>.
+    // El 4º carácter del hash decide el tipo: 'f' → especial (1 de 16), cualquier otro → básico.
+    function tipoCofreRuleta(h) { return h[3:4] == 'f' ? 'raro' : 'comun'; }
+    function cofreRuleta(d, h, n) {
+      let f = getAfter(rutaCofre(d.cofre)).data;
+      return d.cofre == 'r-' + d.cuenta + '-' + string(n) && !exists(rutaCofre(d.cofre))
+        && f.cuenta == d.cuenta && f.estado == 'cerrado' && f.tipo == tipoCofreRuleta(h);
     }
     // Gatito ganado: entra a la colección; si ya lo tenía, recibe su precio en Hipopesos.
     function gatitoGanado(d, g, ret) {
@@ -840,9 +849,17 @@ service cloud.firestore {
         && request.resource.data.creado == request.time && request.resource.data.profe == ''
         && texto(request.resource.data.nombre, 120) && texto(request.resource.data.curso, 40) && texto(request.resource.data.motivo, 120)
         && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
-        && id == 'c-' + miCuentaBanco() + '-' + string(opsDespues(miCuentaBanco()))
-        && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.tipo == 'cofre-compra'
-        && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.cofre == id;
+        // el movimiento (compra o tiro de la ruleta) valida el id y el tipo del cofre
+        && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.tipo in ['cofre-compra', 'ruleta']
+        && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.get('cofre', '') == id;
+      // a la venta entre estudiantes (mercado_items/c-<cofre>-<cuenta>): queda «en-venta» y no se puede abrir; al retirarlo vuelve
+      allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado'])
+        && ((resource.data.estado == 'cerrado' && request.resource.data.estado == 'en-venta'
+              && getAfter(rutaItem('c-' + id + '-' + miCuentaBanco())).data.estado == 'venta'
+              && getAfter(rutaItem('c-' + id + '-' + miCuentaBanco())).data.vendedor == miCuentaBanco())
+          || (resource.data.estado == 'en-venta' && request.resource.data.estado == 'cerrado'
+              && getAfter(rutaItem('c-' + id + '-' + miCuentaBanco())).data.estado == 'retirado'));
       allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
         && opsDespues(resource.data.cuenta) == opsAntes(resource.data.cuenta) + 1
         && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.get('cofre', '') == id
@@ -1430,7 +1447,7 @@ service cloud.firestore {
     // o venta → retirado. El objeto está congelado mientras la publicación está en venta o reservada.
     function datosPublicacion(d, iid) {
       return d.vendedor == miCuentaBanco() && miCuentaBanco() != '' && d.uid == request.auth.uid
-        && d.keys().hasOnly(['tipo', 'vendedor', 'vendedorNombre', 'uid', 'mov', 'gatito', 'item', 'ico', 'precio', 'estado', 'reservadoPor', 'creada', 'actualizado'])
+        && d.keys().hasOnly(['tipo', 'vendedor', 'vendedorNombre', 'uid', 'mov', 'gatito', 'cofre', 'item', 'ico', 'precio', 'estado', 'reservadoPor', 'creada', 'actualizado'])
         && d.precio is int && d.precio >= 100 && d.precio <= 10000000
         && texto(d.vendedorNombre, 40) && texto(d.item, 120) && texto(d.ico, 8)
         && d.actualizado == request.time
@@ -1438,7 +1455,9 @@ service cloud.firestore {
                && d.item == get(/databases/$(database)/documents/banco_movs/$(d.mov)).data.item
                && get(/databases/$(database)/documents/banco_movs/$(d.mov)).data.cuenta == miCuentaBanco()
                && !(get(/databases/$(database)/documents/banco_movs/$(d.mov)).data.tipo in ['poder-gatito', 'poder-mensual', 'premio-gatito']))
-            || (d.tipo == 'gatito' && iid == 'g-' + request.auth.uid + '-' + d.gatito));
+            || (d.tipo == 'gatito' && iid == 'g-' + request.auth.uid + '-' + d.gatito)
+            || (d.tipo == 'cofre' && d.cofre is string && iid == 'c-' + d.cofre + '-' + miCuentaBanco()
+                && d.item in ['Cofre', 'Cofre especial']));
     }
     // Al publicar, el objeto sale de la cuenta en la misma escritura.
     function objetoCongelado(d) {
@@ -1447,12 +1466,18 @@ service cloud.firestore {
           && getAfter(/databases/$(database)/documents/banco_movs/$(d.mov)).data.canje == 'en-venta')
         || (d.tipo == 'gatito'
           && d.gatito in gatitosAntes(request.auth.uid)
-          && !(d.gatito in getAfter(rutaGatitos(request.auth.uid)).data.ids));
+          && !(d.gatito in getAfter(rutaGatitos(request.auth.uid)).data.ids))
+        || (d.tipo == 'cofre'
+          && get(rutaCofre(d.cofre)).data.cuenta == miCuentaBanco()
+          && get(rutaCofre(d.cofre)).data.estado == 'cerrado'
+          && getAfter(rutaCofre(d.cofre)).data.estado == 'en-venta'
+          && d.item == (get(rutaCofre(d.cofre)).data.tipo == 'raro' ? 'Cofre especial' : 'Cofre'));
     }
     // Al retirar, el objeto vuelve en la misma escritura.
     function objetoDevuelto(d) {
       return (d.tipo == 'beneficio' && getAfter(/databases/$(database)/documents/banco_movs/$(d.mov)).data.canje == 'pendiente')
-        || (d.tipo == 'gatito' && d.gatito in getAfter(rutaGatitos(request.auth.uid)).data.ids);
+        || (d.tipo == 'gatito' && d.gatito in getAfter(rutaGatitos(request.auth.uid)).data.ids)
+        || (d.tipo == 'cofre' && getAfter(rutaCofre(d.cofre)).data.estado == 'cerrado');
     }
     // ═════ Regalos entre estudiantes (gatitos y beneficios sin usar) ═════
     // Quien regala: el objeto sale de su cuenta y queda congelado en el regalo (estado «pendiente»).
