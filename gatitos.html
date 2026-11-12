@@ -146,6 +146,11 @@ h1 span{color:var(--acid)}
 .item .ico{font-size:52px;line-height:1;height:90px;display:grid;place-items:center;background:var(--slab2);border-radius:14px}
 .item .ico img{max-height:84px}
 .item h3{font:800 22px/1.05 var(--ff-d);text-transform:uppercase;margin:0}
+.cofres-promo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;text-decoration:none;color:inherit;border:2px solid rgba(255,214,10,.45);transition:border-color .2s,transform .2s}
+.cofres-promo:hover{border-color:var(--acid);transform:translateY(-2px)}
+.cofres-promo img{width:84px;height:84px;margin-right:-14px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+.cofres-promo>span:not(.btn){flex:1;min-width:200px;display:grid;gap:4px;margin-left:18px}.cofres-promo>span>b{font:900 22px var(--ff-d);text-transform:uppercase}
+.cofres-promo small{color:var(--mute);font-size:14px;line-height:1.4}.cofres-promo small b{color:var(--acid)}
 .item .pie{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
 .item .btn.cupon{flex-basis:100%}
 .item p{margin:0;color:var(--mute);font-size:13.5px;flex:1}
@@ -264,6 +269,11 @@ h1 span{color:var(--acid)}
         <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn p" id="aPublicar"><i class="fa-solid fa-box"></i> Publicar artículo</button><span id="aMsg"></span></div>
       </div>
     </div>
+    <a class="card cofres-promo" href="ruleta.html#cofres">
+      <img src="cofres/cerrado.webp" alt="" width="84" height="84"><img src="cofres/especial.webp" alt="" width="84" height="84">
+      <span><b>🧰 Cofres sorpresa</b><small>Cofre <b>₣100.000</b> · Cofre especial <b>₣500.000</b>. Pueden traer Hipopesos, gatitos o beneficios… o un castigo. Se compran y se abren en la Ruleta.</small></span>
+      <span class="btn p">Ir a los cofres <i class="fa-solid fa-arrow-right"></i></span>
+    </a>
     <div class="card" id="tCupon" hidden style="border:2px dashed var(--acid);font-size:15px"></div>
     <div class="grid" id="gTienda"></div>
     <div class="card" id="tMisPedidos"><h2 class="h2s">Mis pedidos</h2><div class="lista-p" id="pedidos3"></div></div>
