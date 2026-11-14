@@ -332,6 +332,7 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
 <script src="gatitos/mascota.js?v=20261030"></script>
 <script src="firebase/perfil-publico.js"></script>
 <script src="firebase/df.js?v=20261104e" data-sin-visita data-sin-aviso></script>
+<script src="firebase/premios.js?v=20261114"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -679,7 +680,7 @@ document.addEventListener('click', async ev => {
   const t = prompt('Tema de tu disertación (3 a 120 letras):', b.dataset.actual || '');
   if (t === null) return;
   if (t.trim().length < 3) { alert('El tema debe tener al menos 3 letras.'); return; }
-  try { const { F, db } = await DF.listo(); await F.updateDoc(F.doc(db, 'banco_movs', b.dataset.tema), { tema: t.trim().slice(0, 120) }); cargarBanco(); }
+  try { const { F, db } = await DF.listo(); await F.updateDoc(F.doc(db, 'banco_movs', b.dataset.tema), { tema: t.trim().slice(0, 120), temaFecha: F.serverTimestamp() }); cargarBanco(); }
   catch (e) { alert('No se pudo cambiar el tema: ' + e.message); }
 });
 document.addEventListener('click', async ev => {
@@ -715,6 +716,20 @@ function pintarProductos(compras) {
     : '<div class="vacio">No tienes productos por usar. Mira el <a href="gatitos.html#beneficios">Mercado</a>.</div>')
     + '<p class="muted" style="font-size:13px;margin:10px 0 0">Para usar un producto, pídeselo al profe en clases. Tus gatitos están más abajo, en «Mis gatitos».</p>';
 }
+// Premios y castigos de la ruleta y los cofres (de los movimientos ya leídos: no hace lecturas nuevas).
+function historialPremios(movs) {
+  if (!window.PREMIOS) return '';
+  const l = movs.map(m => ({ m, k: PREMIOS.clasificar(m) })).filter(x => x.k);
+  if (!l.length) return '';
+  const nP = l.filter(x => x.k.clase === 'premio').length, nC = l.filter(x => x.k.clase === 'castigo').length;
+  const col = c => c === 'premio' ? 'var(--acid)' : c === 'castigo' ? 'var(--neg)' : 'var(--mute)';
+  return `<p class="sub">🎡 Premios y castigos (ruleta y cofres)</p>
+    <p class="muted" style="font-size:13px;margin:0 0 4px">Últimos: <b style="color:var(--acid)">${nP} premio${nP === 1 ? '' : 's'}</b> · <b style="color:var(--neg)">${nC} castigo${nC === 1 ? '' : 's'}</b>. El historial completo está en la <a href="ruleta.html#historial">Ruleta</a>.</p>
+    <div class="lista">${l.slice(0, 25).map(({ m, k }) => {
+      const est = PREMIOS.estadoItem(m);
+      return `<div class="it"><b>${k.ico} ${esc(k.txt)}${est ? ` <span class="can ${/por (usar|hacer)/.test(est) ? 'pend' : 'usada'}">${esc(est)}</span>` : ''}</b><span class="v" style="color:${col(k.clase)}">${k.clase === 'premio' ? 'Premio' : k.clase === 'castigo' ? 'Castigo' : '—'}</span><small>${k.origen === 'ruleta' ? '🎡' : '🧰'} ${fecha(m.fecha)}</small></div>`;
+    }).join('')}</div>`;
+}
 function cargarBanco() {
   DF.miBanco().then(b => {
     cargarGatitos(DF.usuario(), b);
@@ -742,6 +757,7 @@ function cargarBanco() {
         <p class="muted" style="font-size:13px;margin:6px 0 0">Pídele al profe que lo aplique cuando lo necesites. ⚡ décimas de tus gatitos · 🎡 premio de la ruleta · 🎁 regalo del profe.</p>` : '<div class="vacio">No tienes nada por usar.</div>'}
       <p class="sub">Historial de compras</p>
       <div class="lista">${resto.length ? resto.slice(0, 20).map(m => `<div class="it"><b>${origen(m)}${esc(m.item || m.motivo)}</b>${estado(m)}<small>${fecha(m.fecha)}</small></div>`).join('') : '<div class="vacio">Aún no hay compras anteriores.</div>'}</div>
+      ${historialPremios(b.movs)}
       <p class="sub">Últimos movimientos</p>
       <div class="lista">${b.movs.slice(0, 15).map(m => `<div class="it"><b>${esc(m.motivo)}</b><span class="v" style="color:${m.monto < 0 ? 'var(--neg)' : m.monto === 0 ? 'var(--mute)' : 'var(--acid)'}">${m.monto === 0 ? 'sin costo' : (m.monto < 0 ? '−' : '+') + fmt(Math.abs(m.monto))}</span><small>${fecha(m.fecha)}</small></div>`).join('') || '<div class="vacio">Sin movimientos.</div>'}</div>
       <p class="muted" style="font-size:14px;margin-top:12px"><a href="banco-felipeso/bases.html">Bases de los Hipopesos</a>: qué se puede comprar y cómo se gana.</p>`;

@@ -723,10 +723,13 @@ service cloud.firestore {
       return d.escapa in escapables() && d.escapa in ids
         && getAfter(rutaGatitos(request.auth.uid)).data.ids == ids.removeAll([d.escapa]);
     }
-    // Pierde un beneficio por canjear (nunca una disertación): queda «perdida».
+    // Pierde un beneficio por canjear (nunca una disertación ni una llave de cofre): queda «perdida».
+    // (14 nov. 2026: antes se podía «sacrificar» una llave de ₣25.000 en vez de un beneficio de verdad.)
     function beneficioPerdido(d) {
       let m = get(rutaMov(d.pierde)).data;
-      return m.cuenta == d.cuenta && m.get('canje', '') == 'pendiente' && m.get('item', '') != itemDisertacion()
+      return d.pierde is string && m.cuenta == d.cuenta && m.get('canje', '') == 'pendiente'
+        && m.get('item', '') != '' && m.get('item', '') != itemDisertacion()
+        && !(m.get('item', '') in [llaveComun(), llaveDorada()])
         && getAfter(rutaMov(d.pierde)).data.canje == 'perdida';
     }
     // ═════ Cofres (los entrega el profe; el estudiante los abre en la ruleta) ═════
@@ -827,12 +830,35 @@ service cloud.firestore {
     // Resumen guardado en ruleta/<cuenta>: ult = últimos 8 tiros (solo para mostrarlos), neto = balance
     // en Hipopesos y nres = tiros resueltos. Desde que existe, cada tiro lo suma exactamente; la primera vez
     // se siembra con el cálculo de la página (solo lo ve su dueño y el profe).
+    // Seguridad (14 nov. 2026): cada entrada de «ult» tiene forma fija y texto corto; la entrada nueva debe
+    // ser ESTE tiro con su resultado real y las demás, las anteriores corridas un lugar (nadie puede escribir
+    // tiros inventados ni textos largos que vea el profe). Una vez creado, el resumen no se puede borrar.
+    function entradaUlt(l, i) {
+      return l.size() <= i || (l[i] is map && l[i].keys().hasOnly(['t', 'e', 'x', 'k'])
+        && l[i].get('t', 0) is number && l[i].get('e', 0) is number
+        && texto(l[i].get('x', ''), 60) && texto(l[i].get('k', ''), 1));
+    }
+    function listaUlt(l) {
+      return l is list && l.size() <= 8 && entradaUlt(l, 0) && entradaUlt(l, 1) && entradaUlt(l, 2) && entradaUlt(l, 3)
+        && entradaUlt(l, 4) && entradaUlt(l, 5) && entradaUlt(l, 6) && entradaUlt(l, 7);
+    }
+    function ultNueva(a, b, m) {
+      return b.ult is list && b.ult.size() >= 1 && entradaUlt(b.ult, 0)
+        && b.ult[0].t == a.n && b.ult[0].e == m.monto - a.get('retenido', 0)
+        && (a.get('ult', null) is list
+          ? (b.ult.size() == (a.ult.size() < 8 ? a.ult.size() + 1 : 8) && b.ult[1:b.ult.size()] == a.ult[0:b.ult.size() - 1])
+          : listaUlt(b.ult));
+    }
     function resumenRuleta(a, b, m) {
-      return (!b.keys().hasAny(['ult']) || (b.ult is list && b.ult.size() <= 8))
+      return (!b.keys().hasAny(['ult']) || ultNueva(a, b, m))
+        && (!a.keys().hasAny(['ult']) || b.keys().hasAny(['ult']))
+        && (!a.keys().hasAny(['neto']) || b.keys().hasAny(['neto']))
+        && (!a.keys().hasAny(['nres']) || b.keys().hasAny(['nres']))
         && (!b.keys().hasAny(['neto']) || (b.neto is int
-              && (!a.keys().hasAny(['neto']) || b.neto == a.neto + m.monto - a.get('retenido', 0))))
+              && (a.keys().hasAny(['neto']) ? b.neto == a.neto + m.monto - a.get('retenido', 0)
+                  : (b.neto <= 2000000 * a.n && b.neto >= -2000000 * a.n))))
         && (!b.keys().hasAny(['nres']) || (b.nres is int
-              && (!a.keys().hasAny(['nres']) || b.nres == a.nres + 1)));
+              && (a.keys().hasAny(['nres']) ? b.nres == a.nres + 1 : (b.nres >= 1 && b.nres <= a.n))));
     }
     // Estado de la ruleta de cada cuenta: n° de tiros, tiro pendiente, hora del servidor y tiros de hoy.
     match /ruleta/{c} {
@@ -2010,10 +2036,14 @@ service cloud.firestore {
               && get(rutaPedido(resource.data.pedido)).data.estado == 'pendiente'
               && getAfter(rutaPedido(resource.data.pedido)).data.estado == 'cancelada'));
       // Disertación de la ruleta: mientras no se haga, el estudiante puede cambiar el tema.
+      // Seguridad (14 nov. 2026): una línea de 3 a 120 caracteres y como máximo un cambio cada 10 segundos
+      // (temaFecha = hora del servidor), para que nadie llene el panel ni gaste escrituras en bucle.
       allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
         && resource.data.get('item', '') == itemDisertacion() && resource.data.get('canje', '') == 'pendiente'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tema'])
-        && texto(request.resource.data.tema, 120) && request.resource.data.tema.size() >= 3;
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tema', 'temaFecha'])
+        && request.resource.data.temaFecha == request.time
+        && (resource.data.get('temaFecha', null) == null || request.time > resource.data.temaFecha + duration.value(10, 's'))
+        && texto(request.resource.data.tema, 120) && request.resource.data.tema.matches('^[^\\r\\n]{3,120}$');
       allow delete: if false;
     }
       // ═════ Bolsa de Comercio y bono diario ═════

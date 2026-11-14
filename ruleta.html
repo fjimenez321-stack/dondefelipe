@@ -12,12 +12,14 @@
 :root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
 --ink:#f2f1ec;--mute:#9b9aab;--acid:#ffd60a;--cyan:#1fdd6c;--pink:#ff2b3d;--brass:#e9b949;--brass2:#8a6514;--neg:#ff7a70;--pos:#4bd08c;
 --ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
---r-size:min(86vw,460px)}
+--r-size:min(calc(100vw - 12px),720px)}
+@supports (height:1svh){:root{--r-size:min(calc(100vw - 12px),max(340px,calc(100svh - 120px)),720px)}}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;color:var(--ink);font:15px/1.5 var(--ff);
   background:radial-gradient(900px 420px at 85% -120px,rgba(233,185,73,.14),transparent),radial-gradient(700px 380px at 0% 0%,rgba(255,214,10,.07),transparent),var(--bg)}
 a{color:var(--cyan)}
-.wrap{max-width:980px;margin:0 auto;padding:22px 16px 70px}
+html,body{overflow-x:clip}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 70px}
 .crumb{color:var(--mute);text-decoration:none;font-size:14px}.crumb:hover{color:var(--ink)}
 .kick{font:700 12px var(--ff);letter-spacing:4px;text-transform:uppercase;color:var(--brass);margin:26px 0 6px}
 h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(46px,10vw,88px);line-height:.9;letter-spacing:1px;text-transform:uppercase;margin:0}
@@ -36,22 +38,24 @@ h1 span{color:var(--acid)}
 .aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:16px}
 .aviso.err{background:#2b1417;border-color:#5c2228;color:#ffb3ad}
 
-/* ── Rueda ── */
+/* ── Rueda (grande: ocupa todo el ancho en el celular y hasta 720px en el computador) ── */
 .mesa{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:22px}
-@media (min-width:900px){.mesa{grid-template-columns:auto minmax(0,1fr);align-items:start}}
-.stage{position:relative;width:var(--r-size);aspect-ratio:1;margin:12px auto}
+.rueda-col{display:flex;flex-direction:column;align-items:center}
+.lado{display:grid;grid-template-columns:minmax(0,1fr);gap:0 18px;align-items:start}
+@media (min-width:900px){.lado{grid-template-columns:repeat(2,minmax(0,1fr))}.lado>.ancho{grid-column:1/-1}}
+.stage{position:relative;width:var(--r-size);height:var(--r-size);aspect-ratio:1;margin:18px 0 6px;contain:layout style}
 .stage.shake{animation:shake .55s cubic-bezier(.36,.07,.19,.97)}
-.glow{position:absolute;inset:-12%;border-radius:50%;z-index:-1;filter:blur(8px);
-  background:radial-gradient(circle,rgba(233,185,73,.3) 0%,transparent 62%);animation:breathe 4s ease-in-out infinite}
+.glow{position:absolute;inset:-10%;border-radius:50%;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle,rgba(233,185,73,.3) 0%,rgba(233,185,73,.08) 45%,transparent 66%);animation:breathe 4s ease-in-out infinite;will-change:transform,opacity}
 .girando .glow{animation-duration:.9s}
 .rim{position:absolute;inset:0;border-radius:50%;
   background:conic-gradient(var(--brass),var(--brass2),#ffe7a3,var(--brass2),var(--brass),#ffe7a3,var(--brass));
   box-shadow:0 18px 50px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,255,255,.35),inset 0 -6px 14px rgba(0,0,0,.4)}
 .bulb{position:absolute;left:50%;top:50%;width:3%;aspect-ratio:1;border-radius:50%;background:#fff6d6;box-shadow:0 0 6px 2px rgba(255,230,150,.9);
-  transform:translate(-50%,-50%) rotate(calc(var(--i) * 15deg)) translateY(calc(var(--r-size) * -0.474));
+  transform:translate(-50%,-50%) rotate(calc(var(--i) * 11.25deg)) translateY(calc(var(--r-size) * -0.474));
   animation:blink 1.2s steps(1,end) infinite}
 .bulb:nth-child(odd){animation-delay:-.6s}
-.girando .bulb{animation:chase .5s linear infinite;animation-delay:calc(var(--i) * -0.5s / 24)}
+.girando .bulb{animation:chase .5s linear infinite;animation-delay:calc(var(--i) * -0.5s / 32)}
 .wheel{position:absolute;inset:7.5%;border-radius:50%;overflow:hidden;box-shadow:0 0 0 3px rgba(0,0,0,.4),inset 0 0 30px rgba(0,0,0,.45)}
 .wheel canvas{display:block;width:100%;height:100%;will-change:transform}
 .wheel::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
@@ -80,6 +84,10 @@ h1 span{color:var(--acid)}
 .prob i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:var(--c)}
 .nota{color:var(--mute);font-size:13px;margin:10px 0 0}
 .hist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.hist-todo{margin-top:10px}
+.hist-filtros{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.hist-filtros .btn{padding:6px 12px;font-size:13px}.hist-filtros .btn[aria-pressed="true"]{background:var(--acid);color:#101400;border-color:var(--acid)}
+.hist .ori{color:var(--mute);font-size:12px;font-weight:600}
 .hist li{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:10px;background:var(--slab2);border-left:3px solid var(--c);font-size:14px;animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
 .hist b{white-space:nowrap}
 .hist .vacio{border:0;color:var(--mute);background:none;padding:0}
@@ -174,7 +182,7 @@ h1 span{color:var(--acid)}
   </section>
 
   <div class="mesa">
-    <div>
+    <div class="rueda-col">
       <div class="stage" id="stage">
         <div class="glow"></div>
         <div class="rim" id="rim"></div>
@@ -189,18 +197,19 @@ h1 span{color:var(--acid)}
     </div>
 
     <div class="lado">
-      <section class="card cofres" id="cofres" hidden></section>
+      <section class="card ancho" id="disert" hidden></section>
+      <section class="card" id="historial">
+        <h2>Tus últimos tiros</h2>
+        <ul class="hist" id="hist"><li class="vacio">Entra con tu cuenta para ver tus tiros.</li></ul>
+        <div id="histTodo" class="hist-todo"></div>
+      </section>
       <section class="card">
         <h2>Probabilidades</h2>
         <table class="prob" id="prob"></table>
         <p class="nota">La ruleta tiene 32 casillas iguales y cada una sale con la misma probabilidad (1 de 32). Si un castigo es mayor que tu saldo, quedas en 0. Si ganas un gatito que ya tenías, recibes su precio en Hipopesos. Si un castigo cae sobre algo que no tienes, se paga en Hipopesos. Solo se pueden escapar gatitos comunes y poco comunes.</p>
         <p class="nota">🔒 <b>Juego limpio:</b> al girar se retienen hasta 330.000 ₣ y el servidor anota su hora exacta; el resultado sale de esa hora, así que nadie puede saberlo antes. Lo retenido vuelve con tu premio en el mismo giro. Máximo 5 tiros por día, de 08:00 a 16:00 (hora de Chile).</p>
       </section>
-      <section class="card" id="disert" hidden></section>
-      <section class="card">
-        <h2>Tus últimos tiros</h2>
-        <ul class="hist" id="hist"><li class="vacio">Entra con tu cuenta para ver tus tiros.</li></ul>
-      </section>
+      <section class="card cofres ancho" id="cofres" hidden></section>
     </div>
   </div>
 </div>
@@ -217,6 +226,7 @@ h1 span{color:var(--acid)}
 <script src="gatitos/catalogo.js?v=20261111"></script>
 <script src="gatitos/anim.js?v=20261111"></script>
 <script src="firebase/df.js?v=20261104e"></script>
+<script src="firebase/premios.js?v=20261114"></script>
 <script>
 'use strict';
 /* ═══════════════════════════════════════════════════════════════
@@ -383,7 +393,7 @@ async function cargar(forzar) {
   return (cargando = cargarAhora());
 }
 async function cargarAhora() {
-  usuario = DF.usuario(); cuentaId = null; cuenta = null; tiros = 0; perfilOk = false; hist = null; cosasCache = null; disert = [];
+  usuario = DF.usuario(); cuentaId = null; cuenta = null; tiros = 0; perfilOk = false; hist = null; cosasCache = null; disert = []; histTodo = null; $('histTodo').innerHTML = '';
   aviso('');
   try {
     const { F, db } = await DF.listo();
@@ -454,6 +464,42 @@ function pintarHistorial() {
   ul.innerHTML = (l.length && typeof hist.neto === 'number' ? `<li class="vacio" style="--c:transparent">Balance en Hipopesos de tus ${hist.nres} tiros: <b style="color:${hist.neto >= 0 ? 'var(--pos)' : 'var(--neg)'}">${hist.neto >= 0 ? '+' : '−'}${fmt(Math.abs(hist.neto))}</b></li>` : '') +
     (l.length ? l.map(m => `<li style="--c:${COL[m.k] || 'var(--line2)'}"><span>#${esc(m.t)} · ${esc(m.x)}</span><b style="color:${m.e >= 0 ? 'var(--pos)' : 'var(--neg)'}">${m.e >= 0 ? '+' : '−'}${fmt(Math.abs(m.e))}</b></li>`).join('')
       : '<li class="vacio">Todavía no has girado.</li>');
+  if (!histTodo) $('histTodo').innerHTML = cuentaId ? '<button class="btn" type="button" data-a="histTodo">📜 Ver todo mi historial de premios y castigos</button>' : '';
+  // Desde Mi cuenta se llega con #historial: se abre solo (una vez por visita).
+  if (cuentaId && !histTodo && location.hash === '#historial' && !pintarHistorial.auto) {
+    pintarHistorial.auto = true; cargarHistTodo();
+    setTimeout(() => $('historial').scrollIntoView({ behavior: reducido ? 'auto' : 'smooth', block: 'start' }), 300);
+  }
+}
+// Historial completo de premios y castigos (ruleta y cofres): una sola consulta, solo cuando el estudiante lo pide.
+let histTodo = null, histFiltro = 'todos';
+async function cargarHistTodo() {
+  if (!cuentaId || !window.PREMIOS) return;
+  $('histTodo').innerHTML = '<p class="nota">Cargando tu historial…</p>';
+  try {
+    const { F, db } = await DF.listo();
+    const s = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('tipo', 'in', ['ruleta', 'cofre'])));
+    lect('historial completo', Math.max(1, s.size));
+    histTodo = s.docs.map(d => { const m = d.data(); return { m, k: PREMIOS.clasificar(m) }; }).filter(x => x.k)
+      .sort((a, b) => ms(b.m.fecha) - ms(a.m.fecha));
+  } catch (e) { $('histTodo').innerHTML = '<p class="nota">No se pudo cargar el historial: ' + esc(e.message) + '</p>'; return; }
+  pintarHistTodo();
+}
+function pintarHistTodo() {
+  if (!histTodo) return;
+  const n = c => histTodo.filter(x => x.k.clase === c).length;
+  const l = histTodo.filter(x => histFiltro === 'todos' || x.k.clase === histFiltro).slice(0, 200);
+  const COL = { premio: 'var(--pos)', castigo: 'var(--neg)', neutro: 'var(--line2)' };
+  const fec = t => t && t.toDate ? t.toDate().toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }) : '';
+  const btn = (f, txt) => `<button class="btn" type="button" data-hf="${f}" aria-pressed="${histFiltro === f}">${txt}</button>`;
+  $('histTodo').innerHTML = `<h2 style="font-size:20px;margin-top:6px">📜 Todo tu historial</h2>
+    <div class="hist-filtros">${btn('todos', 'Todos (' + histTodo.length + ')')}${btn('premio', '🏆 Premios (' + n('premio') + ')')}${btn('castigo', '⚠️ Castigos (' + n('castigo') + ')')}</div>
+    <ul class="hist">${l.map(({ m, k }) => {
+      const est = PREMIOS.estadoItem(m);
+      return `<li style="--c:${COL[k.clase]}"><span>${k.ico} ${esc(k.txt)}<br><span class="ori">${k.origen === 'ruleta' ? '🎡 Ruleta' + (m.tiro ? ' · tiro #' + esc(m.tiro) : '') : (k.origen === 'cofre especial' ? '✨ ' : '🧰 ') + esc(k.origen.replace(/^c/, 'C'))} · ${esc(fec(m.fecha))}${est ? ' · ' + esc(est) : ''}</span></span>
+        <b style="color:${COL[k.clase]}">${k.clase === 'premio' ? 'Premio' : k.clase === 'castigo' ? 'Castigo' : '—'}</b></li>`;
+    }).join('') || '<li class="vacio">Nada por aquí todavía.</li>'}</ul>
+    <p class="nota">También lo ves en <a href="cuenta.html">Mi cuenta</a>. Los beneficios y disertaciones muestran si ya se usaron.</p>`;
 }
 // Disertaciones que debe (castigo): una consulta pequeña (solo las disertaciones pendientes).
 async function cargarDisertaciones() {
@@ -481,7 +527,7 @@ async function cambiarTema(id, tema) {
   if (tema.length < 3) { aviso('El tema debe tener al menos 3 letras.', 'err'); return false; }
   try {
     const { F, db } = await DF.listo();
-    await F.updateDoc(F.doc(db, 'banco_movs', id), { tema });
+    await F.updateDoc(F.doc(db, 'banco_movs', id), { tema, temaFecha: F.serverTimestamp() });
     const m = disert.find(x => x.id === id); if (m) m.tema = tema;
     pintarDisertaciones(); return true;
   } catch (e) { aviso('No se pudo cambiar el tema: ' + esc(e.message), 'err'); return false; }
@@ -538,7 +584,7 @@ async function cosasPara(tipo) {
   }
   if (tipo === 'pierdeBenef' && !k.ben) {
     const ben = await F.getDocs(F.query(F.collection(db, 'banco_movs'), F.where('cuenta', '==', cuentaId), F.where('canje', '==', 'pendiente'))); lect('beneficios por canjear', Math.max(1, ben.size));
-    k.ben = ben.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => m.item && m.item !== DISERTACION);
+    k.ben = ben.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(m => m.item && m.item !== DISERTACION && !/^Llave (de cofre|dorada)$/.test(m.item));
   }
   const emp = k.empresas || {};
   return {
@@ -587,7 +633,7 @@ async function resolver() {
     if (res.pierde) {
       rm = F.doc(db, 'banco_movs', res.pierde.id);
       const sm = await tx.get(rm); lect('beneficio a perder', 1);
-      if (!sm.exists() || sm.data().canje !== 'pendiente' || sm.data().item === DISERTACION) { rm = null; res = resultadoDe(h, ret, ids, Object.assign({}, cosas, { beneficios: [] })); }
+      if (!sm.exists() || sm.data().canje !== 'pendiente' || sm.data().item === DISERTACION || /^Llave (de cofre|dorada)$/.test(sm.data().item || '')) { rm = null; res = resultadoDe(h, ret, ids, Object.assign({}, cosas, { beneficios: [] })); }
     }
     const saldo = (c.saldo || 0) + res.monto, ops = (c.ops || 0) + 1, nom = ((c.nombre || '') + ' ' + (c.apellido || '')).trim();
     res.motivo = motivoDe(res, n).slice(0, 200);
@@ -643,6 +689,7 @@ function aplicarEnMemoria(r) {
     if (r.pierde && k.ben) k.ben = k.ben.filter(m => m.id !== r.pierde.id);
     if (r.beneficio && k.ben) k.ben.push({ id: r.idMov, item: r.beneficio, fecha: null });
   }
+  if (histTodo) { histTodo = null; }
   if (r.tipo === 'disertacion') { disert.push({ id: r.idMov, tema: r.tema, tiro: r.n }); pintarDisertaciones(); }
   pintarHistorial();
 }
@@ -704,7 +751,7 @@ function pintarProbabilidades() {
 const canvas = $('rueda'), ctx = canvas.getContext('2d');
 function dibujar() {
   const size = canvas.clientWidth; if (!size) return;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);   // la rueda es grande: más de 2× no se nota y gasta memoria
   canvas.width = canvas.height = Math.round(size * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const c = size / 2, r = c, arco = Math.PI * 2 / ORDEN.length;
@@ -731,7 +778,7 @@ function aclarar(hex, pct) {
   return `rgb(${f(n >> 16)},${f(n >> 8 & 255)},${f(n & 255)})`;
 }
 // Ampolletas del aro
-$('rim').innerHTML = Array.from({ length: 24 }, (_, i) => `<span class="bulb" style="--i:${i}"></span>`).join('');
+$('rim').innerHTML = Array.from({ length: 32 }, (_, i) => `<span class="bulb" style="--i:${i}"></span>`).join('');
 let tamDibujado = 0, rafDibujo = 0;
 new ResizeObserver(() => { cancelAnimationFrame(rafDibujo); rafDibujo = requestAnimationFrame(() => { if (canvas.clientWidth !== tamDibujado) { tamDibujado = canvas.clientWidth; dibujar(); } }); }).observe(canvas);
 document.fonts?.ready.then(() => { tamDibujado = canvas.clientWidth; dibujar(); });
@@ -938,6 +985,8 @@ document.addEventListener('click', e => {
   if (a === 'salir') DF.salir().then(() => cargar());
   if (a === 'cerrar') cerrar();
   if (a === 'otra') { cerrar(); alPulsar(); }
+  if (a === 'histTodo') cargarHistTodo();
+  const hf = e.target.closest('[data-hf]'); if (hf) { histFiltro = hf.dataset.hf; pintarHistTodo(); }
   if (a === 'temaAzar' || a === 'temaPropio') {
     const id = e.target.closest('[data-a]').dataset.id, m = disert.find(x => x.id === id);
     if (a === 'temaPropio') { elegirTemaPropio(id); return; }
@@ -1236,6 +1285,7 @@ async function abrirCofre(id) {
     if (f) { misCofres = misCofres.filter(x => x !== f); cofresAbiertosSesion.unshift(Object.assign(f, { estado: 'abierto', premio: res.emoji + ' ' + res.texto })); }
     if (cuenta) cuenta.saldo = res.saldo;
     if (res.tema) { disert.push({ id: res.idMov, tema: res.tema, tipo: 'cofre' }); pintarDisertaciones(); }
+    if (histTodo) { histTodo = null; pintarHistorial(); }   // el historial completo se vuelve a leer al pedirlo
     cofresPintar(); pintar();
   } catch (e) {
     img.className = ''; $('cfTit').textContent = 'No se pudo abrir';
