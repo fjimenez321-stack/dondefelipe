@@ -153,6 +153,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
         <div class="kpi"><b id="kTotal">—</b><span>Hipopesos en circulación</span></div>
         <div class="kpi"><b id="kCuentas">—</b><span>Cuentas activas</span></div>
         <div class="kpi"><b id="kSel">0</b><span>Cuentas seleccionadas</span></div>
+        <a class="kpi" href="#cardDis" id="kpiDis" style="text-decoration:none;color:inherit"><b id="kDis">—</b><span>🎤 Disertaciones pendientes</span></a>
       </div>
       <div class="grid2">
         <div>
@@ -208,14 +209,20 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
             <p class="muted" style="margin:0 0 8px;font-size:13px">Solicitudes por aprobar y préstamos vigentes. Al aprobar, el estudiante recibe el dinero y debe devolver lo pedido + 30% en 14 días. Si vence con deuda, <b>al abrir este panel</b> se embarga automáticamente (saldo → ahorro → acciones → gatitos → beneficios); también puedes hacerlo con el botón.</p>
             <div class="lista-movs" id="listaPrest"><div class="muted">—</div></div>
           </div>
+          <div class="card porcanjear" id="cardDis" style="margin-top:16px">
+            <h3 style="margin:0 0 4px">🎤 Disertaciones pendientes <span class="pill" id="nDis">0</span></h3>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">Castigos de la ruleta y los cofres que todavía no se hacen, por curso y de la más antigua a la más nueva. El estudiante puede cambiar su tema hasta que la marques como hecha.</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><select id="disCurso"><option value="">Todos los cursos</option></select><button class="btn sm" id="disCopiar">📋 Copiar lista</button></div>
+            <div class="lista-movs" id="listaDis"><div class="muted">—</div></div>
+          </div>
           <div class="card porcanjear" style="margin-top:16px">
             <h3 style="margin:0 0 4px">Compras por canjear <span class="pill" id="nPend">0</span></h3>
-            <p class="muted" style="margin:0 0 8px;font-size:13px">Lo que los estudiantes compraron y todavía no usan. Al aplicarlo (por ejemplo, borrar la formativa), márcalo como usado y anota dónde.</p>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">Lo que los estudiantes compraron o ganaron y todavía no usan (las disertaciones están en su propia tarjeta). Al aplicarlo (por ejemplo, borrar la formativa), márcalo como usado y anota dónde.</p>
             <div class="lista-movs" id="listaPend"><div class="muted">—</div></div>
           </div>
           <div class="card porcanjear" style="margin-top:16px">
             <h3 style="margin:0 0 4px">🎡 Ruleta: lo que ganó cada jugador <span class="pill" id="nRul">—</span></h3>
-            <p class="muted" style="margin:0 0 8px;font-size:13px">Últimos tiros de cada estudiante (dinero, gatitos, acciones, beneficios y castigos). Los beneficios y disertaciones que ganan también aparecen arriba, en «Compras por canjear». «Ver todos» lee todos los tiros de esa cuenta.</p>
+            <p class="muted" style="margin:0 0 8px;font-size:13px">Últimos tiros de cada estudiante (dinero, gatitos, acciones, beneficios y castigos). Los beneficios que ganan también aparecen arriba, en «Compras por canjear», y las disertaciones en «🎤 Disertaciones pendientes». «Ver todos» lee todos los tiros de esa cuenta.</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><input id="rulBuscar" placeholder="Buscar por nombre o curso…" style="flex:1;min-width:160px"><button class="btn sm" id="rulCargar">Cargar</button></div>
             <div class="lista-movs" id="listaRul" style="max-height:480px"><div class="muted">Presiona «Cargar».</div></div>
           </div>
@@ -855,9 +862,37 @@ async function accionPublicacion(accion, id) {
   } catch (e) { toast('No se pudo: ' + e.message); }
 }
 $('listaRev').onclick = $('listaPub').onclick = e => { const b = e.target.closest('[data-pub]'); if (!b) return; const [a, id] = b.dataset.pub.split(':'); accionPublicacion(a, id); };
+const DISERT = 'Ruleta: disertación';
+const diasDesde = ts => { const t = ms(ts); return t ? Math.max(0, Math.floor((Date.now() - t) / 86400000)) : 0; };
+function pintarDisertaciones() {
+  const todas = pendientes.filter(m => m.item === DISERT);
+  $('kDis').textContent = todas.length;
+  $('kpiDis').style.borderColor = todas.length ? '#8e2bd1' : '';
+  const sel = $('disCurso'), actual = sel.value, cursos = [...new Set(todas.map(m => m.curso || '—'))].sort();
+  sel.innerHTML = '<option value="">Todos los cursos</option>' + cursos.map(c => `<option${c === actual ? ' selected' : ''}>${esc(c)}</option>`).join('');
+  const l = todas.filter(m => !sel.value || (m.curso || '—') === sel.value);
+  $('nDis').textContent = l.length;
+  const porCurso = {};
+  l.forEach(m => { (porCurso[m.curso || '—'] = porCurso[m.curso || '—'] || []).push(m); });
+  $('listaDis').innerHTML = Object.keys(porCurso).sort().map(c => `<div class="muted" style="margin:8px 0 2px;font-weight:700">${esc(c)} · ${porCurso[c].length}</div>` + porCurso[c].map(m => {
+    const d = diasDesde(m.fecha);
+    return `<div class="m"><div class="t"><b>🎤 ${esc(m.nombre)}</b>${d >= 14 ? ` <span class="pill" style="background:#5c2228;color:#ffb3ad">hace ${d} días</span>` : ''}
+      <small>Tema: <b>${esc(m.tema || '(sin tema)')}</b> · ${m.tipo === 'cofre' ? 'castigo de un cofre' : 'ruleta, tiro #' + esc(m.tiro)} · ${fecha(m.fecha)}${d && d < 14 ? ' (hace ' + d + ' día' + (d === 1 ? '' : 's') + ')' : ''}</small></div>
+      <div style="display:flex;gap:6px"><button class="btn sm" data-tema="${esc(m.id)}">Cambiar tema</button><button class="btn sm p" data-usar="${esc(m.id)}">Marcar hecha</button></div></div>`;
+  }).join('')).join('') || '<div class="muted">No hay disertaciones pendientes. 🎉</div>';
+}
+$('disCurso').onchange = pintarDisertaciones;
+$('disCopiar').onclick = () => {
+  const c = $('disCurso').value, l = pendientes.filter(m => m.item === DISERT && (!c || (m.curso || '—') === c));
+  const txt = l.map(m => `${m.curso || '—'}\t${m.nombre}\t${m.tema || '(sin tema)'}\t${fecha(m.fecha)}`).join('\n');
+  if (!txt) { toast('No hay nada que copiar'); return; }
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('✓ Lista copiada (pégala en una planilla)'), () => prompt('Copia la lista:', txt));
+};
 function pintarPendientes() {
-  $('nPend').textContent = pendientes.length;
-  $('listaPend').innerHTML = pendientes.length ? pendientes.map(m => `
+  pintarDisertaciones();
+  const compras = pendientes.filter(m => m.item !== DISERT);
+  $('nPend').textContent = compras.length;
+  $('listaPend').innerHTML = compras.length ? compras.map(m => `
     <div class="m"><div class="t"><b>${m.item === 'Ruleta: disertación' ? '🎤 ' : ''}${esc(m.item || m.motivo)}</b> · ${esc(m.nombre)} <span class="pill">${esc(m.curso || '—')}</span>
       ${m.item === 'Ruleta: disertación' ? `<small>Tema: <b>${esc(m.tema || '(sin tema)')}</b> · castigo de la ruleta, tiro #${esc(m.tiro)} del ${fecha(m.fecha)}</small>` : `<small>${m.tipo === 'ruleta' ? 'Ganada en la ruleta' : m.tipo === 'regalo-recibido' ? esc(m.motivo || 'Regalo') + ' ·' : 'Comprada'} el ${fecha(m.fecha)}${m.monto ? ' · −$' + fmt(Math.abs(m.monto)) : ''}</small>`}</div>
       <div style="display:flex;gap:6px">${m.item === 'Ruleta: disertación' ? `<button class="btn sm" data-tema="${esc(m.id)}">Cambiar tema</button>` : ''}
@@ -865,7 +900,9 @@ function pintarPendientes() {
     : '<div class="muted">No hay compras pendientes.</div>';
 }
 async function marcarUsada(id, item, nombre) {
-  const nota = prompt(`¿Dónde se aplicó "${item}" de ${nombre}?\n(ej.: Formativa de Biología del 15/10 · 3 puntos en la prueba de Física)`);
+  const nota = item === DISERT
+    ? prompt(`Disertación de ${nombre}: ¿cuándo y cómo le fue?\n(ej.: 14/11, 2° Medio A · buena, 5 minutos)`)
+    : prompt(`¿Dónde se aplicó "${item}" de ${nombre}?\n(ej.: Formativa de Biología del 15/10 · 3 puntos en la prueba de Física)`);
   if (nota === null) return false;
   const { F, db } = FB;
   try {
@@ -873,6 +910,7 @@ async function marcarUsada(id, item, nombre) {
     toast('✓ Marcada como usada'); return true;
   } catch (e) { toast('Error: ' + e.message); return false; }
 }
+$('listaDis').onclick = ev => $('listaPend').onclick(ev);
 $('listaPend').onclick = ev => {
   const idT = ev.target.dataset && ev.target.dataset.tema;
   if (idT) {
