@@ -172,6 +172,17 @@ service cloud.firestore {
         && puntajeCreible(juego, resource.data.puntaje, request.resource.data.puntaje)
         && request.time > resource.data.fecha + duration.value(20, 's')
         && request.resource.data.fecha == request.time;
+      // Ajedrez: el puntaje es la cantidad de victorias en línea; sube de a 1 con cada victoria firme (ver ajVictoria).
+      allow create, update: if juego == 'ajedrez' && esColegio() && soyYo(uid) && !bloqueado()
+        && request.resource.data.keys().hasOnly(['juego', 'uid', 'nombre', 'curso', 'puntaje', 'fecha', 'ultima'])
+        && request.resource.data.juego == juego
+        && request.resource.data.uid == uid
+        && texto(request.resource.data.nombre, 80) && nombreDeCuenta(request.resource.data.nombre)
+        && texto(request.resource.data.curso, 40)
+        && request.resource.data.puntaje == (resource == null ? 0 : resource.data.puntaje) + 1
+        && request.resource.data.fecha == request.time
+        && request.resource.data.ultima is string
+        && ajVictoria(request.resource.data.ultima, uid);
       allow delete: if esProfe() || soyYo(uid);
     }
 
@@ -319,10 +330,18 @@ service cloud.firestore {
       }
     }
 
-    // ── Ajedrez Agustino (juegos/ajedrez): salas de 2 jugadores con reloj ──
-    // El servidor no revisa si la jugada es legal (eso lo hace motor.js en cada equipo),
+    // ── Ajedrez Agustino (juegos/ajedrez): salas de 2 jugadores con reloj, apuestas y ranking ──
+    // El servidor no revisa si cada jugada es legal (eso lo hace motor.js en cada equipo),
     // pero sí que juegue solo quien tiene el turno, que no se cambien jugadas anteriores
     // y que nadie se regale tiempo: el reloj se descuenta con la hora del servidor.
+    // Apuestas (opcionales): Hipopesos (los dos ponen lo mismo) o un gatito cada uno. Lo apostado
+    // sale al crear o al unirse, en la misma escritura, y queda retenido en la sala (apuesta.w / apuesta.b).
+    // Al terminar, cada jugador cobra lo suyo (pagos.<color>): quien gana se lleva todo; en tablas vuelve lo de cada uno.
+    // Un resultado se puede cobrar cuando es «firme»: abandono, tiempo, acuerdo, anulada o cancelada; o un final
+    // en el tablero (mate, ahogado…) que el rival confirmó (su equipo revisa las jugadas con motor.js), o tras
+    // 30 minutos sin reclamo. Si alguien reclama (disputa), nadie cobra hasta que el profe resuelva.
+    function rutaAj(c) { return /databases/$(database)/documents/ajedrez_salas/$(c); }
+    function rutaRankAj(u) { return /databases/$(database)/documents/rankings/ajedrez/mejores/$(u); }
     function ajColor(d, uid) {
       return d.blancas != null && d.blancas.uid == uid ? 'w'
            : (d.negras != null && d.negras.uid == uid ? 'b' : '');
@@ -331,12 +350,117 @@ service cloud.firestore {
     function ajMs(d) { return request.time.toMillis() - d.turnoDesde.toMillis(); }
     function ajAsiento(a) { return a is map && a.keys().hasOnly(['uid', 'nombre']) && a.uid == request.auth.uid && texto(a.nombre, 60); }
     function ajFin(r) { return r is map && r.keys().hasOnly(['ganador', 'motivo']) && r.ganador in ['w', 'b', '']; }
+    function ajFirme(s) {
+      return s.estado == 'fin' && s.get('disputa', false) == false && s.get('resultado', null) != null
+        && (s.resultado.motivo in ['abandono', 'tiempo', 'acuerdo', 'anulada', 'cancelada', 'profe']
+            || s.get('confirmado', false) == true
+            || request.time > s.finEn + duration.value(30, 'm'));
+    }
+    // Lo que le toca cobrar al color c: 'premio' si ganó; 'devuelto' si hubo tablas y había apostado.
+    function ajCobro(s, c) {
+      return s.resultado.ganador == c ? 'premio' : (s.resultado.ganador == '' && s.apuesta[c] != null ? 'devuelto' : '');
+    }
+    // Lo apostado con Hipopesos: el movimiento 'ajedrez-apuesta' que se crea en esta misma escritura
+    // (el banco revisa que sea de la propia cuenta y por el monto exacto: ver opAjApuesta).
+    function ajMovOk(a, cod) {
+      return a is map && a.keys().hasOnly(['cuenta', 'mov']) && a.mov is string
+        && !exists(rutaMov(a.mov))
+        && getAfter(rutaMov(a.mov)).data.tipo == 'ajedrez-apuesta'
+        && getAfter(rutaMov(a.mov)).data.get('ajedrez', '') == cod
+        && getAfter(rutaMov(a.mov)).data.cuenta == a.cuenta;
+    }
+    // El gatito apostado sale de la colección en esta misma escritura (ver gatitoAAjedrez).
+    function ajGatitoOk(a, cod) {
+      return a is map && a.keys().hasOnly(['gatito']) && a.gatito is string
+        && a.gatito in get(rutaGatitos(request.auth.uid)).data.ids
+        && !(a.gatito in getAfter(rutaGatitos(request.auth.uid)).data.ids)
+        && getAfter(rutaGatitos(request.auth.uid)).data.get('ajedrez', '') == cod;
+    }
+    function ajApuestaInicial(a, c, cod) {
+      return a == null
+        || (a.tipo == 'hipopesos' && a.keys().hasOnly(['tipo', 'monto', 'w', 'b'])
+            && a.monto is int && a.monto >= 100 && a.monto <= 1000000
+            && a[ajOtro(c)] == null && ajMovOk(a[c], cod))
+        || (a.tipo == 'gatito' && a.keys().hasOnly(['tipo', 'w', 'b'])
+            && a[ajOtro(c)] == null && ajGatitoOk(a[c], cod));
+    }
+    function ajApuestaUnirse(o, n, c, cod) {
+      return (o.get('apuesta', null) == null && n.get('apuesta', null) == null)
+        || (o.get('apuesta', null) != null && o.apuesta[c] == null
+            && n.apuesta.diff(o.apuesta).affectedKeys().hasOnly([c])
+            && (o.apuesta.tipo == 'hipopesos' ? ajMovOk(n.apuesta[c], cod) : ajGatitoOk(n.apuesta[c], cod)));
+    }
+    // Marcar lo cobrado y la victoria contada. Aquí basta con la forma: el dinero, los gatitos y el
+    // ranking solo se entregan si la sala cambia así en la misma escritura (opAjPago, gatitoDeAjedrez, ajVictoria),
+    // y marcar sin cobrar solo perjudica a quien lo hace.
+    function ajPagoOk(o, n, c) {
+      return n.pagos == o.pagos
+        || (o.apuesta != null && o.pagos[c] == '' && n.pagos.diff(o.pagos).affectedKeys().hasOnly([c])
+            && n.pagos[c] != '' && n.pagos[c] == ajCobro(n, c));
+    }
+    function ajContadoOk(o, n, c) {
+      return n.contado == o.contado
+        || (o.contado[c] == false && n.contado.diff(o.contado).affectedKeys().hasOnly([c]) && n.contado[c] == true);
+    }
+    // Para el banco: movimientos 'ajedrez-apuesta', 'ajedrez-premio' y 'ajedrez-devolucion'.
+    function opAjApuesta(id, d) {
+      let s2 = getAfter(rutaAj(d.ajedrez)).data;
+      let c = ajColor(s2, request.auth.uid);
+      return c != '' && s2.apuesta != null && s2.apuesta.tipo == 'hipopesos'
+        && d.monto == 0 - s2.apuesta.monto
+        && s2.apuesta[c] == {'cuenta': d.cuenta, 'mov': id}
+        && (!exists(rutaAj(d.ajedrez)) || get(rutaAj(d.ajedrez)).data.apuesta[c] == null);
+    }
+    function opAjPago(d) {
+      let s = get(rutaAj(d.ajedrez)).data;
+      let s2 = getAfter(rutaAj(d.ajedrez)).data;
+      let c = ajColor(s, request.auth.uid);
+      return c != '' && s.apuesta != null && s.apuesta.tipo == 'hipopesos'
+        && s.apuesta[c] != null && s.apuesta[c].cuenta == d.cuenta
+        && s.pagos[c] == '' && ajFirme(s2)
+        && ((d.tipo == 'ajedrez-premio' && s2.pagos[c] == 'premio' && s2.resultado.ganador == c
+             && s.apuesta[ajOtro(c)] != null && d.monto == s.apuesta.monto * 2)
+            || (d.tipo == 'ajedrez-devolucion' && s2.pagos[c] == 'devuelto' && s2.resultado.ganador == ''
+             && d.monto == s.apuesta.monto));
+    }
+    // Para la colección de gatitos: apostar uno (sale) o cobrar (llegan el propio y, si ganó, el del rival).
+    function gatitoAAjedrez(uid) {
+      let cod = request.resource.data.get('ajedrez', '');
+      let s2 = getAfter(rutaAj(cod)).data;
+      let c = ajColor(s2, uid);
+      return resource != null && cod != '' && c != '' && s2.apuesta != null && s2.apuesta.tipo == 'gatito'
+        && s2.apuesta[c] != null && s2.apuesta[c].gatito in resource.data.ids
+        && request.resource.data.ids == resource.data.ids.removeAll([s2.apuesta[c].gatito])
+        && request.resource.data.ids.size() == resource.data.ids.size() - 1
+        && (!exists(rutaAj(cod)) || get(rutaAj(cod)).data.apuesta[c] == null);
+    }
+    function gatitoDeAjedrez(uid) {
+      let cod = request.resource.data.get('ajedrezCobro', '');
+      let s = get(rutaAj(cod)).data;
+      let s2 = getAfter(rutaAj(cod)).data;
+      let c = ajColor(s, uid);
+      let nuevos = s2.pagos[c] == 'premio' ? [s.apuesta.w.gatito, s.apuesta.b.gatito] : [s.apuesta[c].gatito];
+      return resource != null && cod != '' && c != '' && s.apuesta != null && s.apuesta.tipo == 'gatito'
+        && s.pagos[c] == '' && s2.pagos[c] in ['premio', 'devuelto'] && ajFirme(s2)
+        && request.resource.data.ids.toSet() == resource.data.ids.toSet().union(nuevos.toSet())
+        && request.resource.data.ids.size() == request.resource.data.ids.toSet().size();
+    }
+    // Para el ranking: una victoria firme en línea, con al menos 10 jugadas de cada uno.
+    function ajVictoria(cod, uid) {
+      let s = get(rutaAj(cod)).data;
+      let s2 = getAfter(rutaAj(cod)).data;
+      let c = ajColor(s, uid);
+      return c != '' && ajFirme(s) && s.resultado.ganador == c && s.jugadas.size() >= 20
+        && s.contado[c] == false && s2.contado[c] == true;
+    }
     match /ajedrez_salas/{codigo} {
       allow read: if conCuenta();
+      // El profe resuelve los reclamos (y puede corregir o borrar salas).
+      allow write: if esProfe();
       allow create: if esColegio() && codigo.matches('^[A-Z0-9]{4,8}$')
         && request.resource.data.keys().hasOnly(['codigo', 'creador', 'creadorNombre', 'estado', 'blancas', 'negras', 'jugadores',
              'tiempo', 'reloj', 'jugadas', 'fen', 'turno', 'turnoDesde', 'seq', 'tablas', 'resultado', 'revancha', 'revanchaDe',
-             'de', 'creado', 'actualizado'])
+             'de', 'creado', 'actualizado', 'apuesta', 'pagos', 'contado', 'confirmado', 'disputa', 'finEn'])
         && request.resource.data.codigo == codigo
         && request.resource.data.creador == request.auth.uid
         && texto(request.resource.data.creadorNombre, 60)
@@ -353,21 +477,27 @@ service cloud.firestore {
         && texto(request.resource.data.fen, 100)
         && request.resource.data.tablas == '' && request.resource.data.resultado == null
         && request.resource.data.revancha == '' && request.resource.data.revanchaDe == ''
-        && texto(request.resource.data.de, 8);
-      // Unirse: toma el asiento libre y la partida empieza.
+        && texto(request.resource.data.de, 8)
+        && request.resource.data.pagos == {'w': '', 'b': ''}
+        && request.resource.data.contado == {'w': false, 'b': false}
+        && request.resource.data.confirmado == false && request.resource.data.disputa == false
+        && request.resource.data.finEn == null
+        && ajApuestaInicial(request.resource.data.apuesta, ajColor(request.resource.data, request.auth.uid), codigo);
+      // Unirse: toma el asiento libre (y paga su apuesta, si la hay) y la partida empieza.
       allow update: if esColegio() && resource.data.estado == 'espera'
         && !(request.auth.uid in resource.data.jugadores)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['blancas', 'negras', 'jugadores', 'estado', 'turnoDesde', 'seq', 'actualizado'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['blancas', 'negras', 'jugadores', 'estado', 'turnoDesde', 'seq', 'actualizado', 'apuesta'])
         && request.resource.data.seq == resource.data.seq + 1
         && request.resource.data.jugadores == resource.data.jugadores.concat([request.auth.uid])
         && request.resource.data.estado == 'jugando'
         && request.resource.data.turnoDesde == request.time
         && ((resource.data.blancas == null && ajAsiento(request.resource.data.blancas) && request.resource.data.negras == resource.data.negras)
-            || (resource.data.negras == null && ajAsiento(request.resource.data.negras) && request.resource.data.blancas == resource.data.blancas));
+            || (resource.data.negras == null && ajAsiento(request.resource.data.negras) && request.resource.data.blancas == resource.data.blancas))
+        && ajApuestaUnirse(resource.data, request.resource.data, ajColor(request.resource.data, request.auth.uid), codigo);
       // Jugada: solo quien tiene el turno; agrega una jugada al final y descuenta su tiempo.
       allow update: if esColegio() && resource.data.estado == 'jugando'
         && ajColor(resource.data, request.auth.uid) == resource.data.turno
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['jugadas', 'fen', 'turno', 'reloj', 'turnoDesde', 'seq', 'tablas', 'estado', 'resultado', 'actualizado'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['jugadas', 'fen', 'turno', 'reloj', 'turnoDesde', 'seq', 'tablas', 'estado', 'resultado', 'finEn', 'actualizado'])
         && request.resource.data.seq == resource.data.seq + 1
         && request.resource.data.jugadas.size() == resource.data.jugadas.size() + 1
         && request.resource.data.jugadas.size() <= 1200
@@ -385,8 +515,9 @@ service cloud.firestore {
                && request.resource.data.reloj[resource.data.turno] is int
                && request.resource.data.reloj[resource.data.turno] >= 0
                && request.resource.data.reloj[resource.data.turno] <= resource.data.reloj[resource.data.turno] - ajMs(resource.data) + resource.data.tiempo.inc + 3000))
-        && ((request.resource.data.estado == 'jugando' && request.resource.data.resultado == null)
+        && ((request.resource.data.estado == 'jugando' && request.resource.data.resultado == null && request.resource.data.get('finEn', null) == null)
             || (request.resource.data.estado == 'fin' && ajFin(request.resource.data.resultado)
+                && request.resource.data.finEn == request.time
                 && request.resource.data.resultado.motivo in ['jaque-mate', 'ahogado', 'material', 'repeticion', '50-jugadas']
                 && (request.resource.data.resultado.motivo == 'jaque-mate'
                     ? request.resource.data.resultado.ganador == resource.data.turno
@@ -394,12 +525,14 @@ service cloud.firestore {
       // Tablas (ofrecer, rechazar, aceptar), rendirse, anular (antes de 2 jugadas) o cobrar el tiempo agotado.
       allow update: if esColegio() && resource.data.estado == 'jugando'
         && ajColor(resource.data, request.auth.uid) != ''
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tablas', 'estado', 'resultado', 'seq', 'actualizado'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tablas', 'estado', 'resultado', 'finEn', 'seq', 'actualizado'])
         && request.resource.data.seq == resource.data.seq + 1
         && ((request.resource.data.estado == 'jugando' && request.resource.data.resultado == null
+             && request.resource.data.get('finEn', null) == null
              && (request.resource.data.tablas == ajColor(resource.data, request.auth.uid)
                  || (request.resource.data.tablas == '' && resource.data.tablas == ajOtro(ajColor(resource.data, request.auth.uid)))))
             || (request.resource.data.estado == 'fin' && ajFin(request.resource.data.resultado)
+                && request.resource.data.finEn == request.time
                 && ((request.resource.data.resultado.motivo == 'acuerdo' && request.resource.data.resultado.ganador == ''
                      && resource.data.tablas == ajOtro(ajColor(resource.data, request.auth.uid)))
                     || (request.resource.data.resultado.motivo == 'abandono'
@@ -410,6 +543,37 @@ service cloud.firestore {
                         && resource.data.jugadas.size() > 0
                         && ajMs(resource.data) > resource.data.reloj[resource.data.turno]
                         && request.resource.data.resultado.ganador in [ajOtro(resource.data.turno), '']))));
+      // Jugada ilegal detectada por el equipo de un jugador: la partida se detiene y la revisa el profe.
+      allow update: if esColegio() && resource.data.estado == 'jugando'
+        && ajColor(resource.data, request.auth.uid) != ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'resultado', 'disputa', 'finEn', 'seq', 'actualizado'])
+        && request.resource.data.seq == resource.data.seq + 1
+        && request.resource.data.estado == 'fin' && request.resource.data.disputa == true
+        && request.resource.data.resultado == {'ganador': '', 'motivo': 'disputa'}
+        && request.resource.data.finEn == request.time;
+      // Final en el tablero: quien perdió (o recibió la última jugada) confirma o reclama, dentro de 30 minutos.
+      allow update: if esColegio() && resource.data.estado == 'fin'
+        && ajColor(resource.data, request.auth.uid) == resource.data.turno
+        && resource.data.resultado.motivo in ['jaque-mate', 'ahogado', 'material', 'repeticion', '50-jugadas']
+        && resource.data.confirmado == false && resource.data.disputa == false
+        && request.time < resource.data.finEn + duration.value(30, 'm')
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['confirmado', 'disputa', 'seq', 'actualizado'])
+        && request.resource.data.seq == resource.data.seq + 1
+        && ((request.resource.data.confirmado == true && request.resource.data.disputa == false)
+            || (request.resource.data.disputa == true && request.resource.data.confirmado == false));
+      // Cobrar lo apostado y/o sumar la victoria al ranking. Quien creó la sala también puede
+      // cancelarla mientras espera rival: recupera su apuesta en la misma escritura.
+      allow update: if esColegio() && ajColor(resource.data, request.auth.uid) != ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pagos', 'contado', 'estado', 'resultado', 'finEn', 'seq', 'actualizado'])
+        && request.resource.data.seq == resource.data.seq + 1
+        && ((resource.data.estado == 'fin' && ajFirme(resource.data)
+             && request.resource.data.estado == 'fin' && request.resource.data.resultado == resource.data.resultado
+             && request.resource.data.finEn == resource.data.finEn)
+            || (resource.data.estado == 'espera' && resource.data.creador == request.auth.uid
+             && request.resource.data.estado == 'fin' && request.resource.data.resultado == {'ganador': '', 'motivo': 'cancelada'}
+             && request.resource.data.finEn == request.time && request.resource.data.contado == resource.data.contado))
+        && ajPagoOk(resource.data, request.resource.data, ajColor(resource.data, request.auth.uid))
+        && ajContadoOk(resource.data, request.resource.data, ajColor(resource.data, request.auth.uid));
       // Revancha: un jugador deja anotado el código de la sala nueva.
       allow update: if esColegio() && resource.data.estado == 'fin'
         && request.auth.uid in resource.data.jugadores
@@ -418,7 +582,8 @@ service cloud.firestore {
         && resource.data.revancha == ''
         && request.resource.data.revancha.matches('^[A-Z0-9]{4,8}$')
         && request.resource.data.revanchaDe == request.auth.uid;
-      allow delete: if esProfe() || (conCuenta() && resource.data.creador == request.auth.uid && resource.data.estado == 'espera');
+      allow delete: if conCuenta() && resource.data.creador == request.auth.uid && resource.data.estado == 'espera'
+        && resource.data.get('apuesta', null) == null;
     }
 
     // ── Contador de visitas: cualquiera suma 1, nadie puede poner otro número ──
@@ -464,7 +629,7 @@ service cloud.firestore {
       return d.cuenta == miCuentaBanco() && d.cuenta != ''
         && opsDespues(d.cuenta) == opsAntes(d.cuenta) + 1
         && id == 'op-' + d.cuenta + '-' + string(opsDespues(d.cuenta))
-        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta', 'giftcard', 'cofre', 'llave', 'llaveRota'])
+        && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta', 'giftcard', 'cofre', 'llave', 'llaveRota', 'ajedrez'])
         && (d.tipo in ['ruleta', 'cofre'] || !d.keys().hasAny(['tema', 'escapa', 'pierde']))
         && (d.tipo in ['cofre', 'cofre-abrir', 'cofre-compra', 'ruleta'] || !d.keys().hasAny(['cofre']))
         && (d.tipo in ['cofre', 'cofre-abrir'] || !d.keys().hasAny(['llave', 'llaveRota']))
@@ -486,7 +651,9 @@ service cloud.firestore {
             || (d.tipo == 'apuesta' && opApuestaPartido(id, d))
             || (d.tipo == 'juego-envio' && opJuego(d))
             || (d.tipo == 'giftcard' && opGiftcard(id, d))
-            || (d.tipo == 'cofre-abrir' && opCofreAbrir(d)) || (d.tipo == 'cofre' && opCofre(d)) || (d.tipo == 'cofre-compra' && opCofreCompra(d)));
+            || (d.tipo == 'cofre-abrir' && opCofreAbrir(d)) || (d.tipo == 'cofre' && opCofre(d)) || (d.tipo == 'cofre-compra' && opCofreCompra(d))
+            || (d.tipo == 'ajedrez-apuesta' && d.get('ajedrez', '') is string && opAjApuesta(id, d))
+            || (d.tipo in ['ajedrez-premio', 'ajedrez-devolucion'] && d.get('ajedrez', '') is string && opAjPago(d)));
     }
 
     // ═════ Mascotas (como Pou / Tamagotchi) ═════
@@ -1905,16 +2072,32 @@ service cloud.firestore {
     match /gatitos/{uid} {
       allow read: if conCuenta();
       allow create, update: if esColegio() && soyYo(uid)
-        && request.resource.data.keys().hasOnly(['uid', 'nombre', 'ids', 'favorito', 'actualizado'])
+        // los cobros del ajedrez van por la regla siguiente
+        && request.resource.data.get('ajedrezCobro', '') == (resource == null ? '' : resource.data.get('ajedrezCobro', ''))
+        && request.resource.data.keys().hasOnly(['uid', 'nombre', 'ids', 'favorito', 'actualizado', 'ajedrez', 'ajedrezCobro'])
         && request.resource.data.uid == uid
         && texto(request.resource.data.nombre, 80)
         && request.resource.data.ids is list && request.resource.data.ids.size() <= 40
         && (request.resource.data.favorito in request.resource.data.ids
             || (request.resource.data.ids.size() == 0 && request.resource.data.favorito == null))
         && request.resource.data.actualizado == request.time
-        && ((resource != null && request.resource.data.ids == resource.data.ids)   // solo cambia el favorito
-            || compraDeGatito(uid) || gatitoACustodia(uid) || gatitoDeVuelta(uid) || gatitoEscapado()
-            || gatitoARegalo(uid) || gatitoRegaloRecibido(uid) || gatitoRegaloDevuelto(uid));
+        // apostar un gatito en el ajedrez (el campo «ajedrez» cambia al código de la sala) o lo de siempre
+        && (request.resource.data.get('ajedrez', '') != (resource == null ? '' : resource.data.get('ajedrez', ''))
+            ? gatitoAAjedrez(uid)
+            : ((resource != null && request.resource.data.ids == resource.data.ids)   // solo cambia el favorito
+               || compraDeGatito(uid) || gatitoACustodia(uid) || gatitoDeVuelta(uid) || gatitoEscapado()
+               || gatitoARegalo(uid) || gatitoRegaloRecibido(uid) || gatitoRegaloDevuelto(uid)));
+      // Cobrar gatitos de una partida de ajedrez («ajedrezCobro» = código de la sala; el tope sube a 45 para que siempre se pueda cobrar).
+      allow update: if esColegio() && soyYo(uid)
+        && request.resource.data.get('ajedrezCobro', '') != resource.data.get('ajedrezCobro', '')
+        && request.resource.data.get('ajedrez', '') == resource.data.get('ajedrez', '')
+        && request.resource.data.keys().hasOnly(['uid', 'nombre', 'ids', 'favorito', 'actualizado', 'ajedrez', 'ajedrezCobro'])
+        && request.resource.data.uid == uid
+        && texto(request.resource.data.nombre, 80)
+        && request.resource.data.ids is list && request.resource.data.ids.size() <= 45
+        && request.resource.data.favorito in request.resource.data.ids
+        && request.resource.data.actualizado == request.time
+        && gatitoDeAjedrez(uid);
       // El profe traspasa gatitos al autorizar una venta entre estudiantes.
       allow create, update, delete: if esProfe();
     }

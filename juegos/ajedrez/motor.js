@@ -381,7 +381,8 @@
   var MOTIVOS = {
     'jaque-mate': 'Jaque mate', 'ahogado': 'Rey ahogado', 'material': 'Material insuficiente',
     'repeticion': 'Triple repetición', '50-jugadas': 'Regla de las 50 jugadas', 'tiempo': 'Se acabó el tiempo',
-    'abandono': 'Abandono', 'acuerdo': 'Tablas de mutuo acuerdo'
+    'abandono': 'Abandono', 'acuerdo': 'Tablas de mutuo acuerdo',
+    'anulada': 'Partida anulada', 'cancelada': 'Sala cerrada', 'disputa': 'En revisión del profe', 'profe': 'Resultado del profe'
   };
 
   // Pieza capturadas por cada color (para mostrarlas junto al tablero)
@@ -428,7 +429,7 @@
     nuevo: function (f) { return desdeFen(f || INICIAL); },
     desdeFen: desdeFen, fen: fen, clave: clave,
     casilla: casilla, nombre: nombre, colorDe: colorDe, otro: otro,
-    legales: legales, jugar: jugar, jugarUci: jugarUci, buscarUci: buscarUci, partida: partida,
+    legales: legales, aplicar: aplicar, jugar: jugar, jugarUci: jugarUci, buscarUci: buscarUci, partida: partida,
     uci: uci, san: san, enJaque: enJaque, atacada: atacada,
     resultado: resultado, resultadoPorTiempo: resultadoPorTiempo, puedeDarMate: puedeDarMate,
     materialInsuficiente: materialInsuficiente, repeticiones: repeticiones,
