@@ -18,8 +18,23 @@ Página: `juegos/ajedrez/ajedrez.html` (en el sitio: Juegos → Ajedrez Agustino
   - Quien abre el enlace de una partida llena la **mira** (sirve para proyectarla en la sala).
   - «Mis partidas en línea» lista las partidas abiertas para volver a entrar.
 
-- **Contra la máquina** (práctica): tres niveles (Fácil, Medio, Difícil), eliges color, puedes deshacer y pedir una
-  **pista**. No se apuesta ni suma al ranking. La máquina piensa en segundo plano (`ia.js`, un Web Worker).
+- **Contra la máquina** (práctica): cuatro niveles (Fácil, Medio, Difícil y Maestro), eliges color, puedes deshacer y
+  pedir una **pista**. No se apuesta ni suma al ranking. La máquina piensa en segundo plano (`ia.js`, un Web Worker).
+
+## San Agustín comenta
+San Agustín de Hipona (un obispo con mitra, en pixel art) comenta la partida en un globo junto al tablero: la apertura,
+las capturas, los jaques, el enroque, las coronaciones, el poco tiempo y el final. En la práctica y en este dispositivo
+también avisa si una pieza quedó sin defensa; **en línea no da pistas** (sería injusto con el rival).
+Algunas frases son **citas reales** de sus obras y muestran su fuente (Confesiones, La ciudad de Dios, Sermones,
+Cartas); las demás están escritas a su estilo. Todo lo genera `agustin.js` con el motor: sin inteligencia artificial
+externa ni envío de datos. El botón 🕯️ los apaga o enciende.
+
+## Análisis de la partida (para aprender)
+Al terminar cualquier partida aparece **📖 Analizar**. La máquina revisa cada jugada y la califica:
+★ mejor jugada · ! excelente · ✓ buena · ?! imprecisión · ? error · ?? error grave.
+Muestra la **precisión** de cada bando, un **gráfico de la ventaja**, y al tocar una jugada explica qué pasó
+(«Después de Ac4, el rival puede responder Cxh5 y ganar la dama. Era mejor Df3.») y marca en verde la mejor
+alternativa en el tablero. Empieza por tu primer error importante, y San Agustín cierra con una reflexión.
 
 ## Apuestas (solo en línea, entre dos personas)
 Al crear la sala se elige: sin apuesta, **Hipopesos** (los dos ponen lo mismo; quien gana se lleva el doble) o **un gatito**
@@ -54,8 +69,13 @@ partida (si el rival no tiene piezas para dar mate, son tablas).
   del archivo para cambiar colores o formas).
 - `ajedrez.html`: tablero en canvas, menús, reloj y salas en línea.
 - `prueba-motor.js`: `node juegos/ajedrez/prueba-motor.js` (perft con posiciones conocidas y finales).
-- `ia.js`: la máquina (alfa-beta con profundización iterativa y búsqueda de capturas).
-- `prueba-ia.js`: `node juegos/ajedrez/prueba-ia.js` (mates en 1, piezas colgadas, tiempos).
+- `ia.js`: la máquina y el análisis: alfa-beta con profundización iterativa, tabla de transposición (huella Zobrist),
+  jugadas asesinas e historial, extensión de jaque, quiescencia, evita repetir cuando va ganando y libro de aperturas
+  (Italiana, Española, Siciliana, Francesa, Caro-Kann, Gambito de dama, India de rey, Londres, Inglesa…).
+  Evaluación con material, posición, pareja de alfiles, peones doblados/aislados/pasados, torres en columnas
+  abiertas y refugio del rey. En un match de 16 partidas a igual tiempo le ganó 13–3 a la versión anterior.
+- `agustin.js`: los comentarios de San Agustín, las piezas amenazadas y las explicaciones del análisis.
+- `prueba-ia.js`: `node juegos/ajedrez/prueba-ia.js` (mates en 1, piezas colgadas, tiempos y análisis).
 - `prueba-reglas.mjs` y `prueba-apuestas.mjs`: pruebas de las reglas de Firestore con el emulador (instrucciones dentro).
 
 ## Firebase
