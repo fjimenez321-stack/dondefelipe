@@ -92,7 +92,9 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 - El profe lo entrega en persona y presiona «📦 Entregado» en Panel del profe → Solicitudes. Si rechaza, o el estudiante cancela antes, el pago vuelve y la unidad se repone.
 
 ## Ajedrez Agustino (`juegos/ajedrez/ajedrez.html`)
-- Ajedrez para 2 en pixel art: en el mismo dispositivo (sin cuenta) o en línea con un código de sala.
+- Ajedrez para 2 en pixel art: en el mismo dispositivo (sin cuenta), contra la máquina (práctica) o en línea con un código de sala.
+- En línea se puede apostar Hipopesos o un gatito; lo apostado queda retenido en la sala y cada jugador cobra solo lo suyo al terminar.
+- Ranking de victorias en línea (`rankings/ajedrez`), visible en el podio de la portada.
 - Reloj opcional; en línea se descuenta con la hora del servidor y las reglas impiden regalarse tiempo.
 - Requiere publicar el `firestore.rules` actualizado (colección `ajedrez_salas`). Detalle en `juegos/ajedrez/LEEME.md`.
 

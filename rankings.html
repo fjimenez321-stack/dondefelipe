@@ -60,7 +60,8 @@ const JUEGOS = {
   'segunda-barrera': { nombre: 'Segunda Barrera', url: 'simuladores/segundabarrera.html' },
   'energia-pista':     { nombre: 'Pista de Energía',  url: 'segundo/fisica/pista-energia.html' },
   'ruta-paes':         { nombre: 'Ruta PAES',         url: 'juegos/ruta-paes/ruta-paes.html' },
-  'ludo-chileno':      { nombre: 'Ludo Chileno',      url: 'juegos/ludo-chileno/ludo.html' }
+  'ludo-chileno':      { nombre: 'Ludo Chileno',      url: 'juegos/ludo-chileno/ludo.html' },
+  'ajedrez':           { nombre: 'Ajedrez',           url: 'juegos/ajedrez/ajedrez.html', unidad: 'victorias' }
 };
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -95,7 +96,7 @@ function pintar() {
     <div class="fila${i < 3 ? ' p' + (i + 1) : ''}${profe ? ' conmod' : ''}">
       <div class="pos">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</div>
       <div><div class="nom">${esc(x.nombre)}</div>${x.curso ? `<span class="cur">${esc(x.curso)}</span>` : ''}</div>
-      <div class="pts">${fmt(x.puntaje)}</div>
+      <div class="pts">${fmt(x.puntaje)}${JUEGOS[actual].unidad ? `<small style="display:block;font-size:10px;font-weight:600;opacity:.7">${JUEGOS[actual].unidad}</small>` : ''}</div>
       ${profe ? `<div class="mod"><button data-borrar="${esc(x.uid)}" title="Borrar esta marca">🗑</button><button data-bloquear="${esc(x.uid)}" data-nombre="${esc(x.nombre)}" title="Borrar y bloquear en todos los rankings">⛔</button></div>` : ''}
     </div>`).join('') : '<div class="vacio">Aún no hay puntajes. ¡Sé el primero!</div>';
 }

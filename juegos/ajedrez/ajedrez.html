@@ -138,6 +138,40 @@ input.codigo-in{width:100%;font-size:2rem;letter-spacing:8px;text-align:center;t
 .fin-ico{display:flex;justify-content:center;gap:10px;margin:6px 0 12px}
 .fin-ico img{width:72px;height:72px;image-rendering:pixelated}
 .notas{font-size:.85rem;color:var(--gris);line-height:1.35;margin-top:8px}
+.gatos{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;max-height:260px;overflow:auto;padding:2px}
+.gatos label{position:relative;cursor:pointer}
+.gatos input{position:absolute;opacity:0;pointer-events:none}
+.gatos span{display:grid;justify-items:center;gap:2px;padding:6px 4px;background:#141829;box-shadow:0 0 0 2px #05070f;font-size:.78rem;text-align:center;line-height:1.1}
+.gatos img{width:56px;height:56px;object-fit:contain}
+.gatos small{font-size:.66rem}
+.gatos input:checked+span{background:var(--oro);color:var(--tinta)}
+.gatos input:disabled+span{opacity:.35;cursor:not-allowed}
+.apuesta-vs{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0;text-align:center;font-size:.85rem}
+.apuesta-vs img{width:64px;height:64px;object-fit:contain;display:block;margin:0 auto}
+.apuesta-vs b{font-size:1.3rem;color:var(--oro)}
+.agustin{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:start;margin-top:10px}
+.agustin img{width:44px;height:44px;image-rendering:pixelated;background:#d9c49a;box-shadow:0 0 0 2px #05070f}
+.agustin .globo{background:var(--marfil);color:var(--tinta);padding:8px 10px;font-size:.95rem;line-height:1.3;position:relative;box-shadow:0 0 0 2px #05070f}
+.agustin .globo:before{content:"";position:absolute;left:-8px;top:12px;border:4px solid transparent;border-right-color:var(--marfil);border-width:5px 8px 5px 0}
+.agustin .globo b{display:block;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;color:#7a1f24;margin-bottom:2px}
+.agustin .globo small{display:block;margin-top:5px;font-size:.78rem;color:#5a4a33;font-style:italic}
+.agustin.nuevo .globo{animation:globo .35s ease-out}
+@keyframes globo{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
+.barra-prog{height:12px;background:#05070f;box-shadow:0 0 0 2px #05070f;margin:8px 0}
+.barra-prog i{display:block;height:100%;background:var(--oro);width:0;transition:width .2s}
+.precision{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.precision div{background:#141829;padding:6px 8px;text-align:center;font-size:.85rem}
+.precision b{display:block;font-size:1.5rem;color:var(--oro-2)}
+.cuentas-an{font-size:.8rem;color:var(--gris);line-height:1.5}
+#grafico{width:100%;height:70px;image-rendering:pixelated;display:block;margin:6px 0;cursor:pointer}
+.an-lista{list-style:none;max-height:220px;overflow:auto;display:grid;grid-template-columns:34px 1fr 1fr;background:#141829;padding:4px;font-size:.95rem}
+.an-lista .n{color:var(--gris);padding:3px 4px;text-align:right}
+.an-lista button{background:none;border:0;text-align:left;padding:3px 6px;color:var(--marfil)}
+.an-lista button.ver{outline:2px solid var(--oro)}
+.cat-mejor,.cat-excelente{color:#7fe08a}.cat-buena{color:var(--marfil)}.cat-imprecision{color:#f2d06b}.cat-error{color:#ff9a4d}.cat-grave{color:#ff5a5a}
+.an-detalle{background:#141829;padding:8px 10px;margin-top:8px;font-size:.92rem;line-height:1.35}
+.an-detalle .tit{font-weight:700;margin-bottom:4px}
+#jugadas .sim{font-size:.75rem;margin-left:3px}
 footer{text-align:center;color:var(--gris);font-size:.8rem;padding:0 16px 24px}
 </style>
 </head>
@@ -155,7 +189,8 @@ footer{text-align:center;color:var(--gris);font-size:.8rem;padding:0 16px 24px}
     <div class="barra" id="barra-abajo"></div>
   </section>
   <aside class="panel">
-    <div class="caja"><div id="estado">Cargando…</div><div id="avisos"></div></div>
+    <div class="caja"><div id="estado">Cargando…</div><div id="avisos"></div><div id="agustin"></div></div>
+    <div class="caja" id="analisis" hidden></div>
     <div class="caja">
       <h2>Jugadas</h2>
       <div class="nav-jug">
@@ -176,6 +211,8 @@ footer{text-align:center;color:var(--gris);font-size:.8rem;padding:0 16px 24px}
 
 <script src="motor.js"></script>
 <script src="pixel.js"></script>
+<script src="agustin.js"></script>
+<script src="../../gatitos/catalogo.js"></script>
 <script src="../../firebase/df.js?v=20261104e" data-sin-aviso></script>
 <script>
 (function(){
@@ -211,6 +248,15 @@ try{SONIDO=localStorage.getItem('ajedrez_sonido')!=='0';GIRAR_AUTO=localStorage.
 // en línea
 let ONLINE=false, USR=null, SALA=null, salaRef=null, salaUnsub=null, MI_COLOR='', ENVIANDO=false, RECLAMANDO=0, FIN_MOSTRADO='';
 let DESF=0;                  // hora del servidor − hora de este equipo (ms)
+// contra la máquina
+let MAQ=null, PENSANDO=false, WORKER=null, PEDIDO=0;
+// apuestas y ranking (en línea)
+let PROCESANDO=false, INVALIDA='', AVISO_COBRO='', REINTENTO=null, CERRANDO=false;
+const MOTIVOS_TABLERO=['jaque-mate','ahogado','material','repeticion','50-jugadas'];
+// San Agustín y el análisis
+let COMENTARIOS=true, COMENTARIO=null, AVISO_TIEMPO={}, ANALISIS=null, ANAL_SEL=null, ANALIZANDO=false;
+try{COMENTARIOS=localStorage.getItem('ajedrez_agustin')!=='0';}catch(e){}
+const NIVELES={facil:'Fácil',medio:'Medio',dificil:'Difícil',maestro:'Maestro'};
 
 /* ═════════════ hora del servidor ═════════════ */
 function srvAhora(){return Date.now()+DESF;}
@@ -336,6 +382,13 @@ function dibujar(){
     if(m.captura){ctx.fillStyle='rgba(15,20,45,.55)';[[0,0],[CS-3,0],[0,CS-3],[CS-3,CS-3]].forEach(([a,b])=>{ctx.fillRect(x+a,y+b,3,1);ctx.fillRect(x+a+(a?2:0),y+b,1,3);ctx.fillRect(x+a,y+b+(b?2:0),3,1);});}
     else{ctx.fillStyle='rgba(15,20,45,.45)';ctx.fillRect(x+6,y+6,4,4);ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(x+6,y+6,2,1);}
   });
+  const an=analisisActual(), itv=an?an[(VISTA==null?E.historial.length:VISTA)-1]:null;
+  if(itv&&itv.mejor){
+    // la mejor alternativa, con un marco verde (desde dónde y hacia dónde)
+    [itv.mejor.de,itv.mejor.a].forEach((q,k)=>{const [x,y]=xy(q);ctx.fillStyle=k?'#3fdc6b':'#2a9c4a';ctx.fillRect(x,y,CS,1);ctx.fillRect(x,y+CS-1,CS,1);ctx.fillRect(x,y,1,CS);ctx.fillRect(x+CS-1,y,1,CS);
+      if(k){ctx.fillStyle='rgba(63,220,107,.35)';ctx.fillRect(x+5,y+5,6,6);}});
+  }
+  if(PISTA&&VISTA==null&&!FIN){const [x,y]=xy(PISTA.a);ctx.fillStyle='#ffd66b';ctx.fillRect(x,y,CS,1);ctx.fillRect(x,y+CS-1,CS,1);ctx.fillRect(x,y,1,CS);ctx.fillRect(x+CS-1,y,1,CS);}
   // pieza en movimiento (animación)
   if(ANIM){
     const t=Math.min(1,(performance.now()-ANIM.t0)/ANIM.dur), s=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
@@ -360,6 +413,7 @@ function puedoMover(color){
   if(VISTA!=null||FIN)return false;
   if(color!==E.turno)return false;
   if(MODO==='local')return true;
+  if(MODO==='maquina')return !!MAQ&&color===MAQ.color&&!PENSANDO;
   return !!(SALA&&SALA.estado==='jugando'&&MI_COLOR===color&&!ENVIANDO);
 }
 
@@ -414,17 +468,21 @@ function elegirCoronacion(color){
 
 /* ═════════════ jugar ═════════════ */
 function hacerJugada(m,sinAnim){
-  const color=E.turno, antes=E;
+  const color=E.turno, antes=E;PISTA=null;
   E=A.jugar(E,m);
   const h=E.historial[E.historial.length-1];
   if(!sinAnim)animar(h);
   sonarJugada(h);
+  comentarJugada(antes,E);
   if(MODO==='local'){
     relojTrasJugada(color);
     const r=A.resultado(E);
     if(r.fin)terminar(r);
     if(GIRAR_AUTO&&!FIN)ORIENT=E.turno;
     guardarLocal();
+  }else if(MODO==='maquina'){
+    const r=A.resultado(E);
+    if(r.fin)terminar(r);else if(E.turno!==MAQ.color){PENSANDO=true;setTimeout(turnoMaquina,ANIM?180:0);}
   }else enviarJugada(h,antes);
   pintarTodo();
 }
@@ -461,7 +519,8 @@ setInterval(()=>{
   ['w','b'].forEach(c=>{const el=document.querySelector(`.reloj[data-c="${c}"]`);if(!el)return;
     const r=restante(c);el.textContent=fmt(r);
     const activo=!FIN&&E.turno===c&&(MODO==='local'?RELOJ&&RELOJ.corriendo:SALA&&SALA.estado==='jugando'&&(SALA.jugadas||[]).length>0);
-    el.classList.toggle('activo',!!activo);el.classList.toggle('poco',r!=null&&r<20000&&!!activo);});
+    el.classList.toggle('activo',!!activo);el.classList.toggle('poco',r!=null&&r<20000&&!!activo);
+    if(activo&&r!=null&&r<30000&&r>0&&!AVISO_TIEMPO[c]&&(MODO==='local'||c===MI_COLOR)){AVISO_TIEMPO[c]=1;decir(Agustin.frase('tiempo'));}});
   if(FIN)return;
   const r=restante(E.turno);
   if(r==null||r>0)return;
@@ -473,17 +532,19 @@ setInterval(()=>{
 function textoResultado(r){
   if(!r)return '';
   const mot=A.MOTIVOS[r.motivo]||r.motivo||'';
-  if(r.motivo==='anulada')return 'Partida anulada';
+  if(['anulada','cancelada','disputa'].includes(r.motivo))return mot;
   return r.ganador?`Ganan las ${NOMBRE_COLOR[r.ganador]} · ${mot}`:`Tablas · ${mot}`;
 }
 function terminar(r){
   FIN=r;SEL=-1;
+  if(r.motivo==='abandono'||r.motivo==='acuerdo'||r.motivo==='tiempo')decir(Agustin.frase(r.ganador?((MODO==='maquina'?MAQ.color:r.ganador)===r.ganador?'mateGano':'matePierdo'):'tablas'));
   if(MODO==='local'&&RELOJ&&RELOJ.corriendo){const c=E.turno;RELOJ[c]=Math.max(0,RELOJ[c]-(Date.now()-RELOJ.desde));RELOJ.corriendo=false;}
   SND.fin();
   setTimeout(()=>mostrarFin(r),450);
 }
 function nombreDe(c){
   if(MODO==='linea'&&SALA){const s=c==='w'?SALA.blancas:SALA.negras;return s?s.nombre:'(esperando)';}
+  if(MODO==='maquina'&&MAQ)return c===MAQ.color?'Tú':`Máquina · ${NIVELES[MAQ.nivel]} 🤖`;
   return NOMBRE_COLOR[c];
 }
 async function mostrarFin(r){
@@ -493,12 +554,15 @@ async function mostrarFin(r){
   const botones=MODO==='linea'
     ?(MI_COLOR?`<button class="btn oro" data-r="revancha">⚔️ Revancha</button>`:'')+`<button class="btn sec" data-r="ver">Ver tablero</button><button class="btn" data-r="menu">Menú</button>`
     :`<button class="btn oro" data-r="otra">⚔️ Otra partida</button><button class="btn sec" data-r="ver">Ver tablero</button><button class="btn" data-r="menu">Menú</button>`;
+  const analizar=E.historial.length>=2?`<button class="btn verde" data-r="analizar">📖 Analizar con San Agustín</button>`:'';
   const res=await ventana(`<h3>${tit}</h3><div class="sub">${esc(A.MOTIVOS[r.motivo]||'')}</div><div class="fin-ico">${ico}</div>
-    <p style="text-align:center">${r.motivo==='anulada'?'Se anuló antes de la segunda jugada.':gan}</p>
-    <div class="pie">${botones}</div>`);
+    <p style="text-align:center">${r.motivo==='anulada'?'Se anuló antes de la segunda jugada.':r.motivo==='disputa'?'Un equipo detectó una jugada no válida. El profe revisará la partida.':gan}</p>
+    ${MODO==='linea'?textoApuestaFin(r):''}${MODO==='maquina'&&r.ganador===MAQ.color?'<p style="text-align:center">🎉 ¡Le ganaste a la máquina!</p>':''}
+    <div class="pie">${analizar}${botones}</div>`);
   cerrar();
+  if(res==='analizar')return analizarPartida();
   if(res==='menu')return menu();
-  if(res==='otra')return nuevaLocal(RELOJ?{base:RELOJ.base,inc:RELOJ.inc}:{base:0,inc:0});
+  if(res==='otra')return MODO==='maquina'?nuevaMaquina(MAQ):nuevaLocal(RELOJ?{base:RELOJ.base,inc:RELOJ.inc}:{base:0,inc:0});
   if(res==='revancha')return proponerRevancha();
 }
 
@@ -506,7 +570,7 @@ async function mostrarFin(r){
 function barra(el,c){
   const caps=A.capturadas(posicionVista())[c].slice().sort((a,b)=>A.VALOR[b.toLowerCase()]-A.VALOR[a.toLowerCase()]);
   const mat=A.material(posicionVista().t)*(c==='w'?1:-1);
-  const turno=!FIN&&E.turno===c&&(MODO==='local'||SALA&&SALA.estado==='jugando');
+  const turno=!FIN&&E.turno===c&&(MODO!=='linea'||SALA&&SALA.estado==='jugando');
   el.classList.toggle('turno',turno);
   el.innerHTML=`<img class="av" src="${P.urlPieza(c==='w'?'K':'k',36)}" alt="${NOMBRE_COLOR[c]}">
     <div style="display:grid;min-width:0;flex:1"><span class="nom">${esc(nombreDe(c))}${MODO==='linea'&&MI_COLOR===c?' (tú)':''}</span>
@@ -522,7 +586,8 @@ function pintarJugadas(){
     const m=h[i];
     if(m.color==='w'||i===0){html+=`<li class="n">${m.num}.</li>`;if(m.color==='b')html+='<li></li>';}
     const sel=VISTA===i+1||(VISTA==null&&i===h.length-1);
-    html+=`<li><button data-i="${i+1}" class="${sel?'ver':''}">${esc(m.san)}</button></li>`;
+    const an=analisisActual(),it=an&&an[i];
+    html+=`<li><button data-i="${i+1}" class="${sel?'ver':''}">${esc(m.san)}${it&&!['buena','excelente'].includes(it.categoria)?`<span class="sim cat-${it.categoria}">${Agustin.SIMBOLO[it.categoria]}</span>`:''}</button></li>`;
   }
   ol.innerHTML=html;
   const b=ol.querySelector('.ver');if(b&&VISTA==null)ol.scrollTop=ol.scrollHeight;
@@ -549,7 +614,8 @@ function pintarEstado(){
       if(!MI_COLOR)sub='Estás mirando la partida.';
       else sub=E.turno===MI_COLOR?'Te toca jugar.':'Espera la jugada de tu rival.';
       if(ENVIANDO)sub='Enviando jugada…';
-    }else sub=RELOJ&&RELOJ.base&&!RELOJ.corriendo?'El reloj parte con la primera jugada.':'Dos jugadores en este dispositivo.';
+    }else if(MODO==='maquina')sub=PENSANDO?'La máquina está pensando…':'Te toca jugar. Práctica sin apuestas ni ranking.';
+    else sub=RELOJ&&RELOJ.base&&!RELOJ.corriendo?'El reloj parte con la primera jugada.':'Dos jugadores en este dispositivo.';
   }
   if(VISTA!=null)sub=`Revisando la jugada ${VISTA} de ${E.historial.length}. Toca el tablero para volver.`;
   $('estado').innerHTML=`${esc(t)}<small>${esc(sub)}</small>`;
@@ -562,6 +628,11 @@ function pintarAcciones(){
     h+=`<button class="btn sec chico" id="a-auto">${GIRAR_AUTO?'☑':'☐'} Girar solo</button>`;
     h+=`<button class="btn sec chico" id="a-tablas"${FIN?' disabled':''}>½ Tablas</button>`;
     h+=`<button class="btn rojo chico" id="a-rendir"${FIN||!E.historial.length?' disabled':''}>⚑ Rendirse</button>`;
+  }else if(MODO==='maquina'){
+    h+=`<button class="btn sec chico" id="a-deshacer-m"${E.historial.length&&!FIN&&!PENSANDO?'':' disabled'}>↶ Deshacer</button>`;
+    h+=`<button class="btn sec chico" id="a-girar">⇅ Girar</button>`;
+    h+=`<button class="btn sec chico" id="a-pista"${FIN||PENSANDO?' disabled':''}>💡 Pista</button>`;
+    h+=`<button class="btn rojo chico" id="a-rendir"${FIN||!E.historial.length?' disabled':''}>⚑ Rendirse</button>`;
   }else{
     const jugando=SALA&&SALA.estado==='jugando'&&MI_COLOR;
     const anular=jugando&&(SALA.jugadas||[]).length<2;
@@ -571,6 +642,8 @@ function pintarAcciones(){
       h+=anular?`<button class="btn rojo chico" id="a-anular">✕ Anular</button>`:`<button class="btn rojo chico" id="a-rendir">⚑ Rendirse</button>`;
     }
   }
+  if(FIN&&E.historial.length>=2)h+=`<button class="btn oro chico" id="a-analizar"${ANALIZANDO?' disabled':''}>📖 Analizar</button>`;
+  h+=`<button class="btn sec chico" id="a-agustin" title="Comentarios de San Agustín">${COMENTARIOS?'🕯️':'💤'} San Agustín</button>`;
   h+=`<button class="btn sec chico" id="a-pgn"${E.historial.length?'':' disabled'}>📜 PGN</button>`;
   h+=`<button class="btn sec chico" id="a-sonido">${SONIDO?'🔊':'🔇'}</button>`;
   h+=`<button class="btn chico" id="a-menu">☰ Menú</button>`;
@@ -583,11 +656,23 @@ function pintarAcciones(){
   on('a-tablas',async()=>{if(await confirmar('¿Tablas de mutuo acuerdo?','Las dos personas aceptan terminar empatados.')){terminar({fin:true,ganador:'',motivo:'acuerdo'});guardarLocal();pintarTodo();}});
   on('a-rendir',async()=>{
     if(MODO==='local'){if(await confirmar(`¿Se rinden las ${NOMBRE_COLOR[E.turno].toLowerCase()}?`,'Gana el otro bando.')){terminar({fin:true,ganador:A.otro(E.turno),motivo:'abandono'});guardarLocal();pintarTodo();}}
-    else if(await confirmar('¿Rendirte?','Tu rival gana la partida.'))accionSala('abandono');
+    else if(MODO==='maquina'){if(await confirmar('¿Rendirte?','Gana la máquina. Es solo práctica.')){terminar({fin:true,ganador:MAQ.color==='w'?'b':'w',motivo:'abandono'});pintarTodo();}}
+    else if(await confirmar('¿Rendirte?','Tu rival gana la partida'+(SALA&&SALA.apuesta?' y se lleva lo apostado.':'.')))accionSala('abandono');
   });
+  on('a-deshacer-m',()=>{
+    // vuelve a tu último turno (deshace tu jugada y la de la máquina)
+    PEDIDO++;PENSANDO=false;
+    do{if(!E.anterior)break;E=E.anterior;}while(E.turno!==MAQ.color);
+    SEL=-1;VISTA=null;pintarTodo();
+    if(E.turno!==MAQ.color)turnoMaquina();
+  });
+  on('a-pista',pista);
   on('a-anular',async()=>{if(await confirmar('¿Anular la partida?','Todavía no hay dos jugadas: nadie gana ni pierde.'))accionSala('anulada');});
   on('a-ofrecer',()=>accionSala('ofrecer'));
   on('a-pgn',copiarPgn);
+  on('a-analizar',analizarPartida);
+  on('a-agustin',()=>{COMENTARIOS=!COMENTARIOS;try{localStorage.setItem('ajedrez_agustin',COMENTARIOS?'1':'0');}catch(e){}
+    if(COMENTARIOS)decir({texto:'Aquí estoy. Comentaré la partida cuando valga la pena.',cita:null});pintarAcciones();pintarAgustin();});
   on('a-sonido',()=>{SONIDO=!SONIDO;try{localStorage.setItem('ajedrez_sonido',SONIDO?'1':'0');}catch(e){}pintarAcciones();if(SONIDO)SND.mover();});
   on('a-menu',async()=>{
     if(MODO==='local'&&!FIN&&E.historial.length){guardarLocal();}
@@ -604,6 +689,9 @@ function pintarAvisos(){
     const mia=SALA.revanchaDe===USR?.uid;
     h+=`<div class="aviso oro">${mia?'Propusiste revancha. Espera a tu rival…':'Tu rival propone <b>revancha</b>.'}<div class="acciones"><button class="btn oro chico" id="r-ir">${mia?'Ir a la sala':'Aceptar revancha'}</button></div></div>`;
   }
+  h+=avisoEspera();
+  if(MODO==='linea'&&AVISO_COBRO)h+=`<div class="aviso oro">${AVISO_COBRO}</div>`;
+  if(MODO==='maquina'&&PISTA&&!FIN)h+=`<div class="aviso oro">💡 Prueba mover la pieza de <b>${A.nombre(PISTA.de)}</b> a <b>${A.nombre(PISTA.a)}</b>.</div>`;
   av.innerHTML=h;
   if($('t-si'))$('t-si').onclick=()=>accionSala('aceptar');
   if($('t-no'))$('t-no').onclick=()=>accionSala('rechazar');
@@ -612,7 +700,7 @@ function pintarAvisos(){
 function pintarTodo(){
   const abajo=ORIENT, arriba=A.otro(ORIENT);
   barra($('barra-arriba'),arriba);barra($('barra-abajo'),abajo);
-  pintarEstado();pintarJugadas();pintarAcciones();pintarAvisos();pintarSalaInfo();
+  pintarEstado();pintarJugadas();pintarAcciones();pintarAvisos();pintarSalaInfo();pintarAgustin();pintarAnalisis();
   dibujar();
 }
 
@@ -642,16 +730,20 @@ async function menu(){
       ${g&&!(MODO==='local'&&!FIN&&E.historial.length)?`<button class="btn grande oro" data-r="seguir">▶ Continuar la partida guardada <small style="margin-left:auto;opacity:.8">${g.jugadas.length} jugadas</small></button>`:''}
       ${MODO==='local'&&!FIN&&E.historial.length?`<button class="btn grande oro" data-r="cerrar">▶ Volver a la partida</button>`:''}
       ${MODO==='linea'&&SALA?`<button class="btn grande oro" data-r="cerrar">▶ Volver a la sala ${esc(SALA.codigo)}</button>`:''}
+      ${MODO==='maquina'&&!FIN&&E.historial.length?`<button class="btn grande oro" data-r="cerrar">▶ Volver a la partida contra la máquina</button>`:''}
       <button class="btn grande" data-r="local">⚔️ Dos jugadores en este dispositivo</button>
+      <button class="btn grande" data-r="maquina">🤖 Practicar contra la máquina</button>
       <button class="btn grande" data-r="crear">🌐 Crear partida en línea</button>
       <button class="btn grande" data-r="unir">🔑 Unirme con un código</button>
       <button class="btn grande sec" data-r="mias">🏰 Mis partidas en línea</button>
+      <a class="btn grande sec" href="../../rankings.html#ajedrez" style="text-decoration:none">🏆 Ranking de victorias</a>
       <button class="btn grande sec" data-r="reglas">📜 Cómo se mueven las piezas</button>
     </div>`);
   cerrar();
   if(r==='cerrar'||r==='')return;
   if(r==='seguir')return continuarLocal(g);
   if(r==='local'){const t=await elegirRitmo(false);if(!t)return menu();salirDeSala();return nuevaLocal(t);}
+  if(r==='maquina'){const c=await elegirMaquina();if(!c)return menu();salirDeSala();return nuevaMaquina(c);}
   if(r==='crear')return crearSala();
   if(r==='unir'){const c=await pedirCodigo();return c?unirse(c):menu();}
   if(r==='mias')return misPartidas();
@@ -702,8 +794,10 @@ async function reglas(){
 
 /* ═════════════ modo local ═════════════ */
 function nuevaLocal(t){
+  PEDIDO++;PENSANDO=false;PISTA=null;
   MODO='local';E=A.nuevo();VISTA=null;SEL=-1;FIN=null;ORIENT='w';
   RELOJ=t&&t.base?{base:t.base,inc:t.inc,w:t.base,b:t.base,desde:0,corriendo:false}:null;
+  reiniciarExtras();decir(Agustin.frase('inicio'));
   guardarLocal();pintarTodo();
 }
 function guardarLocal(){
@@ -711,9 +805,10 @@ function guardarLocal(){
   try{localStorage.setItem('ajedrez_local',JSON.stringify({jugadas:E.historial.map(h=>h.uci),reloj:RELOJ&&{base:RELOJ.base,inc:RELOJ.inc,w:restante('w'),b:restante('b')},fin:FIN}));}catch(e){}
 }
 function continuarLocal(g){
-  salirDeSala();
+  salirDeSala();PEDIDO++;PENSANDO=false;
   MODO='local';VISTA=null;SEL=-1;FIN=null;
   try{E=A.partida(g.jugadas);}catch(e){E=A.nuevo();}
+  reiniciarExtras();
   RELOJ=g.reloj&&g.reloj.base?{base:g.reloj.base,inc:g.reloj.inc,w:g.reloj.w,b:g.reloj.b,desde:0,corriendo:false}:null;
   ORIENT=GIRAR_AUTO?E.turno:'w';
   pintarTodo();
@@ -752,13 +847,15 @@ async function exigirCuenta(){
 function enlace(c){return location.origin+location.pathname+'#sala='+c;}
 function salirDeSala(){
   if(salaUnsub){try{salaUnsub();}catch(e){}}
-  salaUnsub=null;SALA=null;salaRef=null;MI_COLOR='';ENVIANDO=false;FIN_MOSTRADO='';
+  salaUnsub=null;SALA=null;salaRef=null;MI_COLOR='';ENVIANDO=false;FIN_MOSTRADO='';INVALIDA='';AVISO_COBRO='';clearTimeout(REINTENTO);
   if(/#sala=/.test(location.hash))history.replaceState(null,'',location.pathname);
 }
 async function crearSala(de,colorForzado,tiempoForzado){
   try{await exigirCuenta();}catch(e){return menu();}
   let t=tiempoForzado?{...tiempoForzado,color:colorForzado}:await elegirRitmo(true);
   if(!t)return menu();
+  const ap=await elegirApuesta();
+  if(!ap)return menu();
   const {db,F}=await DF.listo();
   const yo={uid:USR.uid,nombre:miNombre()};
   let codigo=null;
@@ -767,11 +864,22 @@ async function crearSala(de,colorForzado,tiempoForzado){
     try{
       await F.runTransaction(db,async tx=>{
         const s=await tx.get(ref);if(s.exists())throw new Error('ocupado');
+        let apuesta=null;
+        if(ap.tipo==='hipopesos'){
+          const cu=await leerCuentaTx(tx);
+          if((cu.saldo||0)<ap.monto)throw new Error('No te alcanza: tienes '+pesos(cu.saldo));
+          const mov=opBanco(tx,F,db,cu,-ap.monto,'ajedrez-apuesta',`Ajedrez: apuesta en la sala ${c} (retenida)`,c);
+          apuesta={tipo:'hipopesos',monto:ap.monto,w:null,b:null};apuesta[t.color]={cuenta:cu.id,mov};
+        }else if(ap.tipo==='gatito'){
+          await sacarGatitoTx(tx,F,db,ap.gatito,c);
+          apuesta={tipo:'gatito',w:null,b:null};apuesta[t.color]={gatito:ap.gatito};
+        }
         tx.set(ref,{codigo:c,creador:USR.uid,creadorNombre:yo.nombre,estado:'espera',
           blancas:t.color==='w'?yo:null,negras:t.color==='b'?yo:null,jugadores:[USR.uid],
           tiempo:{base:t.base,inc:t.inc},reloj:{w:t.base,b:t.base},jugadas:[],fen:A.INICIAL,turno:'w',
           turnoDesde:F.serverTimestamp(),seq:0,tablas:'',resultado:null,revancha:'',revanchaDe:'',de:de||'',
-          creado:F.serverTimestamp(),actualizado:F.serverTimestamp()});
+          creado:F.serverTimestamp(),actualizado:F.serverTimestamp(),
+          apuesta,pagos:{w:'',b:''},contado:{w:false,b:false},confirmado:false,disputa:false,finEn:null});
       });
       codigo=c;
     }catch(e){if(e.message!=='ocupado'){await avisar('No se pudo crear la sala',esc(e.message||e)+'<br><small>¿Están publicadas las reglas nuevas de Firebase (ajedrez_salas)?</small>','err');return menu();}}
@@ -797,13 +905,31 @@ async function unirse(codigo){
   if(!s.exists()){const c=await pedirCodigo(`No existe la sala ${codigo}.`);return c?unirse(c):menu();}
   const d=s.data();
   if(d.estado==='espera'&&!(d.jugadores||[]).includes(USR.uid)){
+    let pago=null;
+    if(d.apuesta){
+      pago=await aceptarApuesta(d);
+      if(pago==='mirar'){escuchar(codigo);return;}
+      if(!pago)return menu();
+    }
     try{
       await F.runTransaction(db,async tx=>{
         const x=(await tx.get(ref)).data();
-        if(x.estado!=='espera')return;
-        const yo={uid:USR.uid,nombre:miNombre()};
+        if(x.estado!=='espera')throw new Error('Alguien más entró primero.');
+        const yo={uid:USR.uid,nombre:miNombre()}, col=x.blancas?'b':'w';
         const upd={jugadores:[...x.jugadores,USR.uid],estado:'jugando',turnoDesde:F.serverTimestamp(),seq:x.seq+1,actualizado:F.serverTimestamp()};
-        if(!x.blancas)upd.blancas=yo;else upd.negras=yo;
+        if(col==='w')upd.blancas=yo;else upd.negras=yo;
+        if(x.apuesta){
+          const ap={...x.apuesta};
+          if(x.apuesta.tipo==='hipopesos'){
+            const cu=await leerCuentaTx(tx);
+            if((cu.saldo||0)<x.apuesta.monto)throw new Error('No te alcanza: tienes '+pesos(cu.saldo));
+            ap[col]={cuenta:cu.id,mov:opBanco(tx,F,db,cu,-x.apuesta.monto,'ajedrez-apuesta',`Ajedrez: apuesta en la sala ${codigo} (retenida)`,codigo)};
+          }else{
+            await sacarGatitoTx(tx,F,db,pago.gatito,codigo);
+            ap[col]={gatito:pago.gatito};
+          }
+          upd.apuesta=ap;
+        }
         tx.update(ref,upd);
       });
     }catch(e){await avisar('No se pudo entrar a la sala',esc(e.message||e),'err');return menu();}
@@ -813,7 +939,8 @@ async function unirse(codigo){
 async function escuchar(codigo){
   salirDeSala();
   const {db,F}=await DF.listo();
-  MODO='linea';FIN=null;VISTA=null;SEL=-1;E=A.nuevo();RELOJ=null;
+  PEDIDO++;PENSANDO=false;PISTA=null;
+  MODO='linea';FIN=null;VISTA=null;SEL=-1;E=A.nuevo();RELOJ=null;reiniciarExtras();
   salaRef=F.doc(db,COLECCION,codigo);
   history.replaceState(null,'','#sala='+codigo);
   let primera=true;
@@ -824,25 +951,27 @@ async function escuchar(codigo){
   },e=>{avisar('Se perdió la conexión con la sala',esc(e.message||e),'err');});
 }
 function alCambiarSala(d,primera){
-  const antes=SALA;SALA=d;
+  const antes=SALA,colorAntes=MI_COLOR;SALA=d;
   MI_COLOR=d.blancas&&d.blancas.uid===USR.uid?'w':d.negras&&d.negras.uid===USR.uid?'b':'';
-  if(primera)ORIENT=MI_COLOR||'w';
+  // el tablero se gira hacia tu color apenas tienes asiento (la primera lectura puede venir de la caché)
+  if(primera||(!colorAntes&&MI_COLOR))ORIENT=MI_COLOR||'w';
   // sincronizar la posición con la lista de jugadas de la sala
   const mias=E.historial.map(h=>h.uci), suyas=d.jugadas||[];
   const enviandoMia=ENVIANDO&&mias.length===suyas.length+1&&mias.slice(0,suyas.length).join()===suyas.join();
   if(mias.join()!==suyas.join()&&!enviandoMia){
     const extiende=suyas.length===mias.length+1&&suyas.slice(0,mias.length).join()===mias.join();
     try{
-      if(extiende){E=A.jugarUci(E,suyas[suyas.length-1]);const h=E.historial[E.historial.length-1];if(VISTA==null)animar(h);sonarJugada(h);SEL=-1;}
+      if(extiende){const ant=E;E=A.jugarUci(E,suyas[suyas.length-1]);const h=E.historial[E.historial.length-1];if(VISTA==null)animar(h);sonarJugada(h);SEL=-1;if(!primera)comentarJugada(ant,E);}
       else{E=A.partida(suyas);SEL=-1;}
-    }catch(e){console.warn('Jugadas no válidas en la sala',e);}
+    }catch(e){console.warn('Jugadas no válidas en la sala',e);INVALIDA=d.codigo;}
   }
   if(d.estado==='fin'&&d.resultado){
     FIN={fin:true,...d.resultado};
-    if(FIN_MOSTRADO!==d.codigo){FIN_MOSTRADO=d.codigo;if(!primera)terminarLinea();}
+    if(FIN_MOSTRADO!==d.codigo){FIN_MOSTRADO=d.codigo;if(!primera&&!CERRANDO)terminarLinea();}
   }else FIN=null;
-  if(antes&&antes.estado==='espera'&&d.estado==='jugando'){SND.jaque();}
+  if(antes&&antes.estado==='espera'&&d.estado==='jugando'){SND.jaque();decir(Agustin.frase('inicio'));}
   pintarTodo();
+  procesarSala();
 }
 function terminarLinea(){SND.fin();setTimeout(()=>mostrarFin(FIN),450);}
 function pintarSalaInfo(){
@@ -850,7 +979,7 @@ function pintarSalaInfo(){
   if(MODO!=='linea'||!SALA){el.hidden=true;el.innerHTML='';return;}
   el.hidden=false;
   const t=SALA.tiempo&&SALA.tiempo.base?`${SALA.tiempo.base/60000} min${SALA.tiempo.inc?' + '+SALA.tiempo.inc/1000+' s':''}`:'Sin reloj';
-  let h=`<h2>Sala en línea · ${esc(t)}</h2>`;
+  let h=`<h2>Sala en línea · ${esc(t)}</h2>`+htmlApuesta(SALA)+htmlProfe(SALA);
   if(SALA.estado==='espera'){
     h+=`<div class="codigo">${esc(SALA.codigo)}</div><p style="font-size:.95rem;line-height:1.35">Tu rival entra a esta página y elige <b>Unirme con un código</b>, o abre el enlace.</p>
       <div class="acciones" style="margin-top:8px"><button class="btn oro chico" id="s-compartir">📤 Compartir enlace</button>${SALA.creador===USR.uid?'<button class="btn rojo chico" id="s-cerrar">Cerrar sala</button>':''}</div>`;
@@ -860,8 +989,8 @@ function pintarSalaInfo(){
   }
   el.innerHTML=h;
   if($('s-compartir'))$('s-compartir').onclick=compartir;
-  if($('s-cerrar'))$('s-cerrar').onclick=async()=>{if(!await confirmar('¿Cerrar la sala?','Nadie más podrá entrar con este código.'))return;
-    const {F}=await DF.listo();const ref=salaRef;salirDeSala();try{await F.deleteDoc(ref);}catch(e){}menu();};
+  if($('s-cerrar'))$('s-cerrar').onclick=cerrarSala;
+  document.querySelectorAll('[data-profe]').forEach(b=>b.onclick=()=>resolverProfe(b.dataset.profe));
 }
 async function compartir(){
   const url=enlace(SALA.codigo),txt=`¡Juguemos ajedrez! Sala ${SALA.codigo} en El Mundo de Felipe`;
@@ -887,7 +1016,7 @@ async function enviarJugada(h,antes){
           const usado=srvAhora()-d.turnoDesde.toMillis();
           upd.reloj={...d.reloj,[yo]:Math.max(0,Math.round(d.reloj[yo]-usado+d.tiempo.inc-margen))};
         }
-        if(res.fin){upd.estado='fin';upd.resultado={ganador:res.ganador,motivo:res.motivo};}
+        if(res.fin){upd.estado='fin';upd.resultado={ganador:res.ganador,motivo:res.motivo};upd.finEn=F.serverTimestamp();}
         tx.update(salaRef,upd);
       });
       ok=true;
@@ -920,6 +1049,7 @@ async function accionSala(tipo){
       else if(tipo==='aceptar'){if(d.tablas!==el)throw new Error('Ya no hay oferta de tablas.');upd.estado='fin';upd.resultado={ganador:'',motivo:'acuerdo'};}
       else if(tipo==='abandono'){upd.estado='fin';upd.resultado={ganador:el,motivo:'abandono'};}
       else if(tipo==='anulada'){upd.estado='fin';upd.resultado={ganador:'',motivo:'anulada'};}
+      if(upd.estado==='fin')upd.finEn=F.serverTimestamp();
       tx.update(salaRef,upd);
     });
     if(tipo==='ofrecer')SND.mover();
@@ -933,7 +1063,7 @@ async function reclamarTiempo(){
       const d=(await tx.get(salaRef)).data();
       if(d.estado!=='jugando')return;
       const r=A.resultadoPorTiempo(A.partida(d.jugadas),d.turno);
-      tx.update(salaRef,{estado:'fin',resultado:{ganador:r.ganador,motivo:'tiempo'},seq:d.seq+1,actualizado:F.serverTimestamp()});
+      tx.update(salaRef,{estado:'fin',resultado:{ganador:r.ganador,motivo:'tiempo'},finEn:F.serverTimestamp(),seq:d.seq+1,actualizado:F.serverTimestamp()});
     });
   }catch(e){/* el servidor todavía no ve el tiempo agotado: se reintenta solo */}
 }
@@ -957,16 +1087,16 @@ async function misPartidas(){
   const {db,F}=await DF.listo();
   let lista=[];
   try{
-    const q=F.query(F.collection(db,COLECCION),F.where('jugadores','array-contains',USR.uid),F.where('estado','in',['espera','jugando']));
-    lista=(await F.getDocs(q)).docs.map(s=>s.data());
+    const q=F.query(F.collection(db,COLECCION),F.where('jugadores','array-contains',USR.uid),F.limit(60));
+    lista=(await F.getDocs(q)).docs.map(s=>s.data()).filter(d=>d.estado!=='fin'||pendienteCobro(d));
   }catch(e){
     try{const q=F.query(F.collection(db,COLECCION),F.where('jugadores','array-contains',USR.uid),F.limit(40));
-      lista=(await F.getDocs(q)).docs.map(s=>s.data()).filter(d=>d.estado!=='fin');}catch(e2){await avisar('No se pudo leer',esc(e2.message||e2),'err');return menu();}
+      lista=(await F.getDocs(q)).docs.map(s=>s.data()).filter(d=>d.estado!=='fin'||pendienteCobro(d));}catch(e2){await avisar('No se pudo leer',esc(e2.message||e2),'err');return menu();}
   }
   lista.sort((a,b)=>ms(b.actualizado)-ms(a.actualizado));
-  const r=await ventana(`<h3>🏰 Mis partidas en línea</h3><div class="sub">Partidas abiertas o en espera.</div>
+  const r=await ventana(`<h3>🏰 Mis partidas en línea</h3><div class="sub">Partidas abiertas, en espera o con algo por cobrar.</div>
     <div class="lista">${lista.length?lista.map(d=>{const riv=d.blancas&&d.blancas.uid!==USR.uid?d.blancas.nombre:d.negras&&d.negras.uid!==USR.uid?d.negras.nombre:'(sin rival aún)';
-      return `<div class="partida-it"><div><b>${esc(d.codigo)}</b> · ${esc(riv)}<small>${d.estado==='espera'?'Esperando rival':(d.jugadas||[]).length+' jugadas · turno de las '+NOMBRE_COLOR[d.turno].toLowerCase()}</small></div><button class="btn oro chico" data-r="${esc(d.codigo)}">Entrar</button></div>`;}).join(''):'<p>No tienes partidas abiertas.</p>'}</div>
+      return `<div class="partida-it"><div><b>${esc(d.codigo)}</b> · ${esc(riv)}<small>${d.estado==='espera'?'Esperando rival':d.estado==='fin'?'💰 Terminada: tienes algo por cobrar':(d.jugadas||[]).length+' jugadas · turno de las '+NOMBRE_COLOR[d.turno].toLowerCase()}</small></div><button class="btn oro chico" data-r="${esc(d.codigo)}">Entrar</button></div>`;}).join(''):'<p>No tienes partidas abiertas.</p>'}</div>
     <div class="pie"><button class="btn sec" data-r="volver">Volver</button></div>`);
   cerrar();
   if(r&&r!=='volver')return unirse(r);
@@ -979,6 +1109,453 @@ async function copiarPgn(){
     White:nombreDe('w'),Black:nombreDe('b'),Result:res});
   try{await navigator.clipboard.writeText(txt);avisar('PGN copiado','Puedes pegarlo en Lichess (Herramientas → Análisis) para revisar la partida.');}
   catch(e){avisar('PGN de la partida',`<textarea style="width:100%;height:160px;background:#05070f;color:var(--marfil);border:0;padding:8px;font:inherit" readonly>${esc(txt)}</textarea>`);}
+}
+
+/* ═════════════ contra la máquina (práctica: sin apuestas ni ranking) ═════════════ */
+let IDIA=0, PISTA=null;
+async function elegirMaquina(){
+  let pref='medio';try{pref=localStorage.getItem('ajedrez_nivel')||pref;}catch(e){}
+  const r=await ventana(`<h3>🤖 Practicar contra la máquina</h3>
+    <div class="sub">Sin apuestas ni ranking: es para entrenar. Puedes deshacer y pedir pistas.</div>
+    <span class="etq">Dificultad</span>
+    <div class="chips">${Object.entries(NIVELES).map(([k,v])=>`<label><input type="radio" name="nivel" value="${k}"${k===pref?' checked':''}><span>${v}<small>${{facil:'para empezar',medio:'conoce aperturas',dificil:'piensa a fondo',maestro:'el más fuerte'}[k]}</small></span></label>`).join('')}</div>
+    <span class="etq">Tú juegas con</span>
+    <div class="chips">
+      <label><input type="radio" name="mcolor" value="w" checked><span>Blancas</span></label>
+      <label><input type="radio" name="mcolor" value="b"><span>Negras</span></label>
+      <label><input type="radio" name="mcolor" value="azar"><span>Al azar</span></label>
+    </div>
+    <div class="pie"><button class="btn sec" data-r="volver">Volver</button><button class="btn oro" data-r="ok">¡A jugar!</button></div>`);
+  const nivel=(document.querySelector('input[name=nivel]:checked')||{}).value||'medio';
+  let color=(document.querySelector('input[name=mcolor]:checked')||{}).value||'w';
+  cerrar();
+  if(r!=='ok')return null;
+  try{localStorage.setItem('ajedrez_nivel',nivel);}catch(e){}
+  if(color==='azar')color=Math.random()<.5?'w':'b';
+  return {nivel,color};
+}
+function nuevaMaquina(c){
+  salirDeSala();PEDIDO++;
+  MODO='maquina';MAQ={nivel:c.nivel,color:c.color};E=A.nuevo();FIN=null;VISTA=null;SEL=-1;RELOJ=null;PISTA=null;PENSANDO=false;
+  ORIENT=MAQ.color;
+  reiniciarExtras();decir(Agustin.frase('inicio'));
+  pintarTodo();
+  if(E.turno!==MAQ.color)turnoMaquina();
+}
+function iaEnVentana(){
+  if(window.IAjedrez)return Promise.resolve(window.IAjedrez);
+  return new Promise((ok,mal)=>{const s=document.createElement('script');s.src='ia.js';s.onload=()=>ok(window.IAjedrez);s.onerror=mal;document.head.appendChild(s);});
+}
+// Envía un trabajo a la máquina (Web Worker); si el navegador no lo permite, lo hace en esta misma página.
+function trabajoIA(msg,alProgreso){
+  return new Promise(ok=>{
+    let listo=false;const fin=r=>{if(!listo){listo=true;ok(r);}};
+    const plan=()=>iaEnVentana().then(IA=>setTimeout(()=>{
+      if(msg.tipo==='analisis')return fin({analisis:IA.analizar(msg.jugadas,Math.min(msg.ms||300,150),alProgreso)});
+      const m=IA.elegir(A.partida(msg.jugadas),msg.nivel);fin({uci:m?A.uci(m):null});},30)).catch(()=>fin({}));
+    if(WORKER===false)return plan();
+    try{
+      if(!WORKER)WORKER=new Worker('ia.js');
+      const w=WORKER,id=++IDIA,espera=msg.tipo==='analisis'?240000:15000;
+      const f=ev=>{const d=ev.data||{};if(d.id!==id)return;
+        if(d.progreso!=null&&d.analisis==null){if(alProgreso)alProgreso(d.progreso);clearTimeout(t);t=setTimeout(err,espera);return;}
+        limpiar();fin(d);};
+      const err=()=>{limpiar();WORKER=false;plan();};
+      let t=setTimeout(err,espera);
+      const limpiar=()=>{clearTimeout(t);w.removeEventListener('message',f);w.removeEventListener('error',err);};
+      w.addEventListener('message',f);w.addEventListener('error',err);
+      w.postMessage({...msg,id});
+    }catch(e){WORKER=false;plan();}
+  });
+}
+function pedirIA(jugadas,nivel){return trabajoIA({tipo:'jugada',jugadas,nivel}).then(r=>r.uci||null);}
+async function turnoMaquina(){
+  if(MODO!=='maquina'||FIN||!MAQ||E.turno===MAQ.color)return;
+  const pedido=++PEDIDO;PENSANDO=true;PISTA=null;pintarEstado();pintarAcciones();
+  const t0=Date.now();
+  const u=await pedirIA(E.historial.map(h=>h.uci),MAQ.nivel);
+  const espera=Math.max(0,450-(Date.now()-t0));
+  if(espera)await new Promise(r=>setTimeout(r,espera));
+  if(pedido!==PEDIDO||MODO!=='maquina'||FIN)return;
+  PENSANDO=false;
+  const m=(u&&A.buscarUci(E,u))||A.legales(E)[0];
+  if(!m){pintarTodo();return;}
+  hacerJugada(m);
+}
+async function pista(){
+  if(MODO!=='maquina'||FIN||PENSANDO)return;
+  PENSANDO=true;pintarEstado();pintarAcciones();
+  const u=await pedirIA(E.historial.map(h=>h.uci),'dificil');
+  PENSANDO=false;
+  const m=u&&A.buscarUci(E,u);
+  if(m){PISTA=m;SEL=m.de;}
+  pintarTodo();
+}
+
+/* ═════════════ banco y gatitos (para las apuestas en línea) ═════════════ */
+function pesos(n){return '₣'+new Intl.NumberFormat('es-CL').format(Math.round(n||0));}
+function gatitoInfo(id){
+  const g=(window.GATITOS||[]).find(x=>x.id===id)||{id,nombre:id,rareza:''};
+  const r=(window.RAREZAS||{})[g.rareza]||{nombre:'',color:'#9aa3b2'};
+  return {id,nombre:g.nombre,rareza:r.nombre,color:r.color,img:'../../gatitos/img/'+id+'.webp'};
+}
+async function leerCuentaTx(tx){
+  const {db,F}=await DF.listo();
+  const v=await tx.get(F.doc(db,'banco_vinculos',USR.email.toLowerCase()));
+  if(!v.exists())throw new Error('No tienes una cuenta del Banco de Hipopesos vinculada.');
+  const id=v.data().cuenta, c=await tx.get(F.doc(db,'banco_cuentas',id));
+  if(!c.exists())throw new Error('No se encontró tu cuenta del banco.');
+  return {id,...c.data()};
+}
+// Movimiento del estudiante en su propia cuenta (op-<cuenta>-<ops>), como en las subastas.
+function opBanco(tx,F,db,cu,monto,tipo,motivo,cod){
+  const ops=(cu.ops||0)+1, saldo=(cu.saldo||0)+monto, id='op-'+cu.id+'-'+ops;
+  tx.update(F.doc(db,'banco_cuentas',cu.id),{saldo,ops,actualizado:F.serverTimestamp()});
+  tx.set(F.doc(db,'banco_movs',id),{cuenta:cu.id,numero:String(cu.numero||''),nombre:((cu.nombre||'')+' '+(cu.apellido||'')).trim(),curso:cu.curso||'',
+    monto,motivo:String(motivo).slice(0,200),tipo,saldoDespues:saldo,profe:'',fecha:F.serverTimestamp(),ajedrez:cod});
+  return id;
+}
+async function sacarGatitoTx(tx,F,db,g,cod){
+  const ref=F.doc(db,'gatitos',USR.uid), s=await tx.get(ref);
+  const ids=s.exists()?(s.data().ids||[]):[];
+  if(!ids.includes(g))throw new Error('Ese gatito ya no está en tu colección.');
+  const quedan=ids.filter(x=>x!==g), fav=s.data().favorito;
+  tx.update(ref,{ids:quedan,favorito:quedan.includes(fav)?fav:(quedan[0]||null),ajedrez:cod,actualizado:F.serverTimestamp()});
+}
+async function misCosas(){
+  const {db,F}=await DF.listo();
+  const out={cuenta:null,gatitos:[],mascota:''};
+  try{const v=await F.getDoc(F.doc(db,'banco_vinculos',USR.email.toLowerCase()));
+    if(v.exists()){const c=await F.getDoc(F.doc(db,'banco_cuentas',v.data().cuenta));if(c.exists())out.cuenta={id:v.data().cuenta,...c.data()};}}catch(e){}
+  try{const g=await F.getDoc(F.doc(db,'gatitos',USR.uid));if(g.exists())out.gatitos=[...new Set(g.data().ids||[])];}catch(e){}
+  try{const m=await F.getDoc(F.doc(db,'mascotas',USR.uid));if(m.exists())out.mascota=m.data().gatito||'';}catch(e){}
+  return out;
+}
+function gridGatitos(ids,mascota,nombre){
+  if(!ids.length)return '<div class="aviso">No tienes gatitos en tu colección.</div>';
+  return `<div class="gatos">${ids.map(id=>{const g=gatitoInfo(id),m=id===mascota;
+    return `<label title="${esc(g.nombre)}"><input type="radio" name="${nombre}" value="${esc(id)}"${m?' disabled':''}><span><img src="${g.img}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">${esc(g.nombre)}<small style="color:${g.color}">${m?'tu mascota':esc(g.rareza)}</small></span></label>`;}).join('')}</div>`;
+}
+async function elegirApuesta(){
+  const mias=await misCosas();
+  for(;;){
+    const r=await ventana(`<h3>💰 ¿Apuestan algo?</h3>
+      <div class="sub">Opcional. Lo apostado queda retenido en la sala y se lo lleva quien gane. En tablas, a cada uno le vuelve lo suyo.</div>
+      <div class="chips">
+        <label><input type="radio" name="aptipo" value="" checked><span>Sin apuesta</span></label>
+        <label><input type="radio" name="aptipo" value="hipopesos"${mias.cuenta?'':' disabled'}><span>Hipopesos<small>${mias.cuenta?'tienes '+pesos(mias.cuenta.saldo):'sin cuenta'}</small></span></label>
+        <label><input type="radio" name="aptipo" value="gatito"${mias.gatitos.length?'':' disabled'}><span>Un gatito<small>${mias.gatitos.length} en tu colección</small></span></label>
+      </div>
+      <div id="ap-hipo" hidden><span class="etq">Cada jugador pone</span>
+        <div class="campo"><input type="number" id="ap-monto" min="100" max="1000000" step="100" value="1000" style="width:140px"> <span>Hipopesos · quien gane se lleva el doble</span></div></div>
+      <div id="ap-gato" hidden><span class="etq">Tu gatito</span>${gridGatitos(mias.gatitos,mias.mascota,'apgato')}
+        <p class="notas">Tu rival elige qué gatito apostar al unirse. Si no te parece justo, puedes <b>anular</b> la partida antes de tu primera jugada y te vuelve el tuyo.</p></div>
+      <p class="notas">Juego con sentido lúdico: apuesta solo lo que estés dispuesto/a a perder.</p>
+      <div class="pie"><button class="btn sec" data-r="volver">Volver</button><button class="btn oro" data-r="ok">Crear sala</button></div>`);
+    const tipo=(document.querySelector('input[name=aptipo]:checked')||{}).value||'';
+    const monto=Math.round(+(($('ap-monto')||{}).value)||0);
+    const gato=(document.querySelector('input[name=apgato]:checked')||{}).value||'';
+    cerrar();
+    if(r!=='ok')return null;
+    if(!tipo)return {tipo:null};
+    if(tipo==='hipopesos'){
+      if(monto<100||monto>1000000){await avisar('Monto no válido','Elige entre ₣100 y ₣1.000.000.','err');continue;}
+      if(monto>(mias.cuenta.saldo||0)){await avisar('No te alcanza','Tienes '+pesos(mias.cuenta.saldo)+'.','err');continue;}
+      return {tipo,monto};
+    }
+    if(!gato){await avisar('Elige un gatito','Toca el gatito que quieres apostar.','err');continue;}
+    return {tipo,gatito:gato};
+  }
+}
+document.addEventListener('change',ev=>{if(ev.target.name==='aptipo'){const v=ev.target.value;const h=$('ap-hipo'),g=$('ap-gato');if(h)h.hidden=v!=='hipopesos';if(g)g.hidden=v!=='gatito';}});
+
+// Al unirse a una sala con apuesta: pagar lo mismo o elegir un gatito.
+async function aceptarApuesta(d){
+  const mias=await misCosas(), ap=d.apuesta, col=d.blancas?'b':'w', rival=d.creadorNombre||'Tu rival';
+  if(ap.tipo==='hipopesos'){
+    const alcanza=mias.cuenta&&(mias.cuenta.saldo||0)>=ap.monto;
+    const r=await ventana(`<h3>💰 Partida con apuesta</h3>
+      <p><b>${esc(rival)}</b> apostó <b>${pesos(ap.monto)}</b>. Para jugar pones lo mismo; quien gane se lleva <b>${pesos(ap.monto*2)}</b>. En tablas, a cada uno le vuelve lo suyo.</p>
+      <div class="aviso ${alcanza?'':'err'}">${mias.cuenta?'Tu saldo: '+pesos(mias.cuenta.saldo):'No tienes una cuenta del Banco de Hipopesos vinculada.'}${mias.cuenta&&!alcanza?' · no te alcanza':''}</div>
+      <p class="notas">Juegas con las ${NOMBRE_COLOR[col].toLowerCase()}.</p>
+      <div class="pie"><button class="btn sec" data-r="">Volver</button><button class="btn sec" data-r="mirar">Solo mirar</button>${alcanza?`<button class="btn oro" data-r="ok">Pagar ${pesos(ap.monto)} y jugar</button>`:''}</div>`);
+    cerrar();
+    return r==='ok'?{}:r==='mirar'?'mirar':null;
+  }
+  const suyo=gatitoInfo(ap[A.otro(col)].gatito);
+  for(;;){
+    const r=await ventana(`<h3>🐱 Partida con apuesta de gatitos</h3>
+      <div class="apuesta-vs"><div><img src="${suyo.img}" alt="">${esc(suyo.nombre)}<br><small style="color:${suyo.color}">${esc(suyo.rareza)}</small><br><small>de ${esc(rival)}</small></div><b>VS</b><div>¿Tu gatito?</div></div>
+      <p>Quien gane se lleva los dos gatitos. En tablas, cada uno recupera el suyo.</p>
+      ${gridGatitos(mias.gatitos,mias.mascota,'migato')}
+      <div class="pie"><button class="btn sec" data-r="">Volver</button><button class="btn sec" data-r="mirar">Solo mirar</button>${mias.gatitos.length?'<button class="btn oro" data-r="ok">Apostar y jugar</button>':''}</div>`);
+    const g=(document.querySelector('input[name=migato]:checked')||{}).value||'';
+    cerrar();
+    if(r==='mirar')return 'mirar';
+    if(r!=='ok')return null;
+    if(!g){await avisar('Elige un gatito','Toca el gatito que quieres apostar.','err');continue;}
+    return {gatito:g};
+  }
+}
+
+/* ═════════════ resultado firme, cobros y ranking ═════════════ */
+function firme(d){
+  if(!d||d.estado!=='fin'||d.disputa||!d.resultado)return false;
+  if(['abandono','tiempo','acuerdo','anulada','cancelada','profe'].includes(d.resultado.motivo))return true;
+  if(d.confirmado)return true;
+  return !!d.finEn&&srvAhora()>ms(d.finEn)+30*60000+3000;
+}
+function cobroDe(d,c){
+  if(!d.apuesta||!d.resultado||!c)return '';
+  if(d.resultado.ganador===c)return 'premio';
+  return d.resultado.ganador===''&&d.apuesta[c]?'devuelto':'';
+}
+function pendienteCobro(d){
+  if(!USR)return false;
+  const c=d.blancas&&d.blancas.uid===USR.uid?'w':d.negras&&d.negras.uid===USR.uid?'b':'';
+  return !!(c&&d.estado==='fin'&&d.pagos&&!d.pagos[c]&&cobroDe(d,c));
+}
+function revisarJugadas(j){
+  let e=A.nuevo();
+  for(let i=0;i<j.length;i++){
+    if(!A.buscarUci(e,j[i]))return {ok:false,i,uci:j[i],color:e.turno};
+    e=A.jugarUci(e,j[i]);
+  }
+  return {ok:true,res:A.resultado(e)};
+}
+async function procesarSala(){
+  if(PROCESANDO||MODO!=='linea'||!SALA||!MI_COLOR||!salaRef)return;
+  PROCESANDO=true;let otra=false;
+  try{
+    const d=SALA,c=MI_COLOR,{db,F}=await DF.listo();
+    // una jugada no válida durante la partida: se detiene y la revisa el profe
+    if(d.estado==='jugando'&&INVALIDA===d.codigo){
+      await F.runTransaction(db,async tx=>{const x=(await tx.get(salaRef)).data();if(x.estado!=='jugando')return;
+        tx.update(salaRef,{estado:'fin',resultado:{ganador:'',motivo:'disputa'},disputa:true,finEn:F.serverTimestamp(),seq:x.seq+1,actualizado:F.serverTimestamp()});});
+      return;
+    }
+    if(d.estado!=='fin'||!d.resultado||!d.pagos)return;
+    // final en el tablero: quien recibió la última jugada lo revisa con el motor y confirma (o reclama)
+    if(MOTIVOS_TABLERO.includes(d.resultado.motivo)&&!d.confirmado&&!d.disputa&&d.turno===c&&d.finEn&&srvAhora()<ms(d.finEn)+29*60000){
+      const rev=revisarJugadas(d.jugadas||[]);
+      const bien=rev.ok&&rev.res.fin&&rev.res.motivo===d.resultado.motivo&&rev.res.ganador===d.resultado.ganador;
+      await F.runTransaction(db,async tx=>{const x=(await tx.get(salaRef)).data();if(x.confirmado||x.disputa)return;
+        tx.update(salaRef,bien?{confirmado:true,seq:x.seq+1,actualizado:F.serverTimestamp()}:{disputa:true,seq:x.seq+1,actualizado:F.serverTimestamp()});});
+      otra=true;return;
+    }
+    if(!firme(d)){
+      if(!d.disputa&&d.finEn&&(cobroDe(d,c)||d.resultado.ganador===c)){
+        clearTimeout(REINTENTO);REINTENTO=setTimeout(procesarSala,Math.max(5000,ms(d.finEn)+30*60000+5000-srvAhora()));
+      }
+      return;
+    }
+    if(cobroDe(d,c)&&!d.pagos[c]){await cobrar(c);otra=true;return;}
+    if(d.resultado.ganador===c&&d.contado&&!d.contado[c]&&(d.jugadas||[]).length>=20){await sumarVictoria(c);otra=true;}
+  }catch(e){console.warn('procesarSala',e);AVISO_COBRO='⚠️ No se pudo completar: '+(e.message||e);pintarAvisos();}
+  finally{PROCESANDO=false;if(otra)setTimeout(procesarSala,600);}
+}
+// Cobra lo que le toca a «c» en la sala actual (premio o devolución). También sirve al cerrar una sala en espera.
+async function cobrar(c,cancelar){
+  const {db,F}=await DF.listo();
+  let texto='';
+  await F.runTransaction(db,async tx=>{
+    const d=(await tx.get(salaRef)).data();
+    const upd={seq:d.seq+1,actualizado:F.serverTimestamp()};
+    let fin=d;
+    if(cancelar){
+      if(d.estado!=='espera')throw new Error('Tu rival ya entró a la sala.');
+      Object.assign(upd,{estado:'fin',resultado:{ganador:'',motivo:'cancelada'},finEn:F.serverTimestamp()});
+      fin={...d,...upd};
+    }
+    const que=cobroDe(fin,c);
+    if(!d.apuesta||!que||d.pagos[c])return;
+    upd.pagos={...d.pagos,[c]:que};
+    if(d.apuesta.tipo==='hipopesos'){
+      const cu=await leerCuentaTx(tx), monto=que==='premio'?d.apuesta.monto*2:d.apuesta.monto;
+      opBanco(tx,F,db,cu,monto,que==='premio'?'ajedrez-premio':'ajedrez-devolucion',
+        que==='premio'?`Ajedrez: ganaste la apuesta de la sala ${d.codigo}`:`Ajedrez: vuelve tu apuesta de la sala ${d.codigo}`,d.codigo);
+      texto=que==='premio'?`💰 ¡Cobraste ${pesos(monto)}!`:`💰 Te devolvieron ${pesos(monto)}.`;
+    }else{
+      const ref=F.doc(db,'gatitos',USR.uid),g=await tx.get(ref),ids=g.exists()?(g.data().ids||[]):[];
+      const nuevos=que==='premio'?[d.apuesta.w.gatito,d.apuesta.b.gatito]:[d.apuesta[c].gatito];
+      const todos=[...new Set([...ids,...nuevos])];
+      const fav=g.exists()&&todos.includes(g.data().favorito)?g.data().favorito:todos[0];
+      if(g.exists())tx.update(ref,{ids:todos,favorito:fav,ajedrezCobro:d.codigo,actualizado:F.serverTimestamp()});
+      else throw new Error('No se encontró tu colección de gatitos.');
+      texto=que==='premio'?`🐱 ¡Te llevas a ${nuevos.map(x=>gatitoInfo(x).nombre).join(' y ')}!`:`🐱 ${gatitoInfo(nuevos[0]).nombre} volvió a tu colección.`;
+    }
+    tx.update(salaRef,upd);
+  });
+  if(texto){AVISO_COBRO=texto;SND.fin();pintarAvisos();}
+}
+async function sumarVictoria(c){
+  const {db,F}=await DF.listo();
+  let pf=null;try{pf=await DF.perfil();}catch(e){}
+  let n=0;
+  await F.runTransaction(db,async tx=>{
+    const d=(await tx.get(salaRef)).data();
+    if(!d.contado||d.contado[c])return;
+    const rref=F.doc(db,'rankings','ajedrez','mejores',USR.uid),r=await tx.get(rref);
+    n=(r.exists()?r.data().puntaje||0:0)+1;
+    tx.set(rref,{juego:'ajedrez',uid:USR.uid,nombre:miNombre(),curso:(pf&&pf.curso)||'',puntaje:n,fecha:F.serverTimestamp(),ultima:d.codigo});
+    tx.update(salaRef,{contado:{...d.contado,[c]:true},seq:d.seq+1,actualizado:F.serverTimestamp()});
+  });
+  if(n){AVISO_COBRO=(AVISO_COBRO?AVISO_COBRO+'<br>':'')+`🏆 +1 victoria en el ranking (llevas ${n}).`;pintarAvisos();}
+}
+async function cerrarSala(){
+  const d=SALA;if(!d)return;
+  if(!await confirmar('¿Cerrar la sala?',d.apuesta?'Nadie más podrá entrar y te vuelve lo que apostaste.':'Nadie más podrá entrar con este código.'))return;
+  const {F}=await DF.listo(),ref=salaRef;
+  try{
+    CERRANDO=true;
+    if(d.apuesta)await cobrar(MI_COLOR,true);
+    else await F.deleteDoc(ref);
+  }catch(e){CERRANDO=false;return avisar('No se pudo cerrar la sala',esc(e.message||e),'err');}
+  const msg=AVISO_COBRO;
+  salirDeSala();CERRANDO=false;AVISO_COBRO='';
+  if(msg)await avisar('Sala cerrada',msg);
+  menu();
+}
+function htmlApuesta(d){
+  if(!d.apuesta)return '';
+  const ap=d.apuesta;
+  if(ap.tipo==='hipopesos')return `<div class="aviso oro">💰 Apuesta: <b>${pesos(ap.monto)}</b> cada uno · quien gane se lleva <b>${pesos(ap.monto*2)}</b>.</div>`;
+  const lado=c=>{if(!ap[c])return `<div><div style="width:64px;height:64px;display:grid;place-items:center;margin:0 auto;font-size:2rem">?</div>${NOMBRE_COLOR[c]}</div>`;
+    const g=gatitoInfo(ap[c].gatito);return `<div><img src="${g.img}" alt="">${esc(g.nombre)}<br><small style="color:${g.color}">${NOMBRE_COLOR[c]}</small></div>`;};
+  return `<div class="aviso oro">🐱 Apuesta de gatitos: quien gane se lleva los dos.<div class="apuesta-vs">${lado('w')}<b>VS</b>${lado('b')}</div>
+    ${d.estado==='jugando'&&MI_COLOR&&(d.jugadas||[]).length<2?'<small>¿No te parece justo? Puedes anular antes de la segunda jugada y cada uno recupera su gatito.</small>':''}</div>`;
+}
+function textoApuestaFin(r){
+  const d=SALA,c=MI_COLOR;
+  if(!d||!d.apuesta||!c)return '';
+  if(r.motivo==='disputa')return '<p class="notas" style="text-align:center">Lo apostado queda retenido hasta que el profe resuelva.</p>';
+  const ap=d.apuesta;
+  let t;
+  if(r.ganador===c)t=ap.tipo==='hipopesos'?`Ganas <b>${pesos(ap.monto*2)}</b>.`:`Te llevas a <b>${esc(gatitoInfo(ap.w.gatito).nombre)}</b> y <b>${esc(gatitoInfo(ap.b.gatito).nombre)}</b>.`;
+  else if(r.ganador==='')t='Te vuelve lo que apostaste.';
+  else t=ap.tipo==='hipopesos'?`Pierdes tus ${pesos(ap.monto)}.`:`Tu gatito pasa a tu rival.`;
+  const espera=!firme(d)&&MOTIVOS_TABLERO.includes(r.motivo)?'<br><small>Se entrega cuando el equipo de tu rival confirme el resultado (o en 30 minutos).</small>':'';
+  return `<p style="text-align:center">💰 ${t}${espera}</p>`;
+}
+function avisoEspera(){
+  const d=SALA,c=MI_COLOR;
+  if(MODO!=='linea'||!d||!c||d.estado!=='fin'||!d.resultado)return '';
+  if(d.disputa)return '<div class="aviso err">⚖️ Partida en revisión: un equipo detectó una jugada no válida. El profe la resolverá y después se podrá cobrar.</div>';
+  const quiere=cobroDe(d,c)&&d.pagos&&!d.pagos[c]||d.resultado.ganador===c&&d.contado&&!d.contado[c]&&(d.jugadas||[]).length>=20;
+  if(quiere&&!firme(d)&&d.finEn){
+    const h=new Date(ms(d.finEn)+30*60000-DESF).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="aviso">⏳ Esperando que el equipo de tu rival confirme el resultado. Si no responde, se cobra solo a las ${h} (deja esta página abierta o vuelve desde «Mis partidas»).</div>`;
+  }
+  return '';
+}
+
+/* ═════════════ revisión del profe (reclamos) ═════════════ */
+function htmlProfe(d){
+  if(!USR||!window.DF||!DF.esProfe(USR)||d.estado!=='fin'||!(d.disputa||MOTIVOS_TABLERO.includes((d.resultado||{}).motivo)&&!d.confirmado))return '';
+  const rev=revisarJugadas(d.jugadas||[]);
+  const txt=rev.ok?`Todas las jugadas son legales. El tablero dice: <b>${esc(textoResultado(rev.res.fin?rev.res:{ganador:'',motivo:'sin terminar'}))}</b>.`
+    :`Jugada ${rev.i+1} (<b>${esc(rev.uci)}</b>) de las ${NOMBRE_COLOR[rev.color].toLowerCase()} <b>no es válida</b>.`;
+  return `<div class="aviso err"><b>Revisión del profe</b><br>${txt}<div class="acciones">
+    <button class="btn chico" data-profe="w">Ganan blancas</button><button class="btn chico" data-profe="b">Ganan negras</button><button class="btn sec chico" data-profe="">Tablas</button></div></div>`;
+}
+async function resolverProfe(g){
+  if(!await confirmar('¿Resolver la partida?',g?`Ganan las ${NOMBRE_COLOR[g].toLowerCase()} y se llevan lo apostado.`:'Tablas: a cada uno le vuelve lo suyo.'))return;
+  const {db,F}=await DF.listo();
+  try{
+    await F.runTransaction(db,async tx=>{const x=(await tx.get(salaRef)).data();
+      tx.update(salaRef,{estado:'fin',resultado:{ganador:g,motivo:'profe'},disputa:false,confirmado:true,seq:x.seq+1,actualizado:F.serverTimestamp()});});
+  }catch(e){avisar('No se pudo',esc(e.message||e),'err');}
+}
+
+/* ═════════════ San Agustín comenta ═════════════ */
+function reiniciarExtras(){COMENTARIO=null;AVISO_TIEMPO={};ANALISIS=null;ANALIZANDO=false;}
+function decir(f){if(!f)return;COMENTARIO={...f,nuevo:true};pintarAgustin();}
+function comentarJugada(antes,despues){
+  if(!COMENTARIOS)return;
+  const yo=MODO==='maquina'&&MAQ?MAQ.color:MODO==='linea'?MI_COLOR:'';
+  try{decir(Agustin.comentar(antes,despues,{modo:MODO,yo}));}catch(e){console.warn(e);}
+}
+function pintarAgustin(){
+  const el=$('agustin');
+  if(!COMENTARIOS||!COMENTARIO){el.innerHTML='';return;}
+  const c=COMENTARIO;
+  el.className='agustin'+(c.nuevo?' nuevo':'');c.nuevo=false;
+  el.innerHTML=`<img src="${P.urlPieza('B',44)}" alt="San Agustín"><div class="globo"><b>San Agustín de Hipona</b>${esc(c.texto)}${c.cita?`<small>«${esc(c.cita[0])}» — ${esc(c.cita[1])}</small>`:''}</div>`;
+}
+
+/* ═════════════ análisis de la partida (para aprender) ═════════════ */
+function analisisActual(){
+  if(!ANALISIS)return null;
+  const j=E.historial.map(h=>h.uci).join(' ');
+  return ANALISIS.clave===j?ANALISIS.items:null;
+}
+async function analizarPartida(){
+  if(ANALIZANDO)return;
+  const jugadas=E.historial.map(h=>h.uci);
+  if(jugadas.length<2)return;
+  if(analisisActual()){VISTA=null;pintarTodo();$('analisis').scrollIntoView({behavior:'smooth',block:'start'});return;}
+  ANALIZANDO=true;const clave=jugadas.join(' ');
+  const caja=$('analisis');caja.hidden=false;
+  const f=Agustin.frase('analisis');decir(f);
+  caja.innerHTML=`<h2>📖 Análisis de la partida</h2><p style="font-size:.95rem">San Agustín está revisando ${jugadas.length} jugadas…</p><div class="barra-prog"><i id="an-prog"></i></div>`;
+  pintarAcciones();
+  caja.scrollIntoView({behavior:'smooth',block:'start'});
+  const r=await trabajoIA({tipo:'analisis',jugadas,ms:300},p=>{const b=$('an-prog');if(b)b.style.width=Math.round(p*100)+'%';});
+  ANALIZANDO=false;
+  if(!r||!r.analisis){caja.innerHTML='<h2>📖 Análisis</h2><div class="aviso err">No se pudo analizar la partida en este navegador.</div>';pintarAcciones();return;}
+  ANALISIS={clave,items:r.analisis};
+  VISTA=1;
+  // empieza en el primer error importante, si hay
+  const yo=MODO==='maquina'&&MAQ?MAQ.color:MODO==='linea'?MI_COLOR:'';
+  const primero=r.analisis.find(it=>['error','grave'].includes(it.categoria)&&(!yo||it.color===yo));
+  if(primero)VISTA=primero.n+1;
+  if(VISTA>=E.historial.length)VISTA=null;
+  const tot=r.analisis.filter(it=>!yo||it.color===yo);
+  decir(Agustin.resumen(Agustin.precision(tot),contar(tot)));
+  pintarTodo();
+}
+function contar(items){const c={mejor:0,excelente:0,buena:0,imprecision:0,error:0,grave:0};items.forEach(it=>c[it.categoria]++);return c;}
+function pintarAnalisis(){
+  const caja=$('analisis'),an=analisisActual();
+  if(ANALIZANDO)return;
+  if(!an){caja.hidden=true;caja.innerHTML='';return;}
+  caja.hidden=false;
+  const lado=c=>{const it=an.filter(x=>x.color===c),k=contar(it);
+    return `<div>${NOMBRE_COLOR[c]}<b>${Agustin.precision(it)}%</b><span class="cuentas-an">${k.grave?`<span class="cat-grave">${k.grave} ??</span> `:''}${k.error?`<span class="cat-error">${k.error} ?</span> `:''}${k.imprecision?`<span class="cat-imprecision">${k.imprecision} ?!</span> `:''}${k.mejor?`<span class="cat-mejor">${k.mejor} ★</span>`:''}</span></div>`;};
+  const idx=(VISTA==null?E.historial.length:VISTA)-1, it=an[idx];
+  let lista='';
+  an.forEach((x,i)=>{
+    if(x.color==='w'||i===0){lista+=`<li class="n">${x.num}.</li>`;if(x.color==='b')lista+='<li></li>';}
+    lista+=`<li><button data-an="${i}" class="cat-${x.categoria}${i===idx?' ver':''}">${esc(x.san)} ${Agustin.SIMBOLO[x.categoria]}</button></li>`;
+  });
+  let detalle='';
+  if(it){
+    detalle=`<div class="an-detalle"><div class="tit"><span class="cat-${it.categoria}">${it.num}${it.color==='w'?'.':'…'} ${esc(it.san)} ${Agustin.SIMBOLO[it.categoria]} · ${Agustin.NOMBRE_CAT[it.categoria]}</span></div>
+      ${esc(Agustin.explicar(it))}${it.mejor?`<br><small style="color:#7fe08a">En el tablero, el marco verde muestra ${esc(it.mejor.san)}.</small>`:''}</div>`;
+  }
+  caja.innerHTML=`<h2>📖 Análisis de la partida</h2>
+    <div class="precision">${lado('w')}${lado('b')}</div>
+    <canvas id="grafico" width="200" height="48" title="Ventaja durante la partida (arriba: blancas)"></canvas>
+    <ol class="an-lista">${lista}</ol>${detalle}
+    <p class="notas">★ mejor jugada · ! excelente · ✓ buena · ?! imprecisión · ? error · ?? error grave. Toca una jugada para verla en el tablero.</p>`;
+  dibujarGrafico(an,idx);
+  const sel=caja.querySelector('.an-lista .ver');if(sel)sel.scrollIntoView({block:'nearest'});
+}
+$('analisis').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-an]');
+  if(b){const i=+b.dataset.an+1;VISTA=i>=E.historial.length?null:i;SEL=-1;pintarTodo();return;}
+  if(ev.target.id==='grafico'){const an=analisisActual();if(!an)return;const r=ev.target.getBoundingClientRect();
+    const i=Math.min(an.length-1,Math.max(0,Math.floor((ev.clientX-r.left)/r.width*an.length)))+1;VISTA=i>=E.historial.length?null:i;pintarTodo();}
+});
+function dibujarGrafico(an,sel){
+  const c=$('grafico');if(!c)return;const g=c.getContext('2d'),W=c.width,H=c.height,mid=H/2;
+  g.fillStyle='#24386c';g.fillRect(0,0,W,H);g.fillStyle='#efe3c4';
+  const n=an.length,ancho=W/n;
+  an.forEach((it,i)=>{const v=Math.max(-800,Math.min(800,it.eval)),y=Math.round(mid-v/800*(mid-2));
+    g.fillStyle='#efe3c4';g.fillRect(Math.floor(i*ancho),y,Math.ceil(ancho),H-y);});
+  g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,mid,W,1);
+  an.forEach((it,i)=>{if(['error','grave'].includes(it.categoria)){g.fillStyle=it.categoria==='grave'?'#ff5a5a':'#ff9a4d';g.fillRect(Math.floor(i*ancho),0,Math.max(1,Math.ceil(ancho)),3);}});
+  if(sel>=0){g.fillStyle='#ffd66b';g.fillRect(Math.floor(sel*ancho),0,Math.max(2,Math.ceil(ancho)),H);}
 }
 
 /* ═════════════ arranque ═════════════ */
