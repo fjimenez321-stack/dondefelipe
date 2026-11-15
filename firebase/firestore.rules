@@ -652,6 +652,8 @@ service cloud.firestore {
             || (d.tipo == 'juego-envio' && opJuego(d))
             || (d.tipo == 'giftcard' && opGiftcard(id, d))
             || (d.tipo == 'cofre-abrir' && opCofreAbrir(d)) || (d.tipo == 'cofre' && opCofre(d)) || (d.tipo == 'cofre-compra' && opCofreCompra(d))
+            // la compra de llaves ya se revisó arriba (opLlaveCompra: llave válida, precio exacto y queda «por usar»)
+            || (d.tipo == 'llave-compra' && opLlaveCompra(d))
             || (d.tipo == 'ajedrez-apuesta' && d.get('ajedrez', '') is string && opAjApuesta(id, d))
             || (d.tipo in ['ajedrez-premio', 'ajedrez-devolucion'] && d.get('ajedrez', '') is string && opAjPago(d)));
     }
