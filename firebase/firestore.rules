@@ -319,6 +319,108 @@ service cloud.firestore {
       }
     }
 
+    // ── Ajedrez Agustino (juegos/ajedrez): salas de 2 jugadores con reloj ──
+    // El servidor no revisa si la jugada es legal (eso lo hace motor.js en cada equipo),
+    // pero sí que juegue solo quien tiene el turno, que no se cambien jugadas anteriores
+    // y que nadie se regale tiempo: el reloj se descuenta con la hora del servidor.
+    function ajColor(d, uid) {
+      return d.blancas != null && d.blancas.uid == uid ? 'w'
+           : (d.negras != null && d.negras.uid == uid ? 'b' : '');
+    }
+    function ajOtro(c) { return c == 'w' ? 'b' : 'w'; }
+    function ajMs(d) { return request.time.toMillis() - d.turnoDesde.toMillis(); }
+    function ajAsiento(a) { return a is map && a.keys().hasOnly(['uid', 'nombre']) && a.uid == request.auth.uid && texto(a.nombre, 60); }
+    function ajFin(r) { return r is map && r.keys().hasOnly(['ganador', 'motivo']) && r.ganador in ['w', 'b', '']; }
+    match /ajedrez_salas/{codigo} {
+      allow read: if conCuenta();
+      allow create: if esColegio() && codigo.matches('^[A-Z0-9]{4,8}$')
+        && request.resource.data.keys().hasOnly(['codigo', 'creador', 'creadorNombre', 'estado', 'blancas', 'negras', 'jugadores',
+             'tiempo', 'reloj', 'jugadas', 'fen', 'turno', 'turnoDesde', 'seq', 'tablas', 'resultado', 'revancha', 'revanchaDe',
+             'de', 'creado', 'actualizado'])
+        && request.resource.data.codigo == codigo
+        && request.resource.data.creador == request.auth.uid
+        && texto(request.resource.data.creadorNombre, 60)
+        && request.resource.data.estado == 'espera'
+        && request.resource.data.seq == 0
+        && request.resource.data.jugadores == [request.auth.uid]
+        && ((ajAsiento(request.resource.data.blancas) && request.resource.data.negras == null)
+            || (ajAsiento(request.resource.data.negras) && request.resource.data.blancas == null))
+        && request.resource.data.tiempo.keys().hasOnly(['base', 'inc'])
+        && request.resource.data.tiempo.base is int && request.resource.data.tiempo.base >= 0 && request.resource.data.tiempo.base <= 10800000
+        && request.resource.data.tiempo.inc is int && request.resource.data.tiempo.inc >= 0 && request.resource.data.tiempo.inc <= 60000
+        && request.resource.data.reloj == {'w': request.resource.data.tiempo.base, 'b': request.resource.data.tiempo.base}
+        && request.resource.data.jugadas == [] && request.resource.data.turno == 'w'
+        && texto(request.resource.data.fen, 100)
+        && request.resource.data.tablas == '' && request.resource.data.resultado == null
+        && request.resource.data.revancha == '' && request.resource.data.revanchaDe == ''
+        && texto(request.resource.data.de, 8);
+      // Unirse: toma el asiento libre y la partida empieza.
+      allow update: if esColegio() && resource.data.estado == 'espera'
+        && !(request.auth.uid in resource.data.jugadores)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['blancas', 'negras', 'jugadores', 'estado', 'turnoDesde', 'seq', 'actualizado'])
+        && request.resource.data.seq == resource.data.seq + 1
+        && request.resource.data.jugadores == resource.data.jugadores.concat([request.auth.uid])
+        && request.resource.data.estado == 'jugando'
+        && request.resource.data.turnoDesde == request.time
+        && ((resource.data.blancas == null && ajAsiento(request.resource.data.blancas) && request.resource.data.negras == resource.data.negras)
+            || (resource.data.negras == null && ajAsiento(request.resource.data.negras) && request.resource.data.blancas == resource.data.blancas));
+      // Jugada: solo quien tiene el turno; agrega una jugada al final y descuenta su tiempo.
+      allow update: if esColegio() && resource.data.estado == 'jugando'
+        && ajColor(resource.data, request.auth.uid) == resource.data.turno
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['jugadas', 'fen', 'turno', 'reloj', 'turnoDesde', 'seq', 'tablas', 'estado', 'resultado', 'actualizado'])
+        && request.resource.data.seq == resource.data.seq + 1
+        && request.resource.data.jugadas.size() == resource.data.jugadas.size() + 1
+        && request.resource.data.jugadas.size() <= 1200
+        && (resource.data.jugadas.size() == 0 || request.resource.data.jugadas[0:resource.data.jugadas.size()] == resource.data.jugadas)
+        && request.resource.data.jugadas[resource.data.jugadas.size()].matches('^[a-h][1-8][a-h][1-8][qrbn]?$')
+        && texto(request.resource.data.fen, 100)
+        && request.resource.data.turno == ajOtro(resource.data.turno)
+        && request.resource.data.turnoDesde == request.time
+        && request.resource.data.tablas in ['', resource.data.turno]
+        && request.resource.data.reloj.keys().hasOnly(['w', 'b'])
+        && request.resource.data.reloj[ajOtro(resource.data.turno)] == resource.data.reloj[ajOtro(resource.data.turno)]
+        && ((resource.data.tiempo.base == 0 || resource.data.jugadas.size() == 0)
+            ? request.resource.data.reloj[resource.data.turno] == resource.data.reloj[resource.data.turno]
+            : (ajMs(resource.data) <= resource.data.reloj[resource.data.turno] + 1000
+               && request.resource.data.reloj[resource.data.turno] is int
+               && request.resource.data.reloj[resource.data.turno] >= 0
+               && request.resource.data.reloj[resource.data.turno] <= resource.data.reloj[resource.data.turno] - ajMs(resource.data) + resource.data.tiempo.inc + 3000))
+        && ((request.resource.data.estado == 'jugando' && request.resource.data.resultado == null)
+            || (request.resource.data.estado == 'fin' && ajFin(request.resource.data.resultado)
+                && request.resource.data.resultado.motivo in ['jaque-mate', 'ahogado', 'material', 'repeticion', '50-jugadas']
+                && (request.resource.data.resultado.motivo == 'jaque-mate'
+                    ? request.resource.data.resultado.ganador == resource.data.turno
+                    : request.resource.data.resultado.ganador == '')));
+      // Tablas (ofrecer, rechazar, aceptar), rendirse, anular (antes de 2 jugadas) o cobrar el tiempo agotado.
+      allow update: if esColegio() && resource.data.estado == 'jugando'
+        && ajColor(resource.data, request.auth.uid) != ''
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tablas', 'estado', 'resultado', 'seq', 'actualizado'])
+        && request.resource.data.seq == resource.data.seq + 1
+        && ((request.resource.data.estado == 'jugando' && request.resource.data.resultado == null
+             && (request.resource.data.tablas == ajColor(resource.data, request.auth.uid)
+                 || (request.resource.data.tablas == '' && resource.data.tablas == ajOtro(ajColor(resource.data, request.auth.uid)))))
+            || (request.resource.data.estado == 'fin' && ajFin(request.resource.data.resultado)
+                && ((request.resource.data.resultado.motivo == 'acuerdo' && request.resource.data.resultado.ganador == ''
+                     && resource.data.tablas == ajOtro(ajColor(resource.data, request.auth.uid)))
+                    || (request.resource.data.resultado.motivo == 'abandono'
+                        && request.resource.data.resultado.ganador == ajOtro(ajColor(resource.data, request.auth.uid)))
+                    || (request.resource.data.resultado.motivo == 'anulada' && request.resource.data.resultado.ganador == ''
+                        && resource.data.jugadas.size() < 2)
+                    || (request.resource.data.resultado.motivo == 'tiempo' && resource.data.tiempo.base > 0
+                        && resource.data.jugadas.size() > 0
+                        && ajMs(resource.data) > resource.data.reloj[resource.data.turno]
+                        && request.resource.data.resultado.ganador in [ajOtro(resource.data.turno), '']))));
+      // Revancha: un jugador deja anotado el código de la sala nueva.
+      allow update: if esColegio() && resource.data.estado == 'fin'
+        && request.auth.uid in resource.data.jugadores
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revancha', 'revanchaDe', 'seq', 'actualizado'])
+        && request.resource.data.seq == resource.data.seq + 1
+        && resource.data.revancha == ''
+        && request.resource.data.revancha.matches('^[A-Z0-9]{4,8}$')
+        && request.resource.data.revanchaDe == request.auth.uid;
+      allow delete: if esProfe() || (conCuenta() && resource.data.creador == request.auth.uid && resource.data.estado == 'espera');
+    }
+
     // ── Contador de visitas: cualquiera suma 1, nadie puede poner otro número ──
     function sumaUno() {
       return request.resource.data.keys().hasOnly(['n', 'ultima'])

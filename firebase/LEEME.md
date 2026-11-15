@@ -91,6 +91,11 @@ DF.leerProgreso('mi-clave').then(datos => { … });
 - Al comprar se crea un pedido `articulo` en `mercado_pedidos` con el pago retenido y el artículo descuenta una unidad en la misma escritura (`tienda_articulos`).
 - El profe lo entrega en persona y presiona «📦 Entregado» en Panel del profe → Solicitudes. Si rechaza, o el estudiante cancela antes, el pago vuelve y la unidad se repone.
 
+## Ajedrez Agustino (`juegos/ajedrez/ajedrez.html`)
+- Ajedrez para 2 en pixel art: en el mismo dispositivo (sin cuenta) o en línea con un código de sala.
+- Reloj opcional; en línea se descuenta con la hora del servidor y las reglas impiden regalarse tiempo.
+- Requiere publicar el `firestore.rules` actualizado (colección `ajedrez_salas`). Detalle en `juegos/ajedrez/LEEME.md`.
+
 ## Muro de mensajes (portada)
 - Desde nov. 2026 usa Firestore (`muro`) en vez de Apps Script: se actualiza en vivo (antes cada visitante consultaba el script cada 8 s).
 - Leer es público; para escribir hay que entrar con la cuenta. Un mensaje cada 10 s por persona (`muro_ritmo`), máx. 140 caracteres, sin enlaces, correos ni números largos, y la firma debe empezar con el nombre de pila de la cuenta. El profe ve una ✕ para borrar mensajes.
