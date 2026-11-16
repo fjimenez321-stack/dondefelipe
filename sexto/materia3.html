@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U4 · Sesión 3 · Cambios de estado</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f8fc; --panel:#ffffff; --panel2:#eef3fa; --line:#dbe3ef;
+  --navy:#1d3b72; --gold:#c98f12; --goldbg:#fff6df; --teal:#0f9e8e; --tealbg:#e6f7f4;
+  --coral:#e2574c; --txt:#1c2a44; --muted:#5f6f8c; --ok:#1f9d5a; --okbg:#e5f6ec; --bad:#d64545; --badbg:#fdeaea;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:'Nunito',system-ui,sans-serif;overflow:hidden}
+h1,h2,h3{font-family:'Baloo 2','Nunito',sans-serif;line-height:1.1;color:var(--navy)}
+button{font-family:inherit;cursor:pointer}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#fff;border-bottom:1px solid var(--line);z-index:20;gap:10px}
+.topbar .t{font-weight:800;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .t b{color:var(--navy)}
+.tb-right{display:flex;gap:8px;align-items:center}
+.badge{display:flex;align-items:center;gap:6px;background:var(--goldbg);border:1px solid #efd18a;color:#8a5f00;padding:5px 12px;border-radius:999px;font-weight:800;font-size:14px;transition:transform .2s}
+.badge.pop{transform:scale(1.25)}
+.coin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3b8,#f2c14e 55%,#b8860b);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#5a3d00;font-weight:900}
+.iconbtn{background:#fff;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700}
+
+.deck{position:absolute;top:52px;bottom:64px;left:0;right:0}
+.slide{position:absolute;inset:0;padding:24px 28px;overflow-y:auto;display:none;animation:fade .3s ease}
+.slide.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.wrap{max-width:1050px;margin:0 auto}
+.kicker{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);background:var(--tealbg);padding:4px 10px;border-radius:999px;margin-bottom:10px}
+.slide h2{font-size:clamp(26px,3.4vw,38px);margin-bottom:6px}
+.lead{color:var(--muted);font-size:clamp(15px,1.6vw,18px);margin-bottom:16px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 3px rgba(29,59,114,.05)}
+.card h3{font-size:19px;margin-bottom:6px}
+.card p,.card li{font-size:15.5px;line-height:1.45}
+.card ol,.card ul{padding-left:20px}
+.te{display:inline-flex;align-items:center;gap:6px;background:var(--goldbg);color:#8a5f00;border:1px solid #efd18a;font-weight:800;font-size:13px;padding:3px 10px;border-radius:8px;margin-bottom:10px}
+.local{border-left:4px solid var(--teal);background:var(--tealbg);padding:10px 14px;border-radius:10px;font-size:15px;margin-top:12px}
+.local b{color:var(--teal)}
+.btn{background:var(--navy);color:#fff;border:none;border-radius:12px;padding:10px 16px;font-weight:800;font-size:15px}
+.btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn:disabled{opacity:.55}
+textarea{width:100%;min-height:64px;background:#fbfcfe;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px;font-family:inherit;font-size:15px;resize:vertical;margin-top:8px}
+.ans{display:none;margin-top:8px;background:var(--okbg);border:1px solid #b9e4cb;border-radius:10px;padding:8px 12px;font-size:14.5px}
+.ans.show{display:block}
+
+.cover{display:flex;flex-direction:column;justify-content:center;min-height:100%;text-align:center}
+.cover h1{font-size:clamp(38px,6.5vw,72px);margin:8px 0}
+.cover .sub{font-size:clamp(17px,2vw,22px);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+.floaters{position:relative;height:100px;margin:8px auto 0;width:min(480px,90%)}
+.floaters i{position:absolute;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#5fd3c4 60%,#0f9e8e)}
+.route{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:16px;font-size:14px;color:var(--muted);font-weight:700}
+.route span{background:var(--panel2);padding:4px 10px;border-radius:8px}
+
+.bigq{font-family:'Baloo 2';font-size:clamp(26px,4vw,44px);text-align:center;color:var(--navy);background:#fff;border:2px solid #efd18a;border-radius:20px;padding:20px;margin:6px 0 16px}
+.bigq em{color:var(--gold);font-style:normal}
+.vote{display:flex;gap:8px;flex-wrap:wrap}
+.vote button{flex:1;min-width:110px;padding:12px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:800;font-size:15px;color:var(--txt)}
+.vote button b{display:block;font-family:'Baloo 2';font-size:28px;color:var(--gold)}
+
+.flip{perspective:1000px;min-height:190px;cursor:pointer}
+.flip .in{position:relative;width:100%;min-height:190px;transition:transform .6s;transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip .f,.flip .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;padding:16px;border:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+.flip .f{background:#fff;text-align:center}
+.flip .f .ico{font-size:42px}
+.flip .f h3{font-size:28px;margin-top:4px}
+.flip .f p{color:var(--muted);font-size:13px}
+.flip .b{background:var(--panel2);transform:rotateY(180deg)}
+.flip .b p{font-size:15px;line-height:1.45;margin-bottom:4px}
+.flip .b .u{color:var(--teal);font-weight:800;font-size:14px}
+
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;transition:.25s}
+.item .nm{font-weight:800;font-size:16px;margin-bottom:8px}
+.item .row{display:flex;gap:6px}
+.item .row button{flex:1;padding:7px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-weight:800;font-size:13px}
+.item.good{border-color:var(--ok);background:var(--okbg)}
+.item.wrong{border-color:var(--bad);background:var(--badbg)}
+.item .fb{font-size:13px;color:var(--muted);margin-top:4px;display:none}
+.item.done .fb{display:block}.item.done .row{display:none}
+
+.sim{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(250px,1fr);gap:14px}
+@media(max-width:820px){.sim{grid-template-columns:1fr}}
+.canvasbox{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px}
+#simc{width:100%;height:320px;display:block;border-radius:10px;background:#f2f6fc}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.stbtn{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--txt);font-weight:800}
+.stbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.slider{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:14px;font-weight:700}
+.slider input{flex:1;accent-color:var(--navy)}
+.thermo{font-family:'Baloo 2';font-size:24px;color:var(--coral);min-width:82px;text-align:right}
+.props{display:grid;gap:6px}
+.prop{display:flex;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:14px}
+.prop span:first-child{color:var(--muted)}
+.prop span:last-child{font-weight:800;text-align:right}
+.stname{font-family:'Baloo 2';font-size:30px;color:var(--navy)}
+.q{font-weight:800;font-size:15px;margin:10px 0 6px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts button{padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--txt);font-weight:700;font-size:14px;text-align:left}
+.opts button.ok{background:var(--okbg);border-color:var(--ok);color:#0d5c33}
+.opts button.no{background:var(--badbg);border-color:var(--bad);color:#8a1f1f}
+.opts.col{flex-direction:column}
+
+.philo .card{text-align:center}
+.philo .who{font-size:13px;color:var(--muted);margin-top:6px}
+.post{display:flex;gap:10px;align-items:flex-start}
+.post .n{flex:none;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+.ctab{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.ctab th,.ctab td{padding:9px;border-bottom:1px solid var(--line);font-size:14px;text-align:left}
+.ctab th{background:var(--panel2);color:var(--navy)}
+.ctab td:first-child{font-weight:800}
+.ctab select{width:100%;background:#fbfcfe;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px;font-family:inherit;font-size:14px}
+.ctab select.ok{border-color:var(--ok);background:var(--okbg)}
+.ctab select.no{border-color:var(--bad);background:var(--badbg)}
+.tscroll{overflow-x:auto}
+
+.acc{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:8px;background:#fff}
+.acc .h{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;font-weight:800}
+.acc .lv{min-width:42px;text-align:center;border-radius:8px;padding:3px 6px;font-size:13px;background:var(--panel2);color:var(--navy)}
+.acc.boss{border-color:#f3b8b3}
+.acc.boss .lv{background:var(--coral);color:#fff}
+.acc .body{display:none;padding:0 14px 14px}
+.acc.open .body{display:block}
+.acc .qq{font-size:15px}
+.sm{font-size:12.5px;padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--teal);font-weight:800;margin-top:8px}
+
+.rub{width:100%;border-collapse:collapse;background:#fff}
+.rub th,.rub td{border:1px solid var(--line);padding:9px;font-size:13.5px;vertical-align:top}
+.rub th{background:var(--panel2);color:var(--navy)}
+.rub td:first-child{font-weight:800;width:20%}
+
+.nav{position:fixed;bottom:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:center;gap:14px;background:#fff;border-top:1px solid var(--line);z-index:20}
+.arrow{width:46px;height:46px;border-radius:50%;border:1px solid var(--navy);background:#fff;color:var(--navy);font-size:22px;font-weight:900}
+.arrow:disabled{opacity:.3}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);border:none;padding:0}
+.dot.on{background:var(--navy);transform:scale(1.3)}
+.toast{position:fixed;top:62px;right:16px;background:var(--gold);color:#fff;font-weight:900;padding:8px 14px;border-radius:12px;z-index:30;opacity:0;transform:translateY(-10px);transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+
+.print-only{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff;overflow:visible;font-size:11pt}
+  .topbar,.nav,.toast,.noprint,.floaters,.canvasbox,.vote,.opts,.item .row,.sm,.ctab select{display:none!important}
+  .deck{position:static}
+  .slide{display:block!important;position:static;padding:0 0 10px;overflow:visible;border-bottom:1px solid #999;margin-bottom:12px;animation:none}
+  .card,.acc,.item,.prop,.local,.bigq{box-shadow:none;border:1px solid #888!important;background:#fff!important}
+  .flip{min-height:0}.flip .in{transform:none!important;min-height:0}
+  .flip .f,.flip .b{position:static;transform:none;backface-visibility:visible;margin-bottom:4px;background:#fff}
+  .ans,.item .fb,.acc .body{display:block!important}
+  .print-only{display:inline}
+  .cover{min-height:0;text-align:left}
+}
+.globos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.globo{text-align:center}.globo .g{font-size:46px}
+.steps{display:flex;flex-wrap:wrap;gap:8px}
+.steps .card{flex:1;min-width:180px}
+.frame{position:relative;width:100%;aspect-ratio:16/10;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.frame.vid{aspect-ratio:16/9;max-width:820px;margin:0 auto}
+.frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.fallback{font-size:13px;color:var(--muted);margin-top:6px;text-align:center}
+.fallback a{color:var(--navy);font-weight:800}
+.daily{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.daily .card{text-align:center}.daily .e{font-size:44px}
+.diag{width:100%;max-width:760px;display:block;margin:0 auto}
+.diag text{font-family:Nunito,sans-serif}
+.curve{width:100%;max-width:820px;display:block;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:14px}
+.seg{cursor:pointer}
+.seg:hover{opacity:.75}
+.tramo{min-height:66px}
+.inv{display:grid;gap:8px}
+.inv label{font-weight:800;font-size:14px;color:var(--navy)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="t"><b>Ciencias Naturales 6°</b> · Unidad 4 · Sesión 3</div>
+  <div class="tb-right">
+    <button class="iconbtn noprint" onclick="window.print()">🖨️ Guía</button>
+    <div class="badge" id="badge"><span class="coin">F</span><span id="fp">0</span> Felipesos</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide active">
+  <div class="wrap cover">
+    <div><span class="kicker">Unidad 4 · Lección 2 · Sesión 3</span></div>
+    <h1>¿Dónde se fue el agua?</h1>
+    <p class="sub">Los cambios de estado de la materia</p>
+    <div class="floaters" id="floaters"></div>
+    <div class="chips">
+      <span class="chip">🎯 OA13 · Cambios de estado</span>
+      <span class="chip">🔬 OA a · OA b · OA c</span>
+      <span class="chip">📘 Texto pp. 168–177</span>
+      <span class="chip">🧪 PhET</span>
+    </div>
+    <div class="route"><span>1 · Cotidiano</span><span>2 · Video</span><span>3 · Texto</span><span>4 · PhET</span><span>5 · Curva</span><span>6 · Ticket</span></div>
+    <p class="print-only" style="margin-top:10px">Nombre: ______________________________ Curso: 6° ___ Fecha: ___/___/2026</p>
+  </div>
+</section>
+
+<!-- 2 COTIDIANO -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Inicio · Lo vemos todos los días</span>
+    <h2>¿Qué tienen en común?</h2>
+    <p class="lead">Observa y piensa: ¿qué le pasa al agua (o al chocolate) en cada caso?</p>
+    <div class="daily">
+      <div class="card"><div class="e">👕☀️</div><p>La ropa se seca al sol</p></div>
+      <div class="card"><div class="e">🍦</div><p>El helado se derrite</p></div>
+      <div class="card"><div class="e">🪞🚿</div><p>El espejo se empaña al ducharte</p></div>
+      <div class="card"><div class="e">🧊❄️</div><p>El agua se congela en el freezer</p></div>
+      <div class="card"><div class="e">🍫</div><p>El chocolate se ablanda en el bolsillo</p></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <p class="q">En todos los casos, lo que cambia es…</p>
+      <div class="opts" data-k="c0"><button data-ok="0">la sustancia: se transforma en otra</button><button data-ok="1">el estado: sólido, líquido o gas</button><button data-ok="0">la masa: desaparece</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 ABSURDO -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Inicio · Absurdo… pero cierto</span>
+    <h2>Parece absurdo, pero es ciencia</h2>
+    <p class="lead">Toca cada tarjeta. ¿Lo creías?</p>
+    <div class="grid g3">
+      <div class="flip" onclick="this.classList.toggle('on');sfx('tap')"><div class="in">
+        <div class="f"><div class="ico">🥤💦</div><h3 style="font-size:20px">El vaso "suda"</h3><p>¿El agua atraviesa el vidrio?</p></div>
+        <div class="b"><p><b>No.</b> El vapor de agua del aire choca con el vaso frío, pierde calor y se vuelve líquido: es <b>condensación</b>.</p></div>
+      </div></div>
+      <div class="flip" onclick="this.classList.toggle('on');sfx('tap')"><div class="in">
+        <div class="f"><div class="ico">🏔️🍲</div><h3 style="font-size:20px">Agua que hierve "fría"</h3><p>En la cordillera, ¿a cuánto hierve?</p></div>
+        <div class="b"><p>En Portillo (casi 3.000 m) el agua hierve a unos <b>90 °C</b>, no a 100 °C. Con menos presión del aire, hierve antes.</p></div>
+      </div></div>
+      <div class="flip" onclick="this.classList.toggle('on');sfx('tap')"><div class="in">
+        <div class="f"><div class="ico">🧊💨</div><h3 style="font-size:20px">Hielo que no moja</h3><p>¿Un sólido que nunca se derrite?</p></div>
+        <div class="b"><p>El <b>hielo seco</b> pasa de sólido a gas sin volverse líquido: es <b>sublimación</b>. Por eso no deja charcos.</p></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 VIDEO -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Inicio · Video introductorio</span>
+    <h2>Cambios de estado en 3 minutos</h2>
+    <div class="frame vid"><iframe src="https://www.youtube-nocookie.com/embed/pevJc3z3Xx0" title="Cambios de estado en la materia" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+    <p class="fallback">¿No carga? <a href="https://www.youtube.com/watch?v=pevJc3z3Xx0" target="_blank" rel="noopener">Ábrelo en YouTube</a></p>
+    <div class="card" style="margin-top:12px">
+      <p class="q">Mientras lo ves: anota los nombres de los cambios de estado que aparecen.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 CONCEPTO -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Desarrollo · Texto escolar</span>
+    <h2>Progresivos y regresivos</h2>
+    <span class="te">📘 Texto p. 170</span>
+    <div class="grid g2">
+      <div class="card"><h3 style="color:var(--coral)">🔥 Progresivos</h3><p>La materia <b>absorbe calor</b>. Ej.: la ropa que se seca.</p></div>
+      <div class="card"><h3 style="color:#2b6fb3">❄️ Regresivos</h3><p>La materia <b>libera calor</b>. Ej.: el agua que se congela.</p></div>
+    </div>
+    <div class="local">Los cambios de estado son <b>cambios físicos</b>: la sustancia cambia de aspecto, pero sigue siendo la misma.</div>
+    <svg class="diag" viewBox="0 0 780 320" role="img" aria-label="Esquema de los cambios de estado" style="margin-top:12px">
+      <defs>
+        <marker id="mc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10z" fill="#e2574c"/></marker>
+        <marker id="mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10z" fill="#2b6fb3"/></marker>
+      </defs>
+      <rect x="50" y="232" width="160" height="56" rx="12" fill="#e6f1fc" stroke="#6fb6f2"/><text x="130" y="267" text-anchor="middle" font-size="20" font-weight="800" fill="#1d3b72">🧊 Sólido</text>
+      <rect x="570" y="232" width="160" height="56" rx="12" fill="#e6f7f4" stroke="#3cc9b6"/><text x="650" y="267" text-anchor="middle" font-size="20" font-weight="800" fill="#1d3b72">💧 Líquido</text>
+      <rect x="310" y="32" width="160" height="56" rx="12" fill="#fdeee9" stroke="#ff9a7a"/><text x="390" y="67" text-anchor="middle" font-size="20" font-weight="800" fill="#1d3b72">♨️ Gas</text>
+      <line x1="214" y1="250" x2="564" y2="250" stroke="#e2574c" stroke-width="3" marker-end="url(#mc)"/><text x="390" y="240" text-anchor="middle" font-size="16" font-weight="800" fill="#e2574c">Fusión</text>
+      <line x1="564" y1="272" x2="214" y2="272" stroke="#2b6fb3" stroke-width="3" marker-end="url(#mb)"/><text x="390" y="295" text-anchor="middle" font-size="16" font-weight="800" fill="#2b6fb3">Solidificación</text>
+      <line x1="600" y1="228" x2="448" y2="94" stroke="#e2574c" stroke-width="3" marker-end="url(#mc)"/><text x="508" y="190" text-anchor="end" font-size="16" font-weight="800" fill="#e2574c">Vaporización</text>
+      <line x1="476" y1="90" x2="630" y2="226" stroke="#2b6fb3" stroke-width="3" marker-end="url(#mb)"/><text x="590" y="140" text-anchor="start" font-size="16" font-weight="800" fill="#2b6fb3">Condensación</text>
+      <line x1="178" y1="228" x2="330" y2="94" stroke="#e2574c" stroke-width="3" marker-end="url(#mc)"/><text x="272" y="190" text-anchor="start" font-size="16" font-weight="800" fill="#e2574c">Sublimación</text>
+      <line x1="304" y1="90" x2="150" y2="226" stroke="#2b6fb3" stroke-width="3" marker-end="url(#mb)"/><text x="190" y="140" text-anchor="end" font-size="16" font-weight="800" fill="#2b6fb3">Sublimación inversa</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 6 CLASIFICAR -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Juego · +2 Felipesos por acierto</span>
+    <h2>¿Progresivo o regresivo?</h2>
+    <span class="te">📘 Texto p. 171 · Actividad 1</span>
+    <div class="items" id="items"></div>
+    <p style="margin-top:12px;font-weight:800" id="clsScore"></p>
+    <div class="card" style="margin-top:12px">
+      <p><b>🍫 Carolina (p. 171):</b> necesita chocolate líquido, pero solo tiene una barra sólida. ¿Qué debe hacer y qué cambio de estado ocurre?</p>
+      <textarea></textarea>
+      <button class="sm" onclick="showAns(this)">Respuesta</button>
+      <div class="ans">Debe calentar el chocolate (por ejemplo, a baño María). Absorbe calor y pasa de sólido a líquido: es una <b>fusión</b>, un cambio progresivo.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 PHET -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Simulador PhET · Estados de la materia</span>
+    <h2>Calienta y enfría el agua</h2>
+    <div class="sim">
+      <div>
+        <div class="frame"><iframe src="https://phet.colorado.edu/sims/html/states-of-matter-basics/latest/states-of-matter-basics_all.html?locale=es" title="PhET Estados de la materia: Básico" allowfullscreen loading="lazy"></iframe></div>
+        <p class="fallback">¿No carga? <a href="https://phet.colorado.edu/sims/html/states-of-matter-basics/latest/states-of-matter-basics_all.html?locale=es" target="_blank" rel="noopener">Ábrelo en PhET</a></p>
+      </div>
+      <div class="card">
+        <h3>Misión</h3>
+        <ol>
+          <li>Entra a <b>Estados</b> y elige <b>agua</b> en estado <b>sólido</b>.</li>
+          <li>Calienta con la palanca 🔥 y observa.</li>
+          <li>Luego enfría ❄️ hasta volver a sólido.</li>
+        </ol>
+        <div id="simQs"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 ABSORCION -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Desarrollo · Texto escolar</span>
+    <h2>Cambios por absorción de calor</h2>
+    <span class="te">📘 Texto pp. 172–173</span>
+    <div class="card">
+      <p><b>Exploro (p. 172):</b> dejamos al sol un cubo de hielo, mantequilla y un trozo de vela. ¿Cuál cambia de estado más rápido?</p>
+      <div class="opts" data-k="sol" style="margin-top:8px"><button data-ok="1">🧊 Hielo</button><button data-ok="0">🧈 Mantequilla</button><button data-ok="0">🕯️ Vela</button></div>
+      <div class="ans" id="solAns">El hielo se funde a 0 °C, una temperatura que el sol supera fácilmente. La mantequilla se ablanda y la vela casi no cambia: cada sustancia tiene su propio punto de fusión.</div>
+    </div>
+    <div class="grid g3" style="margin-top:14px">
+      <div class="card"><h3>Fusión</h3><p>Sólido → líquido. Las partículas vibran más rápido y se separan.</p></div>
+      <div class="card"><h3>Vaporización</h3><p>Líquido → gas. Puede ser <b>evaporación</b> (solo la superficie) o <b>ebullición</b> (todo el líquido).</p></div>
+      <div class="card"><h3>Sublimación</h3><p>Sólido → gas, sin pasar por líquido. Ej.: naftalina, yodo.</p></div>
+    </div>
+    <div class="local"><b>Clave:</b> al absorber calor, las partículas se mueven más rápido, se separan y su atracción disminuye.</div>
+  </div>
+</section>
+
+<!-- 9 INVESTIGACION -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Investigación · OA a · OA b</span>
+    <h2>El chocolate de Iván</h2>
+    <span class="te">📘 Texto pp. 174–175</span>
+    <p class="lead">Iván dejó su chocolate al sol y quedó blando y pegado al envoltorio. En grupos de 3:</p>
+    <div class="card inv">
+      <label>a. ¿Qué le ocurrió al chocolate?</label><textarea></textarea>
+      <label>b. Variables: ¿qué cambias y qué mides?</label><textarea placeholder="Cambio: ___ · Mido: ___"></textarea>
+      <label>c. Pregunta de investigación</label><textarea placeholder="¿Qué relación existe entre ___ y ___?"></textarea>
+      <label>d. Predicción</label><textarea placeholder="Si ___, entonces ___"></textarea>
+      <button class="sm" onclick="showAns(this)">Ejemplo</button>
+      <div class="ans">a. Comenzó a fundirse (fusión). b. Cambio: tiempo al sol o temperatura · Mido: cuánto se derrite. c. ¿Qué relación existe entre el tiempo al sol y el derretimiento del chocolate? d. Si el chocolate está más tiempo al sol, entonces se derretirá más.</div>
+    </div>
+    <button class="btn" style="margin-top:12px" onclick="award(5,'inv',this)">✅ Grupo terminó · +5</button>
+  </div>
+</section>
+
+<!-- 10 CURVA -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Desarrollo · Analizar evidencias (OA c)</span>
+    <h2>Curva de calentamiento del agua</h2>
+    <span class="te">📘 Texto pp. 176–177</span>
+    <p class="lead">Toca cada tramo de la curva.</p>
+    <svg class="curve" viewBox="0 0 820 380" id="curve">
+      <g stroke="#e3e9f3"><line x1="60" y1="271" x2="790" y2="271"/><line x1="60" y1="99" x2="790" y2="99"/></g>
+      <line x1="60" y1="20" x2="60" y2="345" stroke="#5f6f8c" stroke-width="2"/><line x1="60" y1="345" x2="795" y2="345" stroke="#5f6f8c" stroke-width="2"/>
+      <g font-size="13" fill="#5f6f8c" text-anchor="end"><text x="52" y="310">-20</text><text x="52" y="275">0</text><text x="52" y="103">100</text><text x="52" y="51">130</text></g>
+      <text x="22" y="190" transform="rotate(-90 22 190)" text-anchor="middle" font-size="13" fill="#5f6f8c">Temperatura (°C)</text>
+      <text x="790" y="370" text-anchor="end" font-size="13" fill="#5f6f8c">Tiempo (min)</text>
+      <g stroke-width="9" stroke-linecap="round" fill="none">
+        <polyline class="seg" data-i="0" points="70,306 170,271" stroke="#6fb6f2"/>
+        <polyline class="seg" data-i="1" points="170,271 330,271" stroke="#8a7cf0"/>
+        <polyline class="seg" data-i="2" points="330,271 470,99" stroke="#3cc9b6"/>
+        <polyline class="seg" data-i="3" points="470,99 690,99" stroke="#f2a03c"/>
+        <polyline class="seg" data-i="4" points="690,99 770,47" stroke="#ff7a6b"/>
+      </g>
+      <g font-size="15" font-weight="800" fill="#1d3b72"><text x="62" y="326">A</text><text x="165" y="292">B</text><text x="325" y="292">C</text><text x="462" y="88">D</text><text x="684" y="88">E</text><text x="772" y="40">F</text></g>
+      <g font-size="13" fill="#5f6f8c" text-anchor="middle"><text x="250" y="262">fusión</text><text x="580" y="90">vaporización</text></g>
+    </svg>
+    <div class="card tramo" id="tramo" style="margin-top:10px"><p style="color:var(--muted)">Selecciona un tramo.</p></div>
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card"><p class="q">a. ¿A qué temperatura el agua pasa de sólido a líquido?</p><div class="opts" data-k="cu1"><button data-ok="1">0 °C</button><button data-ok="0">50 °C</button><button data-ok="0">100 °C</button></div></div>
+      <div class="card"><p class="q">b. Durante el cambio de estado (B–C y D–E), la temperatura…</p><div class="opts" data-k="cu2"><button data-ok="0">sube</button><button data-ok="1">se mantiene constante</button><button data-ok="0">baja</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 BLOOM -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Banco de preguntas · Bloom</span>
+    <h2>Sube de nivel</h2>
+    <p class="lead">N5 y N6 son el <b style="color:var(--coral)">Desafío Boss</b> (+10).</p>
+    <div id="bloom"></div>
+  </div>
+</section>
+
+<!-- 12 TICKET -->
+<section class="slide">
+  <div class="wrap">
+    <span class="kicker">Cierre</span>
+    <h2>🎟️ Ticket de salida</h2>
+    <div class="grid" style="gap:12px">
+      <div class="card">
+        <p><b>1.</b> Al inicio vimos que el espejo se empaña al ducharte. ¿Qué cambio de estado es y por qué?</p>
+        <textarea></textarea>
+        <button class="sm" onclick="showAns(this)">Respuesta</button>
+        <div class="ans">Condensación (regresivo): el vapor de agua toca el espejo frío, libera calor y se vuelve líquido.</div>
+      </div>
+      <div class="card">
+        <p><b>2.</b> La ropa que se seca al sol es un cambio…</p>
+        <div class="opts" data-k="t2" style="margin-top:8px"><button data-ok="1">progresivo, porque absorbe calor</button><button data-ok="0">regresivo, porque libera calor</button><button data-ok="0">químico, porque cambia la sustancia</button></div>
+      </div>
+      <div class="card">
+        <p><b>3.</b> ¿Qué diferencia la evaporación de la ebullición?</p>
+        <div class="opts col" data-k="t3" style="margin-top:8px"><button data-ok="1">En la evaporación cambian solo las partículas de la superficie; en la ebullición, todo el líquido.</button><button data-ok="0">La evaporación es de sólido a gas.</button><button data-ok="0">No hay diferencia.</button></div>
+      </div>
+      <div class="card">
+        <p><b>4.</b> En la curva de calentamiento, ¿por qué la temperatura no sube entre B y C?</p>
+        <textarea></textarea>
+        <button class="sm" onclick="showAns(this)">Respuesta</button>
+        <div class="ans">Porque el calor que absorbe el agua se usa para cambiar de estado (separar las partículas), no para subir la temperatura.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button class="arrow" id="prev" onclick="go(-1)" aria-label="Anterior">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="arrow" id="next" onclick="go(1)" aria-label="Siguiente">›</button>
+</div>
+
+<script>
+let AC=null;
+function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){} } return AC; }
+function tone(f,d,type,vol,delay){ const a=ac(); if(!a) return; const o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=f;
+  const t=a.currentTime+(delay||0); g.gain.setValueAtTime(vol||0.1,t); g.gain.exponentialRampToValueAtTime(0.001,t+d); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+d); }
+function sfx(k){ if(k==='ok'){tone(660,.12,'triangle');tone(990,.18,'triangle',.1,.1)} else if(k==='bad'){tone(220,.25,'sawtooth',.05)} else if(k==='coin'){tone(988,.08,'square',.05);tone(1319,.25,'square',.05,.08)} else {tone(520,.05,'sine',.04)} }
+
+let FP=0; const got=new Set();
+function award(n,key,el){ if(got.has(key)) return; got.add(key); FP+=n; document.getElementById('fp').textContent=FP;
+  const b=document.getElementById('badge'); b.classList.add('pop'); setTimeout(()=>b.classList.remove('pop'),250);
+  const t=document.getElementById('toast'); t.textContent='+'+n+' Felipesos'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1100);
+  sfx('coin'); if(el&&el.tagName==='BUTTON') el.disabled=true; }
+
+const slides=[...document.querySelectorAll('.slide')]; let cur=0; const dots=document.getElementById('dots');
+slides.forEach((s,i)=>{ const d=document.createElement('button'); d.className='dot'; d.onclick=()=>show(i); dots.appendChild(d); });
+function show(i){ slides[cur].classList.remove('active'); cur=Math.max(0,Math.min(slides.length-1,i)); slides[cur].classList.add('active'); slides[cur].scrollTop=0;
+  [...dots.children].forEach((d,j)=>d.classList.toggle('on',j===cur)); document.getElementById('prev').disabled=cur===0; document.getElementById('next').disabled=cur===slides.length-1; sfx('tap'); }
+function go(d){ show(cur+d); }
+
+(function(){ const box=document.getElementById('floaters'); const ps=[]; for(let i=0;i<12;i++){ const e=document.createElement('i'); box.appendChild(e);
+  ps.push({e,x:Math.random()*90,y:Math.random()*80,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25}); }
+  (function loop(){ ps.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; if(p.x<0||p.x>94) p.vx*=-1; if(p.y<0||p.y>82) p.vy*=-1; p.e.style.left=p.x+'%'; p.e.style.top=p.y+'%'; }); requestAnimationFrame(loop); })(); })();
+
+function showAns(btn){ btn.nextElementSibling.classList.toggle('show'); sfx('tap'); }
+
+function bindOpts(root){ root.querySelectorAll('.opts[data-k]').forEach(o=>o.querySelectorAll('button').forEach(b=>b.onclick=()=>{ if(o.dataset.done) return; o.dataset.done=1;
+  if(b.dataset.ok==='1'){ b.classList.add('ok'); sfx('ok'); award(3,o.dataset.k); } else { b.classList.add('no'); sfx('bad'); o.querySelector('[data-ok="1"]').classList.add('ok'); }
+  if(o.dataset.k==='sol') document.getElementById('solAns').classList.add('show'); })); }
+
+/* clasificación p.171 */
+const ITEMS=[
+ ['🍦 Helado que se derrite',1,'Fusión: absorbe calor.'],
+ ['🧊 Agua que se congela',0,'Solidificación: libera calor.'],
+ ['👕 Ropa que se seca',1,'Evaporación: absorbe calor.'],
+ ['🪞 Espejo empañado',0,'Condensación: libera calor.'],
+ ['🍲 Agua hirviendo',1,'Ebullición: absorbe calor.'],
+ ['🕯️ Cera de vela que se endurece',0,'Solidificación: libera calor.'],
+ ['🌿 Rocío en el pasto al amanecer',0,'Condensación: libera calor.'],
+ ['🧴 Naftalina que desaparece',1,'Sublimación: absorbe calor.']
+];
+let clsOk=0,clsDone=0;
+(function(){ const box=document.getElementById('items'); ITEMS.forEach((it,i)=>{ const d=document.createElement('div'); d.className='item';
+  d.innerHTML=`<div class="nm">${it[0]}</div><div class="row"><button>🔥 Progresivo</button><button>❄️ Regresivo</button></div><div class="fb">${it[2]}</div>`;
+  const [b1,b2]=d.querySelectorAll('button'); const pick=v=>{ d.classList.add('done'); clsDone++; if(v===it[1]){ d.classList.add('good'); clsOk++; sfx('ok'); award(2,'cls'+i);} else { d.classList.add('wrong'); sfx('bad'); }
+    document.getElementById('clsScore').textContent=`Aciertos: ${clsOk} / ${clsDone}`; };
+  b1.onclick=()=>pick(1); b2.onclick=()=>pick(0); box.appendChild(d); }); })();
+
+/* preguntas PhET */
+const PQ=[['Al calentar el hielo, las partículas…',['vibran más y se separan','se juntan más','se detienen'],0],
+          ['Al enfriar el vapor, se vuelve líquido. Ese cambio se llama…',['fusión','condensación','sublimación'],1],
+          ['¿El cambio que observaste es físico o químico?',['Físico: sigue siendo agua','Químico: se transforma en otra sustancia'],0]];
+(function(){ const box=document.getElementById('simQs'); PQ.forEach((q,i)=>{ const d=document.createElement('div'); d.innerHTML=`<div class="q">${q[0]}</div><div class="opts" data-k="ph${i}">${q[1].map((t,j)=>`<button data-ok="${j===q[2]?1:0}">${t}</button>`).join('')}</div>`; box.appendChild(d); }); })();
+
+/* curva */
+const TR=[['A–B','El hielo absorbe calor y su temperatura aumenta.'],
+          ['B–C','A los 0 °C el agua alcanza su punto de fusión. La temperatura se mantiene constante mientras pasa de sólido a líquido.'],
+          ['C–D','El agua líquida sigue absorbiendo calor y su temperatura aumenta.'],
+          ['D–E','A los 100 °C el agua alcanza su punto de ebullición. La temperatura se mantiene constante mientras pasa de líquido a gas.'],
+          ['E–F','Toda el agua es gas. Siguen aumentando la temperatura y la energía de las partículas.']];
+document.querySelectorAll('.seg').forEach(s=>s.onclick=()=>{ const t=TR[+s.dataset.i]; document.getElementById('tramo').innerHTML=`<h3>Tramo ${t[0]}</h3><p>${t[1]}</p>`; sfx('tap'); });
+
+/* bloom */
+const BL=[
+ ['N1','Recordar',0,'Nombra los tres cambios de estado progresivos.','Fusión, vaporización y sublimación.'],
+ ['N2','Comprender',0,'¿Por qué decimos que un cambio de estado es un cambio físico?','Porque la sustancia solo cambia su aspecto (estado), pero sigue siendo la misma.'],
+ ['N3','Aplicar',0,'En invierno, los autos de Villa Alemana amanecen con el vidrio empañado. ¿Qué cambio de estado ocurre?','Condensación: el vapor de agua del aire toca el vidrio frío, libera calor y se vuelve líquido.'],
+ ['N4','Analizar',0,'Compara la evaporación del charco del patio con la ebullición del agua de la tetera.','En la evaporación solo pasan a gas las partículas de la superficie y ocurre a cualquier temperatura; en la ebullición participa todo el líquido, a 100 °C.'],
+ ['N5','Evaluar · Boss',1,'El Glaciar Juncal está perdiendo hielo. ¿Qué cambio de estado ocurre y por qué es un problema para el Valle del Aconcagua?','Fusión (y sublimación). El glaciar es una reserva de agua dulce; si se pierde, en el futuro habrá menos agua para el río, los cultivos y las personas del valle.'],
+ ['N6','Crear · Boss',1,'Diseña un experimento para saber si la sal cambia el tiempo que tarda en derretirse el hielo.','Ejemplo: dos cubos iguales en platos iguales, uno con sal y otro sin sal. Medir con cronómetro el tiempo hasta que se derritan. Variable independiente: sal; dependiente: tiempo.']
+];
+(function(){ const box=document.getElementById('bloom'); BL.forEach((b,i)=>{ const d=document.createElement('div'); d.className='acc'+(b[2]?' boss':'');
+  d.innerHTML=`<div class="h"><span class="lv">${b[0]}</span><span>${b[1]}</span><span style="margin-left:auto;color:var(--muted);font-size:13px">${b[2]?'👑 +10':'+3'}</span></div><div class="body"><p class="qq">${b[3]}</p><button class="sm">Respuesta</button> <button class="sm" style="color:var(--gold)">✔ Bien</button><div class="ans">${b[4]}</div></div>`;
+  d.querySelector('.h').onclick=()=>{ d.classList.toggle('open'); sfx('tap'); };
+  const [sa,ok]=d.querySelectorAll('.sm'); sa.onclick=()=>d.querySelector('.ans').classList.toggle('show'); ok.onclick=()=>award(b[2]?10:3,'bl'+i,ok); box.appendChild(d); }); })();
+
+bindOpts(document);
+show(0);
+</script>
+</body>
+</html>
