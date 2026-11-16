@@ -174,11 +174,66 @@
     return cv;
   }
 
+  /* ---------- piezas ilustradas (sprites/wk.webp, sprites/bq.webp, …) ----------
+     Si se cargan, reemplazan a las de pixel art; si una falta, se usa la de pixel art. */
+  var SPR = {}, esc = {};
+  function cargarSprites(base) {
+    base = base || 'sprites/';
+    return Promise.all('PNBRQKpnbrqk'.split('').map(function (p) {
+      return new Promise(function (ok) {
+        var img = new Image();
+        img.onload = function () { SPR[p] = img; ok(); };
+        img.onerror = function () { ok(); };
+        img.src = base + (p === p.toUpperCase() ? 'w' : 'b') + p.toLowerCase() + '.webp';
+      });
+    })).then(function () {
+      Object.keys(cache).forEach(function (k) { if (k.indexOf('@') > 0) delete cache[k]; });
+      esc = {};
+      return Object.keys(SPR).length;
+    });
+  }
+  // Copia de la pieza ya achicada al tamaño real en pantalla (se ve más nítida que achicarla en cada cuadro).
+  function escalada(p, h) {
+    var k = p + '@' + h;
+    if (esc[k]) return esc[k];
+    var img = SPR[p], w = Math.max(1, Math.round(img.width * h / img.height));
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    // achicar en pasos de la mitad mantiene los bordes limpios
+    var src = img, sw = img.width, sh = img.height;
+    while (sh / 2 > h * 1.2) {
+      var t = document.createElement('canvas'); t.width = Math.round(sw / 2); t.height = Math.round(sh / 2);
+      var tg = t.getContext('2d'); tg.imageSmoothingQuality = 'high'; tg.drawImage(src, 0, 0, t.width, t.height);
+      src = t; sw = t.width; sh = t.height;
+    }
+    g.drawImage(src, 0, 0, w, h);
+    esc[k] = c;
+    return c;
+  }
+  // Dibuja la pieza p en la casilla (x, y) de lado «tam» (unidades del tablero); «k» = píxeles reales por unidad.
+  function dibujarPieza(ctx, p, x, y, tam, k) {
+    k = k || 1;
+    if (!SPR[p]) { ctx.imageSmoothingEnabled = false; ctx.drawImage(lienzoPieza(p), x, y, tam, tam); return; }
+    var h = Math.round(tam * 0.97 * k), c = escalada(p, h), w = c.width;
+    var dx = Math.round((x + tam / 2) * k - w / 2) / k, dy = Math.round((y + tam) * k - h - tam * 0.015 * k) / k;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(c, dx, dy, w / k, h / k);
+  }
+  function hayIlustradas() { return Object.keys(SPR).length > 0; }
+
   // Imagen PNG (data URL) de una pieza a cierto tamaño, para usar en HTML.
   function urlPieza(p, tam) {
     tam = tam || 48;
     var k = p + '@' + tam;
     if (cache[k]) return cache[k];
+    if (SPR[p]) {
+      // al doble de tamaño, para pantallas nítidas; la pieza se apoya en el borde inferior
+      var T = tam * 2, cv0 = document.createElement('canvas'); cv0.width = cv0.height = T;
+      var pz = escalada(p, Math.round(T * 0.96));
+      cv0.getContext('2d').drawImage(pz, Math.round((T - pz.width) / 2), T - pz.height);
+      cache[k] = cv0.toDataURL();
+      return cache[k];
+    }
     var cv = document.createElement('canvas');
     cv.width = cv.height = tam;
     var ctx = cv.getContext('2d');
@@ -218,6 +273,7 @@
 
   raiz.Pixel = {
     DIBUJOS: DIBUJOS, PALETAS: PALETAS, EMBLEMA: EMBLEMA,
-    pintar: pintar, lienzoPieza: lienzoPieza, urlPieza: urlPieza, urlEmblema: urlEmblema, letra: letra
+    pintar: pintar, lienzoPieza: lienzoPieza, urlPieza: urlPieza, urlEmblema: urlEmblema, letra: letra,
+    cargarSprites: cargarSprites, dibujarPieza: dibujarPieza, hayIlustradas: hayIlustradas
   };
 })(window);
