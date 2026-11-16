@@ -65,8 +65,13 @@ partida (si el rival no tiene piezas para dar mate, son tablas).
 - `motor.js`: las reglas completas (enroque, al paso, coronación, jaque mate, ahogado, 50 jugadas,
   triple repetición, material insuficiente), notación en español (R, D, T, A, C) y PGN. Funciona en el
   navegador y en Node.
-- `pixel.js`: piezas, emblema y letras en pixel art (16×16, dibujadas con letras; ver el comentario
-  del archivo para cambiar colores o formas).
+- `sprites/`: las piezas ilustradas del profe (`wp.webp`… `wk.webp` blancas, `bp.webp`… `bk.webp` negras: peón novicio,
+  torre, caballo, alfil monje con báculo, dama religiosa con corona y rey obispo con el corazón ardiente),
+  el retrato de San Agustín de los comentarios (`agustin.webp`), el emblema del corazón sobre el libro
+  (`emblema.webp`) y la tarjeta «Ajedrez San Agustín» (`tarjeta.webp`). Para cambiar una pieza basta reemplazar
+  su archivo (fondo transparente, unos 200 px de alto).
+- `pixel.js`: dibuja las piezas ilustradas a la medida exacta de la pantalla; si alguna imagen no carga, usa
+  las de pixel art de respaldo (16×16, dibujadas con letras), el emblema y las letras de las coordenadas.
 - `ajedrez.html`: tablero en canvas, menús, reloj y salas en línea.
 - `prueba-motor.js`: `node juegos/ajedrez/prueba-motor.js` (perft con posiciones conocidas y finales).
 - `ia.js`: la máquina y el análisis: alfa-beta con profundización iterativa, tabla de transposición (huella Zobrist),
