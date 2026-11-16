@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad 4 · Sesión 2 — Un canónigo polaco mueve la Tierra</title>
+<style>
+:root{
+  --navy:#1F3A44; --teal:#2E7D82; --amber:#B8791F;
+  --ink:#1d2a30; --muted:#5b6b72; --line:#d6dee1; --bg:#fbfaf7;
+  --ok:#2e7d4f; --warn:#c79a1c; --bad:#b33a3a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);overflow:hidden}
+body{font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif;font-size:clamp(16px,2.6vw,36px);line-height:1.3}
+h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;color:var(--navy);line-height:1.12}
+h1{font-size:2.3em}
+h2{font-size:1.65em;margin-bottom:.45em}
+h3{font-size:1.08em;margin-bottom:.25em}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;padding:3.2vh 5vw 9vh;display:none;flex-direction:column;justify-content:center;overflow:hidden}
+.slide.active{display:flex;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kicker{font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:.35em}
+.chip{display:inline-block;font-size:.55em;padding:.15em .6em;border:1.5px solid var(--amber);color:var(--amber);border-radius:99px;font-weight:700;vertical-align:middle;margin-left:.5em;letter-spacing:.03em}
+.card{background:#fff;border:1px solid var(--line);border-left:6px solid var(--teal);border-radius:6px;padding:.6em .9em;margin:.3em 0}
+.card.amber{border-left-color:var(--amber)}
+.card.navy{border-left-color:var(--navy)}
+.card p+p{margin-top:.3em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.8em;align-items:start}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7em;align-items:stretch}
+.big-q{font-family:Cambria,Georgia,serif;font-size:1.5em;color:var(--navy);line-height:1.2}
+ul.clean{list-style:none}
+ul.clean li{padding-left:1.1em;position:relative;margin:.22em 0}
+ul.clean li::before{content:"";position:absolute;left:0;top:.5em;width:.45em;height:.45em;background:var(--teal);border-radius:1px}
+ol.steps{padding-left:1.4em}
+ol.steps li{margin:.2em 0}
+.small{font-size:.8em;color:var(--muted)}
+.em{color:var(--amber);font-weight:700}
+.tl{color:var(--teal);font-weight:700}
+.reveal-btn{font:inherit;font-size:.7em;font-weight:700;color:#fff;background:var(--navy);border:none;border-radius:6px;padding:.35em .9em;cursor:pointer;margin-top:.5em;align-self:flex-start}
+.reveal-btn:hover{background:var(--teal)}
+.hidden{visibility:hidden;opacity:0}
+.revealable{transition:opacity .35s}
+.title-slide{background:linear-gradient(135deg,#132a32 0%,#1F3A44 60%,#2E7D82 140%);color:#fff}
+.title-slide h1{color:#fff}
+.title-slide .kicker{color:#f2c27a}
+.title-slide .sub{font-size:1.05em;opacity:.9;margin-top:.5em;max-width:28em}
+.stars{position:absolute;inset:0;pointer-events:none;opacity:.55}
+.num{font-family:Cambria,Georgia,serif;font-size:2.2em;color:var(--amber);font-weight:700;line-height:1}
+svg text{font-family:Calibri,"Segoe UI",Arial,sans-serif}
+canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block}
+.ctrls{display:flex;gap:.4em;flex-wrap:wrap;margin-top:.4em}
+.ctrls button{font:inherit;font-size:.62em;font-weight:700;padding:.3em .8em;border-radius:6px;border:1.5px solid var(--teal);background:#fff;color:var(--teal);cursor:pointer}
+.ctrls button:hover{background:var(--teal);color:#fff}
+.sema{display:grid;grid-template-columns:auto 1fr;gap:.45em .7em;align-items:center}
+.dot{width:1.3em;height:1.3em;border-radius:50%}
+.lvl h3{display:flex;align-items:center;gap:.4em}
+.lvl .tag{font-size:.6em;font-weight:700;padding:.12em .5em;border-radius:4px;color:#fff}
+.tbl{border-collapse:collapse;width:100%;font-size:.78em;background:#fff}
+.tbl th{background:var(--navy);color:#fff;text-align:left;padding:.3em .5em;font-weight:700}
+.tbl td{border-bottom:1px solid var(--line);padding:.28em .5em}
+.timeline{display:grid;grid-template-columns:repeat(9,1fr);gap:.3em;position:relative;margin-top:.8em}
+.timeline::before{content:"";position:absolute;left:0;right:0;top:.55em;height:3px;background:var(--line)}
+.tl-item{position:relative;padding-top:1.4em;font-size:.62em;line-height:1.25}
+.tl-item::before{content:"";position:absolute;top:.15em;left:0;width:.9em;height:.9em;border-radius:50%;background:var(--teal)}
+.tl-item.hl::before{background:var(--amber);width:1.1em;height:1.1em;top:.05em}
+.tl-item .yr{display:block;font-family:Cambria,Georgia,serif;font-weight:700;color:var(--navy);font-size:1.25em;margin-bottom:.2em}
+.tl-item.hl .yr{color:var(--amber)}
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;height:7vh;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 1.4vw;background:rgba(251,250,247,.94);border-top:1px solid var(--line);z-index:10;font-size:16px}
+.nav button{font:inherit;font-size:15px;font-weight:700;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:6px;padding:6px 14px;cursor:pointer}
+.nav button:hover{background:var(--navy);color:#fff}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.dots span{width:10px;height:10px;border-radius:50%;background:var(--line);cursor:pointer}
+.dots span.on{background:var(--teal)}
+.counter{color:var(--muted);font-weight:700;min-width:4.5em;text-align:center}
+.left,.right{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+<!-- 1 PORTADA -->
+<section class="slide title-slide">
+  <svg class="stars" viewBox="0 0 100 60" preserveAspectRatio="none" id="starfield"></svg>
+  <div style="position:relative">
+    <div class="kicker">Física · 2° Medio · Unidad 4: El Universo</div>
+    <h1>Un canónigo polaco<br>mueve la Tierra</h1>
+    <p class="sub">Sesión 2 — Cómo se construyó el modelo heliocéntrico</p>
+  </div>
+</section>
+
+<!-- 2 OBJETIVO -->
+<section class="slide">
+  <div class="kicker">Objetivo de la clase</div>
+  <h2>Hoy vamos a…</h2>
+  <div class="card navy"><p style="font-size:1.1em">Describir el <b>modelo heliocéntrico de Copérnico</b> y reconocer que se construyó en un <span class="em">proceso largo</span>: con ideas antiguas, problemas, cálculos, dudas, otras personas y mucha resistencia.</p></div>
+  <div class="grid3" style="margin-top:.5em">
+    <div class="card"><h3>1 · La idea</h3><p class="small">¿De dónde salió poner al Sol en el centro?</p></div>
+    <div class="card"><h3>2 · El modelo</h3><p class="small">Qué explicaba mejor… y qué no.</p></div>
+    <div class="card"><h3>3 · Comparar</h3><p class="small">Actividad: Ptolomeo vs. Copérnico.</p></div>
+  </div>
+</section>
+
+<!-- 3 ACTIVACION -->
+<section class="slide">
+  <div class="kicker">Recordemos <span class="chip">≈5 min</span></div>
+  <h2>Los puntos débiles de Ptolomeo</h2>
+  <div class="card amber"><p class="big-q" style="font-size:1.2em">En parejas: anoten <b>tres cosas</b> que el modelo geocéntrico tenía que "forzar" para funcionar.</p></div>
+  <button class="reveal-btn" data-reveal="r1">Ver respuestas</button>
+  <div class="grid3 revealable hidden" id="r1" style="margin-top:.4em">
+    <div class="card"><h3>Epiciclos</h3><p class="small">Círculos sobre círculos para explicar el movimiento retrógrado.</p></div>
+    <div class="card"><h3>Ecuante</h3><p class="small">Un punto inventado desde donde el movimiento "parece" uniforme.</p></div>
+    <div class="card"><h3>Venus y Mercurio</h3><p class="small">Siempre pegados al Sol, sin una razón dentro del modelo.</p></div>
+  </div>
+</section>
+
+<!-- 4 ARISTARCO -->
+<section class="slide">
+  <div class="kicker">Paso 0 · La idea ya existía</div>
+  <h2>Aristarco de Samos (≈270 a.C.)</h2>
+  <div class="grid2">
+    <div>
+      <ul class="clean">
+        <li>Midió ángulos entre la Luna y el Sol y concluyó que el <b>Sol era mucho más grande que la Tierra</b>.</li>
+        <li>Razonó: ¿no es raro que lo grande gire alrededor de lo pequeño? Propuso al <b>Sol en el centro</b>.</li>
+        <li>Su libro sobre esta idea se perdió. Lo sabemos porque <b>Arquímedes</b> lo mencionó.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.15em">¿Por qué se ignoró por 1.800 años?</p>
+      <p class="small" style="margin-top:.4em">Pista: revisa las tres preguntas de la clase pasada (no sentimos movimiento, la piedra cae en su lugar, no hay paralaje).</p>
+      <p style="margin-top:.4em">Una idea correcta <b>sin evidencia</b> y que choca con la física de su época no basta.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 COPERNICO -->
+<section class="slide">
+  <div class="kicker">El protagonista</div>
+  <h2>Nicolás Copérnico (1473–1543)</h2>
+  <div class="grid2">
+    <div class="card navy">
+      <ul class="clean">
+        <li>Nació en Toruń, Polonia.</li>
+        <li>Estudió en Cracovia y en Italia: astronomía, derecho y medicina.</li>
+        <li>Fue <b>canónigo</b> (administrador de la Iglesia) en Frombork. Era médico, administraba tierras y escribió sobre la moneda.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.15em">No era astrónomo de tiempo completo.</p>
+      <p style="margin-top:.4em">La astronomía la hacía en sus ratos libres, observando desde una torre y, sobre todo, <b>leyendo y calculando</b> a partir de observaciones antiguas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 EL PROBLEMA -->
+<section class="slide">
+  <div class="kicker">Paso 1 · Un problema que molesta</div>
+  <h2>¿Qué le molestaba a Copérnico?</h2>
+  <div class="grid2">
+    <div class="card amber">
+      <h3>El ecuante</h3>
+      <p>Para él, los cielos debían moverse en <b>círculos perfectos a velocidad uniforme</b>. El ecuante hacía trampa: el movimiento solo era uniforme visto desde un punto vacío.</p>
+      <p class="small" style="margin-top:.3em">Astrónomos del mundo islámico (como al-Tusi e Ibn al-Shatir) ya lo habían criticado y habían creado herramientas matemáticas que Copérnico usó.</p>
+    </div>
+    <div class="card">
+      <h3>El calendario</h3>
+      <p>El calendario estaba desfasado del Sol por varios días y la Iglesia quería corregirlo. Para eso se necesitaba medir mejor el año.</p>
+    </div>
+  </div>
+  <div class="card navy" style="margin-top:.4em"><p><b>Ojo:</b> no partió de una observación nueva. Partió de un <span class="em">problema teórico y estético</span>: el modelo le parecía feo e incoherente.</p></div>
+</section>
+
+<!-- 7 COMMENTARIOLUS -->
+<section class="slide">
+  <div class="kicker">Paso 2 · Un borrador entre amigos (≈1514)</div>
+  <h2>El <i>Commentariolus</i></h2>
+  <p>Un manuscrito corto, sin publicar, que circuló a mano entre conocidos. Planteaba supuestos como estos:</p>
+  <div class="grid2" style="margin-top:.3em">
+    <div class="card"><p><span class="tl">1.</span> La Tierra <b>no</b> es el centro del Universo; solo es el centro de la órbita de la Luna.</p></div>
+    <div class="card"><p><span class="tl">2.</span> El centro de los movimientos de los planetas está <b>cerca del Sol</b>.</p></div>
+    <div class="card"><p><span class="tl">3.</span> La Tierra <b>gira sobre sí misma</b> cada día: por eso parece que el cielo gira.</p></div>
+    <div class="card"><p><span class="tl">4.</span> Las estrellas están <b>muchísimo más lejos</b> que el Sol (por eso no se ve paralaje).</p></div>
+  </div>
+  <div class="card amber" style="margin-top:.3em"><p><span class="tl">5.</span> El movimiento retrógrado de los planetas <b>no es real</b>: es un efecto de que <b>nosotros</b> nos movemos.</p></div>
+</section>
+
+<!-- 8 RETROGRADO ANIMACION -->
+<section class="slide">
+  <div class="kicker">La gran ventaja</div>
+  <div class="grid2" style="grid-template-columns:.85fr 1.15fr;align-items:center">
+    <div>
+      <h2>El rizo sale solo</h2>
+      <ul class="clean">
+        <li>La Tierra (más cerca del Sol) da la vuelta <b>más rápido</b> que Marte.</li>
+        <li>Cuando la Tierra lo <b>adelanta</b>, Marte parece ir hacia atrás contra las estrellas.</li>
+        <li>Igual que cuando adelantas a un auto en la carretera: por un rato parece que retrocede.</li>
+      </ul>
+      <p class="small" style="margin-top:.4em">Sin epiciclos. Mira la franja de arriba: es lo que vemos desde la Tierra.</p>
+    </div>
+    <div>
+      <canvas id="helio" width="640" height="600" style="max-height:68vh;width:auto;max-width:100%;margin:0 auto"></canvas>
+      <div class="ctrls">
+        <button id="hPlay">⏸ Pausa</button>
+        <button id="hClear">Borrar rastro</button>
+        <button id="hFast">Velocidad ×2</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 VENUS -->
+<section class="slide">
+  <div class="kicker">Resolviendo el desafío de la clase pasada</div>
+  <h2>¿Por qué Venus nunca se aleja del Sol?</h2>
+  <div class="grid2" style="align-items:center">
+    <div>
+      <p>Si Venus gira en una órbita <b>más pequeña</b> que la de la Tierra, desde aquí siempre lo veremos <b>cerca del Sol</b>: nunca más allá de unos <span class="em">46–47°</span>.</p>
+      <p style="margin-top:.4em">Ptolomeo tenía que imponerlo como regla. En el modelo de Copérnico <b>es una consecuencia</b>.</p>
+      <div class="card navy" style="margin-top:.4em"><p><b>Sky Map:</b> busca a Venus y al Sol. ¿Qué tan separados están hoy?</p></div>
+    </div>
+    <svg viewBox="-170 -150 340 320" style="width:100%;max-height:62vh">
+      <circle r="140" fill="#0f2229"/>
+      <circle r="86" fill="none" stroke="#f3e2b0" stroke-dasharray="4 4"/>
+      <circle r="120" fill="none" stroke="#2E7D82" stroke-width="1.5"/>
+      <circle r="13" fill="#f2c27a"/><text x="-9" y="30" font-size="12" fill="#f2c27a">Sol</text>
+      <circle cx="0" cy="120" r="8" fill="#2E7D82"/><text x="14" y="126" font-size="12" fill="#9fd6d8">Tierra</text>
+      <line x1="0" y1="120" x2="0" y2="0" stroke="#f2c27a" stroke-width="1"/>
+      <line x1="0" y1="120" x2="-96" y2="26.7" stroke="#B8791F" stroke-width="1.6"/>
+      <line x1="0" y1="120" x2="96" y2="26.7" stroke="#B8791F" stroke-width="1.6"/>
+      <circle cx="-60" cy="61.7" r="6.5" fill="#f3e2b0"/><circle cx="60" cy="61.7" r="6.5" fill="#f3e2b0"/>
+      <text x="-104" y="50" font-size="12" fill="#f3e2b0">Venus</text>
+      <path d="M -23.7 97 A 33 33 0 0 1 23.7 97" fill="none" stroke="#f2c27a" stroke-width="2"/>
+      <text x="4" y="80" font-size="12" fill="#f2c27a">≈46°</text>
+      <text x="-50" y="-94" font-size="11" fill="#cfe7e8">órbita de Venus</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 10 ORDEN Y DISTANCIAS -->
+<section class="slide">
+  <div class="kicker">Otra ventaja: el sistema se ordena</div>
+  <h2>Ahora se pueden calcular distancias</h2>
+  <div class="grid2">
+    <div>
+      <p>Con el Sol al centro, Copérnico pudo calcular la <b>distancia de cada planeta al Sol</b> comparada con la de la Tierra, y ordenar los planetas según el tiempo que tardan en dar la vuelta.</p>
+      <p class="small" style="margin-top:.4em">En el modelo de Ptolomeo el orden de los planetas era en parte una convención: no había forma de medir esas distancias.</p>
+    </div>
+    <table class="tbl">
+      <tr><th>Planeta</th><th>Distancia al Sol (Tierra = 1)</th><th>Vuelta al Sol</th></tr>
+      <tr><td>Mercurio</td><td>0,39</td><td>3 meses</td></tr>
+      <tr><td>Venus</td><td>0,72</td><td>7,5 meses</td></tr>
+      <tr><td><b>Tierra</b></td><td><b>1</b></td><td><b>1 año</b></td></tr>
+      <tr><td>Marte</td><td>1,52</td><td>1,9 años</td></tr>
+      <tr><td>Júpiter</td><td>5,2</td><td>12 años</td></tr>
+      <tr><td>Saturno</td><td>9,5</td><td>29 años</td></tr>
+    </table>
+  </div>
+  <p class="small" style="margin-top:.3em">Valores actuales; los de Copérnico eran muy cercanos. <b>Patrón:</b> mientras más lejos, más lento.</p>
+</section>
+
+<!-- 11 30 AÑOS -->
+<section class="slide">
+  <div class="kicker">Paso 3 · Calcular… y no publicar</div>
+  <h2>Casi 30 años en un cajón</h2>
+  <div class="grid2">
+    <div class="card">
+      <p>Copérnico pasó décadas haciendo los cálculos completos: tablas para predecir la posición de cada planeta.</p>
+      <p style="margin-top:.4em">Y no publicaba. En su dedicatoria admite que temía el <b>desprecio</b> y las burlas por una idea que contradecía el sentido común.</p>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.15em">Discute con tu pareja:</p>
+      <p style="margin-top:.3em">¿Qué arriesgaba Copérnico al publicar? ¿Por qué un científico podría <b>no</b> querer mostrar una idea nueva?</p>
+    </div>
+  </div>
+</section>
+
+<!-- 12 RHETICUS -->
+<section class="slide">
+  <div class="kicker">Paso 4 · La ciencia no se hace solo</div>
+  <h2>Llega Rheticus (1539)</h2>
+  <div class="grid2">
+    <div class="card navy">
+      <p>Georg Joachim <b>Rheticus</b>, un joven profesor de matemáticas, viajó a ver a Copérnico. Se quedó unos dos años con él.</p>
+      <p style="margin-top:.4em">Publicó un <b>resumen</b> de las ideas (1540) para medir la reacción, y convenció a Copérnico de publicar el libro completo.</p>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.15em">Sin Rheticus, quizás el libro nunca se habría publicado.</p>
+      <p class="small" style="margin-top:.4em">Dato: Rheticus era luterano y Copérnico, canónigo católico, en plena época de conflicto religioso en Europa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 13 DE REVOLUTIONIBUS -->
+<section class="slide">
+  <div class="kicker">Paso 5 · Publicar (1543)</div>
+  <h2><i>Sobre las revoluciones de las esferas celestes</i></h2>
+  <div class="grid2">
+    <div>
+      <ul class="clean">
+        <li>Se imprimió en Núremberg en <b>1543</b>, dedicado al papa Pablo III.</li>
+        <li>Según la tradición, Copérnico recibió el primer ejemplar el día en que murió.</li>
+        <li>Un teólogo que supervisó la impresión, <b>Andreas Osiander</b>, agregó un prólogo <b>sin firma</b> que decía que el modelo era solo una hipótesis útil para calcular, no una descripción real.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.15em">¿Un modelo describe <span class="em">cómo es</span> el Universo, o es solo una <span class="em">herramienta para calcular</span>?</p>
+      <p class="small" style="margin-top:.4em">Es la misma pregunta de la clase pasada: ¿si un modelo predice bien, es verdadero?</p>
+    </div>
+  </div>
+</section>
+
+<!-- 14 LIMITACIONES -->
+<section class="slide">
+  <div class="kicker">Siendo honestos</div>
+  <h2>Lo que Copérnico <span class="em">no</span> resolvió</h2>
+  <div class="grid2">
+    <div class="card"><h3>Seguía con círculos perfectos</h3><p class="small">Las órbitas no son círculos (son elipses, lo descubrió Kepler en 1609). Para que calzara, Copérnico <b>también usó epiciclos</b>. No era mucho más simple.</p></div>
+    <div class="card"><h3>No predecía mejor</h3><p class="small">Las tablas basadas en su modelo no eran claramente más precisas que las de Ptolomeo.</p></div>
+    <div class="card"><h3>Sin paralaje</h3><p class="small">Tenía que suponer que las estrellas estaban a distancias enormes. No había cómo comprobarlo.</p></div>
+    <div class="card"><h3>Sin física</h3><p class="small">No explicaba por qué no sentimos el movimiento ni por qué las cosas caen. Faltaban Galileo y Newton.</p></div>
+  </div>
+</section>
+
+<!-- 15 RECEPCION -->
+<section class="slide">
+  <div class="kicker">Paso 6 · La comunidad decide (lentamente)</div>
+  <h2>¿Quién le creyó?</h2>
+  <div class="grid2">
+    <div class="card">
+      <p>Muchos astrónomos <b>usaron sus tablas</b> para calcular, pero sin creer que la Tierra se moviera de verdad.</p>
+      <p style="margin-top:.4em">60 años después de publicado, <b>muy pocos</b> aceptaban el modelo como real.</p>
+    </div>
+    <div class="card navy">
+      <p class="big-q" style="font-size:1.15em">Ponte en 1550:</p>
+      <p style="margin-top:.3em">Si el modelo nuevo <b>no predice mejor</b>, choca con lo que sientes y no tiene evidencia directa… <b>¿por qué cambiarías?</b></p>
+      <p class="small" style="margin-top:.4em">Lo que faltaba: <b>nuevas evidencias</b>. Las traerá un telescopio en 1610.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 16 LINEA DE TIEMPO -->
+<section class="slide">
+  <div class="kicker">El proceso completo</div>
+  <h2>Casi 2.000 años para mover la Tierra</h2>
+  <div class="timeline">
+    <div class="tl-item"><span class="yr">≈270 a.C.</span><p>Aristarco propone el Sol al centro</p></div>
+    <div class="tl-item"><span class="yr">≈150 d.C.</span><p>Ptolomeo: el <i>Almagesto</i></p></div>
+    <div class="tl-item"><span class="yr">s. XIII–XIV</span><p>Astrónomos islámicos critican el ecuante</p></div>
+    <div class="tl-item hl"><span class="yr">≈1514</span><p>Copérnico: <i>Commentariolus</i></p></div>
+    <div class="tl-item hl"><span class="yr">1539</span><p>Llega Rheticus</p></div>
+    <div class="tl-item hl"><span class="yr">1543</span><p><i>De revolutionibus</i></p></div>
+    <div class="tl-item"><span class="yr">1609</span><p>Kepler: órbitas elípticas</p></div>
+    <div class="tl-item"><span class="yr">1610</span><p>Galileo y el telescopio</p></div>
+    <div class="tl-item"><span class="yr">1838</span><p>Bessel mide el paralaje</p></div>
+  </div>
+</section>
+
+<!-- 17 NATURALEZA DE LA CIENCIA -->
+<section class="slide">
+  <div class="kicker">¿Qué aprendemos sobre la ciencia?</div>
+  <h2>Un modelo no aparece de golpe</h2>
+  <div class="grid3">
+    <div class="card"><h3>Ideas viejas</h3><p class="small">Copérnico retomó a Aristarco y usó matemática de astrónomos islámicos.</p></div>
+    <div class="card"><h3>Criterios no solo empíricos</h3><p class="small">Lo movió la coherencia y la belleza del modelo, no un dato nuevo.</p></div>
+    <div class="card"><h3>Personas y contexto</h3><p class="small">Miedo, amistad, religión, imprenta: todo influyó.</p></div>
+    <div class="card"><h3>Modelos imperfectos</h3><p class="small">Acertó en lo central y se equivocó en los círculos.</p></div>
+    <div class="card"><h3>Evidencia</h3><p class="small">La aceptación llegó con nuevas observaciones, no solo con argumentos.</p></div>
+    <div class="card amber"><h3>Y hoy…</h3><p class="small">Sabemos que el Sol tampoco es el centro del Universo. El conocimiento sigue cambiando.</p></div>
+  </div>
+</section>
+
+<!-- 18 ACTIVIDAD -->
+<section class="slide">
+  <div class="kicker">Actividad <span class="chip">≈30 min</span></div>
+  <h2>Ptolomeo vs. Copérnico</h2>
+  <div class="grid2">
+    <div class="card navy">
+      <h3>En parejas</h3>
+      <ol class="steps">
+        <li><b>Parte A (todos):</b> completen el cuadro comparativo.</li>
+        <li><b>Parte B:</b> elijan su nivel (Básico, Intermedio o Desafío).</li>
+        <li><b>Parte C (todos):</b> reflexión final, individual.</li>
+      </ol>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.15em">Guía en el sitio:</p>
+      <p style="margin-top:.3em">El Mundo de Felipe → 2° Medio → Física → <b>Actividad: Ptolomeo vs. Copérnico</b></p>
+      <p class="small" style="margin-top:.4em">Pueden usar estas diapositivas y las de la Sesión 1.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 19 SEMAFORO -->
+<section class="slide">
+  <div class="kicker">Cierre</div>
+  <h2>Semáforo: ¿cómo quedé?</h2>
+  <div class="card">
+    <div class="sema">
+      <div class="dot" style="background:var(--ok)"></div><p><b>Verde:</b> puedo explicar el modelo de Copérnico y contar los pasos de cómo se construyó.</p>
+      <div class="dot" style="background:var(--warn)"></div><p><b>Amarillo:</b> entiendo el modelo, pero no tengo claro por qué tardó tanto en aceptarse.</p>
+      <div class="dot" style="background:var(--bad)"></div><p><b>Rojo:</b> todavía no entiendo cómo el movimiento de la Tierra explica el retrógrado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 20 PROXIMA -->
+<section class="slide title-slide">
+  <div style="position:relative">
+    <div class="kicker">Próxima clase</div>
+    <h1 style="font-size:1.9em">Galileo apunta<br>un telescopio al cielo</h1>
+    <p class="sub">Lunas que no giran alrededor de la Tierra y un Venus con fases: por fin, evidencia nueva. Y Tycho Brahe con un modelo intermedio.</p>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <div class="left"><button id="prevBtn">◀</button><button id="nextBtn">▶</button></div>
+  <div class="dots" id="dots"></div>
+  <div class="right"><span class="counter" id="counter"></span><button id="fsBtn">⛶ Pantalla completa</button></div>
+</div>
+
+<script>
+(function(){
+  // starfield
+  var sf=document.getElementById('starfield'), s='';
+  for(var i=0;i<90;i++){var x=(Math.sin(i*12.9898)*43758.5453)%1,y=(Math.sin(i*78.233)*12345.678)%1;x=Math.abs(x)*100;y=Math.abs(y)*60;s+='<circle cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="'+(0.08+(i%4)*0.06).toFixed(2)+'" fill="#fff"/>';}
+  sf.innerHTML=s;
+
+  var slides=[].slice.call(document.querySelectorAll('.slide')), cur=0;
+  var dots=document.getElementById('dots'), counter=document.getElementById('counter');
+  slides.forEach(function(_,i){var d=document.createElement('span');d.onclick=function(){go(i)};dots.appendChild(d);});
+  function go(n){
+    cur=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach(function(sl,i){sl.classList.toggle('active',i===cur)});
+    [].forEach.call(dots.children,function(d,i){d.classList.toggle('on',i===cur)});
+    counter.textContent=(cur+1)+' / '+slides.length;
+  }
+  document.getElementById('prevBtn').onclick=function(){go(cur-1)};
+  document.getElementById('nextBtn').onclick=function(){go(cur+1)};
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(cur+1)}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1)}
+    else if(e.key==='Home'){go(0)} else if(e.key==='End'){go(slides.length-1)}
+  });
+  var tx=null;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(cur+(dx<0?1:-1));tx=null},{passive:true});
+  var fsBtn=document.getElementById('fsBtn');
+  fsBtn.onclick=function(){
+    if(!document.fullscreenElement){(document.documentElement.requestFullscreen||function(){}).call(document.documentElement)}
+    else{document.exitFullscreen()}
+  };
+  document.addEventListener('fullscreenchange',function(){fsBtn.textContent=document.fullscreenElement?'↩ Volver':'⛶ Pantalla completa'});
+
+  // reveals
+  [].forEach.call(document.querySelectorAll('.reveal-btn'),function(b){
+    b.onclick=function(){var t=document.getElementById(b.dataset.reveal);var h=t.classList.toggle('hidden');b.dataset.lbl=b.dataset.lbl||b.textContent;b.textContent=h?b.dataset.lbl:'Ocultar';};
+  });
+
+  // heliocentric retrograde animation
+  var cv=document.getElementById('helio'), cx=cv.getContext('2d');
+  var W=cv.width,H=cv.height,ox=W/2,oy=H/2+95,RE=95,RM=150;
+  var t=0,running=true,speed=1,trail=[],strip=[];
+  var wE=0.01, wM=0.01/1.88;
+  var sy=34, sx0=30, sx1=W-30;
+  function frame(){
+    if(running){t+=speed;}
+    var aE=wE*t, aM=wM*t+0.9;
+    var ex=ox+RE*Math.cos(aE), ey=oy-RE*Math.sin(aE);
+    var mx=ox+RM*Math.cos(aM), my=oy-RM*Math.sin(aM);
+    var INC=0.14, NODE=1.14;
+    var mz=RM*Math.sin(INC)*Math.sin(aM-NODE);
+    var lam=Math.atan2(-(my-ey),(mx-ex));
+    var beta=Math.atan2(mz,Math.hypot(mx-ex,my-ey));
+    if(running){
+      trail.push([ex,ey,mx,my]); if(trail.length>40)trail.shift();
+      strip.push([lam,beta]); if(strip.length>700)strip.shift();
+    }
+    cx.fillStyle='#0f2229';cx.fillRect(0,0,W,H);
+    // sky strip: 110° window centred on Mars' heliocentric direction (pans slowly)
+    var SH=130, scale=(W-40)/(Math.PI*110/180), sy0=8+SH/2, ys=SH*0.38/0.35;
+    function wx(l){var d=l-aM;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return W/2+d*scale;}
+    function wy(bb){return sy0-bb*ys;}
+    cx.fillStyle='#132d36';cx.fillRect(10,8,W-20,SH);
+    cx.save();cx.beginPath();cx.rect(10,8,W-20,SH);cx.clip();
+    cx.fillStyle='rgba(255,255,255,.55)';
+    for(var i=0;i<260;i++){var L=i*2*Math.PI/260+Math.sin(i*7.7)*0.012, x=wx(L), y=12+Math.abs(Math.sin(i*17.9))*(SH-8); if(x>10&&x<W-10)cx.fillRect(x,y,1.7,1.7);}
+    cx.strokeStyle='rgba(242,194,122,.95)';cx.lineWidth=2.5;cx.beginPath();
+    var first=true;
+    for(var j=0;j<strip.length;j++){
+      var x=wx(strip[j][0]), y=wy(strip[j][1]);
+      if(x<0||x>W){first=true;continue;}
+      if(first){cx.moveTo(x,y);first=false;}else cx.lineTo(x,y);
+    }
+    cx.stroke();
+    cx.fillStyle='#d1603d';cx.beginPath();cx.arc(wx(lam),wy(beta),8,0,7);cx.fill();
+    cx.restore();
+    cx.fillStyle='#cfe7e8';cx.font='bold 15px Calibri, Arial';cx.textAlign='left';
+    cx.fillText('Marte visto desde la Tierra, contra las estrellas',16,SH+30);
+    var dl=strip.length>2?strip[strip.length-1][0]-strip[strip.length-3][0]:1; while(dl>Math.PI)dl-=2*Math.PI; while(dl<-Math.PI)dl+=2*Math.PI;
+    var retro=dl<0;
+    cx.textAlign='right';cx.fillStyle=retro?'#ff8f7a':'#9fe0a6';
+    cx.fillText(retro?'◀ RETRÓGRADO':'AVANZA ▶',W-16,SH+30);
+    // orbits
+    cx.strokeStyle='#2E7D82';cx.lineWidth=1.5;cx.beginPath();cx.arc(ox,oy,RE,0,7);cx.stroke();
+    cx.strokeStyle='#7a3b2c';cx.beginPath();cx.arc(ox,oy,RM,0,7);cx.stroke();
+    cx.save();cx.beginPath();cx.rect(0,SH+40,W,H);cx.clip();
+    // sight lines history
+    for(var k=0;k<trail.length;k+=4){var p=trail[k];cx.strokeStyle='rgba(255,255,255,'+(0.04+0.12*k/trail.length)+')';cx.lineWidth=1;cx.beginPath();cx.moveTo(p[0],p[1]);var dx=p[2]-p[0],dy=p[3]-p[1],n=Math.hypot(dx,dy);cx.lineTo(p[0]+dx/n*320,p[1]+dy/n*320);cx.stroke();}
+    cx.strokeStyle='rgba(242,194,122,.8)';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(ex,ey);var dx=mx-ex,dy=my-ey,n=Math.hypot(dx,dy);cx.lineTo(ex+dx/n*340,ey+dy/n*340);cx.stroke();
+    cx.restore();
+    // bodies
+    cx.fillStyle='#f2c27a';cx.beginPath();cx.arc(ox,oy,16,0,7);cx.fill();
+    cx.fillStyle='#2E7D82';cx.beginPath();cx.arc(ex,ey,9,0,7);cx.fill();
+    cx.fillStyle='#d1603d';cx.beginPath();cx.arc(mx,my,8,0,7);cx.fill();
+    cx.font='bold 15px Calibri, Arial';cx.textAlign='center';
+    cx.fillStyle='#f2c27a';cx.fillText('Sol',ox,oy+34);
+    cx.fillStyle='#9fd6d8';cx.fillText('Tierra',ex,ey+24);
+    cx.fillStyle='#f3d0c4';cx.fillText('Marte',mx,my-14);
+    requestAnimationFrame(frame);
+  }
+  document.getElementById('hPlay').onclick=function(){running=!running;this.textContent=running?'⏸ Pausa':'▶ Animar'};
+  document.getElementById('hClear').onclick=function(){strip=[];trail=[]};
+  document.getElementById('hFast').onclick=function(){speed=speed===1?2:(speed===2?4:1);this.textContent='Velocidad ×'+(speed===4?1:speed*2)};
+  frame();
+  go(0);
+})();
+</script>
+</body>
+</html>

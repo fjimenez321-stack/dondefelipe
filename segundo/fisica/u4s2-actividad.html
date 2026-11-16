@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actividad: Ptolomeo vs. Copérnico · Física 2° Medio</title>
+<style>
+:root{--navy:#1F3A44;--teal:#2E7D82;--amber:#B8791F;--ink:#1d2a30;--line:#8a979c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;color:var(--ink);background:#eef1f2;font-size:15px;line-height:1.35}
+.bar{position:sticky;top:0;background:var(--navy);color:#fff;padding:8px 16px;display:flex;gap:12px;align-items:center;z-index:5}
+.bar a{color:#fff;font-size:14px}
+.bar .esp{flex:1}
+.bar button{font:inherit;font-size:14px;font-weight:700;background:var(--amber);color:#fff;border:0;border-radius:5px;padding:6px 14px;cursor:pointer}
+.page{background:#fff;max-width:820px;margin:16px auto;padding:28px 34px;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;color:var(--navy)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--navy);padding-bottom:6px;margin-bottom:10px}
+.head .inst{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.head .asig{font-size:12px;text-align:right}
+h1{font-size:22px;margin:4px 0 8px}
+.datos{display:grid;grid-template-columns:2.4fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.datos div{border-bottom:1px solid var(--line);padding-top:12px;font-size:13px}
+.obj{border:1px solid var(--line);border-left:4px solid var(--teal);padding:6px 10px;font-size:13.5px;margin-bottom:8px}
+.ins{font-size:13.5px;margin-bottom:12px}
+h2{font-size:17px;margin:14px 0 6px;border-bottom:1px solid var(--line);padding-bottom:2px}
+h2 small{font-family:Calibri,Arial,sans-serif;font-weight:400;font-size:12.5px;color:#55666c}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 6px;vertical-align:top;text-align:left}
+th{font-weight:700;background:none;border-bottom:2px solid var(--navy)}
+td.crit{width:30%;font-weight:600}
+td.w{height:44px}
+.box{border:1px solid var(--line);border-radius:3px;padding:6px 8px;min-height:70px;font-size:13px}
+.box.tall{min-height:130px}
+.box.xtall{min-height:170px}
+.box .lbl{font-weight:700;font-size:12.5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lvl{border:1.5px solid var(--navy);border-radius:4px;padding:8px 10px;margin:8px 0}
+.lvl h3{font-size:15px;margin-bottom:4px}
+.lvl h3 .tag{font-family:Calibri,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1.5px solid currentColor;border-radius:3px;padding:1px 6px;margin-right:6px;vertical-align:2px}
+.lvl p,.lvl li{font-size:13.5px}
+.lvl ol{padding-left:18px}
+.lvl ol li{margin:4px 0}
+.cls td{height:auto}
+.cls td.c{width:52px;text-align:center}
+.q{font-size:13.5px;margin:6px 0 4px}
+.sema{display:flex;gap:16px;font-size:13px;margin-top:6px;flex-wrap:wrap}
+.sema span{display:inline-flex;align-items:center;gap:6px}
+.sema i{display:inline-block;width:14px;height:14px;border-radius:50%;border:1.5px solid var(--ink)}
+.pb{break-before:page}
+.nota{font-size:12px;color:#55666c;margin-top:4px}
+@media (max-width:640px){.page{padding:16px 14px}.two{grid-template-columns:1fr}.datos{grid-template-columns:1fr}}
+@page{size:A4;margin:1.2cm}
+@media print{
+  body{background:#fff;font-size:10pt}
+  .bar{display:none}
+  .page{box-shadow:none;margin:0;padding:0;max-width:none}
+  table,.ins,.obj,.lvl p,.lvl li,.q,.box{font-size:9.5pt}
+  h1{font-size:15pt} h2{font-size:12pt;margin-top:8px}
+  td.w{height:40px}
+  .lvl{break-inside:avoid}
+  tr{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <a href="../../index.html">← El Mundo de Felipe</a>
+  <span class="esp"></span>
+  <button onclick="window.print()">🖨 Imprimir / PDF</button>
+</div>
+
+<div class="page">
+  <div class="head">
+    <div class="inst">Colegio San Agustín · Villa Alemana</div>
+    <div class="asig">Física · 2° Medio · Unidad 4: El Universo<br>Sesión 2</div>
+  </div>
+  <h1>Actividad: Ptolomeo vs. Copérnico</h1>
+  <div class="datos">
+    <div>Nombres:</div><div>Curso:</div><div>Fecha:</div>
+  </div>
+  <div class="obj"><b>Objetivo:</b> comparar el modelo geocéntrico y el heliocéntrico, reconociendo semejanzas, diferencias y el contexto histórico de cada uno (OA 13).</div>
+  <p class="ins"><b>Instrucciones:</b> trabajen en parejas. Completen la <b>Parte A</b>, elijan <b>un nivel</b> de la <b>Parte B</b> y respondan la <b>Parte C</b> de forma individual. Pueden usar las diapositivas de las Sesiones 1 y 2.</p>
+
+  <h2>Parte A · Cuadro comparativo <small>(todos)</small></h2>
+  <table>
+    <tr><th>Criterio</th><th>Geocéntrico (Ptolomeo)</th><th>Heliocéntrico (Copérnico)</th></tr>
+    <tr><td class="crit">1. Autor, lugar y época</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">2. ¿Qué hay en el centro?</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">3. ¿Se mueve la Tierra? ¿Cómo?</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">4. ¿Por qué el cielo parece girar una vez al día?</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">5. ¿Cómo explica el movimiento retrógrado de Marte?</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">6. ¿Por qué Venus y Mercurio siempre se ven cerca del Sol?</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">7. ¿Usa círculos perfectos y epiciclos?</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">8. ¿Qué pasa con el paralaje de las estrellas?</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">9. ¿Calzaba con el sentido común de la época? ¿Por qué?</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">10. Su mayor fortaleza</td><td class="w"></td><td class="w"></td></tr>
+    <tr><td class="crit">11. Su mayor debilidad</td><td class="w"></td><td class="w"></td></tr>
+  </table>
+  <p class="q"><b>12.</b> Escriban <b>dos semejanzas</b> entre ambos modelos:</p>
+  <div class="box"></div>
+
+  <h2 class="pb">Parte B · Elige tu nivel <small>(marca el que elegiste)</small></h2>
+
+  <div class="lvl">
+    <h3><span class="tag">☐ Básico</span>Clasifica y dibuja</h3>
+    <p>1. Escribe <b>G</b> (geocéntrico), <b>H</b> (heliocéntrico) o <b>A</b> (ambos) según corresponda.</p>
+    <table class="cls" style="margin-top:4px">
+      <tr><td>a) La Tierra está inmóvil en el centro del Universo.</td><td class="c"></td></tr>
+      <tr><td>b) Los planetas se mueven en círculos y usan epiciclos.</td><td class="c"></td></tr>
+      <tr><td>c) El retroceso de Marte se produce cuando la Tierra lo "adelanta".</td><td class="c"></td></tr>
+      <tr><td>d) Todo el cielo gira una vez al día alrededor de la Tierra.</td><td class="c"></td></tr>
+      <tr><td>e) No ver paralaje en las estrellas es una prueba de que la Tierra no se mueve.</td><td class="c"></td></tr>
+      <tr><td>f) Venus no se aleja del Sol porque su órbita es más pequeña que la de la Tierra.</td><td class="c"></td></tr>
+      <tr><td>g) Fue publicado en 1543, el año de la muerte de su autor.</td><td class="c"></td></tr>
+      <tr><td>h) Tiene una esfera exterior de estrellas fijas.</td><td class="c"></td></tr>
+    </table>
+    <p style="margin-top:6px">2. Dibuja cada modelo con: el centro, la Tierra, el Sol, la Luna y Marte.</p>
+    <div class="two" style="margin-top:4px"><div class="box tall"><span class="lbl">Geocéntrico</span></div><div class="box tall"><span class="lbl">Heliocéntrico</span></div></div>
+  </div>
+
+  <div class="lvl">
+    <h3><span class="tag">☐ Intermedio</span>Explica el retroceso de Marte</h3>
+    <ol>
+      <li>Dibuja y explica <b>cómo cada modelo</b> explica que Marte a veces parezca ir hacia atrás.
+        <div class="two" style="margin-top:4px"><div class="box tall"><span class="lbl">Ptolomeo</span></div><div class="box tall"><span class="lbl">Copérnico</span></div></div>
+      </li>
+      <li>Copérnico <b>no tenía ninguna observación nueva</b>. Entonces, ¿por qué propuso otro modelo? Da dos razones vistas en clase.
+        <div class="box" style="margin-top:4px"></div>
+      </li>
+    </ol>
+  </div>
+
+  <div class="lvl">
+    <h3><span class="tag">☐ Desafío</span>Consejo del calendario, año 1550</h3>
+    <p>Eres asesor/a de astronomía en 1550. Hay que elegir con qué modelo se harán los cálculos del calendario y, además, decidir cuál describe cómo es realmente el Universo.</p>
+    <ol>
+      <li>¿Qué modelo recomiendas? Argumenta con <b>dos fortalezas</b> de tu modelo, reconoce <b>una debilidad</b> y responde al <b>mejor argumento</b> del modelo contrario. Solo puedes usar lo que se sabía en 1550.
+        <div class="box xtall" style="margin-top:4px"></div>
+      </li>
+      <li>¿Qué <b>observación</b>, que todavía no se podía hacer en 1550, permitiría decidir entre ambos modelos? Explica qué resultado esperaría cada uno.
+        <div class="box" style="margin-top:4px"></div>
+      </li>
+    </ol>
+  </div>
+
+  <h2>Parte C · Reflexión <small>(individual)</small></h2>
+  <p class="q"><b>1.</b> Hoy sabemos que la Tierra gira alrededor del Sol. ¿Diría que Ptolomeo "no sabía nada" o que fue "tonto"? Justifica con lo visto en clase.</p>
+  <div class="box"></div>
+  <p class="q"><b>2.</b> ¿Qué fue necesario para que el modelo heliocéntrico se construyera y fuera aceptado? Menciona al menos tres pasos o factores.</p>
+  <div class="box"></div>
+  <p class="q"><b>Semáforo:</b> marca cómo te fue con esta actividad.</p>
+  <div class="sema"><span><i></i> Verde: lo logré solo/a</span><span><i></i> Amarillo: necesité ayuda</span><span><i></i> Rojo: todavía no lo entiendo</span></div>
+</div>
+</body>
+</html>
