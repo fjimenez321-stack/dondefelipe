@@ -290,9 +290,45 @@ const SND={
 function sonarJugada(h){if(!h)return;if(h.jaque)SND.jaque();else if(h.captura)SND.captura();else SND.mover();}
 
 /* ═════════════ tablero en canvas ═════════════ */
-const B=8, CS=16, TAM=B*2+CS*8;   // 144 píxeles lógicos
+const B=8, CS=16, TAM=B*2+CS*8;   // 144 píxeles lógicos (tablero de pixel art de respaldo)
 const cv=$('tablero'), ctx=cv.getContext('2d');
 let K=3, FONDO={};
+// Tableros ilustrados (sprites/tablero-azul.webp y tablero-rojo.webp; «-negras» trae las letras y números al revés).
+// Medidas en la imagen: 1254 × 1290 px, casillas de 118 px desde (155, 159,4).
+const TAB={w:1254,h:1290,x0:155,y0:159.39,cas:118};
+let GX=B, GY=B, GW=TAM, GH=TAM;   // dónde empieza el tablero y tamaño del lienzo, en unidades (CS = una casilla)
+const IMG_TAB={}, ESC_TAB={};
+function imgTablero(color,orient){
+  const k=color+(orient==='b'?'-negras':'');
+  if(IMG_TAB[k]!==undefined)return IMG_TAB[k]&&IMG_TAB[k].complete&&IMG_TAB[k].naturalWidth?IMG_TAB[k]:null;
+  const im=new Image();IMG_TAB[k]=im;
+  im.onload=()=>{if(!usaIlustrado){usaIlustrado=true;geometria();ajustar();imgTablero('rojo',orient);}else dibujar();};
+  im.onerror=()=>{IMG_TAB[k]=null;};
+  im.src='sprites/tablero-'+k+'.webp';
+  return null;
+}
+let usaIlustrado=false;
+function geometria(){
+  if(usaIlustrado){const s=CS/TAB.cas;GX=TAB.x0*s;GY=TAB.y0*s;GW=TAB.w*s;GH=TAB.h*s;}
+  else{GX=GY=B;GW=GH=TAM;}
+}
+// ¿Algún jugador perdió la dama? Entonces el tablero se pone rojo.
+function sinDama(e){return A.capturadas(e).w.concat(A.capturadas(e).b).some(p=>p==='Q'||p==='q');}
+function fondoIlustrado(e){
+  let color=sinDama(e)?'rojo':'azul', orient=ORIENT, im=imgTablero(color,orient);
+  // mientras carga la que corresponde, se usa la más parecida que ya esté
+  if(!im){const o=orient==='w'?'b':'w';im=IMG_TAB[color+(o==='b'?'-negras':'')]&&imgTablero(color,o);if(im)orient=o;}
+  if(!im&&color==='rojo'){im=imgTablero('azul',orient);color='azul';}
+  if(!im)return null;
+  const k=color+orient+'@'+K;
+  if(ESC_TAB[k])return ESC_TAB[k];
+  // copia achicada a la medida real (en pasos de la mitad, para que se vea nítida)
+  let src=im,w=im.naturalWidth,h=im.naturalHeight;const W=Math.round(GW*K),H=Math.round(GH*K);
+  while(w/2>W*1.2){const t=document.createElement('canvas');t.width=Math.round(w/2);t.height=Math.round(h/2);const g=t.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(src,0,0,t.width,t.height);src=t;w=t.width;h=t.height;}
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(src,0,0,W,H);
+  Object.keys(ESC_TAB).forEach(x=>{if(!x.endsWith('@'+K))delete ESC_TAB[x];});
+  return ESC_TAB[k]=c;
+}
 function hash(a,b,c,d){let h=(a*73856093)^(b*19349663)^(c*83492791)^(d*2654435761);h=(h^(h>>>13))*1274126177;return ((h^(h>>>16))>>>0)%97;}
 function fondo(orient){
   if(FONDO[orient])return FONDO[orient];
@@ -325,23 +361,24 @@ function fondo(orient){
   }
   return FONDO[orient]=f;
 }
-function xy(sq){const f=sq>>3,c=sq&7;return [B+(ORIENT==='w'?c:7-c)*CS, B+(ORIENT==='w'?7-f:f)*CS];}
+function xy(sq){const f=sq>>3,c=sq&7;return [GX+(ORIENT==='w'?c:7-c)*CS, GY+(ORIENT==='w'?7-f:f)*CS];}
 function casillaEn(ev){
   const r=cv.getBoundingClientRect();
-  const x=(ev.clientX-r.left)/r.width*TAM-B, y=(ev.clientY-r.top)/r.height*TAM-B;
+  const x=(ev.clientX-r.left)/r.width*GW-GX, y=(ev.clientY-r.top)/r.height*GH-GY;
   if(x<0||y<0||x>=CS*8||y>=CS*8)return -1;
   let c=Math.floor(x/CS), f=7-Math.floor(y/CS);
   if(ORIENT==='b'){c=7-c;f=7-f;}
   return f*8+c;
 }
 function ajustar(){
-  const ancho=Math.min($('marco').clientWidth, 640, window.innerHeight-210>300?window.innerHeight-210:640);
+  const alto=window.innerHeight-210>300?window.innerHeight-210:640;
+  const ancho=Math.min($('marco').clientWidth, 680, alto*GW/GH);
   const dpr=window.devicePixelRatio||1, lado=Math.floor(ancho);
-  // se dibuja con un tamaño entero de píxel y el navegador lo ajusta al ancho disponible
-  K=Math.max(4,Math.ceil(lado*dpr/TAM));
-  cv.width=cv.height=TAM*K;
-  cv.style.width=cv.style.height=lado+'px';
-  cv.style.imageRendering=TAM*K===lado*dpr?'pixelated':'auto';
+  // se dibuja con un tamaño entero de píxel por unidad y el navegador lo ajusta al ancho disponible
+  K=Math.max(4,Math.ceil(lado*dpr/GW));
+  cv.width=Math.round(GW*K);cv.height=Math.round(GH*K);
+  cv.style.width=lado+'px';cv.style.height=Math.round(lado*GH/GW)+'px';
+  cv.style.imageRendering=Math.round(GW*K)===lado*dpr?'pixelated':'auto';
   dibujar();
 }
 function posicionVista(){
@@ -351,7 +388,9 @@ function posicionVista(){
 function dibujar(){
   const e=posicionVista();
   ctx.setTransform(K,0,0,K,0,0);ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(fondo(ORIENT),0,0);
+  const ilus=usaIlustrado&&fondoIlustrado(e);
+  if(ilus)ctx.drawImage(ilus,0,0,GW,GH);
+  else{ctx.clearRect(0,0,GW,GH);ctx.drawImage(fondo(ORIENT),GX-B,GY-B);}
   const ult=e.historial[e.historial.length-1];
   const tinte=(sq,col)=>{const [x,y]=xy(sq);ctx.fillStyle=col;ctx.fillRect(x,y,CS,CS);};
   if(ult){tinte(ult.de,'rgba(232,180,58,.42)');tinte(ult.a,'rgba(232,180,58,.42)');}
@@ -418,7 +457,7 @@ function puedoMover(color){
 }
 
 /* ═════════════ toques y arrastre ═════════════ */
-function aLogico(ev){const r=cv.getBoundingClientRect();return [(ev.clientX-r.left)/r.width*TAM,(ev.clientY-r.top)/r.height*TAM];}
+function aLogico(ev){const r=cv.getBoundingClientRect();return [(ev.clientX-r.left)/r.width*GW,(ev.clientY-r.top)/r.height*GH];}
 cv.addEventListener('pointerdown',ev=>{
   if(ev.button>0)return;
   if(VISTA!=null){VISTA=null;pintarTodo();return;}
@@ -1561,6 +1600,7 @@ function dibujarGrafico(an,sel){
 /* ═════════════ arranque ═════════════ */
 $('logo').src='sprites/emblema.webp';$('logo').onerror=()=>{$('logo').onerror=null;$('logo').src=P.urlEmblema(48);};
 P.cargarSprites().then(n=>{if(n)pintarTodo();});
+imgTablero('azul','w');
 new ResizeObserver(ajustar).observe($('marco'));
 window.addEventListener('resize',ajustar);
 pintarTodo();

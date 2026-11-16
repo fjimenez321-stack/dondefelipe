@@ -68,7 +68,11 @@ partida (si el rival no tiene piezas para dar mate, son tablas).
 - `sprites/`: las piezas ilustradas del profe (`wp.webp`… `wk.webp` blancas, `bp.webp`… `bk.webp` negras: peón novicio,
   torre, caballo, alfil monje con báculo, dama religiosa con corona y rey obispo con el corazón ardiente),
   el retrato de San Agustín de los comentarios (`agustin.webp`), el emblema del corazón sobre el libro
-  (`emblema.webp`) y la tarjeta «Ajedrez San Agustín» (`tarjeta.webp`). Para cambiar una pieza basta reemplazar
+  (`emblema.webp`) y la tarjeta «Ajedrez San Agustín» (`tarjeta.webp`).
+  Tableros: `tablero-azul.webp` (partida normal) y `tablero-rojo.webp` (aparece cuando algún jugador pierde la dama).
+  Las versiones `-negras` tienen las letras y los números en orden inverso, para quien ve el tablero desde las negras.
+  Las imágenes del profe se estiraron un 3 % a lo alto para que las casillas queden cuadradas (118 px, desde x 155,
+  y 159,4); si se cambia un tablero, mantener esas medidas o actualizar `TAB` en `ajedrez.html`. Para cambiar una pieza basta reemplazar
   su archivo (fondo transparente, unos 200 px de alto).
 - `pixel.js`: dibuja las piezas ilustradas a la medida exacta de la pantalla; si alguna imagen no carga, usa
   las de pixel art de respaldo (16×16, dibujadas con letras), el emblema y las letras de las coordenadas.
