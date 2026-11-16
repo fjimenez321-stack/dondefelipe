@@ -622,7 +622,7 @@ async function mostrarFin(r){
   const analizar=E.historial.length>=2?`<button class="btn verde" data-r="analizar">📖 Analizar con San Agustín</button>`:'';
   const res=await ventana(`<h3>${tit}</h3><div class="sub">${esc(A.MOTIVOS[r.motivo]||'')}</div><div class="fin-ico">${ico}</div>
     <p style="text-align:center">${r.motivo==='anulada'?'Se anuló antes de la segunda jugada.':r.motivo==='disputa'?'Un equipo detectó una jugada no válida. El profe revisará la partida.':gan}</p>
-    ${MODO==='linea'?textoApuestaFin(r):''}${MODO==='maquina'&&r.ganador===MAQ.color?'<p style="text-align:center">🎉 ¡Le ganaste a la máquina!</p>':''}
+    ${MODO==='linea'?textoApuestaFin(r):''}${notaRanking(r)}${MODO==='maquina'&&r.ganador===MAQ.color?'<p style="text-align:center">🎉 ¡Le ganaste a la máquina!</p>':''}
     <div class="pie">${analizar}${botones}</div>`);
   cerrar();
   if(res==='analizar')return analizarPartida();
@@ -1491,6 +1491,17 @@ function htmlApuesta(d){
     const g=gatitoInfo(ap[c].gatito);return `<div><img src="${g.img}" alt="">${esc(g.nombre)}<br><small style="color:${g.color}">${NOMBRE_COLOR[c]}</small></div>`;};
   return `<div class="aviso oro">🐱 Apuesta de gatitos: quien gane se lleva los dos.<div class="apuesta-vs">${lado('w')}<b>VS</b>${lado('b')}</div>
     ${d.estado==='jugando'&&MI_COLOR&&(d.jugadas||[]).length<2?'<small>¿No te parece justo? Puedes anular antes de la segunda jugada y cada uno recupera su gatito.</small>':''}</div>`;
+}
+// Explica si la partida suma (o no) al ranking de victorias.
+function notaRanking(r){
+  const n=E.historial.length;
+  if(MODO==='maquina')return '<p class="notas" style="text-align:center">🏆 Práctica: las partidas contra la máquina no suman al ranking.</p>';
+  if(MODO==='local')return '<p class="notas" style="text-align:center">🏆 Para sumar al ranking, juega en línea contra otra persona.</p>';
+  if(MODO==='linea'&&MI_COLOR&&r.ganador===MI_COLOR){
+    if(n<20)return `<p class="notas" style="text-align:center">🏆 Esta victoria no suma al ranking: se necesitan al menos 10 jugadas de cada uno (hubo ${n}).</p>`;
+    return '<p class="notas" style="text-align:center">🏆 ¡Suma 1 victoria al ranking!</p>';
+  }
+  return '';
 }
 function textoApuestaFin(r){
   const d=SALA,c=MI_COLOR;

@@ -119,6 +119,9 @@ service cloud.firestore {
         && (p <= antes || p - antes <= reglaJuego(j).ritmo * minutosJugando(j));
     }
     function antesRanking(j) { return exists(rutaMejor(j)) ? get(rutaMejor(j)).data.puntaje : 0; }
+    // El récord anterior se calcula aquí dentro (con «let»): pasado directo como argumento,
+    // antesRanking(request.resource.data.juego) hacía fallar la regla y no se guardaba ningún puntaje.
+    function puntajeNuevoCreible(j, p) { let antes = antesRanking(j); return puntajeCreible(j, antes, p); }
 
     // Inicio de partida: lo escribe la página del juego al abrirse (hora del servidor).
     match /partidas/{pid} {
@@ -143,7 +146,7 @@ service cloud.firestore {
         && idJuego(request.resource.data.juego)
         && texto(request.resource.data.nombre, 80) && nombreDeCuenta(request.resource.data.nombre)
         && texto(request.resource.data.curso, 40)
-        && puntajeCreible(request.resource.data.juego, antesRanking(request.resource.data.juego), request.resource.data.puntaje)
+        && puntajeNuevoCreible(request.resource.data.juego, request.resource.data.puntaje)
         && request.resource.data.extra is map && request.resource.data.extra.size() <= 20
         && request.resource.data.fecha == request.time;
       allow delete: if esProfe() || esDueno();
