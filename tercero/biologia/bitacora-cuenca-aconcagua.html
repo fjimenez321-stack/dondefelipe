@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b2a2a">
+<title>Bitácora de investigación · Cuenca del Aconcagua</title>
+<link rel="icon" type="image/png" sizes="192x192" href="../../icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#10272b;--muted:#4f6a70;--teal:#0f7a74;--teal-2:#0a5b57;--deep:#0d3637;--mint:#9bd3c4;--sun:#e3a94f;
+  --paper:rgba(252,250,243,.94);--line:#d5e2dc;--wash:#eef5f1;--ok:#2f8f5b;--warn:#c0622f;
+  --c1:#2f8f5b;--c2:#1f7fb3;--c3:#8a5a2b;--c4:#c0622f;--c5:#7a4fa0;--c6:#55707a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'DM Sans',system-ui,sans-serif;color:var(--ink);background:#0b2a2a;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ═══════════ BOSQUE (fondo) ═══════════ */
+.bosque{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  background:linear-gradient(180deg,#0b2a2a 0%,#154a45 28%,#4f9b85 58%,#b8d9c0 100%)}
+.bosque .sol{position:absolute;left:68%;top:9%;width:min(26vw,170px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,#fff5d6 0%,#f5d58a 35%,rgba(245,213,138,0) 72%);opacity:.9}
+.bosque .capa{position:absolute;left:0;right:0;bottom:0;width:100%;height:auto;will-change:transform}
+.bosque .niebla{position:absolute;left:-10%;right:-10%;height:28vh;bottom:18vh;
+  background:radial-gradient(ellipse at 30% 60%,rgba(255,255,255,.28),transparent 60%),radial-gradient(ellipse at 75% 40%,rgba(255,255,255,.22),transparent 55%);
+  filter:blur(18px);animation:niebla 26s ease-in-out infinite alternate}
+@keyframes niebla{from{transform:translateX(-3%)}to{transform:translateX(3%)}}
+.bosque .luz{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff6c8;box-shadow:0 0 10px 3px rgba(255,240,180,.6);opacity:0;animation:luz 7s ease-in-out infinite}
+@keyframes luz{0%,100%{opacity:0;transform:translateY(0)}20%{opacity:.9}50%{opacity:.4;transform:translateY(-22px) translateX(8px)}80%{opacity:.8}}
+@media (prefers-reduced-motion:reduce){.bosque *{animation:none!important}}
+
+/* ═══════════ PÁGINA ═══════════ */
+.pagina{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:18px 14px 90px}
+.cabecera{color:#eef7f2;padding:14px 6px 18px;text-shadow:0 2px 14px rgba(0,0,0,.35)}
+.cabecera .eyebrow{font:500 11px 'DM Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mint)}
+.cabecera h1{font:800 clamp(30px,7vw,52px)/1 Manrope,'DM Sans',sans-serif;letter-spacing:-.045em;margin:10px 0 8px}
+.cabecera h1 em{font-style:normal;color:#ffd98a}
+.cabecera p{margin:0;max-width:560px;font-size:15px;line-height:1.5;color:#d6e9e0}
+.cabecera a{color:#ffd98a}
+
+/* árbol de progreso */
+.progreso{display:flex;align-items:center;gap:14px;margin:16px 0 4px;background:rgba(10,42,42,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:10px 14px;color:#eef7f2}
+.progreso svg{width:64px;height:64px;flex:none}
+.progreso b{font:700 18px Manrope,'DM Sans',sans-serif;display:block}
+.progreso small{color:#cfe6dc;font-size:12.5px}
+.barra{height:8px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:6px}
+.barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mint),#ffd98a);border-radius:99px;transition:width .5s}
+
+/* paneles tipo cuaderno */
+.hoja{background:var(--paper);border-radius:20px;padding:20px 18px;margin-top:16px;box-shadow:0 14px 40px -18px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.6) inset;position:relative}
+.hoja::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:4px;border-radius:0 4px 4px 0;background:var(--tono,var(--teal))}
+.hoja h2{font:800 22px/1.1 Manrope,'DM Sans',sans-serif;letter-spacing:-.03em;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+.hoja h2 .mom{font:500 10px 'DM Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--tono,var(--teal));border-radius:99px;padding:4px 9px}
+.hoja .sub{margin:0 0 14px;color:var(--muted);font-size:13.5px;line-height:1.45}
+.campo{margin:12px 0}
+.campo label,.campo .lbl{display:block;font:700 13.5px Manrope,'DM Sans',sans-serif;margin-bottom:5px}
+.campo label small,.campo .lbl small{font:400 12px 'DM Sans',sans-serif;color:var(--muted);display:block;margin-top:2px}
+.campo input[type=text],.campo input[type=time],.campo textarea,.campo select{width:100%;font:15px 'DM Sans',sans-serif;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;outline:none;transition:border-color .15s,box-shadow .15s}
+.campo textarea{min-height:76px;resize:vertical;line-height:1.45}
+.campo :is(input,textarea,select):focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,122,116,.15)}
+.campo :is(input,textarea,select).lleno{border-color:#9ccbb9;background:#f7fcf9}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cuenta{font:500 11px 'DM Mono',monospace;color:var(--muted);text-align:right;margin-top:3px}
+.cuenta.ok{color:var(--ok)}.cuenta.mal{color:var(--warn)}
+.pista{font-size:12.5px;color:var(--teal-2);background:var(--wash);border-radius:10px;padding:8px 11px;margin-top:8px;line-height:1.45}
+.pista b{font-family:'DM Mono',monospace;font-weight:500;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+
+/* preguntas (chips) */
+.preg{display:grid;grid-template-columns:1fr;gap:8px}
+.preg label{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1.5px solid var(--line);border-left:5px solid var(--c);border-radius:12px;padding:10px 12px;cursor:pointer;font:400 13.5px 'DM Sans',sans-serif;line-height:1.35}
+.preg label b{display:block;font:700 13.5px Manrope,'DM Sans',sans-serif}
+.preg label small{font:500 10px 'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--c)}
+.preg input{margin-top:3px;accent-color:var(--teal)}
+.preg label:has(input:checked){border-color:var(--c);background:#f5fbf8;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 18%,transparent)}
+.p1{--c:var(--c1)}.p2{--c:var(--c2)}.p3{--c:var(--c3)}.p4{--c:var(--c4)}.p5{--c:var(--c5)}.p6{--c:var(--c6)}
+
+/* puntos de observación */
+.punto{border:1.5px solid var(--line);border-radius:16px;padding:14px 14px 6px;margin:12px 0;background:#fff;position:relative}
+.punto .pn{position:absolute;top:-11px;left:14px;background:var(--sun);color:#1b1b1b;font:700 12px/22px Manrope,'DM Sans',sans-serif;border-radius:99px;padding:0 10px}
+.punto .campo{margin:8px 0}
+.btn{font:700 14px Manrope,'DM Sans',sans-serif;border:0;border-radius:12px;padding:11px 16px;cursor:pointer;background:var(--teal);color:#fff;box-shadow:0 6px 16px -8px rgba(15,122,116,.8)}
+.btn.sec{background:#fff;color:var(--teal-2);border:1.5px solid var(--line);box-shadow:none}
+.btn.chico{font-size:13px;padding:8px 12px}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+
+/* rúbrica */
+.rub{width:100%;border-collapse:collapse;font-size:13px}
+.rub th{text-align:left;font:500 10px 'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 4px;border-bottom:1.5px solid var(--line)}
+.rub td{padding:8px 4px;border-bottom:1px solid #e6eeea;vertical-align:middle}
+.rub td:first-child{font:700 13px Manrope,'DM Sans',sans-serif}
+.rub td:first-child small{display:block;font:400 11.5px 'DM Sans',sans-serif;color:var(--muted)}
+.niv{display:flex;gap:4px;justify-content:flex-end}
+.niv label{width:34px;height:32px;border-radius:9px;border:1.5px solid var(--line);display:grid;place-items:center;font:700 13px 'DM Mono',monospace;cursor:pointer;background:#fff;color:var(--muted)}
+.niv input{display:none}
+.niv label:has(input:checked){background:var(--teal);color:#fff;border-color:var(--teal)}
+.total{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font:700 16px Manrope,'DM Sans',sans-serif}
+.total span{font:700 22px 'DM Mono',monospace;color:var(--teal)}
+
+/* pie fijo */
+.pie{position:fixed;left:0;right:0;bottom:0;z-index:2;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(10,42,42,.75);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.12)}
+.pie .btn{box-shadow:none}
+.pie .estado{color:#cfe6dc;font-size:12px;align-self:center}
+
+/* checklist de etapa */
+.lista{display:grid;gap:6px;margin-top:10px}
+.lista label{display:flex;gap:9px;align-items:center;font-size:13.5px;cursor:pointer}
+.lista input{accent-color:var(--teal);width:17px;height:17px}
+
+@media(min-width:700px){.pagina{padding:28px 20px 100px}.hoja{padding:26px 28px}.preg{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.fila{grid-template-columns:1fr}}
+
+/* ═══════════ IMPRESIÓN ═══════════ */
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  body{background:#fff}
+  .bosque,.pie,.progreso,.acciones,.btn,.ag-chip{display:none!important}
+  .pagina{max-width:none;padding:0}
+  .cabecera{color:var(--ink);text-shadow:none;padding:0 0 8px}
+  .cabecera .eyebrow{color:var(--teal)}.cabecera h1 em{color:var(--teal)}.cabecera p{color:var(--muted)}
+  .hoja{box-shadow:none;border:1px solid #c9d8d2;break-inside:avoid;background:#fff;page-break-inside:avoid;margin-top:10px;padding:14px 16px}
+  .campo textarea,.campo input,.campo select{border:1px solid #bbb;background:#fff}
+  .campo textarea{min-height:60px}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ BOSQUE ═══════════ -->
+<div class="bosque" aria-hidden="true">
+  <div class="sol"></div>
+  <svg class="capa" id="cordillera" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice" style="height:78vh"></svg>
+  <div class="niebla"></div>
+  <svg class="capa" id="lejos" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" style="height:60vh"></svg>
+  <svg class="capa" id="medio" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" style="height:52vh"></svg>
+  <svg class="capa" id="cerca" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice" style="height:44vh"></svg>
+  <div id="luces"></div>
+</div>
+
+<div class="pagina">
+<header class="cabecera">
+  <div class="eyebrow">3° Medio · Biología de los Ecosistemas · Salida a la cuenca del Aconcagua</div>
+  <h1>Bitácora de <em>investigación</em></h1>
+  <p>Aquí registras tu investigación completa: antes, durante y después de la salida. Se guarda sola en este navegador y, si entras con tu cuenta, también en tu cuenta para que tu docente pueda revisarla. Sigue el método de la <a href="salida-cuenca-aconcagua.html" target="_blank" rel="noopener">guía de la salida</a>.</p>
+  <div class="progreso">
+    <svg id="arbol" viewBox="0 0 64 64" aria-hidden="true"></svg>
+    <div style="flex:1"><b id="pTxt">Tu bitácora recién germina</b><small id="pSub">0 de 0 campos completados</small><div class="barra"><i id="pBar"></i></div></div>
+  </div>
+</header>
+
+<!-- ═══════════ EQUIPO ═══════════ -->
+<section class="hoja" style="--tono:#55707a">
+  <h2>Equipo</h2>
+  <p class="sub">Quiénes investigan y quién hace qué. Cada integrante tiene un rol; el registro es de todos.</p>
+  <div class="fila">
+    <div class="campo"><label for="b-curso">Curso</label><input type="text" id="b-curso" data-k="curso" placeholder="3° Medio A"></div>
+    <div class="campo"><label for="b-equipo">Nombre del equipo</label><input type="text" id="b-equipo" data-k="equipo" placeholder="Los Juncalillos"></div>
+  </div>
+  <div class="campo"><label for="b-integrantes">Integrantes y roles<small>Ej.: Camila (registro), Benjamín (fotos), Sofía (dibujo y mapa)</small></label><textarea id="b-integrantes" data-k="integrantes"></textarea></div>
+</section>
+
+<!-- ═══════════ ANTES ═══════════ -->
+<section class="hoja" style="--tono:var(--c1)">
+  <h2><span class="mom">A · Antes</span> Pregunta y variables</h2>
+  <p class="sub">En clase, antes del viaje. Elige una pregunta que compare dos situaciones; así sabrás qué observar.</p>
+  <div class="campo"><div class="lbl">Pregunta elegida</div>
+    <div class="preg">
+      <label class="p1"><input type="radio" name="pregunta" data-k="pregunta" value="01 Ecología"><div><small>01 · Ecología</small><b>¿Hay más vida cerca del agua que en las laderas secas?</b></div></label>
+      <label class="p2"><input type="radio" name="pregunta" data-k="pregunta" value="02 Agua y geografía"><div><small>02 · Agua y geografía</small><b>¿Qué camino sigue el agua de deshielo?</b></div></label>
+      <label class="p3"><input type="radio" name="pregunta" data-k="pregunta" value="03 Ingeniería"><div><small>03 · Ingeniería</small><b>¿Cómo manejan el agua las obras del camino?</b></div></label>
+      <label class="p4"><input type="radio" name="pregunta" data-k="pregunta" value="04 Física"><div><small>04 · Física</small><b>¿Dónde se conserva más la nieve: sol o sombra, suelo claro u oscuro?</b></div></label>
+      <label class="p5"><input type="radio" name="pregunta" data-k="pregunta" value="05 Agua y sociedad"><div><small>05 · Agua y sociedad</small><b>¿Cómo cambia el uso del agua desde el valle hasta la alta montaña?</b></div></label>
+      <label class="p6"><input type="radio" name="pregunta" data-k="pregunta" value="06 Pregunta propia"><div><small>06 · Tu pregunta</small><b>Pregunta propia (aprobada por tu docente antes del viaje)</b></div></label>
+    </div>
+  </div>
+  <div class="campo"><label for="b-pregunta-texto">Escribe la pregunta con tus palabras<small>Clara, delimitada y posible de responder en esta salida.</small></label><textarea id="b-pregunta-texto" data-k="pregunta-texto" placeholder="¿Hay más nieve a la sombra que al sol en el mismo sector?"></textarea></div>
+  <div class="campo"><label for="b-comparo">¿Qué comparo?<small>Las dos situaciones (variable que cambia).</small></label><input type="text" id="b-comparo" data-k="comparo" placeholder="Lugares al sol / lugares a la sombra"></div>
+  <div class="fila">
+    <div class="campo"><label for="b-observo">¿Qué observo como resultado?</label><input type="text" id="b-observo" data-k="observo" placeholder="Cantidad y estado de la nieve"></div>
+    <div class="campo"><label for="b-mantengo">¿Qué mantengo igual?</label><input type="text" id="b-mantengo" data-k="mantengo" placeholder="Mismo sector, misma hora, misma altura"></div>
+  </div>
+  <div class="campo"><label for="b-hipotesis">Hipótesis: ¿qué espero encontrar y por qué?<small>Escríbela antes de ir. Después la contrastarás con la evidencia.</small></label><textarea id="b-hipotesis" data-k="hipotesis" placeholder="A la sombra habrá más nieve, porque recibe menos radiación directa y se derrite más lento."></textarea></div>
+  <div class="campo"><div class="lbl">Lista de preparación</div>
+    <div class="lista">
+      <label><input type="checkbox" data-k="prep-aprobada"> La pregunta está aprobada por el docente</label>
+      <label><input type="checkbox" data-k="prep-roles"> Repartimos roles: registro, fotos, dibujo, mapa</label>
+      <label><input type="checkbox" data-k="prep-materiales"> Llevamos cuaderno, lápiz, celular con batería y abrigo</label>
+      <label><input type="checkbox" data-k="prep-seguridad"> Sabemos la regla: siempre a la vista del docente, lejos de bordes de agua, hielo y pendientes</label>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DURANTE ═══════════ -->
+<section class="hoja" style="--tono:var(--c2)">
+  <h2><span class="mom">B · Durante</span> Puntos de observación</h2>
+  <p class="sub">En terreno, en 2–3 puntos seguros. Anota primero <b>lo que ves</b>; la interpretación va después. Registra sin intervenir el lugar.</p>
+  <div id="puntos"></div>
+  <div class="acciones"><button type="button" class="btn sec chico" id="masPunto">+ Agregar punto de observación</button></div>
+  <div class="pista"><b>Fotos y dibujos</b> · Las fotos quedan en el celular del equipo. Aquí anota solo su número o nombre (ej. "foto 3, sombra de la roca") para poder citarlas en la presentación.</div>
+</section>
+
+<!-- ═══════════ DESPUÉS ═══════════ -->
+<section class="hoja" style="--tono:var(--c4)">
+  <h2><span class="mom">C · Después</span> Discusión y conclusión</h2>
+  <p class="sub">En clase. Comparen registros, busquen un patrón y contrasten con la hipótesis.</p>
+  <div class="campo"><label for="b-patron">¿Qué patrón muestran las evidencias?<small>Junta lo que registraron en todos los puntos.</small></label><textarea id="b-patron" data-k="patron" placeholder="En los 3 puntos, el lado a la sombra tenía más nieve que el lado al sol."></textarea></div>
+  <div class="campo"><label for="b-otras-causas">¿Qué otras causas podrían explicar lo mismo?</label><textarea id="b-otras-causas" data-k="otras-causas" placeholder="La pendiente o el viento también podrían influir; no los controlamos."></textarea></div>
+  <div class="campo"><label for="b-limites">Límites de la investigación<small>Qué faltó, qué no pudieron medir, qué harían distinto.</small></label><textarea id="b-limites" data-k="limites"></textarea></div>
+  <div class="campo"><div class="lbl">¿La evidencia apoyó la hipótesis?</div>
+    <div class="preg" style="grid-template-columns:repeat(3,1fr)">
+      <label class="p1"><input type="radio" name="apoyo" data-k="apoyo" value="Sí"><div><b>Sí</b></div></label>
+      <label class="p4"><input type="radio" name="apoyo" data-k="apoyo" value="En parte"><div><b>En parte</b></div></label>
+      <label class="p6"><input type="radio" name="apoyo" data-k="apoyo" value="No"><div><b>No</b></div></label>
+    </div>
+  </div>
+  <div class="campo"><label for="b-conclusion">Conclusión<small>Responde la pregunta usando las evidencias. ¿Qué investigarías después?</small></label><textarea id="b-conclusion" data-k="conclusion"></textarea></div>
+  <div class="pista" style="margin:14px 0 6px"><b>Síntesis 2+8</b> · Cierra tu presentación con un título de 2 palabras y una frase de exactamente 8 palabras.</div>
+  <div class="fila">
+    <div class="campo"><label for="b-titulo2">Título (2 palabras)</label><input type="text" id="b-titulo2" data-k="titulo2" data-palabras="2" placeholder="Nieve resistente"><div class="cuenta" data-cuenta="b-titulo2">0 / 2 palabras</div></div>
+    <div class="campo"><label for="b-frase8">Frase (8 palabras)</label><input type="text" id="b-frase8" data-k="frase8" data-palabras="8" placeholder="La sombra conserva nieve y retrasa el deshielo."><div class="cuenta" data-cuenta="b-frase8">0 / 8 palabras</div></div>
+  </div>
+</section>
+
+<!-- ═══════════ AUTOEVALUACIÓN ═══════════ -->
+<section class="hoja" style="--tono:var(--c5)">
+  <h2>Autoevaluación del equipo</h2>
+  <p class="sub">Antes de entregar, marquen el nivel que mejor describe su trabajo en cada criterio (4 sólido · 3 logrado · 2 en proceso · 1 inicial). Es la misma rúbrica con la que evaluará tu docente.</p>
+  <table class="rub"><thead><tr><th>Criterio</th><th style="text-align:right">Nivel</th></tr></thead><tbody id="rubrica"></tbody></table>
+  <div class="total">Puntaje autoevaluado <span id="rubTotal">0 / 28</span></div>
+  <div class="campo" style="margin-top:14px"><label for="b-comentario">Comentario del equipo para el docente<small>Dudas, qué les costó, qué les gustaría mejorar.</small></label><textarea id="b-comentario" data-k="comentario"></textarea></div>
+</section>
+
+<section class="hoja" style="--tono:var(--teal)">
+  <h2>Entrega</h2>
+  <p class="sub">Tu docente ve esta bitácora desde su panel si entraste con tu cuenta (botón arriba a la derecha). Si no, descárgala en PDF o copia el texto y pégalo donde te indiquen.</p>
+  <div class="acciones">
+    <button type="button" class="btn" onclick="window.print()">Descargar / imprimir PDF</button>
+    <button type="button" class="btn sec" id="copiar">Copiar todo el texto</button>
+    <button type="button" class="btn sec" id="borrar">Empezar de nuevo</button>
+  </div>
+</section>
+</div>
+
+<div class="pie">
+  <button type="button" class="btn chico" onclick="window.print()">PDF</button>
+  <button type="button" class="btn sec chico" id="copiar2">Copiar texto</button>
+  <span class="estado" id="estado">Se guarda solo en este navegador</span>
+</div>
+
+<script>
+(function () {
+'use strict';
+var PREFIJO = 'bitacora-aconcagua-';
+function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} return null; }
+function $(s, r) { return (r || document).querySelector(s); }
+function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+
+/* ───────── BOSQUE: capas generadas ───────── */
+function rnd(seed) { var s = seed; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+function cordillera() {
+  var r = rnd(7), p = 'M0 600 L0 330', x = 0;
+  while (x < 1600) { x += 60 + r() * 90; p += ' L' + x + ' ' + (180 + r() * 170); }
+  p += ' L1600 600 Z';
+  var nieve = '';
+  var pts = p.match(/L[\d.]+ [\d.]+/g).slice(1, -1).map(function (s) { var a = s.slice(1).split(' '); return [+a[0], +a[1]]; });
+  pts.forEach(function (q) { if (q[1] < 250) nieve += '<path d="M' + (q[0] - 26) + ' ' + (q[1] + 34) + ' L' + q[0] + ' ' + q[1] + ' L' + (q[0] + 26) + ' ' + (q[1] + 34) + ' q-13 -8 -26 2 q-13 -12 -26 -2 z" fill="#f2f7f3" opacity=".9"/>'; });
+  $('#cordillera').innerHTML = '<path d="' + p + '" fill="#2f5e5a"/>' + nieve + '<path d="M0 600 L0 420 Q400 360 800 440 T1600 400 L1600 600 Z" fill="#3a7a6a"/>';
+}
+function arboles(id, n, color, color2, minH, maxH, seed) {
+  var r = rnd(seed), out = '', i;
+  out += '<rect x="0" y="470" width="1600" height="30" fill="' + color + '"/>';
+  for (i = 0; i < n; i++) {
+    var x = r() * 1600, h = minH + r() * (maxH - minH), w = h * (0.32 + r() * 0.18), y = 480, k;
+    var tipo = r();
+    if (tipo < .7) { // conífera: 3 triángulos
+      for (k = 0; k < 3; k++) { var hy = y - h * (k * 0.3), hw = w * (1 - k * 0.22), hh = h * 0.5;
+        out += '<path d="M' + (x - hw / 2) + ' ' + hy + ' L' + x + ' ' + (hy - hh) + ' L' + (x + hw / 2) + ' ' + hy + ' Z" fill="' + (k % 2 ? color2 : color) + '"/>'; }
+      out += '<rect x="' + (x - w * .05) + '" y="' + (y - 4) + '" width="' + (w * .1) + '" height="14" fill="' + color + '"/>';
+    } else { // esclerófilo: copa redonda
+      out += '<rect x="' + (x - w * .06) + '" y="' + (y - h * .45) + '" width="' + (w * .12) + '" height="' + (h * .5) + '" fill="' + color + '"/>';
+      out += '<ellipse cx="' + x + '" cy="' + (y - h * .55) + '" rx="' + (w * .55) + '" ry="' + (h * .32) + '" fill="' + color2 + '"/>';
+      out += '<ellipse cx="' + (x - w * .25) + '" cy="' + (y - h * .45) + '" rx="' + (w * .38) + '" ry="' + (h * .22) + '" fill="' + color + '"/>';
+    }
+  }
+  $(id).innerHTML = out;
+}
+cordillera();
+arboles('#lejos', 70, '#1f5a52', '#276a5f', 90, 170, 3);
+arboles('#medio', 55, '#143f3b', '#1a4f48', 120, 230, 11);
+arboles('#cerca', 36, '#0b2a2a', '#10352f', 170, 300, 23);
+(function luces() { var h = '', r = rnd(5); for (var i = 0; i < 14; i++) h += '<i class="luz" style="left:' + (r() * 100) + '%;bottom:' + (8 + r() * 30) + 'vh;animation-delay:' + (r() * 7) + 's"></i>'; $('#luces').innerHTML = h; })();
+// parallax suave
+var capas = [[$('#cordillera'), .08], [$('#lejos'), .16], [$('#medio'), .26], [$('#cerca'), .4]];
+function parallax() { var y = window.scrollY || 0; capas.forEach(function (c) { c[0].style.transform = 'translateY(' + (y * c[1]) + 'px)'; }); }
+window.addEventListener('scroll', parallax, { passive: true }); parallax();
+
+/* ───────── PUNTOS DE OBSERVACIÓN ───────── */
+var CAMPOS_PUNTO = [
+  ['lugar', 'Lugar', 'text', 'Ej.: mirador 2, al lado de la roca grande'],
+  ['hora', 'Hora', 'time', ''],
+  ['situacion', 'Situación que comparo', 'text', 'Ej.: lado a la sombra'],
+  ['observacion', 'Observación (lo que veo)', 'textarea', 'La nieve cubre todo el suelo; hay musgo verde en la base de la roca.'],
+  ['evidencia', 'Evidencia (foto / dibujo n.º)', 'text', 'foto 3, dibujo 1'],
+  ['pregunta-nueva', 'Pregunta nueva que surgió', 'text', '']
+];
+function pintarPuntos() {
+  var n = Math.max(2, Math.min(6, +ls(PREFIJO + 'n-puntos') || 3)), h = '';
+  for (var i = 1; i <= n; i++) {
+    h += '<div class="punto"><span class="pn">P' + i + '</span>';
+    CAMPOS_PUNTO.forEach(function (c) {
+      var k = 'p' + i + '-' + c[0], id = 'b-' + k;
+      h += '<div class="campo"><label for="' + id + '">' + c[1] + '</label>' +
+        (c[2] === 'textarea' ? '<textarea id="' + id + '" data-k="' + k + '" placeholder="' + c[3] + '"></textarea>' : '<input type="' + c[2] + '" id="' + id + '" data-k="' + k + '" placeholder="' + c[3] + '">') + '</div>';
+    });
+    h += '</div>';
+  }
+  $('#puntos').innerHTML = h;
+  cargar(); actualizar();
+}
+$('#masPunto').addEventListener('click', function () { var n = Math.max(2, +ls(PREFIJO + 'n-puntos') || 3); if (n >= 6) return; ls(PREFIJO + 'n-puntos', String(n + 1)); pintarPuntos(); });
+
+/* ───────── RÚBRICA ───────── */
+var CRITERIOS = [
+  ['Pregunta y variables', 'Pasos 01–02'], ['Hipótesis', 'Paso 03'], ['Rigurosidad de las evidencias', 'Paso 04'],
+  ['Discusión y conclusión', 'Pasos 05–06'], ['Comunicación', 'Presentación + síntesis 2+8'], ['Calidad visual', 'Fotos, dibujos, mapas'], ['Participación y trabajo en equipo', 'Todas las etapas']
+];
+$('#rubrica').innerHTML = CRITERIOS.map(function (c, i) {
+  var k = 'rub-' + (i + 1);
+  return '<tr><td>' + c[0] + '<small>' + c[1] + '</small></td><td><div class="niv">' + [4, 3, 2, 1].map(function (v) {
+    return '<label><input type="radio" name="' + k + '" data-k="' + k + '" value="' + v + '">' + v + '</label>';
+  }).join('') + '</div></td></tr>';
+}).join('');
+
+/* ───────── GUARDAR / CARGAR ───────── */
+function campos() { return $$('[data-k]'); }
+function valor(el) { return el.type === 'checkbox' ? (el.checked ? '1' : '') : el.type === 'radio' ? (el.checked ? el.value : null) : el.value; }
+function guardar(el) {
+  var k = PREFIJO + el.getAttribute('data-k'), v = valor(el);
+  if (v === null) return;
+  if (v === '' || v === undefined) ls(k, null); else ls(k, v);
+}
+function cargar() {
+  campos().forEach(function (el) {
+    var v = ls(PREFIJO + el.getAttribute('data-k'));
+    if (el.type === 'checkbox') el.checked = v === '1';
+    else if (el.type === 'radio') el.checked = v === el.value;
+    else el.value = v || '';
+  });
+}
+function palabras(s) { return (s || '').trim().split(/\s+/).filter(Boolean).length; }
+function completo(el) {
+  if (el.type === 'checkbox') return el.checked;
+  if (el.type === 'radio') return !!ls(PREFIJO + el.getAttribute('data-k'));
+  return el.value.trim().length > 0;
+}
+function actualizar() {
+  // contadores 2+8
+  $$('[data-cuenta]').forEach(function (c) {
+    var el = $('#' + c.getAttribute('data-cuenta')), n = palabras(el.value), meta = +el.getAttribute('data-palabras');
+    c.textContent = n + ' / ' + meta + ' palabras'; c.className = 'cuenta ' + (!n ? '' : n === meta ? 'ok' : 'mal');
+  });
+  // estilo de campos llenos
+  $$('.campo input[type=text],.campo input[type=time],.campo textarea').forEach(function (el) { el.classList.toggle('lleno', el.value.trim().length > 0); });
+  // rúbrica total
+  var tot = 0; CRITERIOS.forEach(function (c, i) { tot += +(ls(PREFIJO + 'rub-' + (i + 1)) || 0); });
+  $('#rubTotal').textContent = tot + ' / 28';
+  // progreso (sin contar puntos opcionales P4+ ni pregunta nueva)
+  var grupos = {}, hechos = 0, total = 0;
+  campos().forEach(function (el) {
+    var k = el.getAttribute('data-k');
+    if (/^p[4-6]-/.test(k) || /-pregunta-nueva$/.test(k) || k === 'comentario') return;
+    if (grupos[k]) return; grupos[k] = 1; total++;
+    if (el.type === 'radio') { if (ls(PREFIJO + k)) hechos++; } else if (completo(el)) hechos++;
+  });
+  var pct = total ? hechos / total : 0;
+  $('#pBar').style.width = Math.round(pct * 100) + '%';
+  $('#pSub').textContent = hechos + ' de ' + total + ' campos completados';
+  $('#pTxt').textContent = pct === 0 ? 'Tu bitácora recién germina' : pct < .34 ? 'Brota la pregunta' : pct < .67 ? 'Crecen las evidencias' : pct < 1 ? 'Casi da frutos' : '¡Bosque completo!';
+  arbol(pct);
+}
+function arbol(p) {
+  var s = 0.35 + p * 0.65, copa = p < .2 ? '' :
+    '<circle cx="32" cy="' + (30 - p * 4) + '" r="' + (10 + p * 10) + '" fill="#2f8f5b"/>' +
+    '<circle cx="' + (24 - p * 2) + '" cy="' + (34 - p * 2) + '" r="' + (7 + p * 7) + '" fill="#3aa36a"/>' +
+    '<circle cx="' + (41 + p * 2) + '" cy="' + (35 - p * 3) + '" r="' + (7 + p * 7) + '" fill="#3aa36a"/>' +
+    (p >= 1 ? '<circle cx="27" cy="31" r="2.4" fill="#ffd98a"/><circle cx="37" cy="26" r="2.4" fill="#ffd98a"/><circle cx="34" cy="38" r="2.4" fill="#ffd98a"/>' : '');
+  $('#arbol').innerHTML = '<ellipse cx="32" cy="58" rx="22" ry="4" fill="rgba(0,0,0,.25)"/>' +
+    '<g transform="translate(32 58) scale(' + s + ') translate(-32 -58)">' +
+    '<path d="M30 58 Q31 40 32 28 Q33 40 34 58 Z" fill="#8a5a2b"/>' + copa +
+    (p < .2 ? '<path d="M32 40 q-8 -6 -6 -14 q8 4 6 14 M32 40 q8 -6 6 -14 q-8 4 -6 14" fill="#3aa36a"/>' : '') + '</g>';
+}
+document.addEventListener('input', function (e) { if (e.target.getAttribute && e.target.getAttribute('data-k')) { guardar(e.target); actualizar(); } });
+document.addEventListener('change', function (e) {
+  var el = e.target; if (!el.getAttribute || !el.getAttribute('data-k')) return;
+  if (el.type === 'radio') { ls(PREFIJO + el.getAttribute('data-k'), el.value); } else guardar(el);
+  actualizar();
+});
+// Si autoguardado.js trae una versión más nueva de la cuenta, vuelve a pintar.
+window.addEventListener('storage', function () { cargar(); actualizar(); });
+
+/* ───────── TEXTO PARA COPIAR ───────── */
+function textoCompleto() {
+  var L = [], g = function (k) { return ls(PREFIJO + k) || '—'; };
+  L.push('BITÁCORA DE INVESTIGACIÓN · Cuenca del Aconcagua');
+  L.push('Curso: ' + g('curso') + ' · Equipo: ' + g('equipo')); L.push('Integrantes y roles: ' + g('integrantes')); L.push('');
+  L.push('A · ANTES'); L.push('Pregunta elegida: ' + g('pregunta')); L.push('Pregunta: ' + g('pregunta-texto'));
+  L.push('Comparo: ' + g('comparo') + ' · Observo: ' + g('observo') + ' · Mantengo igual: ' + g('mantengo')); L.push('Hipótesis: ' + g('hipotesis')); L.push('');
+  L.push('B · DURANTE');
+  var n = Math.max(2, +ls(PREFIJO + 'n-puntos') || 3);
+  for (var i = 1; i <= n; i++) {
+    if (!CAMPOS_PUNTO.some(function (c) { return ls(PREFIJO + 'p' + i + '-' + c[0]); })) continue;
+    L.push('P' + i); CAMPOS_PUNTO.forEach(function (c) { L.push('  ' + c[1] + ': ' + g('p' + i + '-' + c[0])); });
+  }
+  L.push(''); L.push('C · DESPUÉS'); L.push('Patrón: ' + g('patron')); L.push('Otras causas: ' + g('otras-causas')); L.push('Límites: ' + g('limites'));
+  L.push('¿Apoyó la hipótesis? ' + g('apoyo')); L.push('Conclusión: ' + g('conclusion')); L.push('Síntesis 2+8: ' + g('titulo2') + ' · ' + g('frase8')); L.push('');
+  L.push('AUTOEVALUACIÓN'); CRITERIOS.forEach(function (c, i) { L.push('  ' + c[0] + ': ' + g('rub-' + (i + 1))); }); L.push('  Total: ' + $('#rubTotal').textContent);
+  L.push('Comentario para el docente: ' + g('comentario'));
+  return L.join('\n');
+}
+function copiar() {
+  var t = textoCompleto();
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { aviso('Texto copiado. Pégalo en tu cuaderno digital o en el formulario.'); }, function () {
+    var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); aviso('Texto copiado.'); } catch (e) { aviso('No se pudo copiar.'); } document.body.removeChild(ta);
+  });
+}
+var tAviso; function aviso(m) { var e = $('#estado'); e.textContent = m; clearTimeout(tAviso); tAviso = setTimeout(function () { e.textContent = 'Se guarda solo en este navegador'; }, 4000); }
+$('#copiar').addEventListener('click', copiar); $('#copiar2').addEventListener('click', copiar);
+$('#borrar').addEventListener('click', function () {
+  if (!confirm('¿Borrar toda la bitácora de este navegador? Si entraste con tu cuenta, también se borrará allí al guardar.')) return;
+  var ks = []; try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf(PREFIJO) === 0) ks.push(k); } } catch (e) {}
+  ks.forEach(function (k) { ls(k, null); }); pintarPuntos();
+});
+
+/* ───────── Lo que el profe ve en el Panel → Trabajos ───────── */
+window.AUTOGUARDADO_RESUMEN = function () {
+  var g = function (k) { return ls(PREFIJO + k) || ''; }, det = [];
+  var push = function (k, v) { if (v) det.push({ k: k, v: v }); };
+  push('Curso', g('curso')); push('Equipo', g('equipo')); push('Integrantes y roles', g('integrantes'));
+  push('Pregunta elegida', g('pregunta')); push('Pregunta (con sus palabras)', g('pregunta-texto'));
+  push('Comparo', g('comparo')); push('Observo', g('observo')); push('Mantengo igual', g('mantengo')); push('Hipótesis', g('hipotesis'));
+  push('Preparación', ['prep-aprobada', 'prep-roles', 'prep-materiales', 'prep-seguridad'].map(function (k) { return (g(k) ? '✓ ' : '✗ ') + k.slice(5); }).join(' · '));
+  var n = Math.max(2, +ls(PREFIJO + 'n-puntos') || 3);
+  for (var i = 1; i <= n; i++) CAMPOS_PUNTO.forEach(function (c) { push('P' + i + ' · ' + c[1], g('p' + i + '-' + c[0])); });
+  push('Patrón', g('patron')); push('Otras causas', g('otras-causas')); push('Límites', g('limites')); push('¿Apoyó la hipótesis?', g('apoyo')); push('Conclusión', g('conclusion'));
+  push('Síntesis 2+8', (g('titulo2') || '—') + ' · ' + (g('frase8') || '—'));
+  CRITERIOS.forEach(function (c, i) { push('Autoevaluación · ' + c[0], g('rub-' + (i + 1))); });
+  push('Autoevaluación · total', $('#rubTotal').textContent); push('Comentario para el docente', g('comentario'));
+  return { avance: $('#pSub').textContent.replace(' campos completados', '') + ' · ' + $('#pTxt').textContent, detalle: det };
+};
+
+pintarPuntos();
+})();
+</script>
+<script src="../../firebase/df.js?v=20261116" data-sin-aviso></script>
+<script src="../../firebase/autoguardado.js" data-clave="bitacora-aconcagua" data-titulo="Bitácora · Salida a la cuenca del Aconcagua (3° Medio)" data-claves="bitacora-aconcagua-*"></script>
+</body>
+</html>
