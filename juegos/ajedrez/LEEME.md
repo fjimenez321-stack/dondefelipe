@@ -21,6 +21,12 @@ Página: `juegos/ajedrez/ajedrez.html` (en el sitio: Juegos → Ajedrez Agustino
 - **Contra la máquina** (práctica): cuatro niveles (Fácil, Medio, Difícil y Maestro), eliges color, puedes deshacer y
   pedir una **pista**. No se apuesta ni suma al ranking. La máquina piensa en segundo plano (`ia.js`, un Web Worker).
 
+## Música
+Banda sonora del profe en `musica/`: «Notas del claustro» y «Oraciones en el arco de piedra» (MP3 a 128 kbps,
+~2,8 MB cada uno). Se alternan sin parar, a volumen suave. Parten con el primer toque en la página (los navegadores
+no dejan sonar nada antes) y se pausan si la pestaña queda oculta. El botón **🎵 Música** la apaga o la enciende y
+el juego lo recuerda. Los efectos de las jugadas tienen su propio botón (🔊).
+
 ## San Agustín comenta
 San Agustín de Hipona (un obispo con mitra, en pixel art) comenta la partida en un globo junto al tablero: la apertura,
 las capturas, los jaques, el enroque, las coronaciones, el poco tiempo y el final. En la práctica y en este dispositivo

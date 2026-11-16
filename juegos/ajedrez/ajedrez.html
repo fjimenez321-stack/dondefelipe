@@ -287,6 +287,32 @@ const SND={
   fin:()=>{[523,659,784,1046].forEach((f,i)=>tono(f,.18,'square',.05,i*.13));},
   error:()=>tono(110,.15,'sawtooth',.04)
 };
+/* ═════════════ banda sonora ═════════════
+   Dos temas que se alternan sin parar. Parten con el primer toque (los navegadores no dejan sonar
+   nada antes), se pausan si la pestaña queda oculta y el botón 🎵 los apaga (se recuerda). */
+const MUSICA=[{src:'musica/notas-del-claustro.mp3',titulo:'Notas del claustro'},{src:'musica/oraciones-arco-de-piedra.mp3',titulo:'Oraciones en el arco de piedra'}];
+let MUSICA_ON=true, PISTA_M=Math.floor(Math.random()*MUSICA.length), AUDIO=null, MUSICA_LISTA=false;
+try{MUSICA_ON=localStorage.getItem('ajedrez_musica')!=='0';}catch(e){}
+function musica(){
+  if(!MUSICA_ON||!MUSICA_LISTA||document.hidden){if(AUDIO)AUDIO.pause();return;}
+  if(!AUDIO){
+    AUDIO=new Audio();AUDIO.preload='auto';AUDIO.volume=0;
+    AUDIO.addEventListener('ended',()=>{PISTA_M=(PISTA_M+1)%MUSICA.length;AUDIO.src=MUSICA[PISTA_M].src;AUDIO.play().catch(()=>{});pintarAcciones();});
+    AUDIO.addEventListener('error',()=>{PISTA_M=(PISTA_M+1)%MUSICA.length;});
+    AUDIO.src=MUSICA[PISTA_M].src;
+  }
+  AUDIO.play().then(()=>{
+    // entrada suave
+    const meta=.32;clearInterval(AUDIO._f);AUDIO._f=setInterval(()=>{AUDIO.volume=Math.min(meta,AUDIO.volume+.02);if(AUDIO.volume>=meta)clearInterval(AUDIO._f);},80);
+  }).catch(()=>{});
+}
+function alternarMusica(){
+  MUSICA_ON=!MUSICA_ON;try{localStorage.setItem('ajedrez_musica',MUSICA_ON?'1':'0');}catch(e){}
+  MUSICA_LISTA=true;musica();pintarAcciones();
+}
+['pointerdown','keydown'].forEach(t=>document.addEventListener(t,()=>{if(!MUSICA_LISTA){MUSICA_LISTA=true;musica();}},{once:true,capture:true}));
+document.addEventListener('visibilitychange',musica);
+
 function sonarJugada(h){if(!h)return;if(h.jaque)SND.jaque();else if(h.captura)SND.captura();else SND.mover();}
 
 /* ═════════════ tablero en canvas ═════════════ */
@@ -684,7 +710,8 @@ function pintarAcciones(){
   if(FIN&&E.historial.length>=2)h+=`<button class="btn oro chico" id="a-analizar"${ANALIZANDO?' disabled':''}>📖 Analizar</button>`;
   h+=`<button class="btn sec chico" id="a-agustin" title="Comentarios de San Agustín">${COMENTARIOS?'🕯️':'💤'} San Agustín</button>`;
   h+=`<button class="btn sec chico" id="a-pgn"${E.historial.length?'':' disabled'}>📜 PGN</button>`;
-  h+=`<button class="btn sec chico" id="a-sonido">${SONIDO?'🔊':'🔇'}</button>`;
+  h+=`<button class="btn sec chico" id="a-musica" title="${MUSICA_ON?'Sonando: '+esc(MUSICA[PISTA_M].titulo)+'. Toca para apagar la música':'Encender la música'}">${MUSICA_ON?'🎵 Música':'🔕 Música'}</button>`;
+  h+=`<button class="btn sec chico" id="a-sonido" title="Efectos de sonido">${SONIDO?'🔊':'🔇'}</button>`;
   h+=`<button class="btn chico" id="a-menu">☰ Menú</button>`;
   ac.innerHTML=h;
   const on=(id,f)=>{const b=$(id);if(b)b.onclick=f;};
@@ -709,6 +736,7 @@ function pintarAcciones(){
   on('a-anular',async()=>{if(await confirmar('¿Anular la partida?','Todavía no hay dos jugadas: nadie gana ni pierde.'))accionSala('anulada');});
   on('a-ofrecer',()=>accionSala('ofrecer'));
   on('a-pgn',copiarPgn);
+  on('a-musica',alternarMusica);
   on('a-analizar',analizarPartida);
   on('a-agustin',()=>{COMENTARIOS=!COMENTARIOS;try{localStorage.setItem('ajedrez_agustin',COMENTARIOS?'1':'0');}catch(e){}
     if(COMENTARIOS)decir({texto:'Aquí estoy. Comentaré la partida cuando valga la pena.',cita:null});pintarAcciones();pintarAgustin();});
