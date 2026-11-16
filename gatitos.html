@@ -51,7 +51,7 @@ h1 span{color:var(--acid)}
 .rz{align-self:flex-start;font:800 11px var(--ff);letter-spacing:1.5px;text-transform:uppercase;color:#0b0b10;background:var(--rc);border-radius:999px;padding:3px 9px}
 .gato h3{font:800 24px/1 var(--ff-d);letter-spacing:.5px;margin:2px 0 0;text-transform:uppercase}
 .gato p{margin:0;color:var(--mute);font-size:13.5px;line-height:1.4;flex:1}
-.gato .pie{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:4px}
+.gato .pie{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:4px;flex-wrap:wrap}
 .precio{font:900 24px/1 var(--ff-d);color:var(--brass);white-space:nowrap}
 .mio-tag{font:700 13px var(--ff);color:var(--acid)}
 .fav{position:absolute;top:10px;right:10px;font-size:18px;background:none;border:0;cursor:pointer;color:var(--mute);z-index:1}
@@ -92,7 +92,11 @@ h1 span{color:var(--acid)}
 .oculto{display:none !important}
 .confeti{position:fixed;top:-20px;z-index:70;width:10px;height:14px;border-radius:2px;pointer-events:none;animation:cae linear forwards}
 @keyframes cae{to{transform:translateY(110vh) rotate(720deg)}}
-@media (max-width:560px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}.gato{padding:10px}.gato .img{height:110px}.gato .img img{max-height:104px}.gato h3{font-size:19px}.gato p{display:none}.cab .gato-h{height:80px}}
+@media (max-width:560px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.gato{padding:10px}.gato .img{height:110px}.gato .img img{max-height:104px}.gato h3{font-size:19px}.gato p{display:none}.cab .gato-h{height:80px}}
+/* Celular: el precio y el botón de cada tarjeta van en dos líneas (antes el botón quedaba cortado),
+   y los filtros ocupan su propia fila sobre el orden (antes quedaban en una columna angosta). */
+@media (max-width:560px){.gato .pie .btn{flex:1 1 100%;justify-content:center;text-align:center;min-width:0}.precio{font-size:19px}
+  body .barra-merc .filtros{flex:1 1 100%}.barra-merc select{margin-left:auto}.gato h3,.gato .adq{overflow-wrap:anywhere}}
 @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 
 /* ── mercado ── */

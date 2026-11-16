@@ -75,6 +75,8 @@ select,input[type=search],input[type=text]{width:100%;background:var(--slab2);bo
 details summary{cursor:pointer;font-weight:800;color:var(--cyan)}
 .manual{display:flex;gap:8px;margin-top:10px}
 .manual input{font-family:ui-monospace,Menlo,monospace;letter-spacing:1px}
+/* en el celular, los mensajes largos (por ejemplo, un error con una dirección web) se cortan en líneas y no ensanchan la página */
+.aviso,.muted,.card p{overflow-wrap:anywhere}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="fuentes/fuentes.css?v=20261110b">

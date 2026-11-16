@@ -170,8 +170,10 @@ body {
 @keyframes pulsar { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
 
 /* ── Cuerpo y secciones ────────────────────────────────── */
-.cuerpo { display: grid; gap: 16px; }
-.layout { display: grid; gap: 16px; }
+/* minmax(0, 1fr): la columna nunca crece más que la pantalla (antes los botones de curso la ensanchaban a 650 px) */
+.cuerpo { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.layout { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.cuerpo > *, .layout > * { min-width: 0; }
 @media (min-width: 920px) {
   .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; }
 }
@@ -441,6 +443,13 @@ tbody tr:hover td { background: var(--brand-soft); }
 
 @media (max-width: 480px) {
   .panel { padding: 16px; }
+  /* en el celular el nombre completo va en dos líneas si hace falta (antes se cortaba con «…») */
+  .rank-nombre { white-space: normal; overflow-wrap: anywhere; line-height: 1.2; }
+  /* la tabla se desliza de lado: más ancha para que los saldos no se corten */
+  table { min-width: 470px; }
+  th, td { padding-left: 10px; padding-right: 10px; }
+  colgroup col:nth-child(1) { width: 18%; } colgroup col:nth-child(2) { width: 38%; }
+  colgroup col:nth-child(3) { width: 17%; } colgroup col:nth-child(4) { width: 27%; }
   .filtro { flex-direction: column; align-items: stretch; gap: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
