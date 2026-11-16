@@ -44,6 +44,8 @@ h1{font-family:var(--ff-d);font-weight:900;font-size:clamp(40px,12vw,64px);line-
 .confeti{position:fixed;top:-20px;width:10px;height:14px;border-radius:2px;pointer-events:none;z-index:70;animation:cae linear forwards}
 @keyframes cae{to{transform:translateY(110vh) rotate(720deg)}}
 @media (prefers-reduced-motion:reduce){.tarjeta .brillo,.confeti{animation:none;display:none}}
+/* en el celular, los mensajes largos (por ejemplo, un error con una dirección web) se cortan en líneas y no ensanchan la página */
+.aviso,.muted,.card p{overflow-wrap:anywhere}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="fuentes/fuentes.css?v=20261110b">
