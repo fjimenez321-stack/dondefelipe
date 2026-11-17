@@ -67,6 +67,11 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
 .tl-item.hl::before{background:var(--amber);width:1.1em;height:1.1em;top:.05em}
 .tl-item .yr{display:block;font-family:Cambria,Georgia,serif;font-weight:700;color:var(--navy);font-size:1.25em;margin-bottom:.2em}
 .tl-item.hl .yr{color:var(--amber)}
+.cmp{border-collapse:collapse;width:100%;background:#fff;font-size:.82em}
+.cmp th{background:var(--navy);color:#fff;text-align:left;padding:.35em .6em;font-family:Cambria,Georgia,serif;line-height:1.1}
+.cmp th span{font-family:Calibri,Arial,sans-serif;font-weight:400;font-size:.75em;opacity:.85}
+.cmp td{border:1.5px solid var(--line);padding:.35em .6em;height:2.6em;vertical-align:top}
+.cmp td:first-child{width:36%;font-weight:700;color:var(--navy)}
 /* nav */
 .nav{position:fixed;left:0;right:0;bottom:0;height:7vh;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 1.4vw;background:rgba(251,250,247,.94);border-top:1px solid var(--line);z-index:10;font-size:16px}
 .nav button{font:inherit;font-size:15px;font-weight:700;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:6px;padding:6px 14px;cursor:pointer}
@@ -371,23 +376,27 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
   </div>
 </section>
 
-<!-- 18 ACTIVIDAD -->
+<!-- 18 ACTIVIDAD: CUADRO -->
 <section class="slide">
-  <div class="kicker">Actividad <span class="chip">≈15 min</span></div>
-  <h2>Ptolomeo vs. Copérnico</h2>
-  <div class="grid2">
-    <div class="card navy">
-      <h3>En parejas, en la guía impresa</h3>
-      <ol class="steps">
-        <li>Completen el <b>cuadro comparativo</b>.</li>
-        <li>Respondan la <b>pregunta final</b>.</li>
-      </ol>
-    </div>
-    <div class="card amber">
-      <p class="big-q" style="font-size:1.15em">Sin celular.</p>
-      <p style="margin-top:.3em">Todo lo que necesitan está en su cuaderno y en estas diapositivas.</p>
-    </div>
+  <div class="kicker">Actividad en parejas <span class="chip">≈15 min</span></div>
+  <h2 style="margin-bottom:.25em">Copia y completa en tu cuaderno</h2>
+  <table class="cmp">
+    <tr><th>Pregunta</th><th>Geocéntrico<br><span>Ptolomeo</span></th><th>Heliocéntrico<br><span>Copérnico</span></th></tr>
+    <tr><td>1. ¿Qué hay en el centro?</td><td></td><td></td></tr>
+    <tr><td>2. ¿Se mueve la Tierra?</td><td></td><td></td></tr>
+    <tr><td>3. ¿Por qué Marte a veces parece ir hacia atrás?</td><td></td><td></td></tr>
+    <tr><td>4. Un problema que el modelo no resolvía</td><td></td><td></td></tr>
+  </table>
+</section>
+
+<!-- 18b PREGUNTA FINAL -->
+<section class="slide">
+  <div class="kicker">Actividad en parejas · Pregunta final</div>
+  <div class="card amber" style="padding:1em 1.2em">
+    <p class="big-q">Imagina que vives en el año 1550.<br>¿Qué modelo elegirías?</p>
+    <p style="margin-top:.5em">Escribe en tu cuaderno <b>una razón</b> a favor de tu elección y <b>un problema</b> que tiene ese modelo.</p>
   </div>
+  <p class="small" style="margin-top:.5em">Solo puedes usar lo que se sabía en 1550: nada de telescopios, Newton ni fotos del espacio.</p>
 </section>
 
 <!-- 19 SEMAFORO -->
