@@ -57,6 +57,17 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
 .dot{width:1.3em;height:1.3em;border-radius:50%}
 .lvl h3{display:flex;align-items:center;gap:.4em}
 .lvl .tag{font-size:.6em;font-weight:700;padding:.12em .5em;border-radius:4px;color:#fff}
+/* text animations */
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}70%{transform:scale(1.02)}100%{opacity:1;transform:none}}
+@keyframes mark{to{background-size:100% 100%}}
+.anim{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.anim.kicker,.anim.li{animation-name:slideIn}
+.anim.card,.anim.tl-item,.anim.vis{animation-name:pop}
+.slide.active .em{background:linear-gradient(transparent 62%,rgba(184,121,31,.28) 0) no-repeat;background-size:0 100%;animation:mark .7s 1.1s forwards}
+.title-slide.active .em{background-image:none}
+@media (prefers-reduced-motion:reduce){.anim{animation:none}.slide.active .em{animation:none;background-size:100% 100%}}
 /* nav */
 .nav{position:fixed;left:0;right:0;bottom:0;height:7vh;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 1.4vw;background:rgba(251,250,247,.94);border-top:1px solid var(--line);z-index:10;font-size:16px}
 .nav button{font:inherit;font-size:15px;font-weight:700;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:6px;padding:6px 14px;cursor:pointer}
@@ -478,11 +489,29 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
   var slides=[].slice.call(document.querySelectorAll('.slide')), cur=0;
   var dots=document.getElementById('dots'), counter=document.getElementById('counter');
   slides.forEach(function(_,i){var d=document.createElement('span');d.onclick=function(){go(i)};dots.appendChild(d);});
+  // text animations
+  var SEL='.kicker,h1,h2,.sub,.card,.slide>p,.grid2>div>p,.grid2>div>ul>li,.slide>ul>li,ol.steps>li,.tbl tr,.cmp tr,.tl-item,svg:not(.stars),canvas,.ctrls,.reveal-btn,.sema>p';
+  function animateIn(root){
+    var els=[].slice.call(root.querySelectorAll(SEL)).filter(function(e){
+      if(e.closest('.revealable.hidden'))return false;
+      var c=e.parentElement&&e.parentElement.closest('.card');
+      return !c;
+    });
+    els.forEach(function(e,i){
+      e.classList.remove('anim','li','vis');
+      void e.offsetWidth;
+      if(e.tagName==='LI')e.classList.add('li');
+      if(e.tagName==='svg'||e.tagName==='CANVAS'||e.tagName==='svg'.toUpperCase())e.classList.add('vis');
+      e.style.animationDelay=Math.min(0.05+i*0.09,1.6).toFixed(2)+'s';
+      e.classList.add('anim');
+    });
+  }
   function go(n){
     cur=Math.max(0,Math.min(slides.length-1,n));
     slides.forEach(function(sl,i){sl.classList.toggle('active',i===cur)});
     [].forEach.call(dots.children,function(d,i){d.classList.toggle('on',i===cur)});
     counter.textContent=(cur+1)+' / '+slides.length;
+    animateIn(slides[cur]);
   }
   document.getElementById('prevBtn').onclick=function(){go(cur-1)};
   document.getElementById('nextBtn').onclick=function(){go(cur+1)};
@@ -503,7 +532,7 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
 
   // reveals
   [].forEach.call(document.querySelectorAll('.reveal-btn'),function(b){
-    b.onclick=function(){var t=document.getElementById(b.dataset.reveal);var h=t.classList.toggle('hidden');b.textContent=h?'Ver qué concluía un griego':'Ocultar';};
+    b.onclick=function(){var t=document.getElementById(b.dataset.reveal);var h=t.classList.toggle('hidden');if(!h){t.querySelectorAll('.anim').forEach(function(x){x.classList.remove('anim')});animateIn(t);if(t.classList.contains('card')){t.classList.remove('anim');void t.offsetWidth;t.style.animationDelay='0s';t.classList.add('anim');}}b.textContent=h?'Ver qué concluía un griego':'Ocultar';};
   });
 
   // epicycle animation
