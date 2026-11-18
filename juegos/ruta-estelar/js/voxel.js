@@ -11,6 +11,53 @@ import * as THREE from '../lib/three.module.min.js';
 
 export const TROZO = 16;
 
+/* ---------- texturas de bloques (PNG de 16 × 16) ----------
+   Se cargan en una "textura por capas" de WebGL 2: cada PNG es una capa y no
+   hace falta margen (no hay vecinos que contaminen el borde). La capa 0 es
+   blanco liso: los bloques sin PNG siguen usando su color de la paleta. */
+const LADO = 16;
+let TEX = { mapa: null, capa: {} };
+export async function cargarTexturas(nombres, carpeta) {
+  const capas = [null], capa = {};
+  await Promise.all([...new Set(nombres)].map(n => new Promise(ok => {
+    const img = new Image();
+    img.onload = () => { capa[n] = img; ok(); };
+    img.onerror = () => { console.warn('Falta la textura', n); ok(); };   // sin PNG: queda con su color
+    img.src = carpeta + n + '.png';
+  })));
+  const lista = Object.keys(capa);
+  const datos = new Uint8Array(LADO * LADO * 4 * (lista.length + 1)).fill(255);
+  const cv = document.createElement('canvas'); cv.width = cv.height = LADO;
+  const x = cv.getContext('2d', { willReadFrequently: true }); x.imageSmoothingEnabled = false;
+  lista.forEach((n, i) => {
+    x.clearRect(0, 0, LADO, LADO); x.drawImage(capa[n], 0, 0, LADO, LADO);
+    const px = x.getImageData(0, 0, LADO, LADO).data, base = (i + 1) * LADO * LADO * 4;
+    for (let f = 0; f < LADO; f++)       // fila de arriba de la imagen = v alto en WebGL
+      datos.set(px.subarray(f * LADO * 4, (f + 1) * LADO * 4), base + (LADO - 1 - f) * LADO * 4);
+    capa[n] = i + 1;
+  });
+  const t = new THREE.DataArrayTexture(datos, LADO, LADO, lista.length + 1);
+  t.format = THREE.RGBAFormat; t.colorSpace = THREE.SRGBColorSpace;
+  t.magFilter = THREE.NearestFilter;              // de cerca: píxeles nítidos
+  t.minFilter = THREE.LinearMipmapLinearFilter;   // de lejos: sin parpadeo
+  t.generateMipmaps = true; t.anisotropy = 4; t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.needsUpdate = true;
+  TEX = { mapa: t, capa };
+  return TEX;
+}
+function materialBloques() {
+  const m = new THREE.MeshLambertMaterial({ vertexColors: true });
+  if (!TEX.mapa) return m;
+  m.onBeforeCompile = sh => {
+    sh.uniforms.mapaBloques = { value: TEX.mapa };
+    sh.vertexShader = 'attribute vec2 uvb;\nattribute float capa;\nvarying vec3 vUvB;\n' +
+      sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vUvB = vec3(uvb, capa);');
+    sh.fragmentShader = 'precision highp sampler2DArray;\nuniform sampler2DArray mapaBloques;\nvarying vec3 vUvB;\n' +
+      sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n  diffuseColor.rgb *= texture(mapaBloques, vUvB).rgb;');
+  };
+  return m;
+}
+
 /* paleta[id] = { c: '#rrggbb', v: variación de tono (0-1), luz: brilla en la oscuridad, pasa: no choca } */
 export class Mundo {
   constructor(sx, sy, sz, paleta, semilla = 1) {
@@ -46,7 +93,7 @@ export class Mundo {
   construir() {
     for (const m of this.trozos.values()) { this.grupo.remove(m); m.geometry.dispose(); }
     this.trozos.clear();
-    this.mat = this.mat || new THREE.MeshLambertMaterial({ vertexColors: true });
+    this.mat = this.mat || materialBloques();
     for (let cz = 0; cz < this.sz; cz += TROZO) for (let cx = 0; cx < this.sx; cx += TROZO) {
       const g = this.mallaTrozo(cx, cz);
       if (!g) continue;
@@ -68,14 +115,16 @@ export class Mundo {
       }
   }
   mallaTrozo(cx, cz) {
-    const pos = [], nor = [], col = [], idx = [];
+    const pos = [], nor = [], col = [], idx = [], uv = [], cap = [];
+    const blanco = new THREE.Color(1, 1, 1);
     const opaco = (x, y, z) => { const t = this.get(x, y, z); return t !== 0 && !this.paleta[t].pasa; };
     const tmp = new THREE.Color();
     for (let y = 0; y < this.sy; y++) for (let z = cz; z < Math.min(cz + TROZO, this.sz); z++) for (let x = cx; x < Math.min(cx + TROZO, this.sx); x++) {
       const t = this.get(x, y, z); if (!t) continue;
       const p = this.paleta[t];
+      const capa = p.tex ? (TEX.capa[p.tex] || 0) : 0, base0 = capa ? blanco : p.rgb;   // con textura, el color lo pone el PNG
       // variación de tono por bloque (determinista)
-      const h = hash3(x, y, z, this.semilla), k = 1 + (h - 0.5) * (p.v ?? 0.12);
+      const h = hash3(x, y, z, this.semilla), k = 1 + (h - 0.5) * (capa ? 0.05 : (p.v ?? 0.12));
       for (const f of CARAS) {
         const nx = x + f.n[0], ny = y + f.n[1], nz = z + f.n[2];
         if (opaco(nx, ny, nz)) continue;
@@ -91,8 +140,11 @@ export class Mundo {
           const cc = opaco(nx + a[2][0], ny + a[2][1], nz + a[2][2]);
           const ao = s1 && s2 ? 0 : 3 - (s1 + s2 + cc);
           const luz = p.luz ? 1 : (0.55 + 0.15 * ao) * f.l;
-          tmp.copy(p.rgb).multiplyScalar(k * luz);
+          tmp.copy(base0).multiplyScalar(k * luz);
           col.push(tmp.r, tmp.g, tmp.b);
+          // coordenadas de textura: los costados con v hacia arriba
+          if (f.n[1] !== 0) uv.push(c[0], c[2]); else if (f.n[0] !== 0) uv.push(f.n[0] > 0 ? 1 - c[2] : c[2], c[1]); else uv.push(f.n[2] > 0 ? c[0] : 1 - c[0], c[1]);
+          cap.push(capa);
         }
         idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
       }
@@ -102,6 +154,8 @@ export class Mundo {
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    g.setAttribute('uvb', new THREE.Float32BufferAttribute(uv, 2));
+    g.setAttribute('capa', new THREE.Float32BufferAttribute(cap, 1));
     g.setIndex(idx);
     g.computeBoundingSphere();
     return g;

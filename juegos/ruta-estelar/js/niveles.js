@@ -17,7 +17,7 @@ export const B = {
 };
 const P = [];
 const def = (id, c, v = 0.1, extra = {}) => { P[id] = { c, v, ...extra }; };
-def(1, '#6b6b6b'); def(2, '#3a3d44', 0.06); def(3, '#a9a8a0', 0.08); def(4, '#5c9a3a', 0.18); def(5, '#7a5a3a');
+def(1, '#6b6b6b'); def(2, '#3a3d44', 0.06, { tex: 'asfalto' }); def(3, '#a9a8a0', 0.08); def(4, '#5c9a3a', 0.18); def(5, '#7a5a3a');
 def(6, '#ececec', 0.03); def(7, '#e8c547', 0.04); def(8, '#a9dcff', 0.1, { luz: true }); def(9, '#a8432f', 0.12); def(10, '#585b62', 0.1);
 ['#eadcc0', '#a9cbe0', '#e6a38a', '#b8d4a8', '#f0d57a', '#f2f2ee'].forEach((c, i) => def(11 + i, c, 0.06));
 ['#d7263d', '#1b4f9c', '#eeeeee', '#f2c12e', '#2e8b57'].forEach((c, i) => def(17 + i, c, 0.04));
@@ -27,6 +27,8 @@ def(31, '#8f8f8b', 0.16); def(32, '#6a6a67', 0.14); def(33, '#7b7976', 0.2); def
 def(36, '#b4552f', 0.14); def(37, '#c97a4a', 0.12); def(38, '#7d3b22', 0.18); def(39, '#5a2c1a', 0.16); def(40, '#d39062', 0.1);
 def(41, '#5dff9a', 0.02, { luz: true });
 export const PALETA = P;
+/* Nombres de los PNG que usa la paleta (tex/bloques/<nombre>.png). */
+export const TEXTURAS = [...new Set(P.filter(p => p && p.tex).map(p => p.tex))];
 
 /* ruido de valor 2D con octavas */
 function ruido(sem) {

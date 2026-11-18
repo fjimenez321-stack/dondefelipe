@@ -13,7 +13,8 @@ import * as THREE from '../lib/three.module.min.js';
 import { entorno, CUERPOS } from './reglas.js';
 import { SISTEMAS, CAUSAS, nuevoCuerpo, pasoCuerpo, golpe, consumir, sistemaCaido } from './vitalidad.js';
 import { Controles, Jugador, esTactil } from './jugador.js';
-import { NIVELES, B } from './niveles.js';
+import { NIVELES, B, TEXTURAS } from './niveles.js';
+import { cargarTexturas } from './voxel.js';
 import { Vuelo, TRAMOS } from './vuelo.js';
 import { crearAstronauta, animarAstronauta, crearBrazoFP, crearTierra, crearPlaneta, crearVoyager, asteroideK77, roca, estrellas, cupula, atmosfera, semilla } from './modelos.js';
 
@@ -657,5 +658,6 @@ function cuadro(ms) {
   rend.render(escena, cam);
   requestAnimationFrame(cuadro);
 }
+await cargarTexturas(TEXTURAS, new URL('../tex/bloques/', import.meta.url).href);   // PNG de 16 × 16 de los bloques
 pantallaTitulo(); requestAnimationFrame(cuadro);
 window.__rs = { E, get L() { return L; }, get V() { return V; }, ctrl, cam };   // para pruebas
