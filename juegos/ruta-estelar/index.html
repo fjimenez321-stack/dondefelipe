@@ -122,6 +122,39 @@
 </div>
 <div id="ov"><div class="panel" id="panel"><p>Cargando…</p></div></div>
 <noscript><p style="padding:20px">Este juego necesita JavaScript.</p></noscript>
+<script>
+/* Si el juego no arranca, mostrar por qué (en vez de quedarse en «Cargando…»). */
+(function () {
+  var errores = [];
+  function mostrarError(txt) {
+    if (window.__rs) return;
+    var p = document.getElementById('panel');
+    p.innerHTML = '<h2>El juego no pudo arrancar</h2><p>' + txt + '</p>' +
+      (errores.length ? '<p><small>Detalle técnico: ' + errores.slice(0, 3).join(' · ').replace(/</g, '&lt;') + '</small></p>' : '') +
+      '<p><small>Navegador: ' + navigator.userAgent.replace(/</g, '&lt;') + '</small></p>' +
+      '<button class="gr" onclick="location.reload()">Reintentar</button>';
+  }
+  addEventListener('error', function (e) { errores.push((e.message || 'error al cargar ' + (e.target && e.target.src || '')) + (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : '')); }, true);
+  addEventListener('unhandledrejection', function (e) { errores.push(String(e.reason && e.reason.message || e.reason)); });
+  // WebGL 2 es obligatorio para el motor 3D
+  try {
+    var gl = document.createElement('canvas').getContext('webgl2');
+    if (!gl) { window.__sinWebGL2 = true; }
+  } catch (e) { window.__sinWebGL2 = true; }
+  if (window.__sinWebGL2) {
+    setTimeout(function () { mostrarError('Este navegador o equipo no tiene <b>WebGL 2</b>, que el juego 3D necesita. Prueba con Chrome, Edge o Firefox actualizados, o activa la aceleración por hardware en la configuración del navegador.'); }, 0);
+    return;
+  }
+  var t0 = Date.now();
+  var reloj = setInterval(function () {
+    if (window.__rs) return clearInterval(reloj);
+    var s = Math.round((Date.now() - t0) / 1000);
+    if (errores.length) { clearInterval(reloj); mostrarError('Hubo un error al cargar el juego.'); }
+    else if (s >= 25) { clearInterval(reloj); mostrarError('La carga está tardando demasiado. Revisa la conexión e intenta de nuevo.'); }
+    else document.getElementById('panel').innerHTML = '<p>Cargando el motor 3D… ' + s + ' s</p>';
+  }, 1000);
+})();
+</script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
