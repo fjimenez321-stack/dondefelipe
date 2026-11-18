@@ -1,0 +1,7 @@
+[Unit]
+Description=Comprobador del server Test 1
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/dondefelipe
+ExecStart=%h/dondefelipe/minecraft-test1/sync.sh
