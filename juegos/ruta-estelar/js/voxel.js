@@ -122,11 +122,13 @@ export class Mundo {
     for (let y = 0; y < this.sy; y++) for (let z = cz; z < Math.min(cz + TROZO, this.sz); z++) for (let x = cx; x < Math.min(cx + TROZO, this.sx); x++) {
       const t = this.get(x, y, z); if (!t) continue;
       const p = this.paleta[t];
-      const capa = p.tex ? (TEX.capa[p.tex] || 0) : 0, base0 = capa ? blanco : p.rgb;   // con textura, el color lo pone el PNG
       // variación de tono por bloque (determinista)
-      const h = hash3(x, y, z, this.semilla), k = 1 + (h - 0.5) * (capa ? 0.05 : (p.v ?? 0.12));
+      const h = hash3(x, y, z, this.semilla);
       for (const f of CARAS) {
         const nx = x + f.n[0], ny = y + f.n[1], nz = z + f.n[2];
+        // textura de la cara: un nombre para todas, o { arriba, lado, abajo }
+        const nt = !p.tex ? null : typeof p.tex === 'string' ? p.tex : f.n[1] > 0 ? p.tex.arriba : f.n[1] < 0 ? (p.tex.abajo || p.tex.lado) : p.tex.lado;
+        const capa = nt ? (TEX.capa[nt] || 0) : 0, base0 = capa ? blanco : p.rgb;   // con textura, el color lo pone el PNG
         if (opaco(nx, ny, nz)) continue;
         if (ny < 0) continue;
         const base = pos.length / 3;
@@ -140,6 +142,7 @@ export class Mundo {
           const cc = opaco(nx + a[2][0], ny + a[2][1], nz + a[2][2]);
           const ao = s1 && s2 ? 0 : 3 - (s1 + s2 + cc);
           const luz = p.luz ? 1 : (0.55 + 0.15 * ao) * f.l;
+          const k = 1 + (h - 0.5) * (capa ? 0.05 : (p.v ?? 0.12));
           tmp.copy(base0).multiplyScalar(k * luz);
           col.push(tmp.r, tmp.g, tmp.b);
           // coordenadas de textura: los costados con v hacia arriba

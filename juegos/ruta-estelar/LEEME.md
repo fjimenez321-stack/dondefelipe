@@ -49,3 +49,9 @@ python3 herramientas/a16.py imagen_grande.png tex/bloques/asfalto.png 32
 ```
 
 El último número es cuántas celdas tiene la imagen por lado; si no lo pones, intenta detectarlo. El script informa la costura (diferencia entre bordes opuestos): si es parecida o menor que la variación interior, la textura repite sin que se note.
+
+Un bloque puede tener una textura distinta arriba y a los lados:
+
+```
+def(4, '#5c9a3a', 0.18, { tex: { arriba: 'pasto', lado: 'pasto_lado' } });   // abajo usa la del lado si no se indica
+```
