@@ -2,30 +2,30 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#05060d">
 <title>Ruta Estelar · Misión Voyager</title>
+<meta name="description" content="Juego 3D: el astronauta cruza la Tierra, la Luna y Marte. Gravedad, tiempo, espacio y vitalidad cambian según el planeta.">
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;background:#05060d;color:#e9edf5;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
-  #marco{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
-  @media (orientation:portrait){#marco{align-items:flex-start;padding-top:8vh}}
-  canvas{display:block;background:#05060d}
-  #ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,6,14,.82);overflow:auto;z-index:5}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,6,14,.55);overflow:auto;z-index:20}
   #ov[hidden]{display:none}
-  .panel{width:min(640px,100%);background:#0e1324;border:1px solid #27304d;border-radius:14px;padding:24px 22px;max-height:100%;overflow:auto}
-  .panel h1{font-size:clamp(28px,6vw,44px);letter-spacing:.12em;font-weight:800;color:#ffc857}
+  @media (min-width:1100px) and (min-height:600px){#ov{justify-content:flex-start;padding-left:5vw;background:linear-gradient(90deg,rgba(4,6,14,.75),rgba(4,6,14,.25) 60%,rgba(4,6,14,0))}}
+  .panel{width:min(640px,100%);background:rgba(14,19,36,.94);border:1px solid #27304d;border-radius:14px;padding:22px 22px;max-height:100%;overflow:auto;backdrop-filter:blur(4px)}
+  .panel h1{font-size:clamp(30px,6vw,46px);letter-spacing:.12em;font-weight:800;color:#ffc857}
   .panel h2{font-size:22px;color:#ffc857;margin-bottom:6px}
   .panel p{line-height:1.5;color:#b9c2d8;margin:8px 0;font-size:15px}
   .panel .sub{color:#7fb6ff;letter-spacing:.08em;font-size:14px;margin-top:4px}
-  .ruta{display:flex;align-items:center;gap:8px;margin:14px 0;flex-wrap:wrap}
+  .ruta{display:flex;align-items:center;gap:8px;margin:12px 0;flex-wrap:wrap}
   .ruta span{padding:5px 12px;border-radius:99px;border:1px solid #33406a;font-size:13px;color:#8d98b5}
   .ruta span.ok{background:#1c3a2c;border-color:#3fa66b;color:#bff0d2}
   .ruta span.sig{background:#3a2c12;border-color:#ffc857;color:#ffe2a0}
   .ruta i{color:#4a5680;font-style:normal}
   .tienda{display:grid;gap:8px;margin:12px 0}
   .item{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;background:#131a30;border:1px solid #232c48;border-radius:10px;padding:10px 12px}
-  .item b{font-size:15px}
-  .item small{color:#8d98b5;font-size:13px;grid-column:1}
+  .item b{font-size:15px}.item small{color:#8d98b5;font-size:13px;grid-column:1}
   .item .niv{color:#ffc857;letter-spacing:3px;font-size:12px}
   .item button{grid-row:1 / span 2;grid-column:2}
   button{font:inherit;color:#0b0f1c;background:#ffc857;border:0;border-radius:9px;padding:9px 14px;font-weight:700;cursor:pointer}
@@ -34,720 +34,94 @@
   button.sec{background:#1b2440;color:#b9c2d8;border:1px solid #33406a}
   .saldo{display:inline-block;background:#3a2c12;border:1px solid #ffc857;color:#ffe2a0;border-radius:8px;padding:3px 10px;font-weight:700}
   kbd{background:#1b2440;border:1px solid #33406a;border-radius:5px;padding:1px 6px;font-size:13px;color:#e9edf5}
-  #tactil{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:0 14px 22px;z-index:4;pointer-events:none}
-  #tactil[hidden]{display:none}
-  #tactil div{display:flex;gap:12px}
-  #tactil button{pointer-events:auto;width:64px;height:64px;border-radius:50%;font-size:24px;background:rgba(255,255,255,.1);color:#fff;border:2px solid rgba(255,255,255,.4)}
-  #tactil button.s{width:84px;height:84px;background:rgba(255,200,87,.3);border-color:#ffc857;font-size:16px}
-  .voy{display:block;width:min(220px,55%);margin:0 auto 6px;filter:drop-shadow(0 6px 18px rgba(127,182,255,.25))}
   .volver{display:inline-block;color:#7fb6ff;font-size:13px;text-decoration:none;margin-bottom:6px}
-  .volver:hover{text-decoration:underline}
   .historia,.dato{background:#131a30;border-left:3px solid #7fb6ff;border-radius:6px;padding:10px 12px;margin:12px 0;line-height:1.5;color:#c9d1e4;font-size:14px}
   .dato{border-left-color:#ffc857}
   .relato{color:#e9edf5;font-style:italic}
-  #son{position:fixed;top:8px;right:8px;z-index:6;background:rgba(20,26,48,.8);color:#b9c2d8;border:1px solid #33406a;padding:5px 10px;font-size:12px;font-weight:600}
+  .vars{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin:12px 0}
+  .vars div{background:#131a30;border:1px solid #232c48;border-radius:10px;padding:9px 11px;font-size:13px;line-height:1.45;color:#c9d1e4}
+  .vars b{display:block;font-size:12px;letter-spacing:.12em;color:#7fb6ff;margin-bottom:2px}
+  .vars em{font-style:normal;color:#ffe2a0;font-weight:700}
+
+  /* HUD */
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:10;font-size:13px}
+  #hud[hidden]{display:none}
+  #mira{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px}
+  #mira:before,#mira:after{content:"";position:absolute;background:rgba(255,255,255,.85);box-shadow:0 0 2px #000}
+  #mira:before{left:10px;top:2px;width:2px;height:18px}#mira:after{top:10px;left:2px;height:2px;width:18px}
+  #foco{position:absolute;left:50%;top:50%;transform:translate(16px,10px);background:rgba(5,8,18,.7);border:1px solid rgba(127,182,255,.5);border-radius:6px;padding:2px 7px;color:#bfe3ff;white-space:nowrap;font-variant-numeric:tabular-nums}
+  #foco:empty{display:none}
+  #reglas{position:absolute;left:10px;top:10px;width:250px;background:rgba(5,8,18,.72);border:1px solid #27304d;border-radius:10px;padding:8px 10px;line-height:1.35;pointer-events:auto}
+  #reglas .f{display:grid;grid-template-columns:18px 1fr;gap:6px;margin:3px 0}
+  #reglas .l{font-weight:800;color:#7fb6ff}
+  #reglas small{color:#8d98b5}
+  #reglas em{font-style:normal;color:#ffe2a0;font-variant-numeric:tabular-nums}
+  .sis{display:grid;grid-template-columns:20px 1fr 34px;align-items:center;gap:5px;margin:3px 0;font-size:12px}
+  .sis .bar{height:7px;background:#1b2440;border-radius:9px;overflow:hidden}
+  .sis .bar i{display:block;height:100%;border-radius:9px;transition:width .25s}
+  .sis span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:#b9c2d8}
+  .sis.mal span:last-child{color:#ff6b6b;font-weight:800}
+  #arriba{position:absolute;top:10px;left:50%;transform:translateX(-50%);text-align:center}
+  #reloj{font-size:20px;font-weight:800;letter-spacing:.06em;font-variant-numeric:tabular-nums;text-shadow:0 1px 3px #000}
+  #reloj.alerta{color:#ff6b6b}
+  #rumbo{margin-top:3px;color:#ffe2a0;text-shadow:0 1px 3px #000}
+  #der{position:absolute;top:10px;right:10px;display:flex;gap:6px;align-items:center;pointer-events:auto}
+  #der .chip{background:rgba(5,8,18,.72);border:1px solid #27304d;border-radius:8px;padding:5px 9px;font-weight:700}
+  #der button{padding:5px 9px;font-size:12px;background:rgba(20,26,48,.85);color:#b9c2d8;border:1px solid #33406a}
+  #aviso{position:absolute;left:50%;top:22%;transform:translateX(-50%);text-align:center;background:rgba(5,8,18,.75);border:1px solid #ffc857;border-radius:10px;padding:8px 16px;max-width:90vw}
+  #aviso b{display:block;color:#ffc857;font-size:17px}#aviso:empty{display:none}
+  #barra{position:absolute;left:50%;bottom:16px;width:min(420px,70vw);transform:translateX(-50%);height:8px;background:rgba(27,36,64,.8);border-radius:9px;overflow:hidden}
+  #barra i{display:block;height:100%;background:linear-gradient(90deg,#7fb6ff,#ffc857)}
+  #barra[hidden]{display:none}
+  #dano{position:fixed;inset:0;pointer-events:none;z-index:9;box-shadow:inset 0 0 120px rgba(255,30,40,.0);transition:box-shadow .3s}
+  /* táctil */
+  #tactil{position:fixed;inset:0;z-index:11;pointer-events:none}
+  #tactil[hidden]{display:none}
+  #tactil .joy{position:absolute;width:104px;height:104px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.06);left:30px;bottom:40px;top:auto;opacity:.55}
+  #tactil .joy.on{opacity:1}
+  #tactil .joy i{position:absolute;left:32px;top:32px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.45)}
+  #tactil .bot{position:absolute;right:14px;bottom:22px;display:grid;grid-template-columns:auto auto;gap:10px;pointer-events:auto}
+  #tactil button{width:62px;height:62px;border-radius:50%;font-size:13px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.4);padding:0}
+  #tactil button.s{width:80px;height:80px;background:rgba(255,200,87,.3);border-color:#ffc857;font-size:14px}
+  #tactil button.on{background:rgba(127,182,255,.45);border-color:#7fb6ff}
+  @media (max-width:560px){
+    #arriba{left:auto;right:10px;transform:none;top:50px;text-align:right;max-width:50vw}
+    #reloj{font-size:14px!important}#rumbo{font-size:12px}
+    #reglas{width:172px!important}
+    #aviso{top:30%!important}
+  }
+  @media (max-width:700px),(max-height:500px){
+    #reglas{width:196px;font-size:11px;padding:6px 8px}
+    #reglas .det{display:none}
+    #reglas.abierto .det{display:inline}
+    .sis{grid-template-columns:18px 1fr 28px;font-size:11px}
+    #reloj{font-size:16px}
+    #der .chip,#der button{padding:4px 7px}
+    #aviso{top:14%;font-size:12px}#aviso b{font-size:14px}
+    #tactil .joy{bottom:24px;left:22px}
+  }
 </style>
 </head>
 <body>
-<div id="marco"><canvas id="c"></canvas></div>
-<div id="tactil" hidden>
-  <div><button data-k="izq" aria-label="Izquierda">◀</button><button data-k="der" aria-label="Derecha">▶</button></div>
-  <div><button class="s" data-k="salto">SALTAR</button></div>
+<canvas id="c"></canvas>
+<div id="dano"></div>
+<div id="hud" hidden>
+  <div id="reglas"></div>
+  <div id="arriba"><div id="reloj"></div><div id="rumbo"></div></div>
+  <div id="der"><span class="chip" id="monedas">🪙 0</span><button id="bcam" title="Cámara (C)">👁</button><button id="son">🔊</button><button id="bpausa">⏸</button></div>
+  <div id="mira"></div><div id="foco"></div>
+  <div id="aviso"></div>
+  <div id="barra" hidden><i></i></div>
 </div>
-<button id="son">Sonido: sí</button>
-<div id="ov"><div class="panel" id="panel"></div></div>
-
-<script>
-/* Sprites de la Voyager incrustados (PNG de 128 colores), para que carguen siempre,
-   sin depender de rutas ni de la caché. hoja: 3 cuadros de 155×119; frente: vista frontal. */
-window.SPRITES={
-  hoja:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAdEAAAB3CAMAAABrL4ruAAABgFBMVEUhHSAoFxEiU5mdZSEoHhugLBzZrWDvXhhtUCJZWmCqj2QrkvEhdtZLrPnY4NjmmCAwTHaopJrp26FRJQ9qKCIdLEahdU2a2/r63VkgBQBHZI3QLxXKs427hx4ZKUgUIlsQPYh2yPv9zC2PKxBBIRy8u8HKekgUJkA9QT58gXsAGLMZQ2xBQViHQS68w7QAAABNSUksKChIOjE3NTOIh40oGRZ4eoRVUlJ1dHhQQzgwJBoYFxeWlJdtaWsvOUkYJDNMJxiFeXFoWU9yZFY7Q08VKUmopqloSC5OGxRQNhlxVTB9gIpNV2ozFhFJKiMrRWwWHCgbM1aPg3ZuRxkODA1tGxObm6FrOCsZOWuOZjCseC0oiOptJBculfOPdVErKSrxNhIvKSopKSojPGUwFxTOKBMoJymIaku3hC7MljSvJhiOJBeBfoS1tLbDiiv1+vuHWietlXSkm5I0IxtCPkLWpkyvh06gnqP5RRBoOhgXKUGydxiJVxeNGhPLmUntKgyW16JEAAAAgHRSTlOaW///5///////////////////KP//////Mf////9PLv///xFC//+F//8PHR8T/wD//v////7//////v/////+/////////////////3D////////+/////////////5L/crD/jf/O////////////////bf///////2///////z+OBF8AAC3qSURBVHjazZ2JQxPJ1vaDiQi44jY6+71z733f99vo6krTS9JNOh0ICXuiYhCDgAIqetnEcRnnX/+ec6o76bCJkMxNqWyiVOpXZz9VnRjq3OgZ6tYhRNdO7fnz1PNzLVyic3OT8laXrpocHKxYXQk1ZeTm6/vrelcStbd/3M4vd+GqTVrBj3X/ptZ9M1tK6fXB7bu9vUWj64hKy63c3dofcLpv2X5JD27f3K/f9L1um9nuVGJ68NrNheSPA/lEtxG1dvwfe3tv3tyWXQfUc+u9vbX6tWs/ml0G9LmuFwdu9ibv3rx5s57oLqIyqxW392u9P94c6DKg3vBkf75eqxYH6j9WumxuzvbA+t395OfPydqXm3pXEb0/mS2vD2xVt2q9vbvdtWrDg/2WlS+W8WvA7zIvNzdQqdVqW8nk5+RCb1cRFdL1i/v7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',
-  frente:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAK4AAACBCAMAAABuKHE/AAABgFBMVEVTJg7l2aowEAnPplmXjpQmICFUWlyUZhSYd0uhkm3GrYguLCYBAgNbUzufq8Dox3M8S0JiTHB/kIy7kTu7xrrb4d4AAADn5uwXFhUqJyYuJBnZ2eRPSUfIyNGzuMfV1Nk3NDQkHBWoqLH09PVYU1JHOi1PQzcOCwtNNxa1tLdraGuGWQpuSQ6MiIt5UxKbo7W8wdCUmal2dHKRZBDh3uVkWVBwVi6Wk5Xd4eqHenGkrcJxZVU4O0NXW2OLaDBCLBGlmpKThXkkJCYBAABZQRhkSih2eoSuo5cdISbMxLgnJyYmIhsjIyM7QkkZGyFbZGiTdlItIxkpIxnCurUiIiMAAAKVdTfi29epiFCGaEmsgzgKAAAAAAMoHBMkIRxEPUODXCOymHWknqXMto8GAAA1IxGhagy4o3LBvcEdIB4uHRAmHhoiHiI8MR5jPAh6gYyCfYOodRKmdy6ljXDKpm7TuXvozJXm49geJC47KQwtLThLLAhgXmN8YS93cV7Al1fT2IiXAAAAgHRSTlMd/yv//6L//////0/H////HxH/////AP///v7////////+//////////////////////////////////////////+Sb//////8/3GvsP////9yi//Ok///////LLKv0f//////TEz/////btf///////////////+UOjwn//////EXE2cAABD6SURBVHja7ZyHe9tGtsVlO313X/a93UdgUIgOAhBBkZDYzCJSEkVRvUtO3B2X9Lopuyn/+p47AIsUyXEiepf8Pk8oioBk4Ddnzty5MxhlJvVSynpqfX1zaWl93NedeRmwm3eZJN2VNjY2D5cmHXdPYo7juq7jKorODjcnHFeqPX306EGt9EATLC1ibGmicfecB99++85uqapZgmUJAWMTjbvh7J7u7taCnnbQ6gmWGihsknH3neatWlf1tdatUlW1LC1kk61uqVnTrP8/ePD1bluzLMvXJ1vdTsn1rdbu6dPTU/87rdebbFyv03Eis+h5K142u3trd7LVTUmOIymB63pUsrlbLTbxuHa1VFoB7aJXOp1wXEOSDKXWcb0VSYIjdlv3JjtnMKQoKpVKsRu8r1WfTXaKo/+93QEuucFz26plH00y7jKrfn16/FOns+KtlJpP3/aV5UnGnVH0zunbp+8do5y+tVusTbS6f1YUhpHtq/dQjpulYq1WZZOLu8yijFh03Oab90v3O65TRA4Z/jCxuLcjN8Pe1kX3+Nh1nL/UagoTy9HRhOKin2UyLBJFxpgoinqkbLMM6+q3Jw/36M+3jzKBIzK9KBpSRsR/rBYpO7pYDLjwt28fTQQuRarXma5vKUHQ9kMlCmpusejaSrHtt0zTLLda4epq0LC32Np/G5cpwWrZ9NMoeS0MDg7Cou/7kVsr1pSo1S2bpq9WTXMuLoVC+fPA1r//b+Dq9qqZ1jRNVcFqUrEhZhT5pu8XHaasmn45NAtmOozMQr/MzeGX58qrDfYfxGVKVEhrMlBxcz9t+gSbDgN8r4VAp2Mf2IXQfIgPtYck7BnkfHqOkJdfNu5RSg9MVRMWoKqq5lXcmBc/7Qdlv9W1CzEraEEd9evBnYCvOf6Fj2Y6rebnAvZycVngE2pcVF5i3HS+TOJy6/ZL2gculxfu5XaBieN3OGKOG6PQeFm4yymlrC5AVs4qy0NglVo3aKH5gyAdk8ZVqJb9gmnmw2psbl5u4pVO3+T9j1Q2X1Ti34f7z4YvCLKaKCssLHCR1QRZLVdV4NphegCL5i6HZA34ZHAK5ebNNO+cN3nAKEDjz/Wx4zZUbgIuqqbKsiAsxJ85sebD0abfsn1y8QDXjLiT1bCqjuDGzLzM/c9NMoW6+n1qfYy4zLRixy6AEszAhbwL9CG2RhhqKkJsMMDKp0nziAKEr6rBgZpHp8znz6rcBza19NZv8r44ri0LEJHQZOKlsgB58VrgZwU1gMCqWiwPVcyDVmu3VAQ6VSuHWr7fMfPp/FDoROS5vLwzNnXtigDPQtUFjingDfJa+ARkOimEZUs1Nb+WIFGIo6KZITqiD7tUVd4x83FJj4pMyHiv7IwJty5zWi4pHMARYWQsMsbE+HGgCaYvtCJZPVeq9OZrcqslJGfOOmLY99Ly1lhwZ9JCDCucLWCOgWWr3bLUsia0B0wQlssplE2NbKJpVXUQq/v65tVE3jy3iJweB+7yjhB3qD6v1eclnXG0IPRqgtA1Ba16UOFA/QCnqYIf0kdfq7RCgeocO0KNvR3LTOxcX6FxNAZ1TUEeFIGWma0RicnKVrVr9SBur6rFcUI7odhG+gpaG11UM1VZq2rxdeLBO/FFH5qiRrrij0HdQ3UE9wLeBYvEbfkVoRsKFDvkSu+bbx48AuwJdUJfQOAwNaH7mtWnVVU58YTKaRM3y9oYcNdIFbqDPFDTSjpZUnZNy29pFaHVBS6sXHn0yzfv9HraSU+ThS5OCpC3or2lChUeC7kn8md6ZJ7ghXGom/KFEW2TkhDLFNC6Ra3XNuHa6gG6Hxngmxv/+Me1R9e+vdETYN4ThI5nJG+bcGV5qDHXOT5AfqZaq+PwbmDxYMvhhF8BV7671dW6EFdW25BWOPGvPWreb94/fu/Gu78cCIIantCvm6qg7R6M2oo6oxwPi7wDqrKgj0NdplqyMEoq9K1gUcztVi3t64dwwUFI57Ta7i/vNY+bX31148ZbLRyHKlkI7rW6u6o2pJU1dQQdB5Z5NJZhwhbOFyvRlr7wzOQ7dDSNQhnKM9stHe/uNpulZvMWVaB8wCvnq1bvVk+ojAp8plgyG9MgHMjWZcSWUBWs715Ly8JJ29fUE8G06YGlzjCDr9VCtIlZ5m7Qyr3e7olVkS/gJUtbmr48JtxNJT3kHelxnJjm5tTgZhuRSxDSDQW8OojtIAgxUqsPVZ5s+q13drX4CpU+JH9RDfBr+thSnPVNPYTAlTgS0C36Y5qgpc1CGIZprVd9Bqm19NwbdY6r63bjx1V0sMTlFuJcj3cBWaj0gXntcV1Umo0zPV9ngYk7Jm0n8BsJQkVVMSfnky9MepFZqP7DQqNer3NcBfJSsmvxaK0dVE2qcVzh/hWSRlKDpTHPJrAAgslPZdRyNDClTcxrX8MrxBwH4IUwlpbjNoKC/wxWsLQDDT9Tz5spiTIvOFv7fXM1du9eYMp94EpFi/OSNNe2AEcQLFY8toa4QVCgNAdEPFD1CbkH+ubXWi9naol1G0f/sazKXCB6z/eXb+ZgiDJQCXpVqfdxlSAy/YMD4jpRtTO5Z8J6YkYII79OsKPIthW81q60zoC9FboSlNP91qzQMg6H9c1yXkhTp8PqHUKZAmmxePaMkkjygKqeyTJ4TNHMqo0LXqBtY66Qp2Ugc2f5assikMy5pwQhFkf6uXneN2mdqVAWrHj0T8fTSS0JdBrhatoZUkH1w8DGthL3wvDFWD2AuAiGV110OtRJuntKMSr7ajKdqBAmJpDnErU+LiddsJJxZUH1y9WgaKMoinuxbbGcbWA9WzTY1Zf0mEOu4qUYhFgtVSmqDsvImDcYqukdyz8YTwBKTinyb/rGJbfA7iPJkETGxrECyYFjeRS0J6ijdsiXcvtrPNrIKtqBb3bDiAztoGBPEf+H+HIujQikLp7XAvf9sazvwhL22RLLrdj8PG/qIkpynkzqKsNCv3++iy0v95fiubqGZBjA/WBMy9GiriSQCVlxiDdKN6gInR98cuhRizjyDMaxXUiKJwbUufa4GVCYmEkdHS1fHXeZ2bh7wnJeYuWslkOB49N4hsVpB7y4mFTslsvkpwJLvf8RI+dKhmiImYyu9Bvij+P+idkR20Zj6U5Cdob1fOO7g3OuwyTGXFuPeZOdh7qTYWEI3vCLIFB28PDQiQXGA6QorIbR4VVwKdviOS0eRulE/GuuIfDIMYaETsnAMzf2Ro2t8can3Xxr2whbhh2Fn9MoUwjneopbcrAxogxJmI2Hn1dSd32HZfCQr761xTJ6CQKICTJHcs+py08ClIdSo9nkuDodr4n0wFC3d+xaYo61T9gnjKR10AoiHnnp9Z0QzfbJlczQqPPnktsUyB0jQ4VCOiB0hCpkFk5SXHpjkihm4iJKnRJ6PKGusS2bxi2DKbUiToqDAteCmMLYGv7FtqOUbVRr6Y/j7uxsZwYX98hgVGIghJ8MBSGDrGcMzvdxPYciANteY3rt5yLZQ6cYS78t0m8DEk/sHafkMrFRfgOmY6xd/bn7lP3zCt5NwKhgzw2Ah8SA/6lpEMGKl2iWEfstUDpe5J2MfCvxShl3U6nHdxY9fKTKi9h85HYkVuoww63Vij/XmPTg2rVr3zqp9RfBPfr1fG9GjPVMcA0CjhucowEqG6NISQvEwkrSSrPpSdymTN8gSzBjn1/xB8eLAy26xF+oqiJvm7jyxum7WGR5+iJmwBSCneVdIouyWKvYDQbFSGlxURppdq4or0BiEQ8/l0o/LUowg0FXONzb30+N7DgyjDu8uXSHrggDL0rxyIbaN5uzfzt+Pu4mo8mLYneVD/rj9jqhKvaWTo//M+Ja0p0lCkN4ebmsJ3HrDgpVA/vJsKeMfoBWoL3I6Pz64cUjJarp6iI1Siy2xKUoZbPZnHchLosiivkNFFvZUuq2QmnRJtuKx3ma47IEczv5LrIPRWpGaXZ+fn42m8tmvaz3GTYV5ujEl1+RsFQdRAQeK9BpLikf0MVI4m3xQ/Ex4X6qS6LXzOVy951zuGjzNb3OgtBuJANUIwpBrjd2QBrsNBo7CuN+i3NRMc5JY4NSfJBys7Oz87OEjPJZFkdPnjz5cpa3qcStShHOPfzfSydjuiuRGPrO1vb1FA7Q7z6VXMJtDtSt1/H2PasrDeiH+XkAbYNodXU1igJFiRogtbe2oLOt81uSvlIf13A7Dh0Qbhaw9JrNfvYZtMXhl0++fJKNvc36uM6lG9L378JXjGW2g7n/wyRNL0ozDH2w1MQ+uiZSnxncu66E7Tiju4cDthbgSSOGws8DgofMEZ8pxjdjqC2N5fui8eEAN1sqGRmOCxG4A2bpO/8ApeezsQfZUN3UZdvsaYgo1Ry3FkXxssNf/6STf7xPP3WQyM+shkH4xRcB5ae0KBBFO7ptBgHpGfsB2Qg5dENCAordmCj7SUJK3qVhQMpm70sxLmfEC2ZA71qZj3Fz1OWcpMJ090sXQPYfi0anWfI6nuMNQrzrSuuDPWoh2MyDKkChaITWr2NOh0LrMCwpovjD49T+HaDeGfZInad4pIeXa0pkBiPxLrTlQdTLJbiolNShXAJ1fx7u3gYFrRzfPCkNbuQOf3+GlVejIOwRLrjR/pATfV/pNz+jJhcviscwI7XxddGAnAlu4t1sFiHTk7yVXBYHsysUwlxvER5nPJu4TNwNaQ/qnsNNsaF3ZpaIUvkiUGi2Ept0m5MOEw7G9i4Ozxt7e6nU9RkpNw91DccD7vyb8/NvApc2w0peZyU7P5+dpZFYQoeElQhXuXyhcWlzXepksytncM9MfijG1hWbJX0eiZI4yspHATH1vD8uMbLNEo30HpmBNz5wDRoeSh6pm/XoIg7y1/gOz19gkmin8sqluHFYsuN+z7a3xW2Om0QeMue+JG4+7xb7SLLEDwl3Ed6lcJDl3kWWS7i5WY+HZdDqpO5vDPqS63CXbVyM+zpveN3gwzWyejqiqJPkfsC+TuDPTSsoeQWutIiBgcYGNCdu2KHN8pxd7FcfxPWr7SNb2uT+FI0kChjSIEeOY7qekvTfWvkFL4VzUpdiQ47Liw3HOfLuEBevLf1quId7Cd1ATxovaXAHqSR9/NELrZLASGSG2bgAN0sGXMkilOW4dw0xGSiuuEvv8O5gVmDEM3s+BrHRGPsCvGdwOW8WcQzfc7NcXd4TDvevvAdyXeK5JaE6iw4Fm7sYp+/87iutSzpw53mZ5VkZRrgcHzeydAOEw9Q4dpjCoYiSmBBQ/TeSTPePXGsDdV704qRxNseVJW1hBpoafPSv1Fhw6e8yJExWN658sc09PiVCxSkfR5JL8weKOJhMsHHt392kBZ3x/BXc3r+SYUXkk2E+3Yznb4xN4u7ovZkEF6hOKZ5O8smmvjGRm7kfk75SxsDME6temcyykczSUxP6t5YpWn5wPqKBQcx88P51pouZdX1Sd/azPZE67vsppGjiMmbQG/QoW5pU3E2adNCK9wwrsiOeUTOmT+zfTaxjOHS4mHqNJQM0hsjJxF1a2vwYmW88x0rWZF+nzGZCcZH9fiy5PDVwEnUxTTKMyf2Lqo0k39SL+6mp+D8IJBPu4uE04TpVNk24yivcl4hrt1/hvsJ9hfufwK2+wn2FO6W4wSvcl4j743SlOPY04erFKJgiXCVqt9enB5c5RXuK1F163vOzSZxaKmy6cJemCzc1Td7V7c0pwl3Dkt7yFAWyenWaIgPhsikahLfaztb04Nbr1SnCXarXsX1qenAVpa3YS9PjXefWNHW11MdsY+zX/Dd1JD3GXFYq0AAAAABJRU5ErkJggg=='
-};
-</script>
-<script>
-'use strict';
-/* =====================================================================
-   RUTA ESTELAR · Misión Voyager — motor de dos modos (plataformas + vuelo)
-   ---------------------------------------------------------------------
-   1. DATOS      -> cuerpos celestes, ruta, tramos de vuelo, mejoras
-   2. FÁBRICA    -> obstáculos disponibles para armar niveles
-   3. MOTOR      -> estado, entrada, bucle
-   4. PLATAFORMA -> física y dibujo del astronauta
-   5. VUELO      -> nave vista desde arriba
-   6. PANTALLAS  -> título, hangar/tienda, final
-   Para agregar un destino: añade una entrada en CUERPOS, súmala a RUTA
-   y define su tramo en TRAMOS. Nada más.
-   ===================================================================== */
-
-/* ---------- 1. DATOS ---------- */
-const CUERPOS = {
-  tierra:{ nombre:'Tierra', art:'la Tierra', g:9.81, color:'#3f86d8', color2:'#3fa66b', semilla:11, largo:6800,
-    cielo:['#5aa9e6','#d6eefb'], suelo:'#4a4f57', borde:'#c9ccd1', fondo:'ciudad',
-    obst:['casa','auto','atasco','bus','hoyo','cono','dron','casa','atasco'],
-    lema:'Llega a la Voyager antes de que impacte el asteroide' },
-  luna:{ nombre:'Luna', art:'la Luna', g:1.62, color:'#b9bcc6', color2:'#8d909b', semilla:23, largo:9000,
-    cielo:['#03040a','#12162a'], suelo:'#7d808a', borde:'#b4b7c0', fondo:'luna',
-    obst:['roca','rocaAlta','hoyo','modulo','rover','hoyo','roca'],
-    lema:'Gravedad baja: saltos largos y lentos' },
-  marte:{ nombre:'Marte', art:'Marte', g:3.71, color:'#c9603a', color2:'#8f3d22', semilla:37, largo:8500,
-    cielo:['#b9774d','#f1cfa6'], suelo:'#8e4326', borde:'#c8704a', fondo:'marte',
-    obst:['roca','rocaAlta','hoyo','remolino','modulo','rover','hoyo','remolino'],
-    lema:'Lleva el Disco de Oro II a la colonia' }
-};
-const RUTA = ['tierra','luna','marte'];
-const TRAMOS = {
-  'tierra>luna':{ dur:40, dens:1.0, basura:.6,  vel:250 },   // órbita baja: mucha basura espacial
-  'luna>marte': { dur:55, dens:1.3, basura:.12, vel:300 }    // espacio profundo: meteoritos
-};
-const MEJORAS = {
-  salto:    { nombre:'Botas de impulso',  desc:'+7 % de velocidad de salto por nivel' },
-  velocidad:{ nombre:'Traje ligero',      desc:'+8 % de velocidad al correr por nivel' },
-  iman:     { nombre:'Imán de monedas',   desc:'Atrae monedas cercanas (a pie y en la nave)' },
-  escudo:   { nombre:'Escudo de la nave', desc:'+1 impacto resistido en vuelo por nivel' },
-  maniobra: { nombre:'Propulsores',       desc:'+12 % de maniobra de la nave por nivel' }
-};
-const COSTOS = [25,50,80];              // costo de cada nivel de mejora
-const H = 540, SUELO = 440;             // alto lógico y línea de suelo
-const G0 = 1800, V_SALTO = 650, V_CARRERA = 250;
-const EXP_G = 0.5;                      // 1 = gravedad real; 0.5 la suaviza para que el salto lunar quepa en pantalla
-
-/* ---------- utilidades ---------- */
-const cv = document.getElementById('c'), ctx = cv.getContext('2d');
-let W = 960, esc = 1;
-const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-function semilla(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-function hash(n){const x=Math.sin(n*127.1+3.7)*43758.5453;return x-Math.floor(x);}
-function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
-function circ(x,y,r){ctx.beginPath();ctx.arc(x,y,r,0,7);}
-const coma = n=>String(n).replace('.',',');
-
-function gJuego(c){return G0*Math.pow(c.g/9.81,EXP_G);}
-function salto(c,nivel){const v=V_SALTO*(1+.07*nivel),g=gJuego(c);return{v,h:v*v/(2*g),d:V_CARRERA*2*v/g};}
-
-/* ---------- 2. FÁBRICA DE OBSTÁCULOS ----------
-   Cada función coloca piezas a partir de x y devuelve el ancho ocupado.
-   s.h = altura de salto base en ese cuerpo, s.d = distancia de salto. */
-function caja(N,x,y,w,h,tipo,r){N.cajas.push({x,y,w,h,tipo,sem:r()});}
-function mon(N,x,y){N.items.push({x,y,tipo:'moneda'});}
-function filaMon(N,x,y,ancho){const n=Math.max(1,Math.floor(ancho/38));for(let i=0;i<n;i++)mon(N,x+(ancho-(n-1)*38)/2+i*38,y);}
-function arco(N,x,w,s){const n=Math.max(3,Math.min(7,Math.round(w/45)));for(let i=0;i<n;i++){const u=(i+.5)/n;mon(N,x+w*u,SUELO-40-Math.sin(u*Math.PI)*s.h*.5);}}
-function peligro(N,tipo,x,y,w,h,amp,vel,r){N.pel.push({x,x0:x,y,w,h,tipo,amp,vel,fase:r()*6});}
-const FAB = {
-  casa(N,x,r,s){const w=120+(r()*40|0),h=Math.min(96,s.h*.8);caja(N,x,SUELO-h,w,h,'casa',r);filaMon(N,x+16,SUELO-h-28,w-32);return w;},
-  auto(N,x,r){caja(N,x,SUELO-38,86,38,'auto',r);mon(N,x+43,SUELO-70);return 86;},
-  bus(N,x,r){caja(N,x,SUELO-66,160,66,'bus',r);filaMon(N,x+16,SUELO-96,128);return 160;},
-  atasco(N,x,r){const x0=x,n=3+(r()*3|0);for(let i=0;i<n;i++){if(i>0&&r()<.3){caja(N,x,SUELO-66,160,66,'bus',r);x+=172;}else{caja(N,x,SUELO-38,86,38,'auto',r);x+=98;}}filaMon(N,x0+30,SUELO-112,x-x0-72);return x-x0-12;},
-  hoyo(N,x,r,s){const w=s.d*(.4+.3*r());N.hoyos.push({x,w});arco(N,x,w,s);return w;},
-  cono(N,x,r,s){peligro(N,'cono',x,SUELO-30,24,30,0,0,r);mon(N,x+12,SUELO-30-s.h*.55);return 24;},
-  dron(N,x,r){peligro(N,'dron',x+90,SUELO-62,40,20,90,1.6,r);return 220;},
-  roca(N,x,r,s){const w=70+(r()*60|0),h=s.h*(.3+.25*r());caja(N,x,SUELO-h,w,h,'roca',r);filaMon(N,x+10,SUELO-h-28,w-20);return w;},
-  rocaAlta(N,x,r,s){const w=90+(r()*40|0),h=s.h*.78;caja(N,x,SUELO-h,w,h,'roca',r);filaMon(N,x+10,SUELO-h-28,w-20);return w;},
-  modulo(N,x,r,s){const h=s.h*.45;caja(N,x,SUELO-h,200,h,'modulo',r);N.items.push({x:x+100,y:SUELO-h-34,tipo:'gema'});return 200;},
-  rover(N,x,r){peligro(N,'rover',x+110,SUELO-30,52,30,110,1.1,r);return 270;},
-  remolino(N,x,r,s){const h=s.h*.45;peligro(N,'remolino',x+120,SUELO-h,36,h,120,.9,r);return 280;}
-};
-function generarNivel(id){
-  const c=CUERPOS[id],r=semilla(c.semilla),s=salto(c,0);
-  const N={id,c,cajas:[],hoyos:[],pel:[],items:[],meta:0,largo:0};
-  let x=720,previo='';
-  while(x<c.largo){
-    let t;do{t=c.obst[r()*c.obst.length|0];}while(t===previo);
-    previo=t;
-    x+=FAB[t](N,x,r,s);
-    const hueco=s.d*(1.2+r());
-    if(r()<.55)arco(N,x+hueco*.3,hueco*.4,s);
-    if(r()<.2)N.items.push({x:x+hueco*.5,y:SUELO-s.h*.92,tipo:'gema'});
-    else if(r()<.09)N.items.push({x:x+hueco*.5,y:SUELO-s.h*.92,tipo:'vida'});
-    x+=hueco;
-  }
-  N.meta=x+260;N.largo=N.meta+420;
-  for(const it of N.items)it.ok=true;
-  return N;
-}
-
-/* ---------- 3. MOTOR: estado, entrada, sonido ---------- */
-const E={modo:'titulo',etapa:0,dinero:0,mej:{salto:0,velocidad:0,iman:0,escudo:0,maniobra:0},t:0,aviso:null};
-let N=null,P=null,V=null,cam=0;
-const K={izq:0,der:0,arr:0,aba:0,salto:0};
-const TECLAS={ArrowLeft:'izq',KeyA:'izq',ArrowRight:'der',KeyD:'der',ArrowUp:'arr',KeyW:'arr',ArrowDown:'aba',KeyS:'aba',Space:'salto'};
-addEventListener('keydown',e=>{const k=TECLAS[e.code];if(k){K[k]=1;e.preventDefault();}});
-addEventListener('keyup',e=>{const k=TECLAS[e.code];if(k){K[k]=0;e.preventDefault();}});
-addEventListener('blur',()=>{for(const k in K)K[k]=0;});
-const tactil=document.getElementById('tactil');
-const esTactil=matchMedia('(pointer:coarse)').matches;
-tactil.querySelectorAll('button').forEach(b=>{
-  const k=b.dataset.k;
-  b.addEventListener('pointerdown',e=>{K[k]=1;e.preventDefault();});
-  ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{K[k]=0;}));
-});
-let arrastre=null;                       // en vuelo: arrastrar mueve la nave
-cv.addEventListener('pointerdown',e=>{arrastre={x:e.clientX,y:e.clientY};});
-cv.addEventListener('pointermove',e=>{
-  if(!arrastre||E.modo!=='vuelo'||!V)return;
-  const k=(1.1+.12*E.mej.maniobra)/esc;
-  V.x+=(e.clientX-arrastre.x)*k;V.y+=(e.clientY-arrastre.y)*k;
-  arrastre={x:e.clientX,y:e.clientY};
-});
-['pointerup','pointercancel'].forEach(ev=>addEventListener(ev,()=>{arrastre=null;}));
-
-let ac=null,son=true;
-function bip(f,d,tipo,v,f2){
-  if(!son||!ac)return;
-  try{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime;o.type=tipo||'square';
-    o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
-    g.gain.setValueAtTime(v||.04,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);
-    o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d);}catch(e){}
-}
-const botonSon=document.getElementById('son');
-botonSon.addEventListener('click',()=>{son=!son;botonSon.textContent='Sonido: '+(son?'sí':'no');});
-
-function ajustar(){
-  // en celulares 1,5 basta y alivia mucho la carga gráfica
-  const ww=innerWidth,wh=innerHeight,dpr=Math.min(esTactil?1.5:2,devicePixelRatio||1);
-  W=clamp(Math.round(H*ww/wh),720,1280);
-  esc=Math.min(ww/W,wh/H);
-  cv.style.width=Math.floor(W*esc)+'px';cv.style.height=Math.floor(H*esc)+'px';
-  cv.width=Math.floor(W*esc*dpr);cv.height=Math.floor(H*esc*dpr);
-  ctx.setTransform(esc*dpr,0,0,esc*dpr,0,0);
-}
-addEventListener('resize',ajustar);
-
-function aviso(a,b){E.aviso={a,b,t:3.2};}
-function modo(m){E.modo=m;tactil.hidden=!(esTactil&&m==='plat');}
-
-/* ---------- 4. PLATAFORMA ---------- */
-/* La amenaza: el asteroide K-77 (inventado). En la Tierra hay una cuenta regresiva
-   hasta el impacto; si llega a cero antes de despegar, se pierde la etapa. */
-const CUENTA_TIERRA=150;                   // segundos
-function amenaza(){
-  if(!P||E.etapa!==0||E.modo!=='plat')return 0;
-  return clamp(1-P.cuenta/CUENTA_TIERRA,0,1)*.85+(P.fin?Math.min(.15,P.fin*.1):0);
-}
-function asteroide(u){
-  const x=W*(.24+u*.2),y=105+u*70,r=9+u*u*62;
-  const gr=ctx.createRadialGradient(x,y,r*.4,x,y,r*2.6);      // resplandor
-  gr.addColorStop(0,'rgba(255,170,80,.55)');gr.addColorStop(1,'rgba(255,90,40,0)');
-  ctx.fillStyle=gr;circ(x,y,r*2.6);ctx.fill();
-  ctx.fillStyle='rgba(255,200,120,.35)';                      // estela
-  ctx.beginPath();ctx.moveTo(x-r*.7,y-r*.6);ctx.lineTo(x-r*5,y-r*4.2);ctx.lineTo(x-r*.2,y-r*.95);ctx.fill();
-  ctx.fillStyle='#5b4334';ctx.beginPath();
-  for(let i=0;i<9;i++){const a=i/9*6.283,k=.8+hash(i+40)*.3;ctx.lineTo(x+Math.cos(a)*r*k,y+Math.sin(a)*r*k);}
-  ctx.fill();
-  ctx.fillStyle='rgba(255,140,60,.8)';circ(x+r*.35,y+r*.3,r*.35);ctx.fill();
-}
-function iniciarPlat(i){
-  E.etapa=i;N=generarNivel(RUTA[i]);
-  P={x:300,y:SUELO-44,w:26,h:44,vx:0,vy:0,suelo:true,dir:1,vidas:3,inv:0,coy:0,buf:0,previo:0,seg:{x:300,y:SUELO-44},monedas:0,fin:0,paso:0,cuenta:CUENTA_TIERRA};
-  cam=0;modo('plat');
-  aviso(i===0?'¡Evacuación!':N.c.nombre+' · g = '+coma(N.c.g)+' m/s²',N.c.lema);
-}
-function solapa(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
-function danio(){
-  if(P.inv>0||P.fin)return;
-  P.vidas--;P.inv=1.4;P.vy=-320;P.vx=-P.dir*220;bip(180,.25,'sawtooth',.06,60);
-  if(P.vidas<=0)fallo();
-}
-function recoger(it){
-  it.ok=false;
-  if(it.tipo==='moneda'){P.monedas++;bip(990,.07,'square',.03,1480);}
-  else if(it.tipo==='gema'){P.monedas+=10;bip(660,.2,'triangle',.06,1760);}
-  else{P.vidas=Math.min(5,P.vidas+1);bip(440,.25,'triangle',.06,880);}
-}
-function actualizarPlat(dt){
-  const c=N.c,g=gJuego(c),m=E.mej;
-  if(P.fin){                               // despegue
-    P.fin+=dt;
-    if(P.fin>2.2){E.dinero+=P.monedas;E.ultimas=P.monedas;if(E.etapa>=RUTA.length-1)pantallaFin();else pantallaHangar();}
-    return;
-  }
-  if(E.etapa===0){
-    const antes=Math.ceil(P.cuenta);P.cuenta-=dt;
-    if(P.cuenta<=10&&Math.ceil(P.cuenta)!==antes)bip(880,.08,'square',.04);   // tic de los últimos 10 s
-    if(P.cuenta<=0){P.cuenta=0;fallo('tiempo');return;}
-  }
-  const vmax=V_CARRERA*(1+.08*m.velocidad);
-  const dir=(K.der?1:0)-(K.izq?1:0);
-  if(dir)P.dir=dir;
-  P.vx+=(dir*vmax-P.vx)*Math.min(1,dt*(P.suelo?12:5));
-  const quiere=K.salto||K.arr;
-  if(quiere&&!P.previo)P.buf=.13;
-  P.previo=quiere;P.buf-=dt;P.coy-=dt;P.inv-=dt;
-  if(P.buf>0&&P.coy>0){P.vy=-V_SALTO*(1+.07*m.salto);P.buf=0;P.coy=0;P.suelo=false;bip(320,.14,'square',.03,640);}
-  if(!quiere&&P.vy<0)P.vy+=g*dt*1.6;       // soltar el botón acorta el salto
-  P.vy=Math.min(P.vy+g*dt,1400);
-
-  P.x+=P.vx*dt;
-  for(const b of N.cajas)if(solapa(P,b)){if(P.vx>0)P.x=b.x-P.w;else if(P.vx<0)P.x=b.x+b.w;P.vx=0;}
-  P.x=clamp(P.x,0,N.largo-P.w);
-  P.y+=P.vy*dt;
-  let enSuelo=false;
-  for(const b of N.cajas)if(solapa(P,b)){if(P.vy>0){P.y=b.y-P.h;enSuelo=true;}else P.y=b.y+b.h;P.vy=0;}
-  const cx=P.x+P.w/2;
-  const hoyo=N.hoyos.find(h=>cx>h.x&&cx<h.x+h.w);
-  if(!hoyo){if(P.y+P.h>=SUELO){P.y=SUELO-P.h;P.vy=0;enSuelo=true;}}
-  else if(P.y+P.h>SUELO+4)P.x=clamp(P.x,hoyo.x-P.w/2+1,hoyo.x+hoyo.w-P.w/2-1);
-  P.suelo=enSuelo;
-  if(enSuelo){P.coy=.1;P.seg.x=P.x;P.seg.y=P.y;if(Math.abs(P.vx)>20)P.paso+=dt;}
-  if(P.y>H+80){                            // cayó a un hoyo
-    P.vidas--;bip(200,.4,'sawtooth',.06,50);
-    if(P.vidas<=0){fallo();return;}
-    P.x=P.seg.x;P.y=P.seg.y;P.vx=P.vy=0;P.inv=1.6;
-  }
-  for(const q of N.pel){
-    q.x=q.x0+Math.sin(E.t*q.vel+q.fase)*q.amp;
-    if(solapa(P,{x:q.x+5,y:q.y+5,w:q.w-10,h:q.h-5}))danio();
-  }
-  const radio=m.iman*60,py=P.y+P.h/2;
-  for(const it of N.items){
-    if(!it.ok)continue;
-    const dx=cx-it.x,dy=py-it.y,d=Math.hypot(dx,dy);
-    if(d<30)recoger(it);
-    else if(d<radio&&it.tipo!=='vida'){it.x+=dx/d*420*dt;it.y+=dy/d*420*dt;}
-  }
-  if(P.x>N.meta-10&&!P.fin){P.fin=.001;bip(90,2,'sawtooth',.06,400);}
-  cam=clamp(P.x-W*.35,0,N.largo-W);
-}
-
-/* --- dibujo de fondos --- */
-function colinas(par,base,amp,lon,color,sem){
-  ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,H);
-  for(let x=0;x<=W+24;x+=24){const wx=x+cam*par;ctx.lineTo(x,base-amp*(.5+.5*Math.sin(wx/lon+sem))-amp*.35*Math.sin(wx/(lon*.37)+sem*2));}
-  ctx.lineTo(W+24,H);ctx.fill();
-}
-/* Optimización: las estrellas se calculan una vez y se dibujan en 3 grupos de brillo,
-   y los edificios se pre-dibujan en una tira que se repite (antes eran ~800 rectángulos por cuadro). */
-const ESTR=Array.from({length:130},(_,i)=>{const z=hash(i*3+2);return{x:hash(i*3),y:hash(i*3+1)*H,z,s:1+z*1.6,g:Math.min(2,z*3|0)};});
-const ALFA_ESTR=['rgba(255,255,255,.4)','rgba(255,255,255,.7)','rgba(255,255,255,1)'];
-function estrellas(n,dy){
-  for(let g=0;g<3;g++){ctx.fillStyle=ALFA_ESTR[g];
-    for(let i=0;i<n;i++){const e=ESTR[i];if(e.g!==g)continue;
-      ctx.fillRect(e.x*W,(e.y+(dy||0)*(.2+e.z))%H,e.s,e.s);}}
-}
-const cacheGrad={};
-function degradado(clave,y1,c0,c1){
-  if(!cacheGrad[clave]){const g=ctx.createLinearGradient(0,0,0,y1);g.addColorStop(0,c0);g.addColorStop(1,c1);cacheGrad[clave]=g;}
-  return cacheGrad[clave];
-}
-const EDIF={an:92,n:24,alto:262,tira:null,k:0};   // alto: el edificio más alto mide 260
-function tiraEdificios(k){                 // k = píxeles reales por unidad lógica: se copia 1:1, sin escalar
-  if(EDIF.tira&&EDIF.k===k)return EDIF.tira;
-  const t=document.createElement('canvas');t.width=Math.ceil(EDIF.an*EDIF.n*k);t.height=Math.ceil(EDIF.alto*k);EDIF.k=k;
-  const c=t.getContext('2d');c.scale(k,k);c.translate(0,EDIF.alto-SUELO);
-  for(let i=0;i<EDIF.n;i++){
-    const x=i*EDIF.an,h=90+hash(i)*170,w=EDIF.an-14;
-    c.fillStyle=['#7f93ad','#8fa3bb','#6f839e'][i%3];c.fillRect(x,SUELO-h,w,h);
-    c.fillStyle='rgba(255,255,255,.35)';
-    for(let yy=SUELO-h+12;yy<SUELO-16;yy+=22)for(let xx=x+10;xx<x+w-12;xx+=20)if(hash(i*31+yy+xx)>.3)c.fillRect(xx,yy,9,11);
-  }
-  return EDIF.tira=t;
-}
-function fondo(c){
-  ctx.fillStyle=degradado('cielo-'+c.nombre,SUELO,c.cielo[0],c.cielo[1]);ctx.fillRect(0,0,W,H);
-  if(c.fondo==='ciudad'){
-    const u=amenaza();                      // 0 → 1 a medida que se acerca el asteroide
-    ctx.fillStyle='rgba(255,90,40,'+(u*.28)+')';ctx.fillRect(0,0,W,SUELO);
-    ctx.fillStyle='#fff3c4';circ(W*.82,90,38);ctx.fill();
-    asteroide(u);
-    ctx.fillStyle='rgba(255,255,255,.85)';
-    for(let i=0;i<6;i++){const x=((i*310-cam*.08)%(W+300)+W+300)%(W+300)-150,y=60+hash(i)*110;
-      circ(x,y,22);ctx.fill();circ(x+26,y+6,28);ctx.fill();circ(x+58,y,20);ctx.fill();}
-    colinas(.12,330,90,260,'#7cc08a',1);
-    // copia solo la parte visible de la tira, en píxeles reales (dos trozos si da la vuelta)
-    const k=cv.width/W,tira=tiraEdificios(k),tw=tira.width,th=tira.height;
-    let sx=Math.round((((cam*.35)%(EDIF.an*EDIF.n))+EDIF.an*EDIF.n)%(EDIF.an*EDIF.n)*k),dx=0;
-    ctx.save();ctx.setTransform(1,0,0,1,0,0);
-    while(dx<cv.width){const w=Math.min(tw-sx,cv.width-dx);ctx.drawImage(tira,sx,0,w,th,dx,Math.round((SUELO-EDIF.alto)*k),w,th);dx+=w;sx=0;}
-    ctx.restore();
-  }else if(c.fondo==='luna'){
-    estrellas(110);
-    ctx.fillStyle='#3f86d8';circ(W*.76,96,36);ctx.fill();
-    ctx.fillStyle='#3fa66b';circ(W*.76-10,88,13);ctx.fill();circ(W*.76+14,108,9);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.7)';circ(W*.76+8,80,8);ctx.fill();
-    ctx.fillStyle='rgba(3,4,10,.45)';ctx.beginPath();ctx.arc(W*.76,96,36,-1.2,1.9);ctx.arc(W*.76-22,96,40,1.4,-1,true);ctx.fill();
-    colinas(.1,380,110,330,'#4b4e59',2);colinas(.3,420,70,190,'#63667180',5);
-  }else{
-    ctx.fillStyle='rgba(255,244,220,.9)';circ(W*.7,110,16);ctx.fill();
-    colinas(.1,350,140,420,'#a05a3a',3);colinas(.28,410,80,230,'#93482b',7);
-  }
-}
-function suelo(c){
-  ctx.fillStyle='#0a0b10';ctx.fillRect(0,SUELO,W,H-SUELO);     // interior de los hoyos
-  let x=cam-10;const fin=cam+W+10;
-  const hs=N.hoyos.filter(h=>h.x+h.w>cam&&h.x<fin).sort((a,b)=>a.x-b.x);
-  const tramo=(a,b)=>{if(b<=a)return;ctx.fillStyle=c.suelo;ctx.fillRect(a-cam,SUELO,b-a,H-SUELO);ctx.fillStyle=c.borde;ctx.fillRect(a-cam,SUELO,b-a,6);};
-  for(const h of hs){tramo(x,h.x);x=h.x+h.w;}
-  tramo(x,fin);
-  const paso=70,i0=Math.floor(cam/paso);
-  for(let i=i0;i<i0+W/paso+2;i++){
-    const wx=i*paso,sx=wx-cam;
-    if(N.hoyos.some(h=>wx+40>h.x&&wx<h.x+h.w))continue;
-    if(c.fondo==='ciudad'){ctx.fillStyle='#f2d14b';ctx.fillRect(sx,SUELO+46,36,5);}
-    else{ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(sx+hash(i)*40,SUELO+24+hash(i+9)*50,10+hash(i+5)*16,4+hash(i+7)*4,0,0,7);ctx.fill();}
-  }
-}
-/* --- dibujo de piezas --- */
-const PINT=['#d8452e','#2f7fd1','#e8b53a','#3fa66b','#8a5fc9','#e9edf2'];
-function dibCaja(b){
-  const x=b.x-cam,y=b.y,w=b.w,h=b.h,col=PINT[b.sem*PINT.length|0];
-  if(b.tipo==='casa'){
-    ctx.fillStyle=['#f1e3c6','#e8d2b0','#dfe6ee'][b.sem*3|0];ctx.fillRect(x+6,y+20,w-12,h-20);
-    ctx.fillStyle=col==='#e9edf2'?'#a6492f':col;ctx.beginPath();ctx.moveTo(x,y+22);ctx.lineTo(x+14,y);ctx.lineTo(x+w-14,y);ctx.lineTo(x+w,y+22);ctx.fill();
-    ctx.fillStyle='#6b4a32';ctx.fillRect(x+w*.5-9,y+h-34,18,34);
-    ctx.fillStyle='#8fd0f5';ctx.fillRect(x+16,y+34,20,18);ctx.fillRect(x+w-36,y+34,20,18);
-  }else if(b.tipo==='auto'){
-    ctx.fillStyle=col;rr(x,y+14,w,h-22,7);ctx.fill();rr(x+16,y,w-36,22,8);ctx.fill();
-    ctx.fillStyle='#cfe9f7';rr(x+21,y+4,w-46,13,4);ctx.fill();
-    ctx.fillStyle='#1c1f26';circ(x+19,y+h-8,8);ctx.fill();circ(x+w-19,y+h-8,8);ctx.fill();
-    ctx.fillStyle='#fff7c2';ctx.fillRect(x+w-5,y+18,5,6);
-  }else if(b.tipo==='bus'){
-    ctx.fillStyle='#e8b53a';rr(x,y,w,h-10,8);ctx.fill();
-    ctx.fillStyle='#cfe9f7';for(let i=0;i<5;i++)ctx.fillRect(x+10+i*29,y+10,22,18);
-    ctx.fillStyle='#b98a1f';ctx.fillRect(x,y+36,w,5);
-    ctx.fillStyle='#1c1f26';circ(x+28,y+h-10,10);ctx.fill();circ(x+w-28,y+h-10,10);ctx.fill();
-  }else if(b.tipo==='roca'){
-    ctx.fillStyle=N.c.color2;ctx.beginPath();ctx.moveTo(x,y+h);
-    ctx.lineTo(x,y+h*.25);ctx.lineTo(x+w*.12,y);ctx.lineTo(x+w*.9,y);ctx.lineTo(x+w,y+h*.3);ctx.lineTo(x+w,y+h);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.13)';ctx.beginPath();ctx.moveTo(x+w*.12,y);ctx.lineTo(x+w*.9,y);ctx.lineTo(x+w*.7,y+h*.3);ctx.lineTo(x+w*.2,y+h*.22);ctx.fill();
-    ctx.fillStyle='rgba(0,0,0,.18)';circ(x+w*(.3+b.sem*.4),y+h*.6,Math.min(w,h)*.12);ctx.fill();
-  }else{ // módulo de hábitat
-    ctx.fillStyle='#6c7480';ctx.fillRect(x+20,y+h-14,8,14);ctx.fillRect(x+w-28,y+h-14,8,14);
-    ctx.fillStyle='#e9edf2';rr(x,y,w,h-12,Math.min(18,(h-12)/2));ctx.fill();
-    ctx.fillStyle='#e0672a';ctx.fillRect(x+10,y+(h-12)*.62,w-20,4);
-    ctx.fillStyle='#1d2b4a';for(let i=0;i<4;i++){circ(x+34+i*44,y+(h-12)*.36,8);ctx.fill();}
-  }
-}
-function dibPeligro(q){
-  const x=q.x-cam,y=q.y,t=E.t;
-  if(q.tipo==='cono'){
-    ctx.fillStyle='#e0672a';ctx.beginPath();ctx.moveTo(x+12,y);ctx.lineTo(x+22,y+26);ctx.lineTo(x+2,y+26);ctx.fill();
-    ctx.fillRect(x-2,y+26,28,4);ctx.fillStyle='#fff';ctx.fillRect(x+7,y+12,10,4);
-  }else if(q.tipo==='dron'){
-    ctx.fillStyle='#2b303b';rr(x+8,y+6,24,12,4);ctx.fill();ctx.fillRect(x,y+4,40,3);
-    ctx.fillStyle='rgba(40,44,54,.5)';const a=12+6*Math.sin(t*40);ctx.fillRect(x+2-a/2,y,a+4,3);ctx.fillRect(x+34-a/2,y,a+4,3);
-    ctx.fillStyle='#ff4d4d';circ(x+20,y+18,3);ctx.fill();
-  }else if(q.tipo==='rover'){
-    ctx.fillStyle='#d9dde5';rr(x+4,y+6,44,14,4);ctx.fill();
-    ctx.fillStyle='#1d2b4a';ctx.fillRect(x+30,y,14,7);
-    ctx.fillStyle='#2b303b';for(let i=0;i<3;i++){circ(x+9+i*17,y+24,6);ctx.fill();}
-    ctx.fillStyle='#ff4d4d';circ(x+8,y+4,3);ctx.fill();
-  }else{ // remolino de polvo
-    for(let i=0;i<7;i++){const u=i/6,yy=y+q.h*(1-u),an=8+u*q.w*.8;
-      ctx.fillStyle='rgba(235,190,150,'+(.35+.3*u)+')';ctx.beginPath();ctx.ellipse(x+q.w/2+Math.sin(t*9+i)*5*u,yy,an,5,0,0,7);ctx.fill();}
-  }
-}
-function dibItem(tipo,x,y,t){
-  if(tipo==='moneda'){
-    const s=Math.abs(Math.cos(t*4+x*.02));
-    ctx.fillStyle='#b98a1f';ctx.beginPath();ctx.ellipse(x,y,10*s+1.5,10,0,0,7);ctx.fill();
-    ctx.fillStyle='#ffd257';ctx.beginPath();ctx.ellipse(x,y,7.5*s+1,8,0,0,7);ctx.fill();
-  }else if(tipo==='gema'){
-    const b=Math.sin(t*3+x)*3;
-    ctx.fillStyle='#3fd4e8';ctx.beginPath();ctx.moveTo(x,y-13+b);ctx.lineTo(x+11,y+b);ctx.lineTo(x,y+13+b);ctx.lineTo(x-11,y+b);ctx.fill();
-    ctx.fillStyle='#c9f6ff';ctx.beginPath();ctx.moveTo(x,y-13+b);ctx.lineTo(x+5,y+b);ctx.lineTo(x,y+2+b);ctx.lineTo(x-5,y+b);ctx.fill();
-  }else corazon(x,y+Math.sin(t*3)*3,11,'#ff4d6d');
-}
-function corazon(x,y,r,col){
-  ctx.fillStyle=col;circ(x-r*.5,y-r*.25,r*.55);ctx.fill();circ(x+r*.5,y-r*.25,r*.55);ctx.fill();
-  ctx.beginPath();ctx.moveTo(x-r,y);ctx.lineTo(x,y+r);ctx.lineTo(x+r,y);ctx.fill();
-}
-function dibCohete(cx,by,k,llama){
-  ctx.save();ctx.translate(cx,by);ctx.scale(k,k);
-  if(llama){const f=60+Math.random()*40;
-    ctx.fillStyle='#ff8a2b';ctx.beginPath();ctx.moveTo(-14,0);ctx.lineTo(0,f);ctx.lineTo(14,0);ctx.fill();
-    ctx.fillStyle='#ffe27a';ctx.beginPath();ctx.moveTo(-7,0);ctx.lineTo(0,f*.55);ctx.lineTo(7,0);ctx.fill();}
-  ctx.fillStyle='#d8452e';
-  ctx.beginPath();ctx.moveTo(-22,-70);ctx.lineTo(-46,-36);ctx.lineTo(-46,0);ctx.lineTo(-22,-12);ctx.fill();
-  ctx.beginPath();ctx.moveTo(22,-70);ctx.lineTo(46,-36);ctx.lineTo(46,0);ctx.lineTo(22,-12);ctx.fill();
-  ctx.fillStyle='#eef1f5';ctx.beginPath();ctx.moveTo(-24,-10);ctx.lineTo(-24,-110);ctx.quadraticCurveTo(-24,-160,0,-186);ctx.quadraticCurveTo(24,-160,24,-110);ctx.lineTo(24,-10);ctx.fill();
-  ctx.fillStyle='#d8452e';ctx.beginPath();ctx.moveTo(-19,-142);ctx.quadraticCurveTo(-12,-170,0,-186);ctx.quadraticCurveTo(12,-170,19,-142);ctx.fill();
-  ctx.fillStyle='#9aa3b0';circ(0,-104,13);ctx.fill();ctx.fillStyle='#1d2b4a';circ(0,-104,9.5);ctx.fill();
-  ctx.fillStyle='#6c7480';ctx.fillRect(-14,-10,28,10);
-  ctx.restore();
-}
-function dibAstro(){
-  const x=P.x-cam+13,y=P.y;
-  if(P.inv>0&&Math.floor(P.inv*14)%2)return;
-  const s=P.suelo?Math.sin(P.paso*16)*(Math.abs(P.vx)>20?1:0):.7;
-  ctx.save();ctx.translate(x,y);ctx.scale(P.dir,1);
-  ctx.fillStyle='#aeb6c4';rr(-16,13,8,19,3);ctx.fill();
-  ctx.fillStyle='#e3e8ef';rr(-8+s*4,29,7,12,3);ctx.fill();rr(1-s*4,29,7,12,3);ctx.fill();
-  ctx.fillStyle='#e0672a';ctx.fillRect(-9+s*4,40,10,4);ctx.fillRect(0-s*4,40,10,4);
-  ctx.fillStyle='#f4f6f9';rr(-10,15,20,18,5);ctx.fill();
-  ctx.fillStyle='#e0672a';ctx.fillRect(-10,24,20,3);
-  ctx.fillStyle='#f4f6f9';circ(0,9,10);ctx.fill();
-  ctx.fillStyle='#1d2b4a';rr(-2,4,11,9,4);ctx.fill();
-  ctx.fillStyle='rgba(160,205,255,.7)';ctx.fillRect(4,6,3,3);
-  ctx.restore();
-}
-/* --- Sprites de la Voyager (vienen incrustados en window.SPRITES, arriba) ---
-   hoja: 0 reposo, 1 transmisión azul, 2 alerta roja. frente: vista frontal (posada / en el lanzador). */
-const SPR={hoja:new Image(),frente:new Image()};
-SPR.hoja.src=SPRITES.hoja;SPR.frente.src=SPRITES.frente;
-const listo=img=>img.complete&&img.naturalWidth>0;
-const CUADRO={w:155,h:119};
-function propulsores(x,y,k){               // chorros de hidracina: pequeños y azulados
-  for(let i=0;i<3;i++){const u=(E.t*7+i/3)%1;
-    ctx.fillStyle='rgba(150,200,255,'+(.5*(1-u))+')';circ(x+(i-1)*14*k,y+u*34*k,(5-3*u)*k);ctx.fill();}
-}
-function dibVoyager(x,y,ancho,estado,giro){  // x,y = centro del cuerpo
-  if(!listo(SPR.hoja)){dibCohete(x,y+40,.45,true);return;}
-  const h=ancho*CUADRO.h/CUADRO.w;
-  propulsores(x,y+h*.38,ancho/100);
-  ctx.save();ctx.translate(x,y);ctx.rotate(giro||0);
-  ctx.drawImage(SPR.hoja,estado*CUADRO.w,0,CUADRO.w,CUADRO.h,-ancho/2,-h/2,ancho,h);
-  ctx.restore();
-}
-function dibVoyagerPosada(cx,by,ancho,despega){  // cx = centro, by = base
-  if(!listo(SPR.frente)){dibCohete(cx,by,.85,despega);return;}
-  const w=SPR.frente.naturalWidth,h=SPR.frente.naturalHeight,alto=ancho*h/w;
-  if(despega)propulsores(cx,by-6,ancho/80);
-  ctx.drawImage(SPR.frente,cx-ancho/2,by-alto,ancho,alto);
-}
-function dibujarPlat(){
-  const c=N.c;
-  fondo(c);suelo(c);
-  // plataforma y nave de salida: en la Tierra, el cohete que lleva la Voyager; afuera, la Voyager misma
-  const mx=N.meta+70-cam,sube=P.fin?Math.pow(P.fin,2.4)*120:0,tierra=E.etapa===0;
-  ctx.fillStyle='#6c7480';ctx.fillRect(mx-70,SUELO-6,140,6);
-  if(tierra){                              // torre, cohete lanzador y la Voyager montada en la punta
-    ctx.fillStyle='#8a93a3';ctx.fillRect(mx+50,SUELO-235,6,235);ctx.fillRect(mx+30,SUELO-120,24,4);ctx.fillRect(mx+20,SUELO-200,34,4);
-    const base=SUELO-6-sube;
-    dibCohete(mx,base,.85,!!P.fin);
-    if(listo(SPR.frente))ctx.drawImage(SPR.frente,mx-58,base-142-88,116,86);
-  }else dibVoyagerPosada(mx,SUELO-6-sube,150,!!P.fin);
-  if(!P.fin){ctx.fillStyle='#ffc857';ctx.font='700 13px system-ui';ctx.textAlign='center';
-    ctx.fillText('VOYAGER',mx,SUELO-(tierra?250:140)+Math.sin(E.t*4)*3);}
-  for(const b of N.cajas)if(b.x+b.w>cam-20&&b.x<cam+W+20)dibCaja(b);
-  for(const q of N.pel)if(q.x+q.w>cam-40&&q.x<cam+W+40)dibPeligro(q);
-  for(const it of N.items)if(it.ok&&it.x>cam-20&&it.x<cam+W+20)dibItem(it.tipo,it.x-cam,it.y,E.t);
-  if(!P.fin)dibAstro();
-  hud(P.vidas,E.dinero+P.monedas,clamp(P.x/N.meta,0,1),'Inicio','Voyager');
-  if(tierra&&!P.fin){                      // cuenta regresiva del impacto
-    const s=Math.ceil(P.cuenta),txt='Impacto del K-77 en '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
-    const urge=P.cuenta<=20;
-    ctx.font='800 16px system-ui';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.55)';
-    ctx.strokeText(txt,W/2,56);ctx.fillStyle=urge&&Math.sin(E.t*10)>0?'#ff4d4d':'#ffd9a0';ctx.fillText(txt,W/2,56);
-  }
-}
-
-/* ---------- 5. VUELO ---------- */
-function iniciarVuelo(i){
-  E.etapa=i;const de=RUTA[i],a=RUTA[i+1];
-  V={x:W/2,px:W/2,giro:0,brillo:0,y:H-110,t:0,objs:[],esc:3+E.mej.escudo,inv:0,prox:1.2,proxMon:2,monedas:0,fin:0,tr:TRAMOS[de+'>'+a],de:CUERPOS[de],a:CUERPOS[a]};
-  modo('vuelo');
-  aviso(V.de.nombre+' → '+V.a.nombre,(i===0?'Esquiva los fragmentos del K-77 y la basura espacial':'Rumbo a la colonia de Marte')+(esTactil?' · arrastra el dedo':''));
-}
-function nuevoObj(tipo,x,r,vy){
-  const o={tipo,x,y:-r-10,r,vy,vx:0,rot:Math.random()*6,vr:(Math.random()-.5)*3};
-  if(tipo==='meteoro'){o.forma=[];for(let i=0;i<9;i++)o.forma.push(.72+Math.random()*.36);}
-  if(tipo==='basura'){o.vx=(Math.random()-.5)*110;o.var=Math.random()*3|0;}
-  V.objs.push(o);
-}
-function actualizarVuelo(dt){
-  const tr=V.tr,m=E.mej;
-  V.t+=dt;V.inv-=dt;
-  const vel=340*(1+.12*m.maniobra);
-  V.x+=((K.der?1:0)-(K.izq?1:0))*vel*dt;
-  V.y+=((K.aba?1:0)-(K.arr?1:0))*vel*.8*dt;
-  V.x=clamp(V.x,46,W-46);V.y=clamp(V.y,70,H-50);
-  const ladeo=clamp((V.x-V.px)/Math.max(dt,.001)/340,-1,1)*.32;   // se inclina al moverse de lado
-  V.giro+=(ladeo-V.giro)*Math.min(1,dt*8);V.px=V.x;V.brillo-=dt;
-  const prog=clamp(V.t/tr.dur,0,1);
-  if(prog<1){
-    V.prox-=dt;V.proxMon-=dt;
-    if(V.prox<=0){
-      V.prox=(.62/tr.dens/(1+prog*.9))*(720/W)*(.6+Math.random()*.8);
-      const vy=tr.vel*(.8+Math.random()*.6)*(1+prog*.5);
-      if(Math.random()<tr.basura)nuevoObj('basura',Math.random()*W,16+Math.random()*8,vy*.85);
-      else nuevoObj('meteoro',Math.random()*W,14+Math.random()*26,vy);
-    }
-    if(V.proxMon<=0){
-      V.proxMon=1.6+Math.random()*1.6;
-      const x=40+Math.random()*(W-80);
-      if(Math.random()<.1)nuevoObj('vida',x,12,tr.vel*.8);
-      else for(let i=0;i<4;i++){nuevoObj('moneda',x,10,tr.vel*.8);V.objs[V.objs.length-1].y-=i*42;}
-    }
-  }else{
-    V.fin+=dt;
-    if(V.fin>3){E.dinero+=V.monedas;iniciarPlat(E.etapa+1);return;}
-  }
-  const radio=45+m.iman*55;
-  for(const o of V.objs){
-    o.y+=o.vy*dt;o.x+=o.vx*dt;o.rot+=o.vr*dt;
-    const dx=V.x-o.x,dy=V.y-o.y,d=Math.hypot(dx,dy)||1;
-    if(o.tipo==='moneda'||o.tipo==='vida'){
-      if(d<radio){o.x+=dx/d*380*dt;o.y+=dy/d*380*dt;}
-      if(d<o.r+20){o.fuera=true;
-        V.brillo=.35;
-        if(o.tipo==='moneda'){V.monedas++;bip(990,.07,'square',.03,1480);}
-        else{V.esc=Math.min(6,V.esc+1);bip(440,.25,'triangle',.06,880);}}
-    }else if(d<o.r*.85+15&&V.inv<=0&&!V.fin){
-      V.esc--;V.inv=1.3;o.fuera=true;bip(160,.3,'sawtooth',.07,50);
-      if(V.esc<=0){fallo();return;}
-    }
-    if(o.y>H+60)o.fuera=true;
-  }
-  V.objs=V.objs.filter(o=>!o.fuera);
-}
-function planeta(c,cy,R){
-  ctx.fillStyle=c.color;circ(W/2,cy,R);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.arc(W/2,cy,R,0,7);ctx.clip();
-  ctx.fillStyle=c.color2;
-  for(let i=0;i<9;i++){const a=hash(i+c.semilla)*6.3,d=R*(.55+hash(i*2+c.semilla)*.42);
-    circ(W/2+Math.cos(a)*d,cy+Math.sin(a)*d,R*(.06+hash(i*5+c.semilla)*.12));ctx.fill();}
-  ctx.restore();
-  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=5;circ(W/2,cy,R+2);ctx.stroke();
-}
-function dibujarVuelo(){
-  ctx.fillStyle=degradado('espacio',H,'#03040a','#0f1430');ctx.fillRect(0,0,W,H);
-  estrellas(120,V.t*140);
-  const R=W*.75;
-  if(V.t<7)planeta(V.de,H+R-150+V.t*70,R);
-  const falta=V.tr.dur-V.t;
-  if(falta<5)planeta(V.a,-R+20+(5-falta)*26,R);
-  for(const o of V.objs){
-    if(o.tipo==='moneda'||o.tipo==='vida'){dibItem(o.tipo,o.x,o.y,E.t);continue;}
-    ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.rot);
-    if(o.tipo==='meteoro'){
-      ctx.fillStyle='#7a6a5d';ctx.beginPath();
-      for(let i=0;i<9;i++){const a=i/9*6.283,r=o.r*o.forma[i];ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}
-      ctx.fill();
-      ctx.fillStyle='rgba(0,0,0,.22)';circ(o.r*.25,-o.r*.2,o.r*.22);ctx.fill();circ(-o.r*.3,o.r*.25,o.r*.14);ctx.fill();
-    }else if(o.var===0){               // satélite muerto
-      ctx.fillStyle='#3d6fb8';ctx.fillRect(-o.r*1.5,-o.r*.3,o.r,o.r*.6);ctx.fillRect(o.r*.5,-o.r*.3,o.r,o.r*.6);
-      ctx.fillStyle='#c9ccd1';ctx.fillRect(-o.r*.5,-o.r*.5,o.r,o.r);
-      ctx.fillStyle='#e8b53a';circ(0,0,o.r*.2);ctx.fill();
-    }else if(o.var===1){               // panel roto
-      ctx.fillStyle='#3d6fb8';ctx.beginPath();ctx.moveTo(-o.r,-o.r*.5);ctx.lineTo(o.r,-o.r*.7);ctx.lineTo(o.r*.6,o.r*.6);ctx.lineTo(-o.r*.7,o.r*.4);ctx.fill();
-      ctx.strokeStyle='#9cc2f0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-o.r*.1,-o.r*.6);ctx.lineTo(-o.r*.05,o.r*.5);ctx.stroke();
-    }else{                             // etapa de cohete
-      ctx.fillStyle='#b9c0cc';rr(-o.r*.45,-o.r,o.r*.9,o.r*2,4);ctx.fill();
-      ctx.fillStyle='#6c7480';ctx.fillRect(-o.r*.45,o.r*.5,o.r*.9,o.r*.2);
-    }
-    ctx.restore();
-  }
-  if(!(V.inv>0&&Math.floor(V.inv*14)%2)){
-    if(V.esc>1){ctx.strokeStyle='rgba(127,182,255,'+(.25+.1*Math.sin(E.t*6))+')';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(V.x,V.y,58,40,0,0,7);ctx.stroke();}
-    // luz: roja si acaba de recibir un golpe o le queda un impacto; azul al recoger algo
-    const estado=(V.inv>0||(V.esc===1&&Math.sin(E.t*8)>0))?2:V.brillo>0?1:0;
-    dibVoyager(V.x,V.y,104,estado,V.giro);
-  }
-  hud(V.esc,E.dinero+V.monedas,clamp(V.t/V.tr.dur,0,1),V.de.nombre,V.a.nombre);
-}
-
-/* ---------- HUD y avisos ---------- */
-function hud(vidas,monedas,prog,izq,der){
-  for(let i=0;i<vidas;i++)corazon(26+i*26,28,10,'#ff4d6d');
-  ctx.fillStyle='#b98a1f';circ(26,58,10);ctx.fill();ctx.fillStyle='#ffd257';circ(26,58,7.5);ctx.fill();
-  ctx.font='700 18px system-ui';ctx.textAlign='left';ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.55)';
-  ctx.strokeText(monedas,44,64);ctx.fillStyle='#fff';ctx.fillText(monedas,44,64);
-  const bw=Math.min(300,W*.34),bx=(W-bw)/2;
-  ctx.fillStyle='rgba(0,0,0,.45)';rr(bx,20,bw,10,5);ctx.fill();
-  ctx.fillStyle='#ffc857';rr(bx,20,Math.max(10,bw*prog),10,5);ctx.fill();
-  ctx.font='600 12px system-ui';
-  ctx.textAlign='right';ctx.strokeText(izq,bx-8,30);ctx.fillStyle='#fff';ctx.fillText(izq,bx-8,30);
-  ctx.textAlign='left';ctx.strokeText(der,bx+bw+8,30);ctx.fillText(der,bx+bw+8,30);
-  const a=E.aviso;
-  if(a&&a.t>0){
-    ctx.globalAlpha=clamp(a.t,0,1);ctx.textAlign='center';
-    ctx.font='800 34px system-ui';ctx.lineWidth=6;ctx.strokeText(a.a,W/2,150);ctx.fillStyle='#ffc857';ctx.fillText(a.a,W/2,150);
-    ctx.font='600 18px system-ui';ctx.lineWidth=4;ctx.strokeText(a.b,W/2,182);ctx.fillStyle='#fff';ctx.fillText(a.b,W/2,182);
-    ctx.globalAlpha=1;
-  }
-}
-
-/* ---------- 6. PANTALLAS ---------- */
-const ov=document.getElementById('ov'),panel=document.getElementById('panel');
-function mostrar(html){panel.innerHTML=html;ov.hidden=false;panel.scrollTop=0;ov.scrollTop=0;tactil.hidden=true;}
-function chipsRuta(hechas){
-  return '<div class="ruta">'+RUTA.map((id,i)=>'<span class="'+(i<hechas?'ok':i===hechas?'sig':'')+'">'+CUERPOS[id].nombre+'</span>').join('<i>→</i>')+'</div>';
-}
-/* Datos reales que aparecen en el hangar (uno por etapa) y al final. */
-const RELATO_HANGAR=[
-  'Despegaste justo a tiempo: el K-77 ya brilla sobre la ciudad. Ahora hay que atravesar la órbita llena de basura espacial y de los primeros fragmentos del asteroide.',
-  'Hiciste escala en la base lunar y recargaste combustible. Próximo destino: la colonia de Marte, donde el Disco de Oro II quedará a salvo.'
-];
-const DATOS=[
-  'La antena de la Voyager mide unos 3,7 m de diámetro. Con ella las sondas reales siguen enviando datos a la Tierra desde el espacio interestelar, a más de 20.000 millones de km.',
-  'La Luna está, en promedio, a 384.400 km. La luz recorre esa distancia en poco más de un segundo; hasta Marte tarda entre 3 y 22 minutos, según dónde estén ambos planetas.'
-];
-function pantallaTitulo(){
-  modo('titulo');
-  mostrar('<a class="volver" href="../../">← El Mundo de Felipe</a>'+
-    '<img class="voy" src="'+SPRITES.frente+'" alt="Sonda Voyager">'+
-    '<h1>RUTA ESTELAR</h1><p class="sub">MISIÓN VOYAGER · MAPA 1: SISTEMA SOLAR INTERIOR</p>'+chipsRuta(-1)+
-    '<div class="historia"><b>Año 2077.</b> Los telescopios detectan el asteroide <b>K-77</b> en rumbo de choque con la Tierra: el impacto es en minutos. '+
-    'Antes de que llegue, alguien tiene que sacar del planeta el <b>Disco de Oro II</b>, la memoria de la Tierra: semillas, ADN, libros y música. '+
-    'La única nave lista es la Voyager, reconstruida para llevar tripulación.<br><br>'+
-    'Tu misión: cruzar la ciudad en plena evacuación, subir a la Voyager antes del impacto y llevar el disco a la colonia de Marte, con escala en la base lunar.</div>'+
-    '<p><b>A pie:</b> <kbd>←</kbd> <kbd>→</kbd> para moverte, <kbd>Espacio</kbd> o <kbd>↑</kbd> para saltar (mantén para saltar más alto). En celular, los botones de la pantalla.</p>'+
-    '<p><b>En vuelo:</b> esquiva meteoritos y basura espacial con las flechas, o arrastrando el dedo. La luz de la Voyager se pone roja cuando recibe un golpe.</p>'+
-    '<p>Las monedas y gemas compran mejoras en el hangar antes de cada despegue.</p>'+
-    '<button class="gr" data-acc="empezar">Comenzar misión</button>');
-}
-function pantallaHangar(){
-  modo('hangar');
-  const sig=CUERPOS[RUTA[E.etapa+1]],act=CUERPOS[RUTA[E.etapa]];
-  let h='<h2>'+(E.etapa===0?'A bordo de la Voyager':'Base lunar')+'</h2><p class="relato">'+RELATO_HANGAR[E.etapa]+'</p><p>Recolectaste '+(E.ultimas||0)+' en esta etapa. Saldo: <span class="saldo">'+E.dinero+' monedas</span></p>'+chipsRuta(E.etapa+1)+'<div class="tienda">';
-  for(const k in MEJORAS){
-    const n=E.mej[k],max=n>=COSTOS.length,costo=COSTOS[n];
-    h+='<div class="item"><b>'+MEJORAS[k].nombre+' <span class="niv">'+'●'.repeat(n)+'○'.repeat(COSTOS.length-n)+'</span></b>'+
-      '<button data-acc="comprar" data-k="'+k+'"'+(max||E.dinero<costo?' disabled':'')+'>'+(max?'Máximo':costo+' monedas')+'</button>'+
-      '<small>'+MEJORAS[k].desc+'</small></div>';
-  }
-  h+='</div>'+(DATOS[E.etapa]?'<div class="dato"><b>Dato real.</b> '+DATOS[E.etapa]+'</div>':'')+
-    '<button class="gr" data-acc="despegar">Despegar hacia '+sig.art+'</button>';
-  mostrar(h);
-}
-function pantallaFin(){
-  modo('fin');
-  mostrar('<h2>El Disco de Oro II está a salvo</h2>'+chipsRuta(RUTA.length)+
-    '<p class="relato">Llegaste a la colonia de Marte. La memoria de la Tierra (sus semillas, su ADN, sus libros y su música) quedó resguardada, y la humanidad tiene un lugar desde donde volver a empezar.</p>'+
-    '<p>Terminaste con <span class="saldo">'+E.dinero+' monedas</span>.</p>'+
-    '<div class="dato"><b>Lo que pasó en la realidad.</b> Las Voyager nunca fueron a la Luna ni a Marte: pasaron por Júpiter y Saturno, y la Voyager 2 siguió a Urano y Neptuno. '+
-    'En 2012 la Voyager 1 se convirtió en el primer objeto hecho por humanos en llegar al espacio interestelar; la Voyager 2 lo logró en 2018. '+
-    'Cada una lleva un Disco de Oro real con sonidos, música e imágenes de la Tierra; el Disco de Oro II del juego está inspirado en él.</div>'+
-    '<div class="dato"><b>¿Y el asteroide?</b> El K-77 es inventado. Las agencias espaciales vigilan los asteroides que se acercan a la Tierra, y en 2022 la misión DART de la NASA chocó a propósito con el asteroide Dimorphos y logró cambiar su órbita: la primera prueba de defensa planetaria.</div>'+
-    '<button class="gr" data-acc="reiniciar">Jugar de nuevo</button>');
-}
-function fallo(causa){
-  const enVuelo=E.modo==='vuelo';
-  modo('fallo');
-  const motivo=causa==='tiempo'?'El K-77 llegó antes de que alcanzaras la Voyager.':enVuelo?'La nave no resistió más impactos.':'El astronauta se quedó sin vidas.';
-  mostrar('<h2>Misión interrumpida</h2><p>'+motivo+
-    ' Conservas tu saldo de <span class="saldo">'+E.dinero+' monedas</span> y tus mejoras.</p>'+
-    '<button class="gr" data-acc="'+(enVuelo?'revuelo':'replat')+'">Reintentar etapa</button>');
-}
-panel.addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  const acc=b.dataset.acc;
-  if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(err){}}
-  if(acc==='comprar'){
-    const k=b.dataset.k,costo=COSTOS[E.mej[k]];
-    if(costo!==undefined&&E.dinero>=costo){E.dinero-=costo;E.mej[k]++;bip(520,.2,'triangle',.06,1040);pantallaHangar();}
-    return;
-  }
-  ov.hidden=true;
-  if(acc==='empezar')iniciarPlat(0);
-  else if(acc==='despegar'||acc==='revuelo')iniciarVuelo(E.etapa);
-  else if(acc==='replat')iniciarPlat(E.etapa);
-  else if(acc==='reiniciar'){E.dinero=0;for(const k in E.mej)E.mej[k]=0;iniciarPlat(0);}
-});
-
-/* ---------- bucle principal ---------- */
-let antes=0;
-function cuadro(ms){
-  const dt=Math.min(.033,(ms-antes)/1000||0);antes=ms;E.t+=dt;
-  if(E.aviso)E.aviso.t-=dt;
-  if(E.modo==='plat'){actualizarPlat(dt);if(E.modo==='plat')dibujarPlat();}
-  else if(E.modo==='vuelo'){actualizarVuelo(dt);if(E.modo==='vuelo')dibujarVuelo();}
-  else if(E.modo==='titulo'){
-    ctx.fillStyle='#05060d';ctx.fillRect(0,0,W,H);estrellas(120,E.t*30);
-  }
-  requestAnimationFrame(cuadro);
-}
-ajustar();pantallaTitulo();requestAnimationFrame(cuadro);
-</script>
+<div id="tactil" hidden>
+  <div class="joy"><i></i></div>
+  <div class="bot">
+    <button data-a="usar" aria-label="Tomar">✋</button><button data-a="camara" aria-label="Cámara">👁</button>
+    <button data-a="correr" aria-label="Correr">CORRER</button><button class="s" data-a="saltar" aria-label="Saltar">SALTAR</button>
+  </div>
+</div>
+<div id="ov"><div class="panel" id="panel"><p>Cargando…</p></div></div>
+<noscript><p style="padding:20px">Este juego necesita JavaScript.</p></noscript>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
