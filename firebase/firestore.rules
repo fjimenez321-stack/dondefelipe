@@ -344,7 +344,6 @@ service cloud.firestore {
     // en el tablero (mate, ahogado…) que el rival confirmó (su equipo revisa las jugadas con motor.js), o tras
     // 30 minutos sin reclamo. Si alguien reclama (disputa), nadie cobra hasta que el profe resuelva.
     function rutaAj(c) { return /databases/$(database)/documents/ajedrez_salas/$(c); }
-    function rutaRankAj(u) { return /databases/$(database)/documents/rankings/ajedrez/mejores/$(u); }
     function ajColor(d, uid) {
       return d.blancas != null && d.blancas.uid == uid ? 'w'
            : (d.negras != null && d.negras.uid == uid ? 'b' : '');
