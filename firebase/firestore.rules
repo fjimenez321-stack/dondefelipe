@@ -874,6 +874,8 @@ service cloud.firestore {
     // (5 nov. 2026: hasta 5 tiros por día; las casillas 28 y 30 pasan de +30.000 y +60.000 a −30.000 y −60.000.)
     // (Nov. 2026: «Tu música» → 20% de descuento en la Tienda; «Puesto por una clase» → cambio de puesto libre por
     //  una semana; en la Sorpresa, Masita y Miauricio reemplazan a Gatito Pulcro y Esmoquin.)
+    // (18 nov. 2026: ruleta equilibrada, 17 premios y 15 castigos; más premios chicos en dinero (+60.000 ×2);
+    //  salen «2 décimas formativas» y «cambio de puesto», entran −30.000 y una 2ª disertación en otro lugar.)
     function rutaRuleta(c) { return /databases/$(database)/documents/ruleta/$(c); }
     function ruletaDe(c) { return exists(rutaRuleta(c)) ? get(rutaRuleta(c)).data : { 'n': 0 }; }
     function hashTiro(c, n, ms) { return hashing.sha256(salRuleta() + '|' + c + '|' + string(n) + '|' + string(ms)).toHexString().lower(); }
@@ -886,14 +888,14 @@ service cloud.firestore {
     //   o poco común · 'P' pierde un beneficio por canjear. Si no tiene la cosa: v en Hipopesos.
     function tablaRuleta() {
       return [
-        {'t':'d','v':500000}, {'t':'D','v':'Ruleta: disertación'}, {'t':'b','v':'Ruleta: 1 décima formativa'}, {'t':'d','v':-120000},
+        {'t':'d','v':500000}, {'t':'d','v':-30000}, {'t':'b','v':'Ruleta: 1 décima formativa'}, {'t':'d','v':-120000},
         {'t':'A','v':100000}, {'t':'d','v':-60000}, {'t':'g','v':0}, {'t':'V','v':150000},
         {'t':'d','v':200000}, {'t':'d','v':-30000}, {'t':'b','v':'Ruleta: pase de tarea'}, {'t':'E','v':60000},
-        {'t':'d','v':90000}, {'t':'d','v':-200000}, {'t':'b','v':'Ruleta: 1 décima sumativa'}, {'t':'C','v':0},
-        {'t':'d','v':300000}, {'t':'D','v':'Ruleta: disertación'}, {'t':'b','v':'Ruleta: 2 décimas formativas'}, {'t':'d','v':-90000},
+        {'t':'d','v':60000}, {'t':'d','v':-200000}, {'t':'b','v':'Ruleta: 1 décima sumativa'}, {'t':'C','v':0},
+        {'t':'d','v':300000}, {'t':'D','v':'Ruleta: disertación'}, {'t':'d','v':90000}, {'t':'d','v':-90000},
         {'t':'G','v':0}, {'t':'P','v':100000}, {'t':'d','v':60000}, {'t':'d','v':-300000},
         {'t':'b','v':'Ruleta: 5 minutos extra en una prueba'}, {'t':'d','v':-60000}, {'t':'d','v':120000}, {'t':'g','v':0},
-        {'t':'d','v':-30000}, {'t':'b','v':'Ruleta: 20% de descuento en un artículo de la Tienda'}, {'t':'d','v':-60000}, {'t':'b','v':'Ruleta: cambio de puesto libre por una semana'}
+        {'t':'d','v':-30000}, {'t':'b','v':'Ruleta: 20% de descuento en un artículo de la Tienda'}, {'t':'d','v':-60000}, {'t':'D','v':'Ruleta: disertación'}
       ];
     }
     function hexv(ch) {
