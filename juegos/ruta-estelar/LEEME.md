@@ -30,3 +30,22 @@ python3 -m http.server 8000
 ```
 
 y abre `http://localhost:8000/juegos/ruta-estelar/`.
+
+## Texturas de bloques (PNG de 16 × 16)
+
+Cada bloque puede tener un PNG de 16 × 16 en `tex/bloques/`. El motor los junta en una **textura por capas de WebGL 2**: cada PNG es una capa, así que no hace falta dejar margen. De cerca se ven los píxeles nítidos y de lejos se suavizan (mipmaps) para que no parpadeen. El sombreado de esquinas del motor se aplica encima.
+
+Para agregar una:
+
+1. Guarda el PNG en `tex/bloques/`, por ejemplo `regolito.png`.
+2. En `js/niveles.js`, agrega `{ tex: 'regolito' }` a la definición del bloque: `def(31, '#8f8f8b', 0.16, { tex: 'regolito' });`
+
+Si falta el PNG, el bloque usa su color de la paleta.
+
+**Imágenes hechas con IA.** Suelen venir grandes (1024 px o más) y con "píxeles" que no calzan con la grilla. `herramientas/a16.py` las deja en 16 × 16 nítido: muestrea el centro de cada celda, promedia a 16 × 16 y reduce a 8 colores.
+
+```
+python3 herramientas/a16.py imagen_grande.png tex/bloques/asfalto.png 32
+```
+
+El último número es cuántas celdas tiene la imagen por lado; si no lo pones, intenta detectarlo. El script informa la costura (diferencia entre bordes opuestos): si es parecida o menor que la variación interior, la textura repite sin que se note.
