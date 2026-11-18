@@ -46,6 +46,56 @@ service cloud.firestore {
       allow delete: if esProfe();
     }
 
+    // ── Agenda de atención de apoderados (agenda.html) ──
+    // Solo la ven y usan el profe (administrador) y el grupo «moderador» de la agenda.
+    // Es un grupo aparte del de Cine/Tutores: cada documento se llama como el correo (minúsculas).
+    function esAgenda() {
+      return esProfe() || (conCuenta()
+        && exists(/databases/$(database)/documents/agenda_moderadores/$(request.auth.token.email.lower())));
+    }
+    match /agenda_moderadores/{correo} {
+      allow read: if esProfe() || (conCuenta() && request.auth.token.email.lower() == correo);
+      allow create, update: if esProfe() && correo == correo.lower()
+        && correo.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$')
+        && request.resource.data.keys().hasOnly(['nombre', 'agregadoPor', 'fecha'])
+        && texto(request.resource.data.nombre, 80)
+        && request.resource.data.agregadoPor == request.auth.token.email
+        && request.resource.data.fecha == request.time;
+      allow delete: if esProfe();
+    }
+    match /agenda_profesores/{id} {
+      allow read: if esAgenda();
+      allow create, update: if esAgenda()
+        && request.resource.data.keys().hasOnly(['nombre', 'cargo', 'email', 'activo'])
+        && texto(request.resource.data.nombre, 80) && request.resource.data.nombre.size() > 0
+        && texto(request.resource.data.get('cargo', ''), 80)
+        && texto(request.resource.data.get('email', ''), 120)
+        && request.resource.data.get('activo', true) is bool;
+      allow delete: if esProfe();
+    }
+    match /agenda_bloques/{id} {
+      allow read, delete: if esAgenda();
+      allow create, update: if esAgenda()
+        && request.resource.data.keys().hasOnly(['profesorId', 'fecha', 'hora', 'duracion', 'modalidad', 'estado', 'citaId'])
+        && request.resource.data.fecha.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.hora.matches('^[0-9]{2}:[0-9]{2}$')
+        && request.resource.data.estado in ['libre', 'reservado', 'bloqueado']
+        && request.resource.data.modalidad in ['Presencial', 'Online', 'Ambas']
+        && texto(request.resource.data.citaId, 40);
+    }
+    match /agenda_citas/{id} {
+      allow read: if esAgenda();
+      allow create, update: if esAgenda()
+        && request.resource.data.keys().hasOnly(['codigo', 'creado', 'creadoPor', 'actualizado', 'actualizadoPor', 'profesorId', 'bloqueId',
+             'fecha', 'hora', 'apoderado', 'alumno', 'curso', 'email', 'telefono', 'motivo', 'modalidad', 'origen', 'estado', 'notas'])
+        && request.resource.data.estado in ['Agendada', 'Asistió', 'No asistió', 'Cancelada', 'Reagendada']
+        && texto(request.resource.data.apoderado, 100) && texto(request.resource.data.alumno, 100)
+        && texto(request.resource.data.curso, 40) && texto(request.resource.data.email, 120)
+        && texto(request.resource.data.telefono, 30) && texto(request.resource.data.motivo, 1000)
+        && texto(request.resource.data.notas, 2000);
+      allow delete: if esProfe();
+    }
+
     // ── Perfil del estudiante: nombre, correo y edad (curso opcional) ──
     // Grupo: 'estudiante' (sus datos solo sirven para su progreso), 'docente' o 'publico'.
     // Docente y público exigen 18 años o más. El estudiante elige al crear la cuenta;

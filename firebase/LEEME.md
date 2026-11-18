@@ -113,3 +113,10 @@ Para activarlo (una sola vez), en la consola de Firebase:
 
 Mientras no se active, quien elija el correo verá: «La entrada por correo todavía no está activada en Firebase».
 Las reglas no cambian: el enlace deja el correo verificado (`email_verified`), igual que Google.
+
+## Atención de apoderados (`agenda.html`)
+- Solo la ven el profe (administrador) y el **grupo moderador de la agenda**. En la portada, el enlace aparece en **Misceláneos → Colegio** solo para ellos (atributo `data-solo-agenda`, ver `esAgenda()` en `df.js`).
+- El grupo se maneja en la misma página: **Profesores y equipo → Grupo moderador** (solo el profe agrega o quita). Es un grupo aparte del de moderación de Cine/Tutores (`moderadores`).
+- Pestañas: **Agenda** (línea de tiempo del día, estados con un clic, notas, WhatsApp), **Llegó un apoderado** (atender ahora o darle una hora libre), **Horarios de atención** (abrir bloques por días y rango horario; bloquear, liberar, eliminar) y **Profesores y equipo**.
+- Colecciones: `agenda_profesores`, `agenda_bloques`, `agenda_citas` y `agenda_moderadores`. Reservar un horario y cancelar una cita se hacen en una transacción, así dos personas no toman la misma hora.
+- Requiere publicar el `firestore.rules` actualizado.

@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#12358C">
+<meta name="robots" content="noindex">
+<title>Atención de apoderados · El Mundo de Felipe</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     Paleta 60 · 30 · 10  →  blanco · azul · dorado
+     ============================================================ */
+  :root{
+    --blanco:#FFFFFF;
+    --nube:#F3F6FC;        /* blanco con un respiro azul, para fondos secundarios */
+    --azul:#12358C;        /* azul institucional */
+    --azul-2:#2457D6;      /* azul activo */
+    --azul-3:#DCE6FA;      /* azul suave */
+    --tinta:#0E1B3D;       /* texto */
+    --gris:#56627F;
+    --linea:#E1E8F5;
+    --oro:#E3A812;         /* dorado acento */
+    --oro-claro:#FFF3D1;
+    --oro-txt:#7E5B00;     /* dorado legible sobre blanco */
+    --ok:#137A45; --ok-claro:#E3F5EA;
+    --mal:#B42318; --mal-claro:#FDE9E7;
+    --f-disp:'Bricolage Grotesque', system-ui, sans-serif;
+    --f-txt:'Atkinson Hyperlegible', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;font:17px/1.55 var(--f-txt);color:var(--tinta);background:var(--blanco)}
+  h1,h2,h3{font-family:var(--f-disp);letter-spacing:-.02em;margin:0;color:var(--azul)}
+  h2{font-size:26px;line-height:1.15;font-weight:700}
+  h3{font-size:19px;font-weight:700}
+  p{margin:0 0 .6em}
+  a{color:var(--azul-2)}
+  .muted{color:var(--gris);font-size:15px}
+  .oculto{display:none!important}
+
+  /* ---------- Formularios ---------- */
+  label{display:block;font-weight:700;font-size:15px;margin:16px 0 6px}
+  label .muted{font-weight:400}
+  input,select,textarea{width:100%;font:inherit;color:var(--tinta);padding:13px 15px;border:2px solid var(--linea);border-radius:12px;background:var(--blanco);transition:border-color .15s}
+  input:hover,select:hover,textarea:hover{border-color:var(--azul-3)}
+  textarea{min-height:90px;resize:vertical}
+  :focus-visible{outline:3px solid var(--oro);outline-offset:2px}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--azul-2);box-shadow:0 0 0 4px var(--oro-claro)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+
+  /* ---------- Botones ---------- */
+  button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  .btn{display:inline-flex;text-decoration:none;align-items:center;gap:8px;font-family:var(--f-disp);font-weight:700;font-size:17px;
+       padding:14px 26px;border-radius:999px;background:var(--azul);color:var(--blanco);
+       box-shadow:0 4px 0 #0A2160;transition:transform .08s, box-shadow .08s, background .15s}
+  .btn:hover{background:var(--azul-2)}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 #0A2160}
+  .btn.oro{background:var(--oro);color:var(--tinta);box-shadow:0 4px 0 #A87A00}
+  .btn.oro:hover{background:#F0B828}
+  .btn.claro{background:var(--blanco);color:var(--azul);box-shadow:inset 0 0 0 2px var(--azul-3)}
+  .btn.claro:hover{background:var(--nube)}
+  .btn.peq{font-size:14px;padding:8px 14px;box-shadow:none}
+  .btn.claro.peq{box-shadow:inset 0 0 0 2px var(--azul-3)}
+  .btn:disabled{opacity:.5;cursor:default;transform:none}
+  .fila{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+  /* ---------- Mensajes ---------- */
+  .aviso{border-radius:12px;padding:12px 16px;margin:14px 0;font-weight:700;display:none}
+  .aviso.err{background:var(--mal-claro);color:var(--mal)}
+  .aviso.ok{background:var(--ok-claro);color:var(--ok)}
+  .cargando{color:var(--gris)}
+  .cargando::before{content:"";display:inline-block;width:14px;height:14px;margin-right:10px;vertical-align:-2px;
+    border:3px solid var(--azul-3);border-top-color:var(--oro);border-radius:50%;animation:gira .8s linear infinite}
+  @keyframes gira{to{transform:rotate(360deg)}}
+
+  /* ---------- Chips / segmentos ---------- */
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:9px 16px;border-radius:999px;border:2px solid var(--linea);font-weight:700;font-size:15px;background:var(--blanco);color:var(--azul)}
+  .chip:hover{border-color:var(--azul-3);background:var(--nube)}
+  .chip.on{background:var(--azul);border-color:var(--azul);color:var(--blanco)}
+
+  /* ---------- Monograma ---------- */
+  .mono{flex:none;display:grid;place-items:center;width:52px;height:52px;border-radius:50%;
+        background:var(--azul-3);color:var(--azul);font:800 18px/1 var(--f-disp);letter-spacing:.02em}
+
+  /* ---------- Estados ---------- */
+  .estado{display:inline-block;font-size:13px;font-weight:700;padding:3px 11px;border-radius:999px;background:var(--azul-3);color:var(--azul)}
+  .estado[data-e="Asistió"]{background:var(--ok-claro);color:var(--ok)}
+  .estado[data-e="No asistió"],.estado[data-e="Cancelada"]{background:var(--mal-claro);color:var(--mal)}
+  .estado[data-e="Reagendada"]{background:var(--oro-claro);color:var(--oro-txt)}
+
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+  @media print{.noprint{display:none!important}}
+
+
+    body{background:var(--blanco)}
+    /* ---------- Ingreso ---------- */
+    #login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+    .login-azul{position:relative;overflow:hidden;background:var(--azul);color:var(--blanco);padding:48px;display:flex;flex-direction:column;justify-content:flex-end}
+    .login-azul::after{content:"";position:absolute;width:520px;height:520px;left:-180px;top:-220px;border-radius:50%;border:40px solid var(--oro)}
+    .login-azul h1{position:relative;color:var(--blanco);font-size:clamp(36px,5vw,60px);line-height:1;font-weight:800;max-width:11ch}
+    .login-azul p{position:relative;color:#C9D6F5;max-width:36ch;margin-top:14px}
+    .login-form{display:flex;flex-direction:column;justify-content:center;padding:48px;max-width:460px}
+    .login-form input{font:800 26px var(--f-disp);letter-spacing:.3em}
+    @media(max-width:760px){#login{grid-template-columns:1fr}.login-azul{min-height:42vh;padding:28px}.login-form{padding:28px}}
+
+    /* ---------- Estructura ---------- */
+    #app{display:grid;grid-template-columns:250px 1fr;min-height:100vh;background:linear-gradient(to right,var(--azul) 250px,var(--blanco) 250px)}
+    .lado{background:var(--azul);color:var(--blanco);padding:24px 16px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+    .lado .marca{font:800 20px/1.1 var(--f-disp);padding:0 10px 22px;border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:14px}
+    .lado .marca small{display:block;font:400 13px var(--f-txt);color:#AFC2EE;margin-top:6px}
+    .nav{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;font-weight:700;color:#D6E0F7;text-align:left;width:100%}
+    .nav svg{flex:none}
+    .nav:hover{background:rgba(255,255,255,.08);color:var(--blanco)}
+    .nav.on{background:var(--blanco);color:var(--azul)}
+    .nav.on svg{color:var(--oro)}
+    .lado .pie{margin-top:auto;font-size:13px;color:#AFC2EE;padding:10px;word-break:break-all}
+    .lado .pie a{color:var(--oro)}
+    .contenido{padding:34px clamp(18px,4vw,48px) 60px;max-width:1060px;width:100%}
+    .titulo-vista{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+    .titulo-vista h1{font-size:clamp(30px,4vw,44px);font-weight:800;line-height:1.05}
+    .titulo-vista h1::first-letter{text-transform:uppercase}
+    @media(max-width:860px){
+      #app{grid-template-columns:1fr;background:var(--blanco)}
+      .lado{position:sticky;height:auto;flex-direction:row;overflow-x:auto;padding:10px;z-index:5}
+      .lado .marca,.lado .pie{display:none}
+      .nav{width:auto;white-space:nowrap;padding:10px 14px}
+    }
+
+    /* ---------- Filtros ---------- */
+    .filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px;border-radius:18px;background:var(--nube);margin-bottom:24px}
+    .filtros select,.filtros input{width:auto;padding:9px 12px;border-color:var(--blanco)}
+    .flechas{display:flex;background:var(--blanco);border-radius:999px;padding:3px}
+    .flechas button{padding:7px 13px;border-radius:999px;font-weight:700;color:var(--azul)}
+    .flechas button:hover{background:var(--azul-3)}
+    .cuenta{display:flex;gap:22px;flex-wrap:wrap;margin:-6px 0 22px;color:var(--gris);font-size:15px}
+    .cuenta b{font:800 22px var(--f-disp);color:var(--azul);margin-right:5px}
+
+    /* ---------- Línea de tiempo ---------- */
+    .dia-sep{font:700 18px var(--f-disp);color:var(--tinta);margin:28px 0 12px}
+    .linea{position:relative;padding-left:96px}
+    .linea::before{content:"";position:absolute;left:78px;top:6px;bottom:6px;width:3px;border-radius:2px;background:var(--azul-3)}
+    .cita{position:relative;margin-bottom:14px;padding:16px 18px;border-radius:18px;border:2px solid var(--linea);background:var(--blanco)}
+    .cita .h{position:absolute;left:-96px;top:12px;width:66px;text-align:right;font:800 22px/1 var(--f-disp);color:var(--azul)}
+    .cita::before{content:"";position:absolute;left:-25px;top:16px;width:15px;height:15px;border-radius:50%;background:var(--blanco);border:3px solid var(--azul-2)}
+    .cita[data-e="Asistió"]::before{background:var(--ok);border-color:var(--ok)}
+    .cita[data-e="No asistió"]::before,.cita[data-e="Cancelada"]::before{border-color:var(--mal)}
+    .cita[data-e="Cancelada"]{opacity:.6}
+    .cita.siguiente{border-color:var(--oro);box-shadow:0 0 0 4px var(--oro-claro)}
+    .cita.siguiente::before{background:var(--oro);border-color:var(--oro)}
+    .etq-sig{display:inline-block;background:var(--oro);color:var(--tinta);font-weight:700;font-size:12px;padding:2px 10px;border-radius:999px;margin-left:8px;vertical-align:2px}
+    .cita .quien{font:700 19px/1.25 var(--f-disp);color:var(--tinta)}
+    .cita .det{font-size:15px;color:var(--gris);margin:3px 0 0}
+    .cita .motivo{margin:10px 0 0;padding:10px 14px;border-radius:12px;background:var(--nube);font-size:15px}
+    .cita-pie{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .estados{display:flex;background:var(--nube);border-radius:999px;padding:3px}
+    .estados button{padding:7px 12px;border-radius:999px;font-size:14px;font-weight:700;color:var(--gris)}
+    .estados button:hover{color:var(--azul)}
+    .estados button.on{background:var(--azul);color:var(--blanco)}
+    .estados button.on[data-v="Asistió"]{background:var(--ok)}
+    .estados button.on[data-v="No asistió"],.estados button.on[data-v="Cancelada"]{background:var(--mal)}
+    .contacto{display:flex;gap:6px;flex-wrap:wrap}
+    .contacto a,.contacto button{font-size:14px;font-weight:700;padding:7px 12px;border-radius:999px;background:var(--nube);color:var(--azul);text-decoration:none}
+    .contacto a:hover,.contacto button:hover{background:var(--azul-3)}
+    .notas{margin-top:10px}
+    .notas textarea{min-height:70px;font-size:15px}
+    .ahora{position:relative;margin:4px 0 18px;height:0;border-top:3px solid var(--oro)}
+    .ahora span{position:absolute;left:-96px;top:-13px;width:66px;text-align:right;font:800 14px var(--f-disp);color:var(--oro-txt)}
+    .ahora::before{content:"";position:absolute;left:-27px;top:-10px;width:17px;height:17px;border-radius:50%;background:var(--oro)}
+    .vacio{padding:34px;border-radius:22px;background:var(--nube);text-align:center}
+    @media(max-width:560px){
+      .linea{padding-left:0}.linea::before,.cita::before,.ahora::before{display:none}
+      .cita .h{position:static;width:auto;text-align:left;margin-bottom:6px}
+      .ahora span{position:static;display:inline-block;margin-top:-26px;background:var(--blanco);padding-right:8px}
+    }
+
+    /* ---------- Recepción ---------- */
+    .opciones{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 6px}
+    .opcion{text-align:left;padding:18px;border-radius:20px;border:2px solid var(--linea);background:var(--blanco)}
+    .opcion b{display:block;font:700 19px var(--f-disp);color:var(--azul);margin-bottom:4px}
+    .opcion span{font-size:15px;color:var(--gris)}
+    .opcion:hover{border-color:var(--azul-3)}
+    .opcion.on{border-color:var(--azul);box-shadow:inset 0 0 0 1px var(--azul), 0 0 0 4px var(--oro-claro)}
+    @media(max-width:560px){.opciones{grid-template-columns:1fr}}
+    .panel{max-width:760px}
+
+    /* ---------- Horarios ---------- */
+    .gen{padding:24px;border-radius:24px;background:var(--nube);margin-bottom:30px}
+    .gen input,.gen select{border-color:var(--blanco)}
+    .dsem{display:flex;gap:8px;flex-wrap:wrap}
+    .dsem button{width:50px;height:50px;border-radius:50%;background:var(--blanco);font:800 16px var(--f-disp);color:var(--azul);border:2px solid var(--blanco)}
+    .dsem button:hover{border-color:var(--azul-3)}
+    .dsem button.on{background:var(--azul);color:var(--blanco);box-shadow:inset 0 -4px 0 var(--oro)}
+    .previa{font-weight:700;color:var(--oro-txt)}
+    .semana{display:grid;gap:14px}
+    .bdia{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:start;padding-bottom:14px;border-bottom:1px solid var(--linea)}
+    .bdia > div:first-child{font:700 16px/1.2 var(--f-disp);color:var(--tinta);padding-top:6px}
+    .slots{display:flex;gap:8px;flex-wrap:wrap}
+    .slot{display:inline-flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-radius:999px;font-weight:700;font-size:14px;border:2px solid var(--azul-3);background:var(--blanco);color:var(--azul)}
+    .slot .x{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:14px;color:var(--gris)}
+    .slot .x:hover{background:var(--mal-claro);color:var(--mal)}
+    .slot.reservado{background:var(--azul);border-color:var(--azul);color:var(--blanco);padding-right:12px}
+    .slot.bloqueado{background:repeating-linear-gradient(135deg,var(--nube) 0 6px,var(--blanco) 6px 12px);color:var(--gris);border-color:var(--linea);text-decoration:line-through}
+    .leyenda{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--gris);margin-bottom:16px}
+    .leyenda i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:6px;border:2px solid var(--azul-3)}
+    @media(max-width:560px){.bdia{grid-template-columns:1fr}}
+  
+  /* ---------- Solo en el sitio ---------- */
+  [hidden]{display:none!important}
+  .volver{display:inline-flex;align-items:center;gap:8px;color:#C9D6F5;text-decoration:none;font-weight:700;font-size:14px;padding:4px 10px 18px}
+  .volver:hover{color:var(--blanco)}
+  .login-azul .volver{position:absolute;top:22px;left:28px;padding:0;z-index:1}
+  .quien-soy{font-size:13px;color:#AFC2EE;padding:10px;border-top:1px solid rgba(255,255,255,.15);margin-top:10px}
+  .quien-soy b{display:block;color:var(--blanco);font-size:14px;word-break:break-all}
+  .quien-soy .rol{display:inline-block;margin-top:6px;background:var(--oro);color:var(--tinta);font-weight:700;font-size:12px;padding:2px 10px;border-radius:999px}
+  .quien-soy button{color:var(--oro);font-weight:700;font-size:13px;margin-top:8px;text-decoration:underline}
+  .lado .pie{margin-top:auto}
+  .lista-eq{display:grid;gap:10px;margin-top:14px}
+  .eq{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:16px;border:2px solid var(--linea);background:var(--blanco);flex-wrap:wrap}
+  .eq .mono{width:44px;height:44px;font-size:15px}
+  .eq .info{flex:1;min-width:180px}
+  .eq .info b{display:block;font:700 17px/1.2 var(--f-disp);color:var(--azul)}
+  .eq .info span{font-size:14px;color:var(--gris)}
+  .eq.inactivo{opacity:.55}
+  .eq-form{display:grid;grid-template-columns:1.2fr 1.2fr 1fr auto;gap:10px;align-items:end;padding:18px;border-radius:20px;background:var(--nube)}
+  .eq-form input{border-color:var(--blanco)}
+  .eq-form label{margin-top:0}
+  @media(max-width:760px){.eq-form{grid-template-columns:1fr}}
+  .bloque-eq{margin-bottom:36px}
+  .nota-chica{font-size:14px;color:var(--gris);margin-top:8px}
+</style>
+<link rel="stylesheet" href="fuentes/fuentes.css?v=20261110b">
+</head>
+<body>
+
+<!-- ===== INGRESO / ACCESO ===== -->
+<section id="login">
+  <div class="login-azul">
+    <a class="volver" href="index.html">‹ El Mundo de Felipe</a>
+    <h1>Atención de apoderados</h1>
+    <p>Agenda del día, recepción y horarios de cada profesor. Colegio San Agustín.</p>
+  </div>
+  <div class="login-form">
+    <h2 id="gTitulo">Conectando…</h2>
+    <p class="muted" id="gTexto"></p>
+    <div class="aviso err" id="errLogin"></div>
+    <div class="fila" style="margin-top:20px" id="gBotones"></div>
+  </div>
+</section>
+
+<!-- ===== APP ===== -->
+<div id="app" hidden>
+  <nav class="lado noprint">
+    <a class="volver" href="index.html">‹ El Mundo de Felipe</a>
+    <div class="marca">Atención de apoderados<small>Colegio San Agustín</small></div>
+    <button class="nav on" data-t="agenda">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
+    <button class="nav" data-t="recepcion">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Llegó un apoderado</button>
+    <button class="nav" data-t="bloques">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Horarios de atención</button>
+    <button class="nav" data-t="equipo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5M15 14.5c2.8 0 5 1.6 6 4.5"/></svg>Profesores y equipo</button>
+    <div class="pie">
+      <div class="quien-soy" id="quienSoy"></div>
+    </div>
+  </nav>
+
+  <div class="contenido">
+    <!-- ===== AGENDA ===== -->
+    <section id="v-agenda">
+      <div class="titulo-vista"><h1 id="aTitulo">Hoy</h1>
+        <button class="btn claro peq noprint" onclick="window.print()">Imprimir</button></div>
+      <div class="filtros noprint">
+        <div class="flechas">
+          <button data-mover="-1" aria-label="Día anterior">‹</button>
+          <button data-mover="0">Hoy</button>
+          <button data-mover="1" aria-label="Día siguiente">›</button>
+        </div>
+        <input id="aFecha" type="date" aria-label="Fecha">
+        <select id="aRango" aria-label="Rango">
+          <option value="0">Un día</option><option value="6">7 días</option><option value="29">30 días</option>
+        </select>
+        <select id="aProfe" aria-label="Profesor"></select>
+      </div>
+      <div class="cuenta" id="aResumen"></div>
+      <div id="aLista"></div>
+    </section>
+
+    <!-- ===== RECEPCIÓN ===== -->
+    <section id="v-recepcion" class="oculto panel">
+      <div class="titulo-vista"><h1>Llegó un apoderado</h1></div>
+      <p class="muted">También sirve cuando un apoderado pide hora por correo, teléfono o WhatsApp.</p>
+      <label for="rProfe">¿Con quién quiere hablar?</label>
+      <select id="rProfe"></select>
+      <label>¿Qué hacemos?</label>
+      <div class="opciones" id="rOpciones">
+        <button type="button" class="opcion on" data-m="ahora"><b>Atender ahora</b><span>Queda registrado como atendido hoy, a esta hora.</span></button>
+        <button type="button" class="opcion" data-m="agendar"><b>Darle una hora</b><span>Se le asigna uno de los horarios libres del profesor/a.</span></button>
+      </div>
+      <div id="rSlots" class="oculto">
+        <label for="rBloque">Horario libre</label>
+        <select id="rBloque"></select>
+        <div id="rModal" class="oculto">
+          <label for="rModalidad">Modalidad</label>
+          <select id="rModalidad"><option value="Presencial">En el colegio</option><option value="Online">Videollamada</option></select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div><label for="rApoderado">Apoderado/a</label><input id="rApoderado" maxlength="100"></div>
+        <div><label for="rAlumno">Estudiante</label><input id="rAlumno" maxlength="100"></div>
+        <div><label for="rCurso">Curso</label><input id="rCurso" maxlength="40"></div>
+        <div><label for="rTelefono">Teléfono <span class="muted">(opcional)</span></label><input id="rTelefono" type="tel" maxlength="30"></div>
+      </div>
+      <label for="rEmail">Correo <span class="muted">(opcional)</span></label>
+      <input id="rEmail" type="email" maxlength="120">
+      <label for="rMotivo">Motivo</label>
+      <textarea id="rMotivo" maxlength="1000"></textarea>
+      <div class="aviso err" id="errR"></div>
+      <div class="aviso ok" id="okR"></div>
+      <div class="fila" style="margin-top:20px"><button class="btn oro" id="btnR">Registrar atención</button><span id="rExtra"></span></div>
+    </section>
+
+    <!-- ===== HORARIOS ===== -->
+    <section id="v-bloques" class="oculto">
+      <div class="titulo-vista"><h1>Horarios de atención</h1></div>
+      <label for="bProfe" style="margin-top:0">Profesor/a</label>
+      <select id="bProfe" style="max-width:480px;margin-bottom:22px"></select>
+
+      <div class="gen">
+        <h3>Abrir horarios nuevos</h3>
+        <p class="muted">Los horarios que ya existen no se duplican.</p>
+        <label>Días</label>
+        <div class="dsem" id="dsem">
+          <button type="button" data-d="1" aria-label="Lunes">L</button><button type="button" data-d="2" aria-label="Martes">M</button>
+          <button type="button" data-d="3" aria-label="Miércoles">M</button><button type="button" data-d="4" aria-label="Jueves">J</button>
+          <button type="button" data-d="5" aria-label="Viernes">V</button><button type="button" data-d="6" aria-label="Sábado">S</button>
+        </div>
+        <div class="grid2">
+          <div><label for="bIni">Desde las</label><input id="bIni" type="time" value="15:00"></div>
+          <div><label for="bFin">Hasta las</label><input id="bFin" type="time" value="16:30"></div>
+          <div><label for="bDur">Cada atención dura</label>
+            <select id="bDur"><option value="15">15 min</option><option value="20">20 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">60 min</option></select></div>
+          <div><label for="bModalidad">Modalidad</label>
+            <select id="bModalidad"><option value="Presencial">En el colegio</option><option value="Online">Videollamada</option><option value="Ambas">El apoderado elige</option></select></div>
+          <div><label for="bDesde">Entre el</label><input id="bDesde" type="date"></div>
+          <div><label for="bHasta">y el</label><input id="bHasta" type="date"></div>
+        </div>
+        <div class="aviso err" id="errB"></div>
+        <div class="aviso ok" id="okB"></div>
+        <div class="fila" style="margin-top:20px">
+          <button class="btn" id="btnGenerar">Abrir horarios</button>
+          <span class="previa" id="previa"></span>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom:10px">Próximos 30 días</h3>
+      <div class="leyenda"><span><i></i>Libre: clic para bloquear</span><span><i style="background:var(--azul);border-color:var(--azul)"></i>Reservado</span><span><i style="background:var(--nube);border-color:var(--linea)"></i>Bloqueado: clic para liberar</span></div>
+      <div id="bLista"></div>
+    </section>
+
+    <!-- ===== EQUIPO ===== -->
+    <section id="v-equipo" class="oculto">
+      <div class="titulo-vista"><h1>Profesores y equipo</h1></div>
+
+      <div class="bloque-eq">
+        <h3>Profesores que atienden apoderados</h3>
+        <p class="muted">Aparecen en la agenda y en los horarios. Desactivar oculta al profesor sin borrar su historial.</p>
+        <div class="eq-form">
+          <div><label for="pNombre">Nombre</label><input id="pNombre" maxlength="80" placeholder="Ej: Carolina Muñoz"></div>
+          <div><label for="pCargo">Cargo o curso</label><input id="pCargo" maxlength="80" placeholder="Ej: Profesora jefe 6° Básico"></div>
+          <div><label for="pEmail">Correo <span class="muted">(opcional)</span></label><input id="pEmail" type="email" maxlength="120"></div>
+          <div><button class="btn" id="btnProfe">Agregar</button></div>
+        </div>
+        <div class="aviso err" id="errP"></div>
+        <div class="lista-eq" id="listaProfes"></div>
+      </div>
+
+      <div class="bloque-eq" id="bloqueMods">
+        <h3>Grupo moderador</h3>
+        <p class="muted">Solo tú (administrador) y quienes estén aquí ven la agenda, en el menú Misceláneos del sitio. Entran con su cuenta de Google.</p>
+        <div class="eq-form" style="grid-template-columns:1.2fr 1.4fr auto">
+          <div><label for="mNombre">Nombre</label><input id="mNombre" maxlength="80" placeholder="Ej: Inspectora Ana"></div>
+          <div><label for="mEmail">Correo de su cuenta Google</label><input id="mEmail" type="email" maxlength="120"></div>
+          <div><button class="btn oro" id="btnMod">Agregar al grupo</button></div>
+        </div>
+        <div class="aviso err" id="errM"></div>
+        <div class="lista-eq" id="listaMods"></div>
+        <p class="nota-chica">Este grupo es distinto del de moderación de Cine y Tutores: estar en uno no da acceso al otro.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="firebase/df.js?v=20261118a"></script>
+<script>
+(function () {
+  const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const ESTADOS_BTN = ['Agendada','Asistió','No asistió','Cancelada'];
+  const C_PROF = 'agenda_profesores', C_BLOQ = 'agenda_bloques', C_CITA = 'agenda_citas', C_MOD = 'agenda_moderadores';
+  const S = { usuario: null, admin: false, profes: [], modoR: 'ahora', libres: [], citas: [], bloques: [], unsub: [] };
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const p2 = n => ('0' + n).slice(-2);
+  const fecha = f => { const [y,m,d] = f.split('-').map(Number); return new Date(y, m-1, d); };
+  const fLarga = f => { const t = fecha(f); return DIAS[t.getDay()] + ' ' + t.getDate() + ' de ' + MESES[t.getMonth()]; };
+  const sumar = (f, n) => { const [y,m,d] = f.split('-').map(Number); return new Date(Date.UTC(y, m-1, d+n)).toISOString().slice(0,10); };
+  const hoy = () => { const t = new Date(); return t.getFullYear() + '-' + p2(t.getMonth()+1) + '-' + p2(t.getDate()); };
+  const horaAhora = () => { const t = new Date(); return p2(t.getHours()) + ':' + p2(t.getMinutes()); };
+  const iniciales = n => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const limpio = (s, max) => String(s == null ? '' : s).trim().slice(0, max);
+  const correoOk = s => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
+  const codigo = () => { const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; const r = crypto.getRandomValues(new Uint32Array(6)); for (const x of r) s += abc[x % abc.length]; return s; };
+  const nombreProfe = id => (S.profes.find(p => p.id === id) || {}).nombre || '—';
+  function aviso(id, t){ const e = $(id); e.textContent = t || ''; e.style.display = t ? 'block' : 'none'; }
+  function errTxt(e){ const m = (e && e.message) || String(e); return /permission|insufficient/i.test(m) ? 'Firebase rechazó la operación. ¿Están publicadas las reglas nuevas de la agenda?' : m; }
+  function whatsapp(tel, texto){
+    let d = String(tel || '').replace(/\D/g, '');
+    if (d.length === 8) d = '569' + d; else if (d.length === 9 && d[0] === '9') d = '56' + d;
+    return d.length >= 10 ? 'https://wa.me/' + d + (texto ? '?text=' + encodeURIComponent(texto) : '') : '';
+  }
+  const fb = () => DF.listo();
+
+  /* ═════════ Acceso: solo administrador y grupo moderador ═════════ */
+  function pantallaAcceso(titulo, texto, botones){
+    $('app').hidden = true; $('login').hidden = false;
+    $('gTitulo').textContent = titulo; $('gTexto').innerHTML = texto || ''; $('gBotones').innerHTML = botones || '';
+  }
+  async function revisarAcceso(){
+    S.unsub.forEach(u => { try { u(); } catch (e) {} }); S.unsub = [];
+    const u = S.usuario = DF.usuario();
+    if (!u) return pantallaAcceso('Ingresar al panel', 'Entra con tu cuenta de Google. La agenda es solo para el administrador y el grupo moderador.',
+      '<button class="btn" data-accion="entrar">Entrar con Google</button>');
+    S.admin = DF.esProfe(u);
+    let permitido = S.admin;
+    if (!permitido) permitido = await DF.esAgenda().catch(() => false);
+    if (!permitido) return pantallaAcceso('Sin acceso', 'Tu cuenta (' + esc(u.email) + ') no está en el grupo moderador de la agenda. Pídele al profe Felipe que te agregue.',
+      '<a class="btn claro" href="index.html">Volver al sitio</a><button class="btn claro" data-accion="salir">Usar otra cuenta</button>');
+    $('login').hidden = true; $('app').hidden = false;
+    $('quienSoy').innerHTML = '<b>' + esc(u.displayName || u.email) + '</b>' + esc(u.email) +
+      '<br><span class="rol">' + (S.admin ? 'Administrador' : 'Moderador') + '</span><br><button data-accion="salir">Cerrar sesión</button>';
+    $('bloqueMods').hidden = !S.admin;
+    iniciar();
+  }
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-accion]'); if (!a) return;
+    if (a.dataset.accion === 'entrar') DF.entrar().catch(err => aviso('errLogin', err && !err.cancelado ? err.message : ''));
+    if (a.dataset.accion === 'salir') DF.salir();
+  });
+
+  /* ═════════ Arranque ═════════ */
+  let iniciado = false;
+  async function iniciar(){
+    const { F, db } = await fb();
+    S.unsub.push(F.onSnapshot(F.collection(db, C_PROF), s => {
+      S.profes = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+      pintarSelects(); pintarProfes();
+      if (S.citas.length) pintarAgenda();
+    }, e => aviso('errP', errTxt(e))));
+    if (S.admin) S.unsub.push(F.onSnapshot(F.collection(db, C_MOD), s => {
+      pintarMods(s.docs.map(d => Object.assign({ id: d.id }, d.data())));
+    }, e => aviso('errM', errTxt(e))));
+    if (!iniciado){
+      iniciado = true;
+      $('aFecha').value = hoy(); $('bDesde').value = hoy(); $('bHasta').value = sumar(hoy(), 30);
+      previa();
+    }
+    escucharAgenda();
+  }
+
+  function pintarSelects(){
+    const activos = S.profes.filter(p => p.activo !== false);
+    const opts = activos.map(p => `<option value="${esc(p.id)}">${esc(p.nombre)}${p.cargo ? ' — ' + esc(p.cargo) : ''}</option>`).join('');
+    const vacio = '<option value="">Primero agrega profesores en “Profesores y equipo”</option>';
+    ['rProfe','bProfe'].forEach(id => { const v = $(id).value; $(id).innerHTML = opts || vacio; if (activos.some(p => p.id === v)) $(id).value = v; });
+    const va = $('aProfe').value;
+    $('aProfe').innerHTML = '<option value="">Todos los profesores</option>' + S.profes.map(p => `<option value="${esc(p.id)}">${esc(p.nombre)}</option>`).join('');
+    $('aProfe').value = va;
+  }
+
+  /* ═════════ Pestañas ═════════ */
+  document.querySelectorAll('.nav[data-t]').forEach(el => el.addEventListener('click', () => {
+    document.querySelectorAll('.nav[data-t]').forEach(c => c.classList.toggle('on', c === el));
+    ['agenda','recepcion','bloques','equipo'].forEach(t => $('v-' + t).classList.toggle('oculto', t !== el.dataset.t));
+    if (el.dataset.t === 'recepcion') cargarLibres();
+    if (el.dataset.t === 'bloques') escucharBloques();
+  }));
+
+  /* ═════════ Agenda ═════════ */
+  let unsubAgenda = null;
+  async function escucharAgenda(){
+    const desde = $('aFecha').value || hoy();
+    const rango = Number($('aRango').value);
+    const hasta = sumar(desde, rango);
+    $('aTitulo').textContent = rango ? 'Desde el ' + fLarga(desde) : (desde === hoy() ? 'Hoy, ' + fLarga(desde) : cap(fLarga(desde)));
+    $('aLista').innerHTML = '<p class="cargando">Cargando agenda</p>';
+    if (unsubAgenda) { try { unsubAgenda(); } catch (e) {} }
+    const { F, db } = await fb();
+    unsubAgenda = F.onSnapshot(F.query(F.collection(db, C_CITA), F.where('fecha', '>=', desde), F.where('fecha', '<=', hasta)), s => {
+      S.citas = s.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+      pintarAgenda();
+    }, e => { $('aLista').innerHTML = '<p class="aviso err" style="display:block">' + esc(errTxt(e)) + '</p>'; });
+    S.unsub.push(() => unsubAgenda && unsubAgenda());
+  }
+  document.querySelectorAll('[data-mover]').forEach(b => b.addEventListener('click', () => {
+    const n = Number(b.dataset.mover);
+    if (!n) { $('aFecha').value = hoy(); $('aRango').value = '0'; } else $('aFecha').value = sumar($('aFecha').value || hoy(), n);
+    escucharAgenda();
+  }));
+  $('aFecha').addEventListener('change', escucharAgenda);
+  $('aRango').addEventListener('change', escucharAgenda);
+  $('aProfe').addEventListener('change', pintarAgenda);
+
+  function pintarAgenda(){
+    const pf = $('aProfe').value;
+    const citas = S.citas.filter(c => !pf || c.profesorId === pf);
+    const n = e => citas.filter(c => c.estado === e).length;
+    $('aResumen').innerHTML = `<span><b>${citas.length}</b>citas</span><span><b>${n('Agendada')}</b>por atender</span>
+      <span><b>${n('Asistió')}</b>asistieron</span><span><b>${n('No asistió')}</b>no asistieron</span>`;
+    if (!citas.length){
+      $('aLista').innerHTML = '<div class="vacio"><h3>Sin citas en estas fechas</h3><p class="muted">Registra una en “Llegó un apoderado”.</p></div>';
+      return;
+    }
+    const H = hoy(), ahora = horaAhora();
+    const sig = citas.find(c => c.estado === 'Agendada' && (c.fecha > H || (c.fecha === H && c.hora >= ahora)));
+    const multi = new Set(citas.map(c => c.fecha)).size > 1 || $('aRango').value !== '0';
+    let html = '', dia = '', marcaAhora = false;
+    citas.forEach(c => {
+      if (c.fecha !== dia){
+        if (dia) html += '</div>';
+        dia = c.fecha;
+        html += (multi ? `<div class="dia-sep">${cap(fLarga(dia))}</div>` : '') + '<div class="linea">';
+      }
+      if (c.fecha === H && !marcaAhora && c.hora > ahora){ html += `<div class="ahora"><span>${ahora}</span></div>`; marcaAhora = true; }
+      const profe = nombreProfe(c.profesorId);
+      const wa = whatsapp(c.telefono, c.estado === 'Agendada'
+        ? `Hola ${c.apoderado}, le confirmamos su hora de atención con ${profe} el ${fLarga(c.fecha)} a las ${c.hora}` +
+          (c.modalidad === 'Online' ? ' por videollamada.' : ' en el Colegio San Agustín.') + ` Código: ${c.codigo}`
+        : '');
+      const esSig = sig && sig.id === c.id;
+      html += `<article class="cita ${esSig ? 'siguiente' : ''}" data-e="${esc(c.estado)}">
+        <div class="h">${esc(c.hora)}</div>
+        <div class="quien">${esc(c.apoderado)}${esSig ? '<span class="etq-sig">Siguiente</span>' : ''}</div>
+        <p class="det">Apoderado/a de <b>${esc(c.alumno)}</b> (${esc(c.curso)}) · con ${esc(profe)} · ${c.modalidad === 'Online' ? 'videollamada' : 'en el colegio'} · ${esc(c.origen)}</p>
+        ${c.motivo ? `<div class="motivo">${esc(c.motivo)}</div>` : ''}
+        <div class="cita-pie noprint">
+          <div class="estados" role="group" aria-label="Estado">${ESTADOS_BTN.map(e =>
+            `<button data-cita="${c.id}" data-v="${e}" class="${e === c.estado ? 'on' : ''}">${e}</button>`).join('')}</div>
+          <div class="contacto">
+            ${wa ? `<a href="${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+            ${c.email ? `<a href="mailto:${esc(c.email)}">Correo</a>` : ''}
+            <button data-notas="${c.id}">${c.notas ? 'Ver notas' : 'Agregar notas'}</button>
+          </div>
+        </div>
+        <div class="notas oculto noprint" id="nb-${c.id}">
+          <textarea id="n-${c.id}" maxlength="2000" placeholder="Acuerdos de la reunión (uso interno)">${esc(c.notas)}</textarea>
+          <div style="margin-top:8px"><button class="btn peq" data-guardar="${c.id}">Guardar notas</button></div>
+        </div>
+      </article>`;
+    });
+    $('aLista').innerHTML = html + '</div>';
+  }
+
+  $('aLista').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.cita) cambiarEstado(b.dataset.cita, b.dataset.v);
+    else if (b.dataset.notas) $('nb-' + b.dataset.notas).classList.toggle('oculto');
+    else if (b.dataset.guardar) guardarNotas(b.dataset.guardar, b);
+  });
+
+  async function cambiarEstado(id, estado){
+    const c = S.citas.find(x => x.id === id);
+    if (!c || c.estado === estado) return;
+    if (estado === 'Cancelada' && !confirm('Se cancelará la cita y el horario quedará libre. ¿Continuar?')) return;
+    const { F, db } = await fb();
+    try {
+      await F.runTransaction(db, async tx => {
+        const ref = F.doc(db, C_CITA, id);
+        const bref = c.bloqueId ? F.doc(db, C_BLOQ, c.bloqueId) : null;
+        const bsnap = bref ? await tx.get(bref) : null;
+        tx.update(ref, { estado, actualizado: F.serverTimestamp(), actualizadoPor: S.usuario.email });
+        if (bsnap && bsnap.exists() && bsnap.data().citaId === id){
+          if (estado === 'Cancelada') tx.update(bref, { estado: 'libre', citaId: '' });
+          else if (c.estado === 'Cancelada') {
+            if (bsnap.data().estado !== 'libre') throw new Error('Ese horario ya fue tomado por otra cita.');
+            tx.update(bref, { estado: 'reservado', citaId: id });
+          }
+        } else if (c.estado === 'Cancelada' && bref && bsnap && bsnap.exists()) {
+          if (bsnap.data().estado !== 'libre') throw new Error('Ese horario ya fue tomado por otra cita.');
+          tx.update(bref, { estado: 'reservado', citaId: id });
+        }
+      });
+    } catch (e) { alert(errTxt(e)); }
+  }
+
+  async function guardarNotas(id, btn){
+    btn.disabled = true; btn.textContent = 'Guardando…';
+    const { F, db } = await fb();
+    try {
+      await F.updateDoc(F.doc(db, C_CITA, id), { notas: limpio($('n-' + id).value, 2000), actualizado: F.serverTimestamp(), actualizadoPor: S.usuario.email });
+      btn.textContent = 'Notas guardadas';
+    } catch (e) { alert(errTxt(e)); btn.textContent = 'Guardar notas'; }
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'Guardar notas'; }, 1500);
+  }
+
+  /* ═════════ Recepción ═════════ */
+  $('rOpciones').addEventListener('click', e => {
+    const el = e.target.closest('.opcion'); if (!el) return;
+    S.modoR = el.dataset.m;
+    document.querySelectorAll('.opcion').forEach(c => c.classList.toggle('on', c === el));
+    $('rSlots').classList.toggle('oculto', S.modoR !== 'agendar');
+    $('btnR').textContent = S.modoR === 'agendar' ? 'Agendar hora' : 'Registrar atención';
+    cargarLibres();
+  });
+  $('rProfe').addEventListener('change', cargarLibres);
+  $('rBloque').addEventListener('change', () => {
+    const b = S.libres.find(x => x.id === $('rBloque').value);
+    $('rModal').classList.toggle('oculto', !b || b.modalidad !== 'Ambas');
+  });
+
+  async function cargarLibres(){
+    if (S.modoR !== 'agendar') return;
+    const pid = $('rProfe').value;
+    if (!pid) return;
+    $('rBloque').innerHTML = '<option>Cargando…</option>';
+    const { F, db } = await fb();
+    try {
+      const s = await F.getDocs(F.query(F.collection(db, C_BLOQ), F.where('fecha', '>=', hoy()), F.where('fecha', '<=', sumar(hoy(), 60))));
+      const ya = hoy() + ' ' + horaAhora();
+      S.libres = s.docs.map(d => Object.assign({ id: d.id }, d.data()))
+        .filter(b => b.profesorId === pid && b.estado === 'libre' && (b.fecha + ' ' + b.hora) >= ya)
+        .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+      $('rBloque').innerHTML = S.libres.length
+        ? S.libres.map(b => `<option value="${b.id}">${cap(fLarga(b.fecha))}, ${b.hora}</option>`).join('')
+        : '<option value="">Sin horarios libres: ábrelos en “Horarios de atención”</option>';
+      $('rBloque').dispatchEvent(new Event('change'));
+    } catch (e) { $('rBloque').innerHTML = '<option value="">' + esc(errTxt(e)) + '</option>'; }
+  }
+
+  $('btnR').addEventListener('click', async () => {
+    aviso('errR'); aviso('okR'); $('rExtra').innerHTML = '';
+    const d = {
+      profesorId: $('rProfe').value, apoderado: limpio($('rApoderado').value, 100), alumno: limpio($('rAlumno').value, 100),
+      curso: limpio($('rCurso').value, 40), telefono: limpio($('rTelefono').value, 30), email: limpio($('rEmail').value, 120).toLowerCase(),
+      motivo: limpio($('rMotivo').value, 1000)
+    };
+    if (!d.profesorId) return aviso('errR', 'Elige un profesor/a.');
+    if (!d.apoderado) return aviso('errR', 'Escribe el nombre del apoderado/a.');
+    if (!d.alumno) return aviso('errR', 'Escribe el nombre del estudiante.');
+    if (!d.curso) return aviso('errR', 'Escribe el curso.');
+    if (d.email && !correoOk(d.email)) return aviso('errR', 'El correo no parece válido.');
+    const bloqueId = $('rBloque').value;
+    if (S.modoR === 'agendar' && !bloqueId) return aviso('errR', 'Elige un horario libre.');
+    $('btnR').disabled = true;
+    const { F, db } = await fb();
+    const ref = F.doc(F.collection(db, C_CITA));
+    const base = Object.assign(d, { codigo: codigo(), creado: F.serverTimestamp(), creadoPor: S.usuario.email, notas: '' });
+    try {
+      let cita;
+      if (S.modoR === 'agendar'){
+        await F.runTransaction(db, async tx => {
+          const bref = F.doc(db, C_BLOQ, bloqueId), b = await tx.get(bref);
+          if (!b.exists() || b.data().estado !== 'libre') throw new Error('Ese horario acaba de ser tomado. Elige otro.');
+          const bd = b.data();
+          cita = Object.assign(base, { fecha: bd.fecha, hora: bd.hora, bloqueId, estado: 'Agendada', origen: 'Agendada en el colegio',
+            modalidad: bd.modalidad === 'Ambas' ? $('rModalidad').value : (bd.modalidad || 'Presencial') });
+          tx.update(bref, { estado: 'reservado', citaId: ref.id });
+          tx.set(ref, cita);
+        });
+        aviso('okR', `Hora agendada con ${nombreProfe(d.profesorId)}: ${fLarga(cita.fecha)}, ${cita.hora}. Código ${cita.codigo}.`);
+        const wa = whatsapp(cita.telefono, `Hola ${cita.apoderado}, le confirmamos su hora de atención con ${nombreProfe(d.profesorId)} el ${fLarga(cita.fecha)} a las ${cita.hora}. Código: ${cita.codigo}`);
+        if (wa) $('rExtra').innerHTML = `<a class="btn claro peq" href="${wa}" target="_blank" rel="noopener">Enviar confirmación por WhatsApp</a>`;
+      } else {
+        cita = Object.assign(base, { fecha: hoy(), hora: horaAhora(), bloqueId: '', estado: 'Asistió', origen: 'Sin cita (llegó al colegio)', modalidad: 'Presencial' });
+        await F.setDoc(ref, cita);
+        aviso('okR', `Atención registrada: ${cita.apoderado} con ${nombreProfe(d.profesorId)}, hoy a las ${cita.hora}.`);
+      }
+      ['rApoderado','rAlumno','rCurso','rTelefono','rEmail','rMotivo'].forEach(i => $(i).value = '');
+      cargarLibres();
+    } catch (e) { aviso('errR', errTxt(e)); }
+    $('btnR').disabled = false;
+  });
+
+  /* ═════════ Horarios ═════════ */
+  const diasSel = () => [...document.querySelectorAll('#dsem button.on')].map(b => Number(b.dataset.d));
+  document.querySelectorAll('#dsem button').forEach(b => b.addEventListener('click', () => { b.classList.toggle('on'); previa(); }));
+  ['bIni','bFin','bDur','bDesde','bHasta'].forEach(id => $(id).addEventListener('input', previa));
+  function horasDelDia(){
+    const ini = $('bIni').value.split(':').map(Number), fin = $('bFin').value.split(':').map(Number), dur = Number($('bDur').value);
+    const out = []; if (ini.length < 2 || fin.length < 2) return out;
+    for (let m = ini[0]*60 + ini[1]; m + dur <= fin[0]*60 + fin[1]; m += dur) out.push(p2(Math.floor(m/60)) + ':' + p2(m % 60));
+    return out;
+  }
+  function fechasSel(){
+    const dias = diasSel(), out = [];
+    for (let f = $('bDesde').value, i = 0; f && f <= $('bHasta').value && i < 200; f = sumar(f, 1), i++) if (dias.includes(fecha(f).getDay())) out.push(f);
+    return out;
+  }
+  function previa(){
+    const h = horasDelDia().length, f = fechasSel().length;
+    $('previa').textContent = diasSel().length && h ? `Hasta ${h * f} horarios (${h} por día, ${f} días)` : 'Elige días y horario';
+  }
+
+  let unsubBloq = null;
+  async function escucharBloques(){
+    if (unsubBloq) { try { unsubBloq(); } catch (e) {} }
+    $('bLista').innerHTML = '<p class="cargando">Cargando horarios</p>';
+    const { F, db } = await fb();
+    unsubBloq = F.onSnapshot(F.query(F.collection(db, C_BLOQ), F.where('fecha', '>=', hoy()), F.where('fecha', '<=', sumar(hoy(), 30))), s => {
+      S.bloques = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      pintarBloques();
+    }, e => { $('bLista').innerHTML = '<p class="aviso err" style="display:block">' + esc(errTxt(e)) + '</p>'; });
+    S.unsub.push(() => unsubBloq && unsubBloq());
+  }
+  $('bProfe').addEventListener('change', pintarBloques);
+
+  function pintarBloques(){
+    const pid = $('bProfe').value;
+    const l = S.bloques.filter(b => b.profesorId === pid).sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+    if (!l.length){ $('bLista').innerHTML = '<div class="vacio"><h3>Sin horarios abiertos</h3><p class="muted">Usa el formulario de arriba para abrir los primeros.</p></div>'; return; }
+    const porDia = {};
+    l.forEach(b => (porDia[b.fecha] = porDia[b.fecha] || []).push(b));
+    const citaDe = id => S.citas.find(c => c.id === id);
+    $('bLista').innerHTML = '<div class="semana">' + Object.keys(porDia).map(f => `<div class="bdia"><div>${cap(fLarga(f))}</div><div class="slots">` +
+      porDia[f].map(b => b.estado === 'reservado'
+        ? `<span class="slot reservado" title="${esc((citaDe(b.citaId) || {}).apoderado || 'Reservado')}">${esc(b.hora)}</span>`
+        : `<span class="slot ${b.estado}"><button data-bloque="${b.id}" data-acc="${b.estado === 'libre' ? 'bloquear' : 'liberar'}" title="${b.estado === 'libre' ? 'Bloquear' : 'Liberar'}">${esc(b.hora)}</button><button class="x" data-bloque="${b.id}" data-acc="eliminar" aria-label="Eliminar ${esc(b.hora)}">×</button></span>`
+      ).join('') + '</div></div>').join('') + '</div>';
+  }
+
+  $('bLista').addEventListener('click', async e => {
+    const b = e.target.closest('[data-bloque]'); if (!b) return;
+    const acc = b.dataset.acc, id = b.dataset.bloque;
+    if (acc === 'eliminar' && !confirm('¿Eliminar este horario?')) return;
+    const { F, db } = await fb();
+    try {
+      await F.runTransaction(db, async tx => {
+        const ref = F.doc(db, C_BLOQ, id), s = await tx.get(ref);
+        if (!s.exists()) return;
+        if (s.data().estado === 'reservado') throw new Error('Este horario tiene una cita. Cancélala primero desde la Agenda.');
+        if (acc === 'eliminar') tx.delete(ref);
+        else tx.update(ref, { estado: acc === 'bloquear' ? 'bloqueado' : 'libre' });
+      });
+    } catch (err) { alert(errTxt(err)); }
+  });
+
+  $('btnGenerar').addEventListener('click', async () => {
+    aviso('errB'); aviso('okB');
+    const pid = $('bProfe').value, horas = horasDelDia(), fechas = fechasSel();
+    if (!pid) return aviso('errB', 'Primero agrega un profesor en “Profesores y equipo”.');
+    if (!diasSel().length) return aviso('errB', 'Elige al menos un día de la semana.');
+    if (!horas.length) return aviso('errB', 'El rango de horas es más corto que la duración de una atención.');
+    if (!fechas.length) return aviso('errB', 'No hay días que coincidan entre esas fechas.');
+    $('btnGenerar').disabled = true;
+    const { F, db } = await fb();
+    try {
+      const s = await F.getDocs(F.query(F.collection(db, C_BLOQ), F.where('fecha', '>=', fechas[0]), F.where('fecha', '<=', fechas[fechas.length - 1])));
+      const existe = new Set(s.docs.map(d => d.data()).filter(b => b.profesorId === pid).map(b => b.fecha + ' ' + b.hora));
+      const nuevos = [];
+      fechas.forEach(f => horas.forEach(h => { if (!existe.has(f + ' ' + h)) nuevos.push({ f, h }); }));
+      for (let i = 0; i < nuevos.length; i += 400){
+        const batch = F.writeBatch(db);
+        nuevos.slice(i, i + 400).forEach(({ f, h }) => batch.set(F.doc(db, C_BLOQ, pid + '_' + f + '_' + h.replace(':', '')), {
+          profesorId: pid, fecha: f, hora: h, duracion: Number($('bDur').value), modalidad: $('bModalidad').value, estado: 'libre', citaId: ''
+        }));
+        await batch.commit();
+      }
+      aviso('okB', nuevos.length ? `Se abrieron ${nuevos.length} horarios.` : 'No se abrió nada nuevo: esos horarios ya existían.');
+    } catch (e) { aviso('errB', errTxt(e)); }
+    $('btnGenerar').disabled = false;
+  });
+
+  /* ═════════ Profesores y grupo moderador ═════════ */
+  function pintarProfes(){
+    $('listaProfes').innerHTML = S.profes.length ? S.profes.map(p => `<div class="eq ${p.activo === false ? 'inactivo' : ''}">
+        <span class="mono">${esc(iniciales(p.nombre))}</span>
+        <div class="info"><b>${esc(p.nombre)}</b><span>${esc(p.cargo || '')}${p.email ? ' · ' + esc(p.email) : ''}</span></div>
+        <button class="btn claro peq" data-profe="${p.id}" data-acc="editar">Editar</button>
+        <button class="btn claro peq" data-profe="${p.id}" data-acc="activo">${p.activo === false ? 'Activar' : 'Desactivar'}</button>
+      </div>`).join('') : '<div class="vacio"><h3>Aún no hay profesores</h3><p class="muted">Agrega a quienes atienden apoderados.</p></div>';
+  }
+  let editando = null;
+  $('btnProfe').addEventListener('click', async () => {
+    aviso('errP');
+    const p = { nombre: limpio($('pNombre').value, 80), cargo: limpio($('pCargo').value, 80), email: limpio($('pEmail').value, 120).toLowerCase() };
+    if (!p.nombre) return aviso('errP', 'Escribe el nombre del profesor/a.');
+    if (p.email && !correoOk(p.email)) return aviso('errP', 'El correo no parece válido.');
+    const { F, db } = await fb();
+    try {
+      if (editando) await F.updateDoc(F.doc(db, C_PROF, editando), p);
+      else await F.addDoc(F.collection(db, C_PROF), Object.assign(p, { activo: true }));
+      ['pNombre','pCargo','pEmail'].forEach(i => $(i).value = '');
+      editando = null; $('btnProfe').textContent = 'Agregar';
+    } catch (e) { aviso('errP', errTxt(e)); }
+  });
+  $('listaProfes').addEventListener('click', async e => {
+    const b = e.target.closest('[data-profe]'); if (!b) return;
+    const p = S.profes.find(x => x.id === b.dataset.profe); if (!p) return;
+    if (b.dataset.acc === 'editar'){
+      editando = p.id; $('pNombre').value = p.nombre; $('pCargo').value = p.cargo || ''; $('pEmail').value = p.email || '';
+      $('btnProfe').textContent = 'Guardar cambios'; $('pNombre').focus();
+    } else {
+      const { F, db } = await fb();
+      F.updateDoc(F.doc(db, C_PROF, p.id), { activo: p.activo === false }).catch(err => aviso('errP', errTxt(err)));
+    }
+  });
+
+  function pintarMods(mods){
+    $('listaMods').innerHTML = mods.length ? mods.map(m => `<div class="eq">
+        <span class="mono">${esc(iniciales(m.nombre || m.id))}</span>
+        <div class="info"><b>${esc(m.nombre || 'Sin nombre')}</b><span>${esc(m.id)}</span></div>
+        <button class="btn claro peq" data-quitar="${esc(m.id)}">Quitar del grupo</button></div>`).join('')
+      : '<div class="vacio"><h3>El grupo está vacío</h3><p class="muted">Por ahora solo tú ves la agenda.</p></div>';
+  }
+  $('btnMod').addEventListener('click', async () => {
+    aviso('errM');
+    const nombre = limpio($('mNombre').value, 80), correo = limpio($('mEmail').value, 120).toLowerCase();
+    if (!nombre) return aviso('errM', 'Escribe el nombre.');
+    if (!correoOk(correo)) return aviso('errM', 'Escribe un correo válido (el de su cuenta Google).');
+    const { F, db } = await fb();
+    try {
+      await F.setDoc(F.doc(db, C_MOD, correo), { nombre, agregadoPor: S.usuario.email, fecha: F.serverTimestamp() });
+      $('mNombre').value = ''; $('mEmail').value = '';
+    } catch (e) { aviso('errM', errTxt(e)); }
+  });
+  $('listaMods').addEventListener('click', async e => {
+    const b = e.target.closest('[data-quitar]'); if (!b) return;
+    if (!confirm('¿Quitar a ' + b.dataset.quitar + ' del grupo moderador? Dejará de ver la agenda.')) return;
+    const { F, db } = await fb();
+    F.deleteDoc(F.doc(db, C_MOD, b.dataset.quitar)).catch(err => aviso('errM', errTxt(err)));
+  });
+
+  /* ═════════ Inicio ═════════ */
+  DF.listo().then(() => DF.alCambiarUsuario(() => revisarAcceso()),
+    e => pantallaAcceso('Sin conexión', 'No se pudo conectar con Firebase: ' + esc(e.message)));
+})();
+</script>
+</body>
+</html>

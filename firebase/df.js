@@ -377,7 +377,33 @@
     var si = puedeComprar(), g = grupoActual();
     document.querySelectorAll('[data-solo-publico]').forEach(function (el) { el.hidden = !si; });
     document.querySelectorAll('[data-solo-estudiante]').forEach(function (el) { el.hidden = g !== 'estudiante'; });
+    aplicarAgenda();
   }
+
+  /* ---------- agenda de apoderados: solo el profe (admin) y el grupo «moderador» ----------
+     El grupo vive en la colección agenda_moderadores (un documento por correo, en minúsculas).
+     Lo marcado con data-solo-agenda se oculta con CSS mientras <html> no tenga la clase df-agenda,
+     así también queda oculto lo que la portada dibuja después. */
+  var agendaMemo = { email: '', p: null };
+  function esAgenda() {
+    if (!usuario || !usuario.email) return Promise.resolve(false);
+    if (esProfe()) return Promise.resolve(true);
+    var em = usuario.email.toLowerCase();
+    if (agendaMemo.email !== em || !agendaMemo.p) {
+      agendaMemo.email = em;
+      agendaMemo.p = listo().then(function (fb) { return fb.F.getDoc(fb.F.doc(fb.db, 'agenda_moderadores', em)); })
+        .then(function (d) { return d.exists(); }, function () { agendaMemo.p = null; return false; });
+    }
+    return agendaMemo.p;
+  }
+  function aplicarAgenda() {
+    esAgenda().then(function (si) { document.documentElement.classList.toggle('df-agenda', !!si); });
+  }
+  try {
+    var cssAgenda = document.createElement('style');
+    cssAgenda.textContent = 'html:not(.df-agenda) [data-solo-agenda]{display:none!important}';
+    (document.head || document.documentElement).appendChild(cssAgenda);
+  } catch (e) {}
 
   /* ---------- puntajes de juegos ----------
      Anti-trampa (ver «Puntajes y rankings» en firestore.rules): las reglas solo aceptan lo
@@ -848,6 +874,7 @@
     grupo: grupoActual,
     grupos: GRUPOS,
     puedeComprar: puedeComprar,
+    esAgenda: esAgenda,
     idSeguro: idSeguro,
     nombreCorto: nombreCorto,
     hoy: hoyChile
