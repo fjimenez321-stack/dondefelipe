@@ -37,6 +37,9 @@ const DATOS = [
   'Los relojes de los satélites GPS, a 20.200 km de altura, se adelantan unos 45 microsegundos por día respecto de los de la superficie, por estar más lejos del pozo de gravedad de la Tierra. Sin corregir esa dilatación del tiempo, el GPS se equivocaría en kilómetros.',
   'En la Luna los astronautas del Apolo avanzaban a saltitos: con 1/6 de la gravedad, el pie agarra poco y caminar es torpe. En Marte la gravedad es un poco más de 1/3 de la terrestre.'
 ];
+/* El rayo de foco guía al motor (distancias, qué hay delante, qué se puede tomar); no se dibuja.
+   Para verlo al depurar, cambia a true. */
+const VER_RAYO = false;
 const OBJ = {
   moneda:   { nombre: 'Moneda' }, gema: { nombre: 'Gema (+5)' },
   racion:   { nombre: 'Ración 🍎 digestivo +35' }, oxigeno: { nombre: 'Tanque de O₂ 🫁 +40' }, botiquin: { nombre: 'Botiquín 🦴🧠 +25' }
@@ -445,8 +448,8 @@ function actualizarSuperficie(dt) {
     const mano = new THREE.Vector3(jug.terceraPersona ? 0.25 : 0.3, jug.terceraPersona ? -0.2 : -0.28, -0.75).applyMatrix4(cam.matrixWorld);
     if (jug.terceraPersona) mano.set(c.x + Math.cos(ctrl.yaw) * 0.35, c.y + 1.1, c.z - Math.sin(ctrl.yaw) * 0.35);
     const ra = L.rayo.geometry.attributes.position; ra.setXYZ(0, mano.x, mano.y, mano.z); ra.setXYZ(1, f.p.x, f.p.y, f.p.z); ra.needsUpdate = true;
-    L.rayo.computeLineDistances(); L.rayo.visible = true;
-    L.marca.position.copy(f.p); L.marca.lookAt(cam.position); L.marca.scale.setScalar(Math.max(1, f.t * 0.12)); L.marca.visible = true;
+    L.rayo.computeLineDistances(); L.rayo.visible = VER_RAYO;
+    L.marca.position.copy(f.p); L.marca.lookAt(cam.position); L.marca.scale.setScalar(Math.max(1, f.t * 0.12)); L.marca.visible = VER_RAYO;
     if (usar && f.item && f.t <= L.ent.E.alcanceBrazo + 1.5) tomar(f.item);
     else if (usar && f.item) aviso('Muy lejos', 'El brazo alcanza ' + fmt(L.ent.E.alcanceBrazo) + ' m y eso está a ' + fmt(f.t) + ' m');
   } else { L.rayo.visible = false; L.marca.visible = false; }
@@ -486,7 +489,7 @@ function pintarHUD() {
     `<div class="f"><span class="l">E</span><span>foco <em>${L.foco ? fmt(L.foco.t) + ' m' : '—'}</em> · visión <em>${Ev.vis} m</em><span class="det"><br>horizonte real <em>${fmt(Ev.horizonte / 1000)} km</em> · relieve <em>${fmt(Ev.relieve)} m</em></span></span></div>` +
     `<div class="f"><span class="l">V</span><span>❤️ <em>${Math.round(cuerpo.bpm)}</em> lpm${cuerpo.bpm > 140 ? ' <b style="color:#ff6b6b">¡baja el ritmo!</b>' : ''}</span></div>` +
     SISTEMAS.map(s => barra(s, cuerpo[s.id])).join('');
-  $('foco').textContent = L.foco ? L.foco.nombre + ' · ' + fmt(L.foco.t) + ' m' : '';
+  $('foco').textContent = VER_RAYO && L.foco ? L.foco.nombre + ' · ' + fmt(L.foco.t) + ' m' : '';
   const r = $('reloj');
   if (L.N.limite) { const q = L.N.limite - L.t; r.textContent = '☄ Impacto del K-77 en ' + reloj(q).slice(0, 5); r.classList.toggle('alerta', q < 30); }
   else { r.textContent = NOMBRE[L.id] + ' · misión ' + reloj(L.t).slice(0, 5); r.classList.remove('alerta'); }
