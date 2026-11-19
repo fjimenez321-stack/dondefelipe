@@ -41,7 +41,7 @@
     },
     bonus: {
       intervalo: [10, 18],
-      radio: 2.6,
+      radio: 3.0,
       combustible: 35, herramientas: 30
     },
     /* Jefe del tramo: el Profesor Alex. Respira → es vulnerable · Habla → lanza rayos y es invulnerable */
