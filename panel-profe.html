@@ -344,8 +344,9 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
       <div class="grid2">
         <div class="card">
           <div class="barra" style="margin:0 0 8px"><h3 style="margin:0;flex:1">Últimos cofres</h3>
-            <select id="cfFiltro"><option value="">Todos</option><option value="cerrado">Sin abrir</option><option value="abierto">Abiertos</option><option value="comprado">Comprados / ruleta</option></select>
+            <select id="cfFiltro"><option value="">Todos</option><option value="cerrado">Sin abrir</option><option value="abierto">Abiertos</option><option value="abriendo">A medio abrir</option><option value="comprado">Comprados / ruleta</option></select>
             <button class="btn sm" id="cfRecargar">Actualizar</button></div>
+          <p class="neg" id="cfTrab" hidden style="margin:0 0 8px;font-size:13px"></p>
           <div class="tabla-wrap" style="max-height:60vh"><table><thead><tr><th>Fecha</th><th>Estudiante</th><th>Cofre</th><th>Origen</th><th>Resultado</th><th></th></tr></thead><tbody id="cfTabla"></tbody></table></div>
         </div>
         <div class="card">
@@ -365,6 +366,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
           </div>
           <details style="margin-top:12px"><summary class="muted" style="cursor:pointer">Qué trae cada cofre (16 resultados iguales, 6,25% c/u)</summary>
             <p class="muted" style="font-size:13px">🧰 <b>Cofre</b> (₣75.000 + llave) · premio 69%: +50K, +100K, +200K ×2, +250K, +600K, gatito común, gatito sorpresa, 1 décima formativa, pase de tarea, −20% Tienda · castigo 25%: −50K, −100K, −150K, disertación · vacío 6% · en promedio devuelve ≈89% de lo gastado (cofre + llave).</p>
+            <p class="muted" style="font-size:13px">🌟 <b>Súper cofre</b> (inédito): al abrir cualquier cofre hay ≈0,001% (1 en ~105.000) de que aparezca. Se abre sin llave y da un súper cupón: cualquier cosa de la Tienda gratis (te llega como pedido «🌟 gratis con súper cupón»).</p>
             <p class="muted" style="font-size:13px">✨ <b>Especial</b> (₣400.000 + llave dorada) · premio 75%: +600K, +800K, +1M, +1,2M, +1,5M, +2M, gatito sorpresa ×3, 1 décima sumativa, 2 décimas formativas, 5 min extra · castigo 25%: −200K, −300K, −400K, disertación · en promedio devuelve ≈86% de lo gastado (cofre + llave).</p>
           </details>
         </div>
@@ -907,7 +909,7 @@ function notaPrecio(t) {
 function descSol(t) {
   if (t.clase === 'transferencia') return `<b>$${fmt(t.monto)}</b> · N° ${esc(t.deNumero)} ${esc(t.deNombre)} → N° ${esc(t.aNumero)} ${esc(t.aNombre)}`;
   if (t.clase === 'beneficio') return `<b>${esc(t.ico || '')} ${esc(t.item)}</b> · $${fmt(t.precio)}${notaPrecio(t)} · lo compra N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}`;
-  if (t.clase === 'articulo') return `<b>${esc(t.ico || '📦')} ${esc(t.item)}</b> (artículo físico) · $${fmt(t.precio)}${t.cupon ? ' <span class="pill" title="Cupón de la ruleta">🛍️ con cupón −20%</span>' : ''} · para N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}${t.curso ? ' · ' + esc(t.curso) : ''}`;
+  if (t.clase === 'articulo') return `<b>${esc(t.ico || '📦')} ${esc(t.item)}</b> (artículo físico) · $${fmt(t.precio)}${t.cupon ? (t.precio === 0 ? ' <span class="pill" title="Súper cofre">🌟 gratis con súper cupón</span>' : ' <span class="pill" title="Cupón de la ruleta">🛍️ con cupón −20%</span>') : ''} · para N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}${t.curso ? ' · ' + esc(t.curso) : ''}`;
   return `<b>${esc(t.ico || '')} ${esc(t.item)}</b> · $${fmt(t.precio)} · ${esc(t.vendedorNombre)} se lo vende a N° ${esc(t.compradorNumero)} ${esc(t.compradorNombre)}`;
 }
 function pintarTransferencias() {
@@ -1228,6 +1230,7 @@ async function autorizarPedido(p) {
         return;
       }
       if (p.tipo === 'beneficio') {
+        if (p.cupon) tx.update(F.doc(db, 'banco_movs', p.cupon), { canje: 'usada', canjeNota: 'Usado en la Tienda: ' + String(p.item).slice(0, 150), canjeFecha: F.serverTimestamp(), canjeProfe: profe });
         tx.update(rmc, { canje: 'pendiente', canjeNota: 'Autorizada', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
         tx.update(rp, { estado: 'aprobada', resuelta: F.serverTimestamp(), profe });
         return;
@@ -1998,8 +2001,12 @@ async function cofresPanel(releer = true) {
   } catch (e) { aviso('No se pudieron leer los cofres: ' + esc(e.message), true); }
   cofresTabla();
 }
+// Cofre «trabado»: quedó abriéndose hace más de 10 minutos (se cortó internet o el banco rechazó el paso 2).
+const trabado = c => c.estado === 'abriendo' && Date.now() - msC(c.tFecha) > 10 * 60000;
 function cofresTabla() {
   const f = $('cfFiltro').value;
+  const nTrab = cofresLista.filter(trabado).length;
+  $('cfTrab').hidden = !nTrab; $('cfTrab').textContent = nTrab ? `⚠️ ${nTrab} cofre(s) trabado(s) a medio abrir: usa «Destrabar» para devolver lo retenido y la llave.` : '';
   const comprado = c => !c.profe;   // comprado, ganado en la ruleta o comprado a otro estudiante
   $('cfKCerr').textContent = cofresLista.filter(c => c.estado !== 'abierto').length;
   $('cfKAb').textContent = cofresLista.filter(c => c.estado === 'abierto').length;
@@ -2007,10 +2014,10 @@ function cofresTabla() {
   const l = cofresLista.filter(c => !f || (f === 'comprado' ? comprado(c) : f === 'cerrado' ? c.estado !== 'abierto' : c.estado === f));
   $('cfTabla').innerHTML = l.map(c => `<tr><td>${msC(c.creado) ? new Date(msC(c.creado)).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
     <td>${esc(c.nombre || c.cuenta)} <span class="muted">${esc(c.curso || '')}</span></td>
-    <td>${c.tipo === 'raro' ? '✨ Especial' : '🧰 Básico'}</td>
+    <td>${c.tipo === 'raro' ? '✨ Especial' : c.tipo === 'super' ? '🌟 Súper' : '🧰 Básico'}</td>
     <td>${comprado(c) ? esc(c.motivo || 'Comprado') : '🎁 ' + esc(c.motivo || 'Regalo')}</td>
     <td>${c.estado === 'abierto' ? esc(c.premio || 'Abierto') : c.estado === 'abriendo' ? '<span class="muted">abriéndose…</span>' : c.estado === 'en-venta' ? '<span class="muted">🔒 a la venta en el Mercado</span>' : '<span class="muted">sin abrir</span>'}</td>
-    <td>${c.estado === 'cerrado' && !comprado(c) ? `<button class="btn sm r" data-cfborrar="${esc(c.id)}">Quitar</button>` : ''}</td></tr>`).join('')
+    <td>${c.estado === 'cerrado' && !comprado(c) ? `<button class="btn sm r" data-cfborrar="${esc(c.id)}">Quitar</button>` : ''}${trabado(c) ? `<button class="btn sm" data-cfdestrabar="${esc(c.id)}" title="Devuelve lo retenido y la llave; el cofre vuelve a quedar cerrado">Destrabar</button>` : ''}</td></tr>`).join('')
     || '<tr><td colspan="6" class="muted">Aún no hay cofres.</td></tr>';
 }
 $('cfModo').onchange = cofresForm;
@@ -2042,7 +2049,26 @@ $('cfDar').onclick = async () => {
     $('cfMsg').textContent = `✅ Entregado${dest.length > 1 ? ' a ' + dest.length + ' estudiantes' : ' a ' + quien}. Lo verán en la Ruleta → Tus cofres.`;
   } catch (e) { $('cfMsg').textContent = 'No se pudo entregar: ' + e.message; }
 };
+// Destrabar: vuelve lo retenido a la cuenta, la llave queda otra vez «por usar» y el cofre, cerrado.
+async function destrabarCofre(id) {
+  const c0 = cofresLista.find(c => c.id === id); if (!c0) return;
+  if (!confirm(`¿Destrabar el cofre de ${c0.nombre || c0.cuenta}?\nVuelven ${fmt(c0.retenido || 0)} retenidos y la llave; el cofre queda cerrado para abrirlo de nuevo.`)) return;
+  const { F, db } = FB, profe = (DF.usuario() || {}).email || '';
+  try {
+    await F.runTransaction(db, async tx => {
+      const rf = F.doc(db, 'cofres', id), sf = await tx.get(rf), f = sf.exists() ? sf.data() : null;
+      if (!f || f.estado !== 'abriendo') throw new Error('ese cofre ya no está a medio abrir');
+      const rl = f.llave ? F.doc(db, 'banco_movs', f.llave) : null, sl = rl ? await tx.get(rl) : null;
+      const escribir = await devolver(F, db, tx, f.cuenta, f.retenido || 0, 'Cofre destrabado por el profe: vuelve lo retenido', {});
+      escribir();
+      if (sl && sl.exists() && sl.data().canje === 'en-uso') tx.update(rl, { canje: 'pendiente', canjeNota: 'Llave devuelta: cofre destrabado', canjeFecha: F.serverTimestamp(), canjeProfe: profe });
+      tx.update(rf, { estado: 'cerrado', retenido: 0, premio: 'Destrabado por el profe' });
+    });
+    toast('Cofre destrabado'); await cofresPanel();
+  } catch (e) { aviso('No se pudo destrabar: ' + esc(e.message), true); }
+}
 $('cfTabla').onclick = async ev => {
+  const d = ev.target.closest('[data-cfdestrabar]'); if (d) { destrabarCofre(d.dataset.cfdestrabar); return; }
   const b = ev.target.closest('[data-cfborrar]'); if (!b || !confirm('¿Quitar este cofre sin abrir?')) return;
   try { await FB.F.deleteDoc(FB.F.doc(FB.db, 'cofres', b.dataset.cfborrar)); await cofresPanel(); } catch (e) { aviso('No se pudo: ' + esc(e.message), true); }
 };

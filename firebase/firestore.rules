@@ -633,7 +633,7 @@ service cloud.firestore {
         && id == 'op-' + d.cuenta + '-' + string(opsDespues(d.cuenta))
         && d.keys().hasOnly(['cuenta', 'numero', 'nombre', 'curso', 'monto', 'motivo', 'tipo', 'saldoDespues', 'profe', 'fecha', 'ticker', 'acciones', 'precio', 'gatito', 'oferta', 'tiro', 'item', 'canje', 'transferencia', 'pedido', 'tema', 'escapa', 'pierde', 'subasta', 'apuesta', 'giftcard', 'cofre', 'llave', 'llaveRota', 'ajedrez'])
         && (d.tipo in ['ruleta', 'cofre'] || !d.keys().hasAny(['tema', 'escapa', 'pierde']))
-        && (d.tipo in ['cofre', 'cofre-abrir', 'cofre-compra', 'ruleta'] || !d.keys().hasAny(['cofre']))
+        && (d.tipo in ['cofre', 'cofre-abrir', 'cofre-compra', 'cofre-super', 'ruleta'] || !d.keys().hasAny(['cofre']))
         && (d.tipo in ['cofre', 'cofre-abrir'] || !d.keys().hasAny(['llave', 'llaveRota']))
         && d.profe == '' && d.fecha == request.time
         && texto(d.numero, 20) && texto(d.nombre, 160) && texto(d.curso, 40) && texto(d.motivo, 200)
@@ -641,7 +641,7 @@ service cloud.firestore {
         && d.saldoDespues == getAfter(rutaCuenta(d.cuenta)).data.saldo
         // Solo la ruleta puede dejar un beneficio por canjear (así nadie cuela canjes falsos al panel).
         // Una compra del Mercado entra «retenida» (congelada) y solo el profe la deja «por usar».
-        && (d.tipo in ['ruleta', 'ruleta-apuesta'] || (d.tipo == 'cofre' && !d.keys().hasAny(['tiro'])) || (d.tipo == 'llave-compra' && opLlaveCompra(d)) || (d.tipo == 'compra' && d.get('canje', '') == 'retenida' && !d.keys().hasAny(['tiro']))
+        && (d.tipo in ['ruleta', 'ruleta-apuesta'] || (d.tipo == 'cofre' && !d.keys().hasAny(['tiro'])) || (d.tipo == 'llave-compra' && opLlaveCompra(d)) || (d.tipo == 'cofre-super' && !d.keys().hasAny(['tiro'])) || (d.tipo == 'compra' && d.get('canje', '') == 'retenida' && !d.keys().hasAny(['tiro']))
             || (d.tipo in ['poder-gatito', 'poder-mensual', 'premio-gatito'] && !d.keys().hasAny(['tiro']))
             || !d.keys().hasAny(['tiro', 'item', 'canje']))
         && ((d.tipo in ['bolsa-compra', 'bolsa-venta'] && opBolsa(d)) || (d.tipo == 'bono-ingreso' && opBono(d))
@@ -654,6 +654,7 @@ service cloud.firestore {
             || (d.tipo == 'juego-envio' && opJuego(d))
             || (d.tipo == 'giftcard' && opGiftcard(id, d))
             || (d.tipo == 'cofre-abrir' && opCofreAbrir(d)) || (d.tipo == 'cofre' && opCofre(d)) || (d.tipo == 'cofre-compra' && opCofreCompra(d))
+            || (d.tipo == 'cofre-super' && opCofreSuper(d))
             // la compra de llaves ya se revisó arriba (opLlaveCompra: llave válida, precio exacto y queda «por usar»)
             || (d.tipo == 'llave-compra' && opLlaveCompra(d))
             || (d.tipo == 'ajedrez-apuesta' && d.get('ajedrez', '') is string && opAjApuesta(id, d))
@@ -1062,7 +1063,8 @@ service cloud.firestore {
         && getAfter(rutaMov(d.llave)).data.canje == 'en-uso'
         && getAfter(rutaCofre(d.cofre)).data.estado == 'abriendo'
         && getAfter(rutaCofre(d.cofre)).data.retenido == ret
-        && getAfter(rutaCofre(d.cofre)).data.llave == d.llave;
+        && getAfter(rutaCofre(d.cofre)).data.llave == d.llave
+        && getAfter(rutaCofre(d.cofre)).data.llaveItem == L.get('item', '');
     }
     // Comprar un cofre: paga su precio y en la misma escritura nace cofres/c-<cuenta>-<n° de op>, cerrado.
     function opCofreCompra(d) {
@@ -1072,16 +1074,19 @@ service cloud.firestore {
         && f.cuenta == d.cuenta && f.estado == 'cerrado' && f.tipo in ['comun', 'raro']
         && d.monto == 0 - precioCofre(f.tipo);
     }
+    // Lecturas: el cofre trae la llave usada (llaveItem); la llave misma se marca «usada»/«rota» con su propia regla,
+    // que exige que coincida con llaveRota de este movimiento. Así resolver cabe holgado en el límite de lecturas.
+    function itemLlaveDe(c, L) { return c.get('llaveItem', '') != '' ? c.llaveItem : get(rutaMov(L)).data.get('item', ''); }
     function opCofre(d) {
       let c = get(rutaCofre(d.cofre)).data;
       let h = hashCofre(d.cofre, c.tFecha.toMillis());
       let k = tablaCofre(c.tipo)[hexv(h[0:1])];
       let ret = c.retenido;
       let L = c.get('llave', '');
-      let rota = L != '' && hexv(h[5:6]) < rompeLlave(get(rutaMov(L)).data.get('item', ''));
+      let rota = L != '' && hexv(h[5:6]) < rompeLlave(itemLlaveDe(c, L));
       return c.cuenta == d.cuenta && c.estado == 'abriendo'
         && d.get('llave', '') == L
-        && (L == '' || (d.llaveRota == rota && getAfter(rutaMov(L)).data.canje == (rota ? 'rota' : 'usada')))
+        && (L == '' || d.llaveRota == rota)
         && (rota
           // la llave se rompió: el cofre sigue cerrado y vuelve todo lo retenido
           ? (getAfter(rutaCofre(d.cofre)).data.estado == 'cerrado' && d.monto == ret && soloCosas(d, []))
@@ -1092,6 +1097,19 @@ service cloud.firestore {
                            && texto(d.tema, 120) && d.tema.size() >= 3)
           : (k.t == 'g' ? gatitoCofre(d, gatitoRuleta(h), ret)
           : (k.t == 'G' && gatitoCofre(d, gatitoSorpresa(h), ret))))));
+    }
+    // ── SÚPER COFRE (inédito): al abrir cualquier cofre (sin que se rompa la llave) aparece con probabilidad
+    // 10 / 16^5 ≈ 0,00095% (≈ 1 en 105.000): caracteres 7 a 10 del hash = '0000' y el 11º < 'a'.
+    // Nace cerrado como cofres/s-<cofre> y se abre sin llave: trae un «Súper cupón»: cualquier cosa de la
+    // Tienda (artículo o beneficio) GRATIS. Debe coincidir con superSale() en ruleta.html.
+    function superCupon() { return 'Súper cofre: cualquier cosa de la Tienda gratis'; }
+    function superSale(h) { return h[6:10] == '0000' && hexv(h[10:11]) < 10; }
+    function opCofreSuper(d) {
+      let c = get(rutaCofre(d.cofre)).data;
+      return c.tipo == 'super' && c.cuenta == d.cuenta && c.estado == 'cerrado'
+        && getAfter(rutaCofre(d.cofre)).data.estado == 'abierto'
+        && d.monto == 0 && d.item == superCupon() && d.canje == 'pendiente'
+        && soloCosas(d, ['item', 'canje']) && !d.keys().hasAny(['tiro', 'llave', 'llaveRota']);
     }
     function gatitoCofre(d, g, ret) {
       return g in gatitosAntes(request.auth.uid)
@@ -1165,13 +1183,30 @@ service cloud.firestore {
         && opsDespues(resource.data.cuenta) == opsAntes(resource.data.cuenta) + 1
         && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.get('cofre', '') == id
         && ((resource.data.estado == 'cerrado' && request.resource.data.estado == 'abriendo'
-              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'tFecha', 'retenido', 'llave'])
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'tFecha', 'retenido', 'llave', 'llaveItem'])
               && request.resource.data.tFecha == request.time
               && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.tipo == 'cofre-abrir')
           || (resource.data.estado == 'abriendo' && request.resource.data.estado in ['abierto', 'cerrado']
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'abiertoEn', 'premio'])
               && request.resource.data.abiertoEn == request.time && texto(request.resource.data.premio, 200)
-              && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.tipo == 'cofre'));
+              && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.tipo == 'cofre')
+          // súper cofre: se abre de una vez (sin llave ni retención)
+          || (resource.data.estado == 'cerrado' && resource.data.tipo == 'super' && request.resource.data.estado == 'abierto'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'abiertoEn', 'premio'])
+              && request.resource.data.abiertoEn == request.time && texto(request.resource.data.premio, 200)
+              && getAfter(rutaOp(resource.data.cuenta, opsDespues(resource.data.cuenta))).data.tipo == 'cofre-super'));
+      // el súper cofre nace en la misma escritura en que se resuelve el cofre que lo trajo (s-<ese cofre>)
+      allow create: if esColegio() && miCuentaBanco() != '' && request.resource.data.cuenta == miCuentaBanco()
+        && id.matches('^s-.+')
+        && request.resource.data.keys().hasOnly(['cuenta', 'nombre', 'curso', 'tipo', 'estado', 'motivo', 'creado', 'profe'])
+        && request.resource.data.estado == 'cerrado' && request.resource.data.tipo == 'super'
+        && request.resource.data.creado == request.time && request.resource.data.profe == ''
+        && texto(request.resource.data.nombre, 120) && texto(request.resource.data.curso, 40) && texto(request.resource.data.motivo, 120)
+        && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
+        && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.tipo == 'cofre'
+        && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.get('llaveRota', false) == false
+        && id == 's-' + getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.cofre
+        && superSale(hashCofre(id[2:id.size()], get(rutaCofre(id[2:id.size()])).data.tFecha.toMillis()));
     }
     // ═════ Perfil público (opcional) ═════
     // Lo ven solo las personas del colegio con sesión, y solo si la persona lo hizo público y el profe no lo ocultó.
@@ -1938,16 +1973,27 @@ service cloud.firestore {
               && getAfter(rutaPedido(resource.data.reservadoPor)).data.estado == 'cancelada'));
       allow update, delete: if esProfe();
     }
+    // Cupón usado en un pedido: es de quien compra, está «por usar» y queda «en-compra» en la misma escritura.
+    function cuponValido(r) {
+      return r.cupon is string && get(rutaMov(r.cupon)).data.cuenta == miCuentaBanco()
+        && get(rutaMov(r.cupon)).data.get('item', '') in [cuponTienda(), superCupon()]
+        && get(rutaMov(r.cupon)).data.get('canje', '') == 'pendiente'
+        && getAfter(rutaMov(r.cupon)).data.canje == 'en-compra';
+    }
+    function esSuperCupon(r) { return get(rutaMov(r.cupon)).data.get('item', '') == superCupon(); }
     match /mercado_pedidos/{pid} {
       allow read: if esProfe()
         || (miCuentaBanco() != '' && (resource.data.comprador == miCuentaBanco() || resource.data.get('vendedor', '') == miCuentaBanco()));
       allow create: if esColegio() && miCuentaBanco() != ''
         && request.resource.data.keys().hasOnly(['tipo', 'comprador', 'compradorNombre', 'compradorNumero', 'uid', 'item', 'ico', 'precio',
              'publicacion', 'vendedor', 'vendedorNombre', 'gatito', 'estado', 'creada', 'mov', 'articulo', 'cupon'])
-        && (!request.resource.data.keys().hasAny(['cupon']) || request.resource.data.tipo == 'articulo')
+        && (!request.resource.data.keys().hasAny(['cupon']) || (cuponValido(request.resource.data)
+              && (request.resource.data.tipo == 'articulo' || (request.resource.data.tipo == 'beneficio' && esSuperCupon(request.resource.data)))))
         && request.resource.data.comprador == miCuentaBanco()
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.precio is int && request.resource.data.precio >= 100
+        && request.resource.data.precio is int
+        && (request.resource.data.precio >= 100
+            || (request.resource.data.precio == 0 && request.resource.data.keys().hasAny(['cupon']) && esSuperCupon(request.resource.data)))
         && texto(request.resource.data.compradorNombre, 160) && texto(request.resource.data.compradorNumero, 20)
         && texto(request.resource.data.item, 120) && texto(request.resource.data.ico, 8)
         && request.resource.data.estado == 'pendiente' && request.resource.data.creada == request.time
@@ -1955,19 +2001,16 @@ service cloud.firestore {
         && opsDespues(miCuentaBanco()) == opsAntes(miCuentaBanco()) + 1
         && request.resource.data.mov == idOpActual(miCuentaBanco())
         && opActual(miCuentaBanco()).tipo == 'compra' && opActual(miCuentaBanco()).pedido == pid
-        && (request.resource.data.tipo == 'beneficio'
+        && ((request.resource.data.tipo == 'beneficio'
+              && (!request.resource.data.keys().hasAny(['cupon']) || request.resource.data.precio == 0))
             // artículo físico de la Tienda: precio y nombre del artículo, y una unidad menos en la misma escritura
             || (request.resource.data.tipo == 'articulo' && request.resource.data.articulo is string
                 && get(rutaArticulo(request.resource.data.articulo)).data.activa == true
                 && (!request.resource.data.keys().hasAny(['cupon'])
                     ? get(rutaArticulo(request.resource.data.articulo)).data.precio == request.resource.data.precio
-                    // con el cupón de la ruleta paga el 80% (redondeado) y el cupón queda «en-compra» en la misma escritura
-                    : (request.resource.data.precio == math.round(get(rutaArticulo(request.resource.data.articulo)).data.precio * 0.8)
-                       && request.resource.data.cupon is string
-                       && get(rutaMov(request.resource.data.cupon)).data.cuenta == miCuentaBanco()
-                       && get(rutaMov(request.resource.data.cupon)).data.get('item', '') == cuponTienda()
-                       && get(rutaMov(request.resource.data.cupon)).data.get('canje', '') == 'pendiente'
-                       && getAfter(rutaMov(request.resource.data.cupon)).data.canje == 'en-compra'))
+                    // súper cupón: gratis · cupón de la ruleta: el 80% (redondeado). El cupón ya se validó arriba (cuponValido).
+                    : request.resource.data.precio == (esSuperCupon(request.resource.data) ? 0
+                        : math.round(get(rutaArticulo(request.resource.data.articulo)).data.precio * 0.8)))
                 && get(rutaArticulo(request.resource.data.articulo)).data.nombre == request.resource.data.item
                 && getAfter(rutaArticulo(request.resource.data.articulo)).data.ultimoPedido == pid)
             || (request.resource.data.tipo == 'reventa'
@@ -2284,12 +2327,13 @@ service cloud.firestore {
         && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.get('llave', '') == id
         && ((resource.data.get('canje', '') == 'pendiente' && request.resource.data.canje == 'en-uso'
               && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.tipo == 'cofre-abrir')
-          || (resource.data.get('canje', '') == 'en-uso' && request.resource.data.canje in ['usada', 'rota']
-              && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.tipo == 'cofre'));
+          || (resource.data.get('canje', '') == 'en-uso'
+              && getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.tipo == 'cofre'
+              && request.resource.data.canje == (getAfter(rutaOp(miCuentaBanco(), opsDespues(miCuentaBanco()))).data.get('llaveRota', false) == true ? 'rota' : 'usada')));
       // Cupón de la ruleta (−20% en la Tienda): queda «en-compra» mientras el pedido espera; vuelve si el estudiante lo cancela.
       // (Al entregar, el profe lo marca «usada»; si rechaza la compra, lo devuelve a «pendiente».)
       allow update: if esColegio() && miCuentaBanco() != '' && resource.data.cuenta == miCuentaBanco()
-        && resource.data.get('item', '') == cuponTienda()
+        && resource.data.get('item', '') in [cuponTienda(), superCupon()]
         && ((resource.data.get('canje', '') == 'pendiente' && request.resource.data.canje == 'en-compra'
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['canje', 'pedido'])
               && request.resource.data.pedido is string
