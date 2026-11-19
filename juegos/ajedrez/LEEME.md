@@ -25,7 +25,7 @@ Página: `juegos/ajedrez/ajedrez.html` (en el sitio: Juegos → Ajedrez Agustino
 Banda sonora del profe en `musica/`: «Notas del claustro» y «Oraciones en el arco de piedra» (MP3 a 128 kbps,
 ~2,8 MB cada uno). Se alternan sin parar, a volumen suave. Parten con el primer toque en la página (los navegadores
 no dejan sonar nada antes) y se pausan si la pestaña queda oculta. El botón **🎵 Música** la apaga o la enciende y
-el juego lo recuerda. Los efectos de las jugadas tienen su propio botón (🔊).
+el juego lo recuerda. Los efectos de las jugadas tienen su propio botón (🔊). En **jaque** la música va un 10 % más rápida (sin cambiar el tono).
 
 ## San Agustín comenta
 San Agustín de Hipona (un obispo con mitra, en pixel art) comenta la partida en un globo junto al tablero: la apertura,
@@ -60,6 +60,13 @@ cada uno (quien gana se lleva los dos). Quien se une ve la apuesta y decide si p
 Cuenta **victorias en línea contra personas** (con o sin apuesta) que tengan al menos 10 jugadas de cada uno, una vez por
 partida. Aparece en `rankings.html#ajedrez` y en el **Podio de los juegos** de la portada (pestaña Ajedrez).
 El profe puede borrar marcas o bloquear a alguien desde `rankings.html`, como en los demás juegos.
+
+## Conexión inestable
+Con mala señal el juego **espera y reintenta** (hasta 2 minutos) en vez de sacar al jugador: la jugada queda en el
+tablero y se envía sola cuando vuelve la conexión («📶 Señal lenta… se reintenta sola»). Si se corta la escucha de la
+sala, se vuelve a conectar sola; una lectura sin conexión ya no se interpreta como «la sala ya no existe».
+Al abrir el juego se cobran solos los premios y se suman al ranking las victorias que quedaron pendientes de
+partidas anteriores (por ejemplo, si se cerró la página antes de que el rival confirmara el mate).
 
 ## Reloj
 Sin reloj, 1 min, 3+2, 5, 10, 15+10, 30 o uno a gusto (minutos + segundos por jugada).

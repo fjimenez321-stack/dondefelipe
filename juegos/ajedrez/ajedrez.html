@@ -297,7 +297,8 @@ function musica(){
   if(!MUSICA_ON||!MUSICA_LISTA||document.hidden){if(AUDIO)AUDIO.pause();return;}
   if(!AUDIO){
     AUDIO=new Audio();AUDIO.preload='auto';AUDIO.volume=0;
-    AUDIO.addEventListener('ended',()=>{PISTA_M=(PISTA_M+1)%MUSICA.length;AUDIO.src=MUSICA[PISTA_M].src;AUDIO.play().catch(()=>{});pintarAcciones();});
+    AUDIO.addEventListener('ended',()=>{PISTA_M=(PISTA_M+1)%MUSICA.length;AUDIO.src=MUSICA[PISTA_M].src;AUDIO.play().catch(()=>{});ritmoMusica();pintarAcciones();});
+    AUDIO.addEventListener('play',ritmoMusica);
     AUDIO.addEventListener('error',()=>{PISTA_M=(PISTA_M+1)%MUSICA.length;});
     AUDIO.src=MUSICA[PISTA_M].src;
   }
@@ -305,6 +306,12 @@ function musica(){
     // entrada suave
     const meta=.32;clearInterval(AUDIO._f);AUDIO._f=setInterval(()=>{AUDIO.volume=Math.min(meta,AUDIO.volume+.02);if(AUDIO.volume>=meta)clearInterval(AUDIO._f);},80);
   }).catch(()=>{});
+}
+// En jaque la música va un 10 % más rápida (sin cambiar el tono); vuelve a la normalidad al salir del jaque.
+function ritmoMusica(){
+  if(!AUDIO)return;
+  const v=VISTA==null&&!FIN&&A.enJaque(E)?1.1:1;
+  if(AUDIO.playbackRate!==v){AUDIO.defaultPlaybackRate=v;AUDIO.playbackRate=v;}
 }
 function alternarMusica(){
   MUSICA_ON=!MUSICA_ON;try{localStorage.setItem('ajedrez_musica',MUSICA_ON?'1':'0');}catch(e){}
@@ -678,7 +685,8 @@ function pintarEstado(){
     if(MODO==='linea'){
       if(!MI_COLOR)sub='Estás mirando la partida.';
       else sub=E.turno===MI_COLOR?'Te toca jugar.':'Espera la jugada de tu rival.';
-      if(ENVIANDO)sub='Enviando jugada…';
+      if(ENVIANDO)sub=Date.now()-ENVIANDO_DESDE>3000?'📶 Señal lenta: enviando tu jugada… se reintenta sola, no cierres la página.':'Enviando jugada…';
+      if(CONEXION==='sin')sub='📶 Sin conexión: reconectando… Tu partida sigue guardada'+(ENVIANDO?' y tu jugada se enviará sola.':'.');
     }else if(MODO==='maquina')sub=PENSANDO?'La máquina está pensando…':'Te toca jugar. Práctica sin apuestas ni ranking.';
     else sub=RELOJ&&RELOJ.base&&!RELOJ.corriendo?'El reloj parte con la primera jugada.':'Dos jugadores en este dispositivo.';
   }
@@ -768,6 +776,7 @@ function pintarTodo(){
   const abajo=ORIENT, arriba=A.otro(ORIENT);
   barra($('barra-arriba'),arriba);barra($('barra-abajo'),abajo);
   pintarEstado();pintarJugadas();pintarAcciones();pintarAvisos();pintarSalaInfo();pintarAgustin();pintarAnalisis();
+  ritmoMusica();
   dibujar();
 }
 
@@ -910,11 +919,37 @@ async function exigirCuenta(){
   }
 }
 
+/* ═════════════ conexión inestable: esperar y reintentar ═════════════
+   Con mala señal, Firestore responde «unavailable» u «offline». En vez de rendirse, se reintenta
+   con esperas crecientes (1 s, 1,6 s, 2,6 s… hasta 8 s) durante un buen rato, mostrando «Reconectando…». */
+let CONEXION='ok', ENVIANDO_DESDE=0;   // 'ok' | 'sin'
+setInterval(()=>{if(MODO==='linea'&&(ENVIANDO||CONEXION==='sin'))pintarEstado();},1000);
+const dormir=ms=>new Promise(r=>setTimeout(r,ms));
+function errorDeRed(e){
+  const c=(e&&e.code)||'', m=(e&&e.message)||'';
+  return /unavailable|deadline-exceeded|cancelled|internal|resource-exhausted|aborted/.test(c)
+    ||/offline|network|Failed to fetch|timeout|timed out|Load failed/i.test(m)||navigator.onLine===false;
+}
+function marcarConexion(estado){if(CONEXION!==estado){CONEXION=estado;if(MODO==='linea')pintarEstado();}}
+async function conReintentos(fn,maxMs){
+  const t0=Date.now();let espera=1000;
+  for(;;){
+    try{const r=await fn();marcarConexion('ok');return r;}
+    catch(e){
+      if(!errorDeRed(e)||Date.now()-t0>(maxMs||120000))throw e;
+      marcarConexion('sin');
+      await dormir(espera);espera=Math.min(8000,espera*1.6);
+    }
+  }
+}
+window.addEventListener('offline',()=>marcarConexion('sin'));
+window.addEventListener('online',()=>{if(MODO==='linea'&&salaRef)reconectar();});
+
 /* ═════════════ salas en línea (Firestore: ajedrez_salas) ═════════════ */
 function enlace(c){return location.origin+location.pathname+'#sala='+c;}
 function salirDeSala(){
   if(salaUnsub){try{salaUnsub();}catch(e){}}
-  salaUnsub=null;SALA=null;salaRef=null;MI_COLOR='';ENVIANDO=false;FIN_MOSTRADO='';INVALIDA='';AVISO_COBRO='';clearTimeout(REINTENTO);
+  salaUnsub=null;SALA=null;salaRef=null;MI_COLOR='';ENVIANDO=false;FIN_MOSTRADO='';CODIGO_SALA='';CONEXION='ok';INVALIDA='';AVISO_COBRO='';clearTimeout(REINTENTO);
   if(/#sala=/.test(location.hash))history.replaceState(null,'',location.pathname);
 }
 async function crearSala(de,colorForzado,tiempoForzado){
@@ -968,7 +1003,8 @@ async function unirse(codigo){
   try{await exigirCuenta();}catch(e){return menu();}
   const {db,F}=await DF.listo(),ref=F.doc(db,COLECCION,codigo);
   let s;
-  try{s=await F.getDoc(ref);}catch(e){const c=await pedirCodigo('No se pudo leer la sala: '+(e.message||e));return c?unirse(c):menu();}
+  try{s=await conReintentos(()=>F.getDoc(ref),45000);}
+  catch(e){const c=await pedirCodigo(errorDeRed(e)?'No hay conexión a internet. Revisa la señal e intenta otra vez.':'No se pudo leer la sala: '+(e.message||e));return c?unirse(c):menu();}
   if(!s.exists()){const c=await pedirCodigo(`No existe la sala ${codigo}.`);return c?unirse(c):menu();}
   const d=s.data();
   if(d.estado==='espera'&&!(d.jugadores||[]).includes(USR.uid)){
@@ -979,8 +1015,9 @@ async function unirse(codigo){
       if(!pago)return menu();
     }
     try{
-      await F.runTransaction(db,async tx=>{
+      await conReintentos(()=>F.runTransaction(db,async tx=>{
         const x=(await tx.get(ref)).data();
+        if((x.jugadores||[]).includes(USR.uid))return;   // ya entró (la respuesta anterior se perdió en el camino)
         if(x.estado!=='espera')throw new Error('Alguien más entró primero.');
         const yo={uid:USR.uid,nombre:miNombre()}, col=x.blancas?'b':'w';
         const upd={jugadores:[...x.jugadores,USR.uid],estado:'jugando',turnoDesde:F.serverTimestamp(),seq:x.seq+1,actualizado:F.serverTimestamp()};
@@ -998,8 +1035,8 @@ async function unirse(codigo){
           upd.apuesta=ap;
         }
         tx.update(ref,upd);
-      });
-    }catch(e){await avisar('No se pudo entrar a la sala',esc(e.message||e),'err');return menu();}
+      }),60000);
+    }catch(e){await avisar('No se pudo entrar a la sala',errorDeRed(e)?'No hay conexión a internet. Intenta de nuevo en un momento.':esc(e.message||e),'err');return menu();}
   }
   escuchar(codigo);
 }
@@ -1010,13 +1047,29 @@ async function escuchar(codigo){
   MODO='linea';FIN=null;VISTA=null;SEL=-1;E=A.nuevo();RELOJ=null;reiniciarExtras();
   salaRef=F.doc(db,COLECCION,codigo);
   history.replaceState(null,'','#sala='+codigo);
+  CODIGO_SALA=codigo;
   let primera=true;
-  salaUnsub=F.onSnapshot(salaRef,snap=>{
-    if(!snap.exists()){salirDeSala();avisar('La sala ya no existe','Quien la creó la cerró.').then(menu);return;}
-    const d=snap.data({serverTimestamps:'estimate'});
-    alCambiarSala(d,primera);primera=false;
-  },e=>{avisar('Se perdió la conexión con la sala',esc(e.message||e),'err');});
+  const oir=()=>{
+    if(salaUnsub){try{salaUnsub();}catch(e){}}
+    salaUnsub=F.onSnapshot(salaRef,{includeMetadataChanges:true},snap=>{
+      // fromCache = lo que el teléfono tenía guardado; no es la palabra final del servidor
+      marcarConexion(snap.metadata.fromCache&&navigator.onLine===false?'sin':snap.metadata.fromCache?CONEXION:'ok');
+      if(!snap.exists()){
+        if(snap.metadata.fromCache)return;   // sin conexión: esperar al servidor antes de decir que no existe
+        salirDeSala();avisar('La sala ya no existe','Quien la creó la cerró.').then(menu);return;
+      }
+      const d=snap.data({serverTimestamps:'estimate'});
+      alCambiarSala(d,primera);primera=false;
+    },e=>{
+      if(e&&e.code==='permission-denied'){avisar('No tienes acceso a esta sala',esc(e.message||e),'err');return;}
+      // se cortó la escucha: volver a escuchar en unos segundos, sin sacar a nadie
+      marcarConexion('sin');setTimeout(()=>{if(salaRef&&CODIGO_SALA===codigo)oir();},3000);
+    });
+  };
+  reconectar=oir;
+  oir();
 }
+let CODIGO_SALA='', reconectar=()=>{};
 function alCambiarSala(d,primera){
   const antes=SALA,colorAntes=MI_COLOR;SALA=d;
   MI_COLOR=d.blancas&&d.blancas.uid===USR.uid?'w':d.negras&&d.negras.uid===USR.uid?'b':'';
@@ -1070,14 +1123,17 @@ async function compartir(){
 async function enviarJugada(h,antes){
   const {db,F}=await DF.listo();
   const res=A.resultado(E), yo=antes.turno;
-  ENVIANDO=true;pintarEstado();
-  let margen=0,ok=false,ultimoError=null;
-  for(let intento=0;intento<3&&!ok;intento++){
+  ENVIANDO=true;ENVIANDO_DESDE=Date.now();pintarEstado();
+  let margen=0,ok=false,ultimoError=null,permisos=0;
+  for(;;){
     const t0=Date.now();
     try{
-      await F.runTransaction(db,async tx=>{
+      await conReintentos(()=>F.runTransaction(db,async tx=>{
         const s=await tx.get(salaRef);const d=s.data();
-        if(d.estado!=='jugando'||d.turno!==yo||(d.jugadas||[]).length!==antes.historial.length)throw new Error('La partida cambió mientras jugabas.');
+        const js=d.jugadas||[];
+        // si la jugada ya llegó (se perdió la respuesta del servidor), no se repite
+        if(js.length===antes.historial.length+1&&js[js.length-1]===h.uci)return;
+        if(d.estado!=='jugando'||d.turno!==yo||js.length!==antes.historial.length)throw new Error('La partida cambió mientras jugabas.');
         const upd={jugadas:[...d.jugadas,h.uci],fen:A.fen(E),turno:A.otro(yo),turnoDesde:F.serverTimestamp(),seq:d.seq+1,tablas:'',actualizado:F.serverTimestamp()};
         if(d.tiempo.base>0&&d.jugadas.length>0){
           const usado=srvAhora()-d.turnoDesde.toMillis();
@@ -1085,12 +1141,18 @@ async function enviarJugada(h,antes){
         }
         if(res.fin){upd.estado='fin';upd.resultado={ganador:res.ganador,motivo:res.motivo};upd.finEn=F.serverTimestamp();}
         tx.update(salaRef,upd);
-      });
+      }),150000);
       ok=true;
       // afinar la diferencia de relojes con la hora que puso el servidor
       const t1=Date.now();
       F.getDoc(salaRef).then(s=>{const x=s.data();if(x&&x.turnoDesde&&x.seq&&t1-t0<4000){const muestra=x.turnoDesde.toMillis()-(t0+t1)/2;DESF=DESF*.3+muestra*.7;}}).catch(()=>{});
-    }catch(e){ultimoError=e;margen+=1500;if(/cambió/.test(e.message))break;}
+      break;
+    }catch(e){
+      ultimoError=e;
+      // el reloj se calculó un poco a favor: se descuenta un margen y se intenta otra vez (máx. 2)
+      if(e&&e.code==='permission-denied'&&permisos++<2){margen+=1500;continue;}
+      break;
+    }
   }
   ENVIANDO=false;
   if(!ok){
@@ -1098,7 +1160,7 @@ async function enviarJugada(h,antes){
     // volver a la posición de la sala
     try{E=A.partida(SALA.jugadas||[]);}catch(e){}
     pintarTodo();
-    avisar('No se pudo enviar la jugada',esc(ultimoError&&ultimoError.message||'Error desconocido')+'<br><small>Revisa tu conexión. Si se te acabó el tiempo, la partida termina.</small>','err');
+    avisar('No se pudo enviar la jugada',(errorDeRed(ultimoError)?'Pasaron más de 2 minutos sin conexión.':esc(ultimoError&&ultimoError.message||'Error desconocido'))+'<br><small>La partida sigue guardada: cuando vuelva la señal, juega de nuevo. Si se te acabó el tiempo, la partida termina.</small>','err');
     return;
   }
   if(res.fin&&FIN_MOSTRADO!==SALA.codigo){FIN_MOSTRADO=SALA.codigo;FIN=res;terminarLinea();}
@@ -1107,7 +1169,7 @@ async function enviarJugada(h,antes){
 async function accionSala(tipo){
   const {db,F}=await DF.listo();
   try{
-    await F.runTransaction(db,async tx=>{
+    await conReintentos(()=>F.runTransaction(db,async tx=>{
       const d=(await tx.get(salaRef)).data();
       if(d.estado!=='jugando')throw new Error('La partida ya terminó.');
       const yo=MI_COLOR,el=A.otro(yo),upd={seq:d.seq+1,actualizado:F.serverTimestamp()};
@@ -1118,7 +1180,7 @@ async function accionSala(tipo){
       else if(tipo==='anulada'){upd.estado='fin';upd.resultado={ganador:'',motivo:'anulada'};}
       if(upd.estado==='fin')upd.finEn=F.serverTimestamp();
       tx.update(salaRef,upd);
-    });
+    }),60000);
     if(tipo==='ofrecer')SND.mover();
   }catch(e){avisar('No se pudo',esc(e.message||e),'err');}
 }
@@ -1155,15 +1217,15 @@ async function misPartidas(){
   let lista=[];
   try{
     const q=F.query(F.collection(db,COLECCION),F.where('jugadores','array-contains',USR.uid),F.limit(60));
-    lista=(await F.getDocs(q)).docs.map(s=>s.data()).filter(d=>d.estado!=='fin'||pendienteCobro(d));
+    lista=(await F.getDocs(q)).docs.map(s=>s.data()).filter(d=>d.estado!=='fin'||pendienteCobro(d)||victoriaPendiente(d,miColorEn(d)));
   }catch(e){
     try{const q=F.query(F.collection(db,COLECCION),F.where('jugadores','array-contains',USR.uid),F.limit(40));
-      lista=(await F.getDocs(q)).docs.map(s=>s.data()).filter(d=>d.estado!=='fin'||pendienteCobro(d));}catch(e2){await avisar('No se pudo leer',esc(e2.message||e2),'err');return menu();}
+      lista=(await F.getDocs(q)).docs.map(s=>s.data()).filter(d=>d.estado!=='fin'||pendienteCobro(d)||victoriaPendiente(d,miColorEn(d)));}catch(e2){await avisar('No se pudo leer',esc(e2.message||e2),'err');return menu();}
   }
   lista.sort((a,b)=>ms(b.actualizado)-ms(a.actualizado));
   const r=await ventana(`<h3>🏰 Mis partidas en línea</h3><div class="sub">Partidas abiertas, en espera o con algo por cobrar.</div>
     <div class="lista">${lista.length?lista.map(d=>{const riv=d.blancas&&d.blancas.uid!==USR.uid?d.blancas.nombre:d.negras&&d.negras.uid!==USR.uid?d.negras.nombre:'(sin rival aún)';
-      return `<div class="partida-it"><div><b>${esc(d.codigo)}</b> · ${esc(riv)}<small>${d.estado==='espera'?'Esperando rival':d.estado==='fin'?'💰 Terminada: tienes algo por cobrar':(d.jugadas||[]).length+' jugadas · turno de las '+NOMBRE_COLOR[d.turno].toLowerCase()}</small></div><button class="btn oro chico" data-r="${esc(d.codigo)}">Entrar</button></div>`;}).join(''):'<p>No tienes partidas abiertas.</p>'}</div>
+      return `<div class="partida-it"><div><b>${esc(d.codigo)}</b> · ${esc(riv)}<small>${d.estado==='espera'?'Esperando rival':d.estado==='fin'?(pendienteCobro(d)?'💰 Terminada: tienes algo por cobrar':'🏆 Terminada: tu victoria aún no suma (falta que quede firme)'):(d.jugadas||[]).length+' jugadas · turno de las '+NOMBRE_COLOR[d.turno].toLowerCase()}</small></div><button class="btn oro chico" data-r="${esc(d.codigo)}">Entrar</button></div>`;}).join(''):'<p>No tienes partidas abiertas.</p>'}</div>
     <div class="pie"><button class="btn sec" data-r="volver">Volver</button></div>`);
   cerrar();
   if(r&&r!=='volver')return unirse(r);
@@ -1397,8 +1459,8 @@ async function procesarSala(){
     const d=SALA,c=MI_COLOR,{db,F}=await DF.listo();
     // una jugada no válida durante la partida: se detiene y la revisa el profe
     if(d.estado==='jugando'&&INVALIDA===d.codigo){
-      await F.runTransaction(db,async tx=>{const x=(await tx.get(salaRef)).data();if(x.estado!=='jugando')return;
-        tx.update(salaRef,{estado:'fin',resultado:{ganador:'',motivo:'disputa'},disputa:true,finEn:F.serverTimestamp(),seq:x.seq+1,actualizado:F.serverTimestamp()});});
+      await conReintentos(()=>F.runTransaction(db,async tx=>{const x=(await tx.get(salaRef)).data();if(x.estado!=='jugando')return;
+        tx.update(salaRef,{estado:'fin',resultado:{ganador:'',motivo:'disputa'},disputa:true,finEn:F.serverTimestamp(),seq:x.seq+1,actualizado:F.serverTimestamp()});}),90000);
       return;
     }
     if(d.estado!=='fin'||!d.resultado||!d.pagos)return;
@@ -1406,8 +1468,8 @@ async function procesarSala(){
     if(MOTIVOS_TABLERO.includes(d.resultado.motivo)&&!d.confirmado&&!d.disputa&&d.turno===c&&d.finEn&&srvAhora()<ms(d.finEn)+29*60000){
       const rev=revisarJugadas(d.jugadas||[]);
       const bien=rev.ok&&rev.res.fin&&rev.res.motivo===d.resultado.motivo&&rev.res.ganador===d.resultado.ganador;
-      await F.runTransaction(db,async tx=>{const x=(await tx.get(salaRef)).data();if(x.confirmado||x.disputa)return;
-        tx.update(salaRef,bien?{confirmado:true,seq:x.seq+1,actualizado:F.serverTimestamp()}:{disputa:true,seq:x.seq+1,actualizado:F.serverTimestamp()});});
+      await conReintentos(()=>F.runTransaction(db,async tx=>{const x=(await tx.get(salaRef)).data();if(x.confirmado||x.disputa)return;
+        tx.update(salaRef,bien?{confirmado:true,seq:x.seq+1,actualizado:F.serverTimestamp()}:{disputa:true,seq:x.seq+1,actualizado:F.serverTimestamp()});}),90000);
       otra=true;return;
     }
     if(!firme(d)){
@@ -1422,11 +1484,13 @@ async function procesarSala(){
   finally{PROCESANDO=false;if(otra)setTimeout(procesarSala,600);}
 }
 // Cobra lo que le toca a «c» en la sala actual (premio o devolución). También sirve al cerrar una sala en espera.
-async function cobrar(c,cancelar){
+async function cobrar(c,cancelar,ref0){
   const {db,F}=await DF.listo();
+  const sRef=ref0||salaRef;
   let texto='';
-  await F.runTransaction(db,async tx=>{
-    const d=(await tx.get(salaRef)).data();
+  await conReintentos(()=>F.runTransaction(db,async tx=>{
+    texto='';
+    const d=(await tx.get(sRef)).data();
     const upd={seq:d.seq+1,actualizado:F.serverTimestamp()};
     let fin=d;
     if(cancelar){
@@ -1451,23 +1515,52 @@ async function cobrar(c,cancelar){
       else throw new Error('No se encontró tu colección de gatitos.');
       texto=que==='premio'?`🐱 ¡Te llevas a ${nuevos.map(x=>gatitoInfo(x).nombre).join(' y ')}!`:`🐱 ${gatitoInfo(nuevos[0]).nombre} volvió a tu colección.`;
     }
-    tx.update(salaRef,upd);
-  });
-  if(texto){AVISO_COBRO=texto;SND.fin();pintarAvisos();}
+    tx.update(sRef,upd);
+  }),90000);
+  if(texto&&!ref0){AVISO_COBRO=texto;SND.fin();pintarAvisos();}
+  return texto;
 }
-async function sumarVictoria(c){
+async function sumarVictoria(c,ref0){
   const {db,F}=await DF.listo();
+  const sRef=ref0||salaRef;
   let pf=null;try{pf=await DF.perfil();}catch(e){}
   let n=0;
-  await F.runTransaction(db,async tx=>{
-    const d=(await tx.get(salaRef)).data();
+  await conReintentos(()=>F.runTransaction(db,async tx=>{
+    n=0;
+    const d=(await tx.get(sRef)).data();
     if(!d.contado||d.contado[c])return;
     const rref=F.doc(db,'rankings','ajedrez','mejores',USR.uid),r=await tx.get(rref);
     n=(r.exists()?r.data().puntaje||0:0)+1;
     tx.set(rref,{juego:'ajedrez',uid:USR.uid,nombre:miNombre(),curso:(pf&&pf.curso)||'',puntaje:n,fecha:F.serverTimestamp(),ultima:d.codigo});
-    tx.update(salaRef,{contado:{...d.contado,[c]:true},seq:d.seq+1,actualizado:F.serverTimestamp()});
-  });
-  if(n){AVISO_COBRO=(AVISO_COBRO?AVISO_COBRO+'<br>':'')+`🏆 +1 victoria en el ranking (llevas ${n}).`;pintarAvisos();}
+    tx.update(sRef,{contado:{...d.contado,[c]:true},seq:d.seq+1,actualizado:F.serverTimestamp()});
+  }),90000);
+  if(n&&!ref0){AVISO_COBRO=(AVISO_COBRO?AVISO_COBRO+'<br>':'')+`🏆 +1 victoria en el ranking (llevas ${n}).`;pintarAvisos();}
+  return n;
+}
+// Victoria en línea que todavía no suma al ranking (se cuenta cuando el resultado queda firme).
+function victoriaPendiente(d,c){return !!(c&&d.estado==='fin'&&d.resultado&&d.resultado.ganador===c&&d.contado&&!d.contado[c]&&(d.jugadas||[]).length>=20);}
+function miColorEn(d){return d.blancas&&d.blancas.uid===USR.uid?'w':d.negras&&d.negras.uid===USR.uid?'b':'';}
+// Al abrir el juego: cobra premios y suma victorias de partidas anteriores que quedaron pendientes
+// (por ejemplo, si cerraste la página antes de que tu rival confirmara el mate).
+let REVISADO_PENDIENTES='';
+async function revisarPendientes(){
+  if(!ONLINE||!USR||REVISADO_PENDIENTES===USR.uid)return;
+  REVISADO_PENDIENTES=USR.uid;
+  try{
+    const {db,F}=await DF.listo();
+    const q=F.query(F.collection(db,COLECCION),F.where('jugadores','array-contains',USR.uid),F.limit(80));
+    const salas=(await conReintentos(()=>F.getDocs(q),60000)).docs;
+    const hechos=[];
+    for(const snap of salas){
+      const d=snap.data(), c=miColorEn(d);
+      if(!c||!firme(d)||(SALA&&SALA.codigo===d.codigo))continue;
+      try{
+        if(pendienteCobro(d)){const t=await cobrar(c,false,snap.ref);if(t)hechos.push(t+` (sala ${d.codigo})`);}
+        if(victoriaPendiente(d,c)){const n=await sumarVictoria(c,snap.ref);if(n)hechos.push(`🏆 +1 victoria en el ranking (sala ${d.codigo})`);}
+      }catch(e){console.warn('pendiente',d.codigo,e);}
+    }
+    if(hechos.length){SND.fin();avisar('Cosas pendientes de partidas anteriores',hechos.join('<br>'));}
+  }catch(e){console.warn('revisarPendientes',e);REVISADO_PENDIENTES='';}
 }
 async function cerrarSala(){
   const d=SALA;if(!d)return;
@@ -1647,7 +1740,8 @@ pintarTodo();
   if(window.DF){try{await DF.listo();ONLINE=true;}catch(e){ONLINE=false;}}
   if(ONLINE){
     USR=DF.usuario();pintarCuenta();
-    DF.alCambiarUsuario(u=>{const antes=USR;USR=u;pintarCuenta();if(antes&&!u&&MODO==='linea'){salirDeSala();nuevaLocal(null);}});
+    DF.alCambiarUsuario(u=>{const antes=USR;USR=u;pintarCuenta();if(antes&&!u&&MODO==='linea'){salirDeSala();nuevaLocal(null);}if(u)setTimeout(revisarPendientes,1500);});
+    if(USR)setTimeout(revisarPendientes,2500);
   }
   const m=location.hash.match(/sala=([A-Z0-9]{4,8})/i);
   if(m&&ONLINE)return unirse(m[1].toUpperCase());
