@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F3443">
+<title>Debate · Dunas de Concón</title>
+<style>
+:root{
+  --ocean:#0F3443; --sea:#1F6E80; --sea-l:#e4f0f2; --sand:#E2BF84; --sand-l:#F7EEDC; --sand-d:#a9824a;
+  --coral:#C8553D; --coral-l:#f8e3de; --moss:#5E7F4F; --moss-l:#e6efe1;
+  --ink:#1B2A30; --muted:#5A6B70; --line:#e3d9c6; --bg:#fbf8f2; --white:#fff;
+  --team:var(--sea); --team-l:var(--sea-l);
+  --r:14px; --shadow:0 3px 14px rgba(15,52,67,.08);
+  --top:58px; --tabs:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Segoe UI",Calibri,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;-webkit-tap-highlight-color:transparent}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;color:var(--ocean);line-height:1.15}
+h1{font-size:clamp(1.9rem,6vw,2.8rem)}
+h2{font-size:1.45rem;margin-bottom:.4em}
+h3{font-size:1.08rem;margin-bottom:.3em}
+p{margin-bottom:.55em}
+.small{font-size:.86rem;color:var(--muted)}
+.wrap{max-width:780px;margin:0 auto;padding:18px 16px 28px}
+
+/* ---------- barra superior ---------- */
+.top{position:sticky;top:0;z-index:30;height:var(--top);display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--team);color:#fff}
+.top .t1{font-weight:800;font-size:.98rem;line-height:1.1}
+.top .t2{font-size:.76rem;opacity:.9}
+.top .sp{flex:1}
+.top button{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:10px;padding:7px 10px;font-size:.8rem;font-weight:700}
+.save{font-size:.72rem;opacity:0;transition:opacity .3s}
+.save.on{opacity:.95}
+
+/* ---------- pestañas inferiores ---------- */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--tabs) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);display:flex;background:#fff;border-top:1px solid var(--line)}
+.tabs[hidden]{display:none}
+.tabs button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.7rem;font-weight:700;color:var(--muted)}
+.tabs button .ic{font-size:1.25rem;line-height:1}
+.tabs button.on{color:var(--team)}
+.tabs button.on .ic{transform:scale(1.12)}
+.has-tabs .wrap{padding-bottom:calc(var(--tabs) + 40px)}
+
+/* ---------- tarjetas ---------- */
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;box-shadow:var(--shadow);margin-bottom:14px}
+.card.tint{background:var(--team-l);border-color:transparent}
+.card.sand{background:var(--sand-l);border-color:transparent}
+.card.dark{background:var(--ocean);color:#fff;border-color:transparent}
+.card.dark h2,.card.dark h3{color:var(--sand)}
+.tag{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--team);color:#fff;margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+ol.steps{list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;position:relative;padding:6px 0 6px 38px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:5px;width:26px;height:26px;border-radius:50%;background:var(--team);color:#fff;font-weight:800;font-size:.85rem;display:grid;place-items:center}
+ul.dots{list-style:none}
+ul.dots li{position:relative;padding:4px 0 4px 18px}
+ul.dots li::before{content:"";position:absolute;left:3px;top:12px;width:7px;height:7px;border-radius:50%;background:var(--sand-d)}
+
+/* ---------- botones ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:11px;padding:11px 16px;font-weight:800;font-size:.95rem;background:var(--team);color:#fff}
+.btn.ghost{background:transparent;color:var(--team);border:1.5px solid var(--team)}
+.btn.sm{padding:7px 11px;font-size:.82rem;border-radius:9px}
+.btn.full{width:100%}
+.btn.danger{background:var(--coral)}
+.btn:disabled{opacity:.45}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* ---------- campos ---------- */
+label.lb{display:block;font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ocean);margin:10px 0 4px}
+textarea,input[type=text],select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;background:#fff;resize:vertical}
+textarea{min-height:70px}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);box-shadow:0 0 0 3px var(--team-l)}
+.hint{font-size:.8rem;color:var(--muted);margin-top:3px}
+
+/* ---------- inicio ---------- */
+.hero{background:var(--ocean);color:#fff;padding:30px 18px 70px;position:relative;overflow:hidden}
+.hero h1{color:#fff;margin:.15em 0 .35em}
+.hero .k{font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--sand)}
+.hero .mo{background:var(--sand);color:var(--ocean);border-radius:12px;padding:12px 14px;font-family:Cambria,Georgia,serif;font-weight:700;font-style:italic;font-size:1.08rem;margin-top:14px}
+.hero svg{position:absolute;left:0;right:0;bottom:-2px;width:100%;height:70px}
+.hero .in{max-width:780px;margin:0 auto;position:relative;z-index:1}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:420px){.teams{grid-template-columns:1fr}}
+.tbtn{border:2px solid transparent;border-radius:16px;padding:16px 14px;text-align:left;color:#fff;display:flex;flex-direction:column;gap:4px;min-height:132px;box-shadow:var(--shadow)}
+.tbtn .ic{font-size:1.7rem}
+.tbtn b{font-size:1.08rem}
+.tbtn span{font-size:.85rem;opacity:.95}
+.tbtn:disabled{opacity:.4}
+
+/* ---------- evidencia ---------- */
+.ev{border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:10px;background:#fff}
+.ev h3{font-family:inherit;font-size:1rem;color:var(--ocean)}
+.ev .src{font-size:.76rem;font-style:italic;color:var(--muted);margin-top:4px}
+.ev.used{border-color:var(--team);background:var(--team-l)}
+
+/* ---------- argumentos ---------- */
+.arg{border-radius:var(--r);border:1.5px solid var(--line);background:#fff;padding:14px 15px;margin-bottom:14px}
+.arg .hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.arg .n{width:30px;height:30px;border-radius:50%;background:var(--team);color:#fff;display:grid;place-items:center;font-weight:800}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px}
+.meter i{display:block;height:100%;width:0;background:var(--team);transition:width .3s}
+
+/* ---------- reloj ---------- */
+.clock{background:var(--ocean);color:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:14px}
+.clock .now{font-size:.8rem;color:var(--sand);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.clock .ttl{font-size:1.1rem;font-weight:800;margin:2px 0 6px}
+.clock .big{font-size:3rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.clock.warn .big{color:var(--sand)}
+.clock.end .big{color:#ff9b86}
+.clock .btn{background:var(--sand);color:var(--ocean)}
+.clock .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.turns{list-style:none}
+.turns li{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:6px;cursor:pointer}
+.turns li .tn{width:28px;height:28px;border-radius:50%;background:var(--sand-l);color:var(--ocean);font-weight:800;display:grid;place-items:center;font-size:.85rem;flex:0 0 auto}
+.turns li .tx{flex:1;font-size:.92rem}
+.turns li .tx small{display:block;color:var(--muted);font-size:.76rem}
+.turns li .tm{font-weight:800;color:var(--ocean)}
+.turns li.cur{border-color:var(--team);background:var(--team-l)}
+.turns li.cur .tn{background:var(--team);color:#fff}
+.turns li.done{opacity:.55}
+
+/* ---------- notas ---------- */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:.82rem;font-weight:700;color:var(--muted)}
+.chip.on{background:var(--team);border-color:var(--team);color:#fff}
+.note{border-left:4px solid var(--team);background:#fff;border-radius:0 10px 10px 0;padding:9px 12px;margin-bottom:8px;box-shadow:var(--shadow)}
+.note .meta{font-size:.74rem;color:var(--muted);display:flex;gap:8px;align-items:center}
+.note .meta .x{margin-left:auto;border:none;background:none;color:var(--coral);font-weight:800;font-size:.8rem}
+.note p{margin:3px 0 0;white-space:pre-wrap}
+.note.t-debil{border-left-color:var(--coral)}
+.note.t-idea{border-left-color:var(--moss)}
+.note.t-pregunta{border-left-color:var(--sand-d)}
+
+/* ---------- pauta ---------- */
+.crit{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff}
+.crit h3{font-family:inherit;font-size:1rem}
+.crit .lv{font-size:.78rem;color:var(--muted);margin-bottom:6px}
+.score{display:flex;align-items:center;gap:8px;margin-top:6px}
+.score .who{width:70px;font-weight:800;font-size:.86rem}
+.score button{width:44px;height:38px;border-radius:9px;border:1.5px solid var(--line);background:#fff;font-weight:800}
+.score button.on{background:var(--team);border-color:var(--team);color:#fff}
+.tot{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tot .box{border-radius:12px;padding:14px;text-align:center;color:#fff}
+.tot .box b{display:block;font-size:2.2rem;line-height:1}
+.counter{display:flex;align-items:center;gap:10px}
+.counter button{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-weight:800;font-size:1.1rem}
+.counter b{min-width:2ch;text-align:center;font-size:1.3rem}
+
+/* ---------- verificación ---------- */
+.vf{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px 12px;margin-bottom:8px}
+.vf .top2{display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted)}
+.vf .x{margin-left:auto;border:none;background:none;color:var(--coral);font-weight:800}
+.badge{display:inline-block;border-radius:6px;padding:1px 7px;font-size:.72rem;font-weight:800;color:#fff}
+.b-ok{background:var(--moss)} .b-dud{background:var(--sand-d)} .b-fal{background:var(--coral)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:84px;border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:8px;font-weight:800;font-size:.86rem}
+.seg button.on{background:var(--team);border-color:var(--team);color:#fff}
+
+/* ---------- toast ---------- */
+/* chip de autoguardado (firebase/autoguardado.js): abajo, sin tapar la barra superior */
+.ag-chip{top:auto!important;right:auto!important;left:12px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important;max-width:calc(100vw - 24px)!important}
+.has-tabs .ag-chip{bottom:calc(var(--tabs) + 10px + env(safe-area-inset-bottom))!important}
+.acc{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.acc .av{width:42px;height:42px;border-radius:50%;background:var(--team);color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.1rem;flex:0 0 auto}
+.acc .tx{flex:1;min-width:180px}
+.cloud{display:inline-block;font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.18);margin-left:6px}
+#toast{position:fixed;left:50%;bottom:calc(var(--tabs) + 66px);transform:translateX(-50%) translateY(20px);background:var(--ocean);color:#fff;padding:10px 16px;border-radius:12px;font-size:.88rem;font-weight:700;opacity:0;pointer-events:none;transition:all .3s;z-index:50;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
+
+/* ---------- impresión ---------- */
+#print{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff}
+  #app,.tabs,#toast{display:none!important}
+  #print{display:block;font-family:Calibri,Arial,sans-serif;color:#000;font-size:11pt}
+  #print h1{font-size:18pt;color:#000}
+  #print h2{font-size:13pt;color:#000;margin:10pt 0 4pt;border-bottom:1px solid #000}
+  #print pre{white-space:pre-wrap;font-family:inherit}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="tabs" id="tabs" hidden></nav>
+<div id="toast"></div>
+<div id="print"></div>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN DEL DEBATE
+   Para usar esta app en otro debate, basta con cambiar este bloque.
+   ===================================================================== */
+const CONFIG = {
+  id: 'dunas-concon-2026',
+  titulo: 'Las Dunas de Concón',
+  subtitulo: 'Debate · Biología 1° Medio · Unidad 4',
+  mocion: 'Se debe prohibir toda nueva construcción en el campo dunar de Concón, incluso en terrenos privados.',
+  contexto: {
+    datos: [
+      ['2 millones de años', 'Edad de los sedimentos más antiguos de las dunas (Pleistoceno). Son «dunas colgantes» sobre acantilados, casi únicas en la costa central.'],
+      ['12 de 45 hectáreas', 'Superficie del campo dunar que quedó protegida como Santuario de la Naturaleza en 1994.'],
+      ['1993', 'Año en que las dunas fueron declaradas Santuario de la Naturaleza.'],
+      ['2023 y 2024', 'Las lluvias abrieron socavones; edificios como el Kandinsky quedaron al borde.'],
+      ['2026', 'El Comité de Ministros revirtió dos rechazos ambientales y aprobó proyectos junto al santuario; en julio se aprobó un tercero.']
+    ],
+    cronologia: [
+      ['2017', 'La Dirección de Obras de Concón otorga permiso de edificación a la inmobiliaria Reconsa.'],
+      ['2019', 'La Corte Suprema exige evaluación ambiental; las obras se paralizan con cerca del 90% construido.'],
+      ['2020', 'La Superintendencia del Medio Ambiente sanciona a Reconsa.'],
+      ['2023-24', 'Las lluvias abren socavones en el campo dunar.'],
+      ['2024', 'La comisión ambiental de Valparaíso rechaza Makrocéano y Costa de Montemar.'],
+      ['2025', 'La Corte Suprema devuelve el permiso a Reconsa. Viña del Mar posterga permisos cerca de las dunas.'],
+      ['2026', 'El Comité de Ministros aprueba Makrocéano y Costa de Montemar; en julio se aprueba Alto Santorini II.']
+    ],
+    fuentes: 'El Desconcierto (2025 y 2026); La Tercera (2026); Observatorio de la Costa UC.'
+  },
+  equipos: {
+    duna: {
+      nombre: 'Equipo Duna', postura: 'A favor de la moción', icono: '🌿', color: '#5E7F4F', claro: '#e6efe1', tipo: 'debate',
+      mision: 'Defender que se prohíba toda nueva construcción en el campo dunar.',
+      evidencia: [
+        ['Patrimonio único', 'Sedimentos de hasta 2 millones de años: «dunas colgantes», casi únicas en la costa central.', 'Observatorio de la Costa UC, 2026'],
+        ['Protección insuficiente', 'En 1994 el santuario se redujo a 12 de 45 hectáreas.', 'La Tercera, 2026'],
+        ['Riesgo para personas', 'Las lluvias de 2023 y 2024 abrieron socavones. El Kandinsky quedó al borde y sigue casi deshabitado.', 'El Desconcierto, jul 2026'],
+        ['La evaluación técnica dijo no', 'En 2024 la comisión ambiental rechazó dos proyectos y advirtió riesgo de nuevos socavones.', 'La Tercera, 2026; El Desconcierto, 2025'],
+        ['Obras sin permiso', 'Reconsa avanzó cerca del 90% de sus obras sin permiso ambiental. Fue sancionada en 2020.', 'El Desconcierto, 2025'],
+        ['Servicios del ecosistema', 'Frenan la erosión y las marejadas. Más de 300 especies nativas, según la agrupación Duna Viva.', 'Observatorio de la Costa UC; Duna Viva']
+      ]
+    },
+    ciudad: {
+      nombre: 'Equipo Ciudad', postura: 'En contra de la moción', icono: '🏙️', color: '#C8553D', claro: '#f8e3de', tipo: 'debate',
+      mision: 'Defender que se pueda construir en el campo dunar con condiciones.',
+      evidencia: [
+        ['Permisos válidos', 'Concón dio el permiso en 2017. En 2025 la Corte Suprema se lo devolvió a Reconsa, dueña del terreno.', 'El Desconcierto, ene 2025'],
+        ['La ley ya decidió', 'El Comité de Ministros, última instancia del sistema ambiental, aprobó dos proyectos en 2026.', 'La Tercera, 2026'],
+        ['No todo es santuario', 'Del conjunto de 45 hectáreas, 33 no forman parte del Santuario de la Naturaleza.', 'Cálculo con datos de La Tercera'],
+        ['Se puede mitigar', 'Alto Santorini II pasó de dos torres (28 y 10 pisos) a un edificio de 15 pisos.', 'El Desconcierto, jul 2026'],
+        ['Vivienda e inversión', 'Makrocéano suma 149 departamentos y una inversión cercana a US$48 millones.', 'La Tercera, 2026'],
+        ['¿Y las obras a medias?', 'Hay edificios a medio construir. Y las reparaciones del Kandinsky ya terminaron.', 'El Desconcierto, jul 2026']
+      ]
+    },
+    comite: {
+      nombre: 'Comité de Ministros', postura: 'Jurado', icono: '⚖️', color: '#0F3443', claro: '#e2e9ec', tipo: 'jurado',
+      mision: 'Dirigir el debate, evaluar a ambos equipos con la pauta y dar el veredicto.'
+    },
+    prensa: {
+      nombre: 'Prensa verificadora', postura: 'Fact-checkers', icono: '📰', color: '#1F6E80', claro: '#e4f0f2', tipo: 'prensa',
+      mision: 'Comprobar si los datos que se dicen son ciertos e informar al jurado. Al final, escribir el titular.'
+    }
+  },
+  roles: {
+    debate: [
+      ['Capitán/a', 'Coordina la preparación y presenta la apertura (3 min).'],
+      ['Orador/a de cierre', 'Resume la postura y responde lo que quedó abierto (2 min).'],
+      ['Refutador/a', 'Escucha al rival, anota sus puntos débiles y responde (2 min).'],
+      ['Investigador/a', 'Busca datos en la ficha de evidencia y se los pasa a los oradores.'],
+      ['Estratega de preguntas', 'Prepara y hace las preguntas cruzadas al otro equipo.'],
+      ['Cronometrista y secretario/a', 'Controla los tiempos del equipo y anota los argumentos del rival.']
+    ],
+    jurado: [
+      ['Presidente/a', 'Dirige el debate: da la palabra, controla el reloj y hace respetar los turnos.'],
+      ['Evaluador/a de argumentos', 'Evalúa si los argumentos tienen afirmación, evidencia y razonamiento.'],
+      ['Evaluador/a de evidencia', 'Evalúa si los datos son concretos y tienen fuente.'],
+      ['Evaluador/a de refutación', 'Evalúa si cada equipo responde lo que dijo el rival.'],
+      ['Evaluador/a de respeto y tiempos', 'Evalúa el respeto a los turnos y a las personas.'],
+      ['Relator/a', 'Suma los puntajes y registra los descuentos de la prensa.'],
+      ['Vocero/a', 'Lee el veredicto y explica por qué ganó un equipo.']
+    ],
+    prensa: [
+      ['Verificador/a', 'Comprueba cada dato dicho contra las fichas de evidencia.'],
+      ['Editor/a', 'Decide qué datos fueron correctos, dudosos o falsos.'],
+      ['Reportero/a', 'Informa al jurado los datos falsos en el turno 7.'],
+      ['Redactor/a', 'Escribe el titular de prensa del debate.']
+    ]
+  },
+  turnos: [
+    ['Apertura · Equipo Duna', 'Capitán/a', 3],
+    ['Apertura · Equipo Ciudad', 'Capitán/a', 3],
+    ['Pausa para preparar refutación', 'Ambos equipos', 2],
+    ['Refutación · Equipo Ciudad', 'Refutadores/as', 2],
+    ['Refutación · Equipo Duna', 'Refutadores/as', 2],
+    ['Preguntas cruzadas (2 por equipo)', 'Estrategas de preguntas', 4],
+    ['Informe de la prensa', 'Reportero/a', 3],
+    ['Pausa estratégica', 'Ambos equipos', 2],
+    ['Cierre · Equipo Ciudad', 'Orador/a de cierre', 2],
+    ['Cierre · Equipo Duna', 'Orador/a de cierre', 2]
+  ],
+  criterios: [
+    ['Argumentos', 'Claros, con afirmación, evidencia y razonamiento', 'Claros, pero sin razonamiento', 'Opiniones sin estructura'],
+    ['Evidencia', 'Datos concretos con su fuente', 'Datos sin fuente', 'Sin datos'],
+    ['Refutación', 'Responde directamente lo que dijo el rival', 'Responde a medias', 'Ignora al rival'],
+    ['Respeto y tiempos', 'Respeta turnos y tiempos en todo momento', 'Una falta', 'Varias faltas']
+  ]
+};
+
+/* =====================================================================
+   ESTADO (se guarda en este dispositivo)
+   ===================================================================== */
+const KEY = 'debate_' + CONFIG.id;
+const DEF = () => ({ nombre: '', equipo: null, tab: 'guia', rol: '', datos: {} });
+let S = load();
+function load(){ try{ const v = JSON.parse(localStorage.getItem(KEY)); return v && typeof v === 'object' ? Object.assign(DEF(), v) : DEF(); }catch(e){ return DEF(); } }
+let saveT;
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  const el = document.querySelector('.save'); if(el){ el.classList.add('on'); clearTimeout(saveT); saveT = setTimeout(()=>el.classList.remove('on'), 900); }
+}
+const D = () => { if(!S.datos || typeof S.datos!=='object') S.datos = {}; const k = S.equipo || '_'; return S.datos[k] || (S.datos[k] = {}); };
+function getP(path){ return path.split('.').reduce((o,k)=> (o==null?undefined:o[k]), D()); }
+function setP(path, val){ const ks = path.split('.'); let o = D(); ks.slice(0,-1).forEach(k=>{ if(o[k]==null||typeof o[k]!=='object') o[k] = {}; o = o[k]; }); o[ks[ks.length-1]] = val; }
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const val = p => esc(getP(p) || '');
+function toast(t){ const el = document.getElementById('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('on'), 1900); }
+const team = () => CONFIG.equipos[S.equipo];
+/* ---------- cuenta del sitio (firebase/df.js) ---------- */
+let CUENTA = { lista: false, usuario: null };
+function cuentaNombre(){ const u = CUENTA.usuario; return u ? (u.displayName || String(u.email||'').split('@')[0]) : ''; }
+function conectarCuenta(){
+  if(!window.DF) return;
+  DF.listo().then(()=>{
+    DF.alCambiarUsuario(u=>{
+      CUENTA = { lista: true, usuario: u || null };
+      if(u && !(S.nombre||'').trim()){ S.nombre = cuentaNombre(); save(); }
+      render();
+    });
+  }, ()=>{ CUENTA = { lista: false, usuario: null, sinFirebase: true }; render(); });
+}
+function cuentaHTML(){
+  if(!window.DF || CUENTA.sinFirebase) return `<div class="card sand"><p class="small" style="margin:0">Sin conexión con la cuenta del sitio: lo que escribas se guarda solo en este dispositivo.</p></div>`;
+  if(!CUENTA.lista) return `<div class="card"><p class="small" style="margin:0">Conectando con tu cuenta…</p></div>`;
+  const u = CUENTA.usuario;
+  if(u) return `<div class="card tint"><div class="acc"><span class="av">${esc(cuentaNombre().charAt(0).toUpperCase())}</span><div class="tx"><b>${esc(cuentaNombre())}</b><div class="small">☁️ Tu trabajo se guarda en tu cuenta de El Mundo de Felipe: puedes seguir en otro celular o computador.</div></div><button class="btn ghost sm" data-act="salircuenta">No soy yo</button></div></div>`;
+  return `<div class="card"><div class="acc"><span class="av">?</span><div class="tx"><b>Entra con tu cuenta del sitio</b><div class="small">Así tu bitácora queda guardada en tu cuenta y el profe la puede revisar. Sin cuenta, solo queda en este dispositivo.</div></div><button class="btn sm" data-act="entrarcuenta">Entrar</button></div></div>`;
+}
+const hhmm = () => { const d = new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+
+/* =====================================================================
+   PESTAÑAS POR TIPO DE EQUIPO
+   ===================================================================== */
+const TABS = {
+  debate: [['guia','🧭','Guía'],['evidencia','📑','Evidencia'],['argumentos','🧱','Argumentos'],['debate','🎙️','Debate'],['cierre','✅','Cierre']],
+  jurado: [['guia','🧭','Guía'],['pauta','📋','Pauta'],['debate','🎙️','Debate'],['veredicto','⚖️','Veredicto'],['cierre','✅','Cierre']],
+  prensa: [['guia','🧭','Guía'],['verificar','🔍','Verificar'],['debate','🎙️','Debate'],['titular','📰','Titular'],['cierre','✅','Cierre']]
+};
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+const app = document.getElementById('app'), tabsEl = document.getElementById('tabs');
+function render(){
+  if(!S.equipo){ renderHome(); return; }
+  const t = team();
+  document.documentElement.style.setProperty('--team', t.color);
+  document.documentElement.style.setProperty('--team-l', t.claro);
+  document.body.classList.add('has-tabs');
+  const tabs = TABS[t.tipo];
+  if(!tabs.some(x=>x[0]===S.tab) && S.tab!=='contexto') S.tab = 'guia';
+  tabsEl.hidden = false;
+  tabsEl.innerHTML = tabs.map(x=>`<button data-act="tab" data-v="${x[0]}" class="${S.tab===x[0]?'on':''}"><span class="ic">${x[1]}</span>${x[2]}</button>`).join('');
+  const top = `<header class="top"><div><div class="t1">${t.icono} ${esc(t.nombre)}</div><div class="t2">${esc(S.nombre||'Sin nombre')}${S.rol?' · '+esc(S.rol):''}${CUENTA.usuario?'<span class="cloud">☁️ en tu cuenta</span>':''}</div></div><span class="sp"></span><span class="save">guardado ✓</span><button data-act="tab" data-v="contexto">Contexto</button></header>`;
+  const views = { guia: vGuia, evidencia: vEvidencia, argumentos: vArgumentos, debate: vDebate, cierre: vCierre, pauta: vPauta, veredicto: vVeredicto, verificar: vVerificar, titular: vTitular, contexto: vContexto };
+  app.innerHTML = top + `<main class="wrap">${(views[S.tab]||vGuia)()}</main>`;
+  afterRender();
+}
+
+/* ---------- INICIO ---------- */
+function renderHome(){
+  document.body.classList.remove('has-tabs');
+  document.documentElement.style.setProperty('--team', '#1F6E80');
+  document.documentElement.style.setProperty('--team-l', '#e4f0f2');
+  tabsEl.hidden = true;
+  const ok = (S.nombre||'').trim().length >= 2;
+  app.innerHTML = `
+  <section class="hero"><div class="in">
+    <div class="k">${esc(CONFIG.subtitulo)}</div>
+    <h1>${esc(CONFIG.titulo)}</h1>
+    <p style="color:#e9f1f2">¿Quién se queda con la duna? Un ecosistema de millones de años frente a nuevos edificios aprobados en 2026.</p>
+    <div class="mo">«${esc(CONFIG.mocion)}»</div>
+  </div>
+  <svg viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 C 180 5, 360 30, 520 22 S 840 8, 1000 30 L1000 70 L0 70Z" fill="#1F6E80" opacity=".6"/><path d="M0 55 C 200 25, 420 50, 640 38 S 900 34, 1000 46 L1000 70 L0 70Z" fill="#E2BF84"/></svg>
+  </section>
+  <main class="wrap">
+    <div class="card sand">
+      <h2>Antes de entrar</h2>
+      <ol class="steps">
+        <li>En la clase te asignaron <b>uno de los cuatro equipos</b>. Entra <b>solo</b> al tuyo.</li>
+        <li>Dentro de tu equipo, elige <b>tu rol</b> y lee lo que te toca hacer.</li>
+        <li>Usa las pestañas de abajo: guía, bitácoras y reloj del debate.</li>
+        <li>Lo que escribes se guarda <b>en este dispositivo</b>. Al final, descarga o imprime tu bitácora en la pestaña <b>Cierre</b>.</li>
+      </ol>
+    </div>
+    ${cuentaHTML()}
+    <div class="card">
+      <label class="lb" for="nombre">Tu nombre</label>
+      <input type="text" id="nombre" data-home="nombre" value="${esc(S.nombre)}" placeholder="Nombre y apellido" autocomplete="name">
+      <p class="hint">Escríbelo para poder entrar a tu equipo.</p>
+    </div>
+    <h2 style="margin-top:6px">Elige el equipo que te tocó</h2>
+    <div class="teams">
+      ${Object.entries(CONFIG.equipos).map(([k,t])=>`<button class="tbtn" style="background:${t.color}" data-act="enter" data-v="${k}" ${ok?'':'disabled'}><span class="ic">${t.icono}</span><b>${esc(t.nombre)}</b><span>${esc(t.postura)}</span></button>`).join('')}
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn ghost" data-act="tab" data-v="contexto-home">📌 Ver el contexto del conflicto</button></div>
+  </main>`;
+}
+
+/* ---------- CONTEXTO ---------- */
+function vContexto(home){
+  const c = CONFIG.contexto;
+  return `${home?'':''}<div class="card dark"><span class="tag" style="background:var(--sand);color:var(--ocean)">Moción</span><h2 style="font-style:italic">«${esc(CONFIG.mocion)}»</h2></div>
+  <h2>Los datos clave</h2>
+  ${c.datos.map(d=>`<div class="ev"><h3>${esc(d[0])}</h3><p style="margin:0">${esc(d[1])}</p></div>`).join('')}
+  <h2 style="margin-top:14px">Cronología</h2>
+  <ul class="turns">${c.cronologia.map(x=>`<li style="cursor:default"><span class="tn" style="width:auto;padding:0 8px;border-radius:8px">${esc(x[0])}</span><span class="tx">${esc(x[1])}</span></li>`).join('')}</ul>
+  <p class="small" style="margin-top:8px">Fuentes: ${esc(c.fuentes)}</p>
+  ${S.equipo?`<button class="btn full" data-act="tab" data-v="guia" style="margin-top:10px">Volver a mi equipo</button>`:`<button class="btn full" data-act="home" style="margin-top:10px">Volver al inicio</button>`}`;
+}
+
+/* ---------- GUÍA ---------- */
+function vGuia(){
+  const t = team(), roles = CONFIG.roles[t.tipo];
+  const pasos = {
+    debate: ['Elige tu rol en el equipo (abajo).', 'Lee la ficha de <b>Evidencia</b> de tu bando y marca los datos que usarán.', 'En <b>Argumentos</b>, construyan 3 argumentos AER, anticipen al rival y preparen 2 preguntas.', 'Durante el <b>Debate</b>, sigue el reloj y anota lo que dice el rival y tus ideas para responder.', 'En <b>Cierre</b>, vota de nuevo, reflexiona y descarga tu bitácora.'],
+    jurado: ['Elige tu rol en el jurado (abajo).', 'Lee la <b>Pauta</b> antes de que empiece el debate.', 'El presidente/a usa el reloj de la pestaña <b>Debate</b> para dar la palabra.', 'Mientras escuchas, puntúa a ambos equipos y anota observaciones.', 'En <b>Veredicto</b>, sumen puntajes, descuenten los datos falsos y escriban la justificación.'],
+    prensa: ['Elige tu rol en la prensa (abajo).', 'Estudia las fichas de evidencia de ambos equipos en <b>Verificar</b>.', 'Durante el debate, registra cada dato que se diga y clasifícalo: correcto, dudoso o falso.', 'En el turno 7, el reportero/a informa al jurado los datos falsos.', 'En <b>Titular</b>, escriban el titular de prensa del debate.']
+  }[t.tipo];
+  return `<div class="card tint"><span class="tag">${esc(t.postura)}</span><h2>${esc(t.nombre)}</h2><p style="margin:0">${esc(t.mision)}</p></div>
+  <div class="card"><h3>Qué hacer, paso a paso</h3><ol class="steps">${pasos.map(p=>`<li>${p}</li>`).join('')}</ol></div>
+  <div class="card"><h3>Mi rol</h3>
+    <div class="chips">${roles.map(r=>`<button class="chip ${S.rol===r[0]?'on':''}" data-act="rol" data-v="${esc(r[0])}">${esc(r[0])}</button>`).join('')}</div>
+    ${S.rol?`<div class="card sand" style="margin:6px 0 0"><b>${esc(S.rol)}:</b> ${esc((roles.find(r=>r[0]===S.rol)||['',''])[1])}</div>`:'<p class="hint">Toca el rol que te asignó tu equipo.</p>'}
+  </div>
+  ${t.tipo==='debate'?`<div class="card"><h3>Tu voto inicial (opinión personal)</h3><p class="small">Vota lo que tú piensas, no lo que defiende tu equipo.</p>${voteSeg('voto_inicial')}</div>`:''}
+  <div class="card"><h3>Reglas del debate</h3><ul class="dots"><li>Se discuten argumentos, no personas.</li><li>Todo dato lleva su fuente. Un dato falso cuesta 1 punto.</li><li>El tiempo se respeta: al terminar, se cierra la frase y se cede la palabra.</li><li>Solo habla quien tiene el turno; las ideas se pasan por escrito al orador.</li></ul></div>
+  <div class="row"><button class="btn ghost sm" data-act="leave">Cambiar de equipo</button></div>`;
+}
+function voteSeg(path){
+  const v = getP(path) || '';
+  return `<div class="seg">${['A favor','En contra','No estoy seguro/a'].map(o=>`<button class="${v===o?'on':''}" data-act="set" data-p="${path}" data-v="${o}">${o}</button>`).join('')}</div>`;
+}
+
+/* ---------- EVIDENCIA (equipos de debate) ---------- */
+function vEvidencia(){
+  const t = team(), used = D().usados || {};
+  return `<div class="card tint"><h2>Ficha de evidencia</h2><p style="margin:0">Toca <b>Usar</b> en los datos que su equipo va a citar. Siempre digan la fuente en voz alta.</p></div>
+  ${t.evidencia.map((e,i)=>`<div class="ev ${used[i]?'used':''}"><div class="row" style="justify-content:space-between;gap:6px"><h3 style="flex:1">${esc(e[0])}</h3><button class="btn sm ${used[i]?'':'ghost'}" data-act="use" data-v="${i}">${used[i]?'✓ Usado':'Usar'}</button></div><p style="margin:4px 0 0">${esc(e[1])}</p><div class="src">Fuente: ${esc(e[2])}</div></div>`).join('')}
+  <div class="card sand"><h3>¿Y la evidencia del otro equipo?</h3><p class="small" style="margin:0">No la tienes, pero puedes adivinarla: piensa qué datos usará el rival y prepárate en la pestaña <b>Argumentos</b>.</p></div>`;
+}
+
+/* ---------- ARGUMENTOS ---------- */
+function vArgumentos(){
+  const t = team();
+  const evOpts = i => `<option value="">— Elegir de la ficha —</option>` + t.evidencia.map((e,j)=>`<option value="${j}" ${String(getP('args.'+i+'.ev'))===String(j)?'selected':''}>${esc(e[0])}</option>`).join('');
+  const arg = i => {
+    const filled = ['af','evtxt','ra'].filter(k=>(getP('args.'+i+'.'+k)||'').trim()).length + (getP('args.'+i+'.ev')!==undefined&&getP('args.'+i+'.ev')!==''?0:0);
+    return `<div class="arg"><div class="hd"><span class="n">${i+1}</span><h3 style="margin:0">Argumento ${i+1}</h3></div>
+      <label class="lb">Afirmación · lo que sostenemos</label><textarea data-bind="args.${i}.af" placeholder="Ej.: Construir en la duna pone en riesgo a las personas.">${val('args.'+i+'.af')}</textarea>
+      <label class="lb">Evidencia · el dato y su fuente</label><select data-bind="args.${i}.ev">${evOpts(i)}</select>
+      <textarea data-bind="args.${i}.evtxt" style="margin-top:6px;min-height:56px" placeholder="Escribe el dato tal como lo dirán (con la fuente).">${val('args.'+i+'.evtxt')}</textarea>
+      <label class="lb">Razonamiento · por qué el dato prueba la afirmación</label><textarea data-bind="args.${i}.ra" placeholder="Explica el mecanismo; no repitas el dato.">${val('args.'+i+'.ra')}</textarea>
+      <div class="meter"><i style="width:${filled/3*100}%"></i></div></div>`;
+  };
+  return `<div class="card tint"><h2>Bitácora de argumentos</h2><p style="margin:0">Construyan tres argumentos con Afirmación, Evidencia y Razonamiento. Marquen al final el más sólido.</p></div>
+  ${[0,1,2].map(arg).join('')}
+  <div class="card"><h3>Nuestro argumento más sólido</h3>${(()=>{const v=getP('mejor')||'';return `<div class="seg">${['1','2','3'].map(o=>`<button class="${v===o?'on':''}" data-act="set" data-p="mejor" data-v="${o}">Argumento ${o}</button>`).join('')}</div>`;})()}</div>
+  <div class="card"><h3>Lo que dirá el rival (y cómo responder)</h3>
+    ${[0,1].map(i=>`<label class="lb">Argumento esperado del rival ${i+1}</label><textarea data-bind="rival.${i}.arg" style="min-height:56px">${val('rival.'+i+'.arg')}</textarea><label class="lb">Nuestra respuesta</label><textarea data-bind="rival.${i}.resp" style="min-height:56px">${val('rival.'+i+'.resp')}</textarea>`).join('<hr style="border:none;border-top:1px dashed var(--line);margin:12px 0">')}
+  </div>
+  <div class="card"><h3>Preguntas cruzadas para el otro equipo</h3>
+    ${[0,1].map(i=>`<label class="lb">Pregunta ${i+1}</label><textarea data-bind="preg.${i}" style="min-height:56px" placeholder="Una pregunta corta, difícil de esquivar.">${val('preg.'+i)}</textarea>`).join('')}
+  </div>`;
+}
+
+/* ---------- DEBATE (reloj + observaciones) ---------- */
+const TAGS = {
+  debate: [['rival','El rival dijo'],['debil','Punto débil'],['idea','Idea para responder'],['pregunta','Pregunta']],
+  jurado: [['duna','Equipo Duna'],['ciudad','Equipo Ciudad'],['falta','Falta'],['mejor','Mejor momento']],
+  prensa: [['dato','Dato dicho'],['duda','Hay que revisar'],['cita','Frase para el titular']]
+};
+function vDebate(){
+  const t = team(), tags = TAGS[t.tipo], cur = clock.i, tag = S.noteTag || tags[0][0];
+  const notes = (D().notas || []).slice().reverse();
+  return `${clockHTML()}
+  <div class="card"><h3>${t.tipo==='jurado'?'Observaciones del jurado':t.tipo==='prensa'?'Apuntes de la prensa':'Bitácora de observación e ideas'}</h3>
+    <p class="small">Anota rápido. Cada nota queda marcada con el turno y la hora.</p>
+    <div class="chips">${tags.map(g=>`<button class="chip ${tag===g[0]?'on':''}" data-act="ntag" data-v="${g[0]}">${esc(g[1])}</button>`).join('')}</div>
+    <textarea id="noteTxt" placeholder="Escribe tu observación…" style="min-height:64px"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" data-act="addnote">Agregar nota</button><span class="small">Turno actual: ${cur+1}</span></div>
+  </div>
+  ${notes.length?notes.map(n=>`<div class="note t-${n.tag}"><div class="meta"><b>${esc((tags.find(g=>g[0]===n.tag)||['',n.tag])[1])}</b><span>Turno ${n.turno} · ${n.hora}</span><button class="x" data-act="delnote" data-v="${n.id}">borrar</button></div><p>${esc(n.txt)}</p></div>`).join(''):'<p class="small" style="text-align:center">Aún no hay notas.</p>'}
+  <div class="card sand" style="margin-top:14px"><h3>Los turnos del debate</h3><p class="small">Toca un turno para cargarlo en el reloj. El reloj oficial lo lleva el presidente/a del jurado; el tuyo sirve para seguir el debate y marcar tus notas con el turno correcto.</p>
+    <ul class="turns">${CONFIG.turnos.map((x,i)=>`<li class="${i===cur?'cur':''} ${i<cur?'done':''}" data-act="turn" data-v="${i}"><span class="tn">${i+1}</span><span class="tx">${esc(x[0])}<small>${esc(x[1])}</small></span><span class="tm">${x[2]}’</span></li>`).join('')}</ul>
+  </div>`;
+}
+
+/* ---------- reloj compartido por pestaña ---------- */
+const clock = { i: (S.turno||0), left: null, run: false, iv: null, last: 0 };
+function clockHTML(){
+  const x = CONFIG.turnos[clock.i], left = clock.left===null ? x[2]*60 : clock.left;
+  const cls = left<=0 ? 'end' : left<=30 ? 'warn' : '';
+  return `<div class="clock ${cls}" id="clock"><div class="now">Turno ${clock.i+1} de ${CONFIG.turnos.length}</div><div class="ttl">${esc(x[0])}</div>
+  <div class="row" style="justify-content:space-between"><div class="big" id="clkVal">${fmt(left)}</div>
+  <div class="row"><button class="btn" data-act="clk">${clock.run?'Pausa':'Iniciar'}</button><button class="btn ghost sm" data-act="clkreset">↺</button><button class="btn ghost sm" data-act="clknext">Siguiente ›</button></div></div>
+  <div class="small" style="color:#cfe0e3;margin-top:6px">${esc(x[1])} · ${x[2]} min</div></div>`;
+}
+const fmt = s => { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
+function tick(){
+  const n = Date.now(); clock.left -= (n-clock.last)/1000; clock.last = n;
+  const el = document.getElementById('clkVal'), box = document.getElementById('clock');
+  if(clock.left <= 0){ clock.left = 0; stopClock(); try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){} toast('¡Tiempo! Termina tu frase y cede la palabra.'); if(S.tab==='debate') render(); return; }
+  if(el) el.textContent = fmt(clock.left);
+  if(box){ box.classList.toggle('warn', clock.left<=30); }
+}
+function startClock(){ if(clock.left===null) clock.left = CONFIG.turnos[clock.i][2]*60; if(clock.left<=0) clock.left = CONFIG.turnos[clock.i][2]*60; clock.run = true; clock.last = Date.now(); clock.iv = setInterval(tick, 250); }
+function stopClock(){ clock.run = false; clearInterval(clock.iv); }
+function loadTurn(i){ stopClock(); clock.i = Math.max(0, Math.min(CONFIG.turnos.length-1, i)); clock.left = null; S.turno = clock.i; save(); }
+
+/* ---------- PAUTA (jurado) ---------- */
+function scores(){ return D().pauta || {}; }
+function total(eq){ const p = scores(); let t = 0; CONFIG.criterios.forEach((c,i)=>{ t += +(p[eq+'_'+i]||0); }); return t - (+(D()['falsos_'+eq]||0)); }
+function vPauta(){
+  const p = scores();
+  return `<div class="card tint"><h2>Pauta de evaluación</h2><p style="margin:0">Puntúa a ambos equipos en cada criterio: 3 logrado, 2 en desarrollo, 1 inicial. Máximo 12 puntos.</p></div>
+  ${CONFIG.criterios.map((c,i)=>`<div class="crit"><h3>${esc(c[0])}</h3><div class="lv"><b>3:</b> ${esc(c[1])} · <b>2:</b> ${esc(c[2])} · <b>1:</b> ${esc(c[3])}</div>
+    ${['duna','ciudad'].map(eq=>`<div class="score"><span class="who" style="color:${CONFIG.equipos[eq].color}">${eq==='duna'?'Duna':'Ciudad'}</span>${[1,2,3].map(n=>`<button class="${+p[eq+'_'+i]===n?'on':''}" data-act="score" data-v="${eq}_${i}_${n}">${n}</button>`).join('')}</div>`).join('')}
+  </div>`).join('')}
+  <div class="card"><h3>Descuentos de la prensa (−1 por dato falso)</h3>
+    ${['duna','ciudad'].map(eq=>`<div class="row" style="justify-content:space-between;margin:6px 0"><b style="color:${CONFIG.equipos[eq].color}">${CONFIG.equipos[eq].nombre}</b><div class="counter"><button data-act="fals" data-v="${eq}_-1">−</button><b>${+(D()['falsos_'+eq]||0)}</b><button data-act="fals" data-v="${eq}_1">+</button></div></div>`).join('')}
+  </div>
+  <div class="tot">${['duna','ciudad'].map(eq=>`<div class="box" style="background:${CONFIG.equipos[eq].color}">${CONFIG.equipos[eq].nombre}<b>${total(eq)}</b>de 12</div>`).join('')}</div>`;
+}
+function vVeredicto(){
+  const a = total('duna'), b = total('ciudad');
+  const lead = a===b ? 'Empate: el jurado debe desempatar con el mejor argumento.' : (a>b ? 'Según la pauta, gana el Equipo Duna.' : 'Según la pauta, gana el Equipo Ciudad.');
+  return `<div class="tot" style="margin-bottom:14px">${['duna','ciudad'].map(eq=>`<div class="box" style="background:${CONFIG.equipos[eq].color}">${CONFIG.equipos[eq].nombre}<b>${total(eq)}</b>puntos</div>`).join('')}</div>
+  <div class="card dark"><h3>${lead}</h3><p class="small" style="color:#cfe0e3;margin:0">El jurado no decide quién «tiene la razón» sobre las dunas, sino qué equipo argumentó mejor con evidencia.</p></div>
+  <div class="card"><label class="lb">Equipo ganador</label><div class="seg">${['Equipo Duna','Equipo Ciudad','Empate'].map(o=>`<button class="${getP('ganador')===o?'on':''}" data-act="set" data-p="ganador" data-v="${o}">${o}</button>`).join('')}</div>
+    <label class="lb">El mejor argumento del debate (de cualquier equipo)</label><textarea data-bind="mejor_arg">${val('mejor_arg')}</textarea>
+    <label class="lb">¿Qué decidió el resultado?</label><textarea data-bind="justif" placeholder="El vocero/a leerá esto en voz alta.">${val('justif')}</textarea>
+  </div>`;
+}
+
+/* ---------- VERIFICAR (prensa) ---------- */
+function vVerificar(){
+  const list = (D().verif || []).slice().reverse();
+  const f = S.vForm || { quien: 'Equipo Duna', ver: 'Correcto' };
+  const cnt = eq => (D().verif||[]).filter(x=>x.quien===eq&&x.ver==='Falso').length;
+  return `<div class="card tint"><h2>Verificador de datos</h2><p style="margin:0">Cada vez que un equipo diga un dato, regístralo y compáralo con las fichas de abajo.</p></div>
+  <div class="card"><label class="lb">Dato que se dijo</label><textarea id="vDato" style="min-height:56px" placeholder="Ej.: «Solo 12 de 45 hectáreas son santuario»"></textarea>
+    <label class="lb">¿Quién lo dijo?</label><div class="seg">${['Equipo Duna','Equipo Ciudad'].map(o=>`<button class="${f.quien===o?'on':''}" data-act="vq" data-v="${o}">${o}</button>`).join('')}</div>
+    <label class="lb">Veredicto</label><div class="seg">${['Correcto','Dudoso','Falso'].map(o=>`<button class="${f.ver===o?'on':''}" data-act="vv" data-v="${o}">${o}</button>`).join('')}</div>
+    <label class="lb">Fuente o comentario</label><input type="text" id="vFuente" placeholder="Ej.: Ficha Ciudad · La Tercera 2026">
+    <button class="btn full" style="margin-top:10px" data-act="addv">Registrar dato</button>
+  </div>
+  <div class="tot" style="margin-bottom:14px">${['Equipo Duna','Equipo Ciudad'].map(eq=>`<div class="box" style="background:${eq==='Equipo Duna'?CONFIG.equipos.duna.color:CONFIG.equipos.ciudad.color}">Datos falsos · ${eq.replace('Equipo ','')}<b>${cnt(eq)}</b>informar al jurado</div>`).join('')}</div>
+  ${list.length?list.map(v=>`<div class="vf"><div class="top2"><span class="badge ${v.ver==='Correcto'?'b-ok':v.ver==='Dudoso'?'b-dud':'b-fal'}">${v.ver}</span><b>${esc(v.quien)}</b><span>Turno ${v.turno} · ${v.hora}</span><button class="x" data-act="delv" data-v="${v.id}">borrar</button></div><p style="margin:4px 0 0">${esc(v.dato)}</p>${v.fuente?`<div class="small">${esc(v.fuente)}</div>`:''}</div>`).join(''):'<p class="small" style="text-align:center">Aún no hay datos registrados.</p>'}
+  <h2 style="margin-top:16px">Fichas de referencia</h2>
+  ${['duna','ciudad'].map(eq=>`<div class="card"><span class="tag" style="background:${CONFIG.equipos[eq].color}">${CONFIG.equipos[eq].nombre}</span>${CONFIG.equipos[eq].evidencia.map(e=>`<div class="ev"><h3>${esc(e[0])}</h3><p style="margin:2px 0 0">${esc(e[1])}</p><div class="src">${esc(e[2])}</div></div>`).join('')}</div>`).join('')}
+  <div class="card sand"><h3>Datos del contexto</h3>${CONFIG.contexto.datos.map(d=>`<p style="margin:4px 0"><b>${esc(d[0])}:</b> ${esc(d[1])}</p>`).join('')}</div>`;
+}
+function vTitular(){
+  return `<div class="card tint"><h2>El titular de la prensa</h2><p style="margin:0">Un buen titular es corto, preciso y no exagera. Escriban dos borradores y elijan uno.</p></div>
+  <div class="card"><label class="lb">Borrador 1</label><input type="text" data-bind="tit.0" value="${val('tit.0')}">
+    <label class="lb">Borrador 2</label><input type="text" data-bind="tit.1" value="${val('tit.1')}">
+    <label class="lb">Titular final</label><input type="text" data-bind="tit.f" value="${val('tit.f')}" placeholder="Ej.: Ciudad gana por un punto, pero el dato más sólido fue de Duna">
+    <label class="lb">Bajada (una frase que explique el titular)</label><textarea data-bind="tit.b" style="min-height:56px">${val('tit.b')}</textarea>
+  </div>
+  <div class="card"><h3>Balance de la verificación</h3>${(()=>{const v=D().verif||[];const c=k=>v.filter(x=>x.ver===k).length;return `<p style="margin:0">Correctos: <b>${c('Correcto')}</b> · Dudosos: <b>${c('Dudoso')}</b> · Falsos: <b>${c('Falso')}</b></p>`;})()}</div>`;
+}
+
+/* ---------- CIERRE ---------- */
+function vCierre(){
+  const t = team();
+  return `<div class="card tint"><h2>Salir del rol</h2><p style="margin:0">Ahora habla por ti, no por tu equipo.</p></div>
+  <div class="card"><h3>Voto final (opinión personal)</h3>${voteSeg('voto_final')}
+    ${getP('voto_inicial')&&t.tipo==='debate'?`<p class="small" style="margin-top:6px">Tu voto inicial fue: <b>${esc(getP('voto_inicial'))}</b>.</p>`:''}
+    <label class="lb">¿Qué argumento del otro bando te hizo dudar?</label><textarea data-bind="refl.duda">${val('refl.duda')}</textarea>
+    <label class="lb">¿Qué dato te faltó para estar seguro/a?</label><textarea data-bind="refl.falta">${val('refl.falta')}</textarea>
+    <label class="lb">¿Qué medida haría compatible vivir en la costa con conservar la duna?</label><textarea data-bind="refl.medida">${val('refl.medida')}</textarea>
+  </div>
+  ${cuentaHTML()}
+  <div class="card dark"><h3>Mi bitácora</h3><p class="small" style="color:#cfe0e3">Descárgala o guárdala en PDF para entregarla.</p>
+    <div class="row"><button class="btn" style="background:var(--sand);color:var(--ocean)" data-act="print">🖨 Imprimir / PDF</button><button class="btn ghost" style="color:#fff;border-color:#fff" data-act="download">⬇ Descargar .txt</button><button class="btn ghost" style="color:#fff;border-color:#fff" data-act="copy">Copiar</button></div>
+  </div>
+  <div class="card"><h3>Terminar</h3><p class="small">Si otra persona va a usar este dispositivo, toca «No soy yo» arriba (tu trabajo queda en tu cuenta) o borra tus datos después de descargar tu bitácora.</p>
+    <div class="row"><button class="btn ghost sm" data-act="leave">Cambiar de equipo</button><button class="btn danger sm" data-act="wipe">Borrar mis datos</button></div></div>`;
+}
+
+/* =====================================================================
+   BITÁCORA EXPORTABLE
+   ===================================================================== */
+function exportText(){
+  const t = team(), d = D(), L = [];
+  const g = p => (getP(p)||'').toString().trim() || '—';
+  L.push(`BITÁCORA DEL DEBATE · ${CONFIG.titulo.toUpperCase()}`, `Moción: «${CONFIG.mocion}»`, `Nombre: ${S.nombre||'—'}`, `Equipo: ${t.nombre} (${t.postura})`, `Rol: ${S.rol||'—'}`, `Fecha: ${new Date().toLocaleDateString('es-CL')}`, '');
+  if(t.tipo==='debate'){
+    L.push('== VOTO INICIAL ==', g('voto_inicial'), '');
+    L.push('== EVIDENCIA QUE USAMOS ==');
+    t.evidencia.forEach((e,i)=>{ if((d.usados||{})[i]) L.push(`• ${e[0]}: ${e[1]} (${e[2]})`); });
+    L.push('', '== ARGUMENTOS ==');
+    [0,1,2].forEach(i=>{ const ev = getP('args.'+i+'.ev'); L.push(`Argumento ${i+1}${getP('mejor')===String(i+1)?' (EL MÁS SÓLIDO)':''}`, `  Afirmación: ${g('args.'+i+'.af')}`, `  Evidencia: ${ev!==undefined&&ev!==''?t.evidencia[ev][0]+' · ':''}${g('args.'+i+'.evtxt')}`, `  Razonamiento: ${g('args.'+i+'.ra')}`); });
+    L.push('', '== LO QUE DIRÁ EL RIVAL ==');
+    [0,1].forEach(i=>L.push(`${i+1}. ${g('rival.'+i+'.arg')}`, `   Respuesta: ${g('rival.'+i+'.resp')}`));
+    L.push('', '== PREGUNTAS CRUZADAS ==', `1. ${g('preg.0')}`, `2. ${g('preg.1')}`);
+  }
+  if(t.tipo==='jurado'){
+    L.push('== PAUTA ==');
+    CONFIG.criterios.forEach((c,i)=>L.push(`${c[0]}: Duna ${scores()['duna_'+i]||'—'} · Ciudad ${scores()['ciudad_'+i]||'—'}`));
+    L.push(`Descuentos prensa: Duna ${d.falsos_duna||0} · Ciudad ${d.falsos_ciudad||0}`, `TOTAL: Duna ${total('duna')} · Ciudad ${total('ciudad')}`, '', '== VEREDICTO ==', `Ganador: ${g('ganador')}`, `Mejor argumento: ${g('mejor_arg')}`, `Justificación: ${g('justif')}`);
+  }
+  if(t.tipo==='prensa'){
+    L.push('== VERIFICACIÓN DE DATOS ==');
+    (d.verif||[]).forEach(v=>L.push(`[${v.ver}] ${v.quien} · turno ${v.turno}: ${v.dato}${v.fuente?' ('+v.fuente+')':''}`));
+    L.push('', '== TITULAR ==', `Final: ${g('tit.f')}`, `Bajada: ${g('tit.b')}`, `Borradores: ${g('tit.0')} / ${g('tit.1')}`);
+  }
+  L.push('', '== OBSERVACIONES DURANTE EL DEBATE ==');
+  const tags = TAGS[t.tipo];
+  (d.notas||[]).forEach(n=>L.push(`[Turno ${n.turno} · ${n.hora}] ${(tags.find(x=>x[0]===n.tag)||['',n.tag])[1]}: ${n.txt}`));
+  if(!(d.notas||[]).length) L.push('—');
+  L.push('', '== SALIR DEL ROL ==', `Voto final: ${g('voto_final')}`, `Me hizo dudar: ${g('refl.duda')}`, `Me faltó saber: ${g('refl.falta')}`, `Medida propuesta: ${g('refl.medida')}`);
+  return L.join('\n');
+}
+
+/* =====================================================================
+   EVENTOS
+   ===================================================================== */
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const a = b.dataset.act, v = b.dataset.v;
+  switch(a){
+    case 'enter': if((S.nombre||'').trim().length<2){ toast('Escribe tu nombre primero'); return; } S.equipo = v; S.tab = 'guia'; S.rol = getP('rol') || ''; save(); render(); window.scrollTo(0,0); break;
+    case 'tab':
+      if(v==='contexto-home'){ app.innerHTML = `<header class="top"><div class="t1">📌 Contexto del conflicto</div></header><main class="wrap">${vContexto(true)}</main>`; window.scrollTo(0,0); return; }
+      S.tab = v; save(); render(); window.scrollTo(0,0); break;
+    case 'home': S.equipo = null; render(); window.scrollTo(0,0); break;
+    case 'rol': S.rol = v; setP('rol', v); save(); render(); break;
+    case 'set': setP(b.dataset.p, v); save(); render(); break;
+    case 'use': { const u = D().usados || (D().usados = {}); u[v] = !u[v]; save(); render(); break; }
+    case 'ntag': S.noteTag = v; save(); render(); break;
+    case 'addnote': { const ta = document.getElementById('noteTxt'); const txt = (ta.value||'').trim(); if(!txt){ toast('Escribe algo primero'); return; }
+      (D().notas || (D().notas = [])).push({ id: Date.now()+''+Math.random().toString(36).slice(2,6), tag: S.noteTag || TAGS[team().tipo][0][0], txt, turno: clock.i+1, hora: hhmm() }); save(); render(); toast('Nota guardada'); break; }
+    case 'delnote': if(b.dataset.arm!=='1'){ b.dataset.arm='1'; b.textContent='¿seguro?'; setTimeout(()=>{ if(b.isConnected){ b.dataset.arm=''; b.textContent='borrar'; } },2500); return; }
+      D().notas = (D().notas||[]).filter(n=>n.id!==v); save(); render(); break;
+    case 'turn': loadTurn(+v); render(); break;
+    case 'clk': clock.run ? stopClock() : startClock(); render(); break;
+    case 'clkreset': stopClock(); clock.left = null; render(); break;
+    case 'clknext': loadTurn(clock.i+1); render(); break;
+    case 'score': { const [eq,i,n] = v.split('_'); const p = D().pauta || (D().pauta = {}); p[eq+'_'+i] = +n; save(); render(); break; }
+    case 'fals': { const [eq,dl] = v.split('_'); const k = 'falsos_'+eq; D()[k] = Math.max(0, (+(D()[k]||0)) + (+dl)); save(); render(); break; }
+    case 'vq': S.vForm = Object.assign(S.vForm||{quien:'Equipo Duna',ver:'Correcto'}, {quien:v}); keepV(); save(); render(); restoreV(); break;
+    case 'vv': S.vForm = Object.assign(S.vForm||{quien:'Equipo Duna',ver:'Correcto'}, {ver:v}); keepV(); save(); render(); restoreV(); break;
+    case 'addv': { const dato = (document.getElementById('vDato').value||'').trim(); if(!dato){ toast('Escribe el dato que se dijo'); return; }
+      const f = S.vForm || {quien:'Equipo Duna',ver:'Correcto'};
+      (D().verif || (D().verif = [])).push({ id: Date.now()+''+Math.random().toString(36).slice(2,6), dato, quien: f.quien, ver: f.ver, fuente: (document.getElementById('vFuente').value||'').trim(), turno: clock.i+1, hora: hhmm() });
+      vDraft = null; save(); render(); toast('Dato registrado'); break; }
+    case 'delv': if(b.dataset.arm!=='1'){ b.dataset.arm='1'; b.textContent='¿seguro?'; setTimeout(()=>{ if(b.isConnected){ b.dataset.arm=''; b.textContent='borrar'; } },2500); return; }
+      D().verif = (D().verif||[]).filter(x=>x.id!==v); save(); render(); break;
+    case 'print': { const p = document.getElementById('print'); p.innerHTML = `<h1>${esc(CONFIG.titulo)}</h1><pre>${esc(exportText())}</pre>`; window.print(); break; }
+    case 'download': { const blob = new Blob([exportText()], {type:'text/plain;charset=utf-8'}); const a2 = document.createElement('a'); a2.href = URL.createObjectURL(blob); a2.download = `bitacora-debate-${(S.nombre||'estudiante').toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi,'-')}.txt`; document.body.appendChild(a2); a2.click(); setTimeout(()=>{ URL.revokeObjectURL(a2.href); a2.remove(); }, 500); break; }
+    case 'copy': { const txt = exportText(); (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(()=>toast('Bitácora copiada'), ()=>{ const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('Bitácora copiada'); }catch(e){ toast('No se pudo copiar'); } ta.remove(); }); break; }
+    case 'entrarcuenta': if(window.DF) DF.entrar().catch(err=>{ if(!err||!err.cancelado) toast('No se pudo entrar: '+((err&&err.message)||err)); }); break;
+    case 'salircuenta': { const chipBtn = document.querySelector('.ag-chip [data-ag="salir"]'); if(chipBtn){ chipBtn.click(); } else if(window.DF){ DF.salir().then(()=>location.reload()); } break; }
+    case 'leave': stopClock(); S.equipo = null; save(); render(); window.scrollTo(0,0); break;
+    case 'wipe': if(b.dataset.arm!=='1'){ b.dataset.arm='1'; b.textContent='Toca otra vez para borrar'; setTimeout(()=>{ if(b.isConnected){ b.dataset.arm=''; b.textContent='Borrar mis datos'; } },3000); return; }
+      stopClock(); S = DEF(); save(); render(); window.scrollTo(0,0); toast('Datos borrados'); break;
+  }
+});
+let vDraft = null;
+function keepV(){ const a = document.getElementById('vDato'), f = document.getElementById('vFuente'); vDraft = { d: a?a.value:'', f: f?f.value:'' }; }
+function restoreV(){ if(!vDraft) return; const a = document.getElementById('vDato'), f = document.getElementById('vFuente'); if(a) a.value = vDraft.d; if(f) f.value = vDraft.f; }
+
+document.addEventListener('input', e=>{
+  const el = e.target;
+  if(el.dataset.home==='nombre'){ S.nombre = el.value; save(); document.querySelectorAll('[data-act="enter"]').forEach(b=>b.disabled = el.value.trim().length<2); return; }
+  if(el.dataset.bind){ setP(el.dataset.bind, el.value); save();
+    const m = el.closest('.arg'); if(m){ const i = el.dataset.bind.split('.')[1]; const f = ['af','evtxt','ra'].filter(k=>(getP('args.'+i+'.'+k)||'').trim()).length; m.querySelector('.meter i').style.width = (f/3*100)+'%'; } }
+});
+document.addEventListener('change', e=>{ const el = e.target; if(el.tagName==='SELECT' && el.dataset.bind){ setP(el.dataset.bind, el.value); save();
+  const m = /^args\.(\d)\.ev$/.exec(el.dataset.bind);
+  if(m && el.value!==''){ const k = 'args.'+m[1]+'.evtxt'; if(!(getP(k)||'').trim()){ const ev = team().evidencia[+el.value]; setP(k, ev[1]+' (Fuente: '+ev[2]+')'); save(); const ta = document.querySelector('[data-bind="'+k+'"]'); if(ta){ ta.value = getP(k); ta.dispatchEvent(new Event('input',{bubbles:true})); } } } } });
+function afterRender(){ if(clock.run){ const el = document.getElementById('clkVal'); if(el) el.textContent = fmt(clock.left); } }
+
+/* =====================================================================
+   LO QUE EL PROFE VE EN EL PANEL → TRABAJOS (firebase/autoguardado.js)
+   ===================================================================== */
+window.AUTOGUARDADO_RESUMEN = function(){
+  const det = [], push = (k,v)=>{ v = (v==null?'':String(v)).trim(); if(v) det.push({k, v}); };
+  const datos = S.datos || {};
+  push('Nombre', S.nombre);
+  push('Equipo actual', S.equipo ? CONFIG.equipos[S.equipo].nombre : '');
+  let avance = [];
+  Object.keys(CONFIG.equipos).forEach(eq=>{
+    const d = datos[eq]; if(!d || !Object.keys(d).length) return;
+    const t = CONFIG.equipos[eq], P = t.nombre + ' · ';
+    const gv = path => path.split('.').reduce((o,k)=>(o==null?undefined:o[k]), d);
+    push(P+'Rol', d.rol);
+    push(P+'Voto inicial', d.voto_inicial);
+    if(t.tipo==='debate'){
+      const hechos = [0,1,2].filter(i=>['af','ra'].every(k=>(gv('args.'+i+'.'+k)||'').trim())).length;
+      avance.push(t.nombre.replace('Equipo ','')+': '+hechos+'/3 argumentos');
+      push(P+'Evidencia marcada', t.evidencia.filter((e,i)=>(d.usados||{})[i]).map(e=>e[0]).join(' · '));
+      [0,1,2].forEach(i=>{ const ev = gv('args.'+i+'.ev'); const txt = [gv('args.'+i+'.af') && 'A: '+gv('args.'+i+'.af'), (ev!==undefined&&ev!==''?'E: '+t.evidencia[+ev][0]+' — ':'E: ')+(gv('args.'+i+'.evtxt')||''), gv('args.'+i+'.ra') && 'R: '+gv('args.'+i+'.ra')].filter(Boolean).join('\n'); if((gv('args.'+i+'.af')||gv('args.'+i+'.ra')||'').trim()) push(P+'Argumento '+(i+1)+(d.mejor===String(i+1)?' (el más sólido)':''), txt); });
+      [0,1].forEach(i=>{ if(gv('rival.'+i+'.arg')) push(P+'Rival '+(i+1), gv('rival.'+i+'.arg')+'\nRespuesta: '+(gv('rival.'+i+'.resp')||'—')); });
+      push(P+'Preguntas cruzadas', [gv('preg.0'),gv('preg.1')].filter(Boolean).join('\n'));
+    }
+    if(t.tipo==='jurado'){
+      const p = d.pauta || {}, tot = e2 => CONFIG.criterios.reduce((a,c,i)=>a+(+(p[e2+'_'+i]||0)),0) - (+(d['falsos_'+e2]||0));
+      push(P+'Pauta', CONFIG.criterios.map((c,i)=>c[0]+': Duna '+(p['duna_'+i]||'—')+' · Ciudad '+(p['ciudad_'+i]||'—')).join('\n')+'\nDescuentos: Duna '+(d.falsos_duna||0)+' · Ciudad '+(d.falsos_ciudad||0));
+      push(P+'Total', 'Duna '+tot('duna')+' · Ciudad '+tot('ciudad'));
+      push(P+'Ganador', d.ganador); push(P+'Mejor argumento', d.mejor_arg); push(P+'Justificación', d.justif);
+      avance.push('Jurado: '+(d.ganador ? 'veredicto listo' : 'pauta en curso'));
+    }
+    if(t.tipo==='prensa'){
+      const v = d.verif || [];
+      push(P+'Datos verificados', v.map(x=>'['+x.ver+'] '+x.quien+' (turno '+x.turno+'): '+x.dato+(x.fuente?' · '+x.fuente:'')).join('\n'));
+      push(P+'Titular', [gv('tit.f'), gv('tit.b')].filter(Boolean).join('\n'));
+      avance.push('Prensa: '+v.length+' datos');
+    }
+    const tags = TAGS[t.tipo];
+    push(P+'Observaciones del debate', (d.notas||[]).map(n=>'[T'+n.turno+' '+n.hora+'] '+((tags.find(x=>x[0]===n.tag)||['',n.tag])[1])+': '+n.txt).join('\n'));
+    push(P+'Voto final', d.voto_final);
+    push(P+'Reflexión', [gv('refl.duda')&&'Me hizo dudar: '+gv('refl.duda'), gv('refl.falta')&&'Me faltó: '+gv('refl.falta'), gv('refl.medida')&&'Medida: '+gv('refl.medida')].filter(Boolean).join('\n'));
+  });
+  return { avance: avance.join(' · ').slice(0,60) || 'Sin avance', detalle: det };
+};
+
+render();
+conectarCuenta();
+</script>
+<script src="../../firebase/df.js?v=20261116" data-sin-aviso></script>
+<script src="../../firebase/autoguardado.js" data-clave="debate-dunas-concon" data-titulo="Debate · Dunas de Concón (1° Medio Biología)" data-claves="debate_dunas-concon-2026"></script>
+<script>if(window.DF && typeof conectarCuenta==='function'){ /* df.js cargó después del script principal */ conectarCuenta(); }</script>
+</body>
+</html>
