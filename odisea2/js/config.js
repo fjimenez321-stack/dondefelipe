@@ -63,6 +63,16 @@
       ],
       fijas: 3    // las primeras 3 frases salen en orden; el resto, al azar
     },
+    /* MÓDULOS DE LA NAVE (ver nave.js). Cada módulo equipado multiplica estadísticas:
+         potencia  = potencia del motor (velocidad de crucero y empuje de los mandos)
+         velocidad = velocidad de crucero (peso, arrastre…)      consumo   = gasto de combustible
+         capacidad = tamaño del depósito
+       Con N unidades equipadas, el factor se aplica N veces (compuesto): 1,2 ³ = 1,728.
+       Para agregar un módulo basta una entrada nueva aquí (+ su forma en assets.js). */
+    modulos: {
+      propulsor: { nombre: 'Propulsor', icono: '🚀', max: 4, efectos: { potencia: 1.2, consumo: 1.1 } },
+      tanque:    { nombre: 'Tanque auxiliar', icono: '🛢️', max: 4, efectos: { capacidad: 1.25, velocidad: 0.93 } }
+    },
     suelo: { daño: 30, rebote: 18 }
   };
 })(typeof window !== 'undefined' ? window : globalThis);

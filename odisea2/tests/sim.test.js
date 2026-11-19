@@ -1,7 +1,7 @@
 // node tests/sim.test.js
 const fs = require('fs'), path = require('path'), vm = require('vm'), assert = require('assert');
 const ctx = { console }; ctx.globalThis = ctx; vm.createContext(ctx);
-for (const f of ['config', 'planets', 'atmosfera', 'sim']) vm.runInContext(fs.readFileSync(path.join(__dirname, '../js', f + '.js'), 'utf8'), ctx);
+for (const f of ['config', 'planets', 'atmosfera', 'nave', 'sim']) vm.runInContext(fs.readFileSync(path.join(__dirname, '../js', f + '.js'), 'utf8'), ctx);
 const OC3 = ctx.OC3;
 let ok = 0; const t = (n, f) => { f(); ok++; console.log('OK ', n); };
 const run = (s, secs, inp) => { for (let i = 0; i < secs * 60; i++) s.paso(1 / 60, inp || {}); };
@@ -66,6 +66,31 @@ t('Suelo: tocar el suelo daña la nave y rebota', () => {
 t('Partida completa sin mando: termina (destruida o completa) sin NaN', () => {
   const s = OC3.Sim.crear({ planeta: 'mercurio', semilla: 3 }); run(s, 200, { fuego: true });
   assert(s.estado !== 'jugando'); assert(Number.isFinite(s.nave.pos.x + s.nave.pos.y + s.puntos));
+});
+t('Nave modular: 1 propulsor = potencia ×1,2 y consumo ×1,1; 4 propulsores = compuesto', () => {
+  const N = OC3.Nave, C = OC3.Config.nave;
+  const d1 = N.derivados({ propulsor: 1 }); assert(Math.abs(d1.factores.potencia - 1.2) < 1e-9 && Math.abs(d1.consumoMult - 1.1) < 1e-9);
+  assert(Math.abs(d1.vCrucero - C.vCrucero * 1.2) < 1e-9 && Math.abs(d1.accLateral - C.accLateral * 1.2) < 1e-9);
+  const d4 = N.derivados({ propulsor: 4 }); assert(Math.abs(d4.factores.potencia - Math.pow(1.2, 4)) < 1e-9 && Math.abs(d4.consumoMult - Math.pow(1.1, 4)) < 1e-9);
+  assert(N.derivados({ propulsor: 9 }).factores.potencia === d4.factores.potencia, 'el tope es 4');
+  assert(N.normalizar({ propulsor: -3, tanque: 'x' }).propulsor === 0 && N.normalizar({ tanque: 2.4 }).tanque === 2);
+});
+t('Nave modular: tanque = más capacidad pero menos velocidad', () => {
+  const d = OC3.Nave.derivados({ tanque: 2 }), C = OC3.Config.nave;
+  assert(d.combustibleMax > C.combustibleMax && d.vCrucero < C.vCrucero && Math.abs(d.vCrucero - C.vCrucero * 0.93 * 0.93) < 1e-9);
+  const lineas = OC3.Nave.describir('tanque'); assert(lineas.ventajas.length === 1 && lineas.inconvenientes.length === 1);
+  assert(OC3.Nave.describir('propulsor').inconvenientes[0].includes('Consumo'));
+});
+t('Sim con módulos: velocidad, depósito y gasto cambian; los meteoroides siguen apareciendo por distancia', () => {
+  const mk = (eq) => { const s = OC3.Sim.crear({ planeta: 'mercurio', semilla: 9, equipo: eq }); s._tBonus = 999; return s; };
+  const base = mk({}), rap = mk({ propulsor: 4 }), tq = mk({ tanque: 4 });
+  assert(rap.nave.vf > base.nave.vf * 2 && tq.nave.combMax > base.nave.combMax * 2 && tq.nave.vf < base.nave.vf * 0.8);
+  const gasto = (s) => { const c0 = s.nave.combustible; for (let i = 0; i < 600; i++) s.paso(1 / 60, {}); return (c0 - s.nave.combustible) / (s.t); };
+  const gb = gasto(base), gr = gasto(rap); console.log('   gasto/s base', gb.toFixed(2), '· 4 propulsores', gr.toFixed(2), '(×' + (gr / gb).toFixed(2) + ')');
+  assert(Math.abs(gr / gb - Math.pow(1.1, 4)) < 0.02);
+  const cuenta = (s) => { s.nave.pos.y = 60; let n = 0, d0 = s.dist; const vistos = new Set(); for (let i = 0; i < 60 * 40; i++) { s.paso(1 / 60, { y: 0.45 }); s.nave.combustible = 100; if (s.nave.pos.y < 20) s.nave.pos.y = 60; for (const e of s.ents) if (e.tipo === 'meteoro') vistos.add(e.id); } return vistos.size / ((s.dist - d0) / 1000); };
+  const mb = cuenta(mk({})), mr = cuenta(mk({ propulsor: 4 })); console.log('   meteoroides por 1000 u: base', mb.toFixed(1), '· rápido', mr.toFixed(1));
+  assert(mr / mb > 0.7 && mr / mb < 1.4);
 });
 function bot(s, i) {
   const n = s.nave; let tx = 0, ty = 45, peligro = null, dm = 1e9;

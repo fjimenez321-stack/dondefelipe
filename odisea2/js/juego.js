@@ -8,6 +8,7 @@
   const PLANETA = OC3.Planetas[q.get('planeta')] ? q.get('planeta') : OC3.PlanetaInicial;
   const canvas = $('c3d');
   let sim = null, vista = null, pausado = true, ultimo = 0, enMarcha = false;
+  let equipo = OC3.Nave.cargar(), enHangar = false;
   const teclas = {}, tactil = { x: 0, y: 0, fuego: false };
   const cache = {};
 
@@ -23,7 +24,7 @@
     if (e.code === 'KeyP' || e.code === 'Escape') alternarPausa();
     if (e.code === 'KeyM') OC3.Sonido.alternar();
     if (e.code === 'KeyR' && sim && sim.estado !== 'jugando') reiniciar();
-    if ((e.code === 'Enter' || e.code === 'Space') && !$('pantalla').hidden && enMarcha === false) comenzar();
+    if ((e.code === 'Enter' || e.code === 'Space') && !$('pantalla').hidden && enMarcha === false && !enHangar) comenzar();
   });
   addEventListener('keyup', (e) => { teclas[e.code] = false; });
   addEventListener('blur', () => { for (const k in teclas) teclas[k] = false; if (enMarcha) pausar(true); });
@@ -54,7 +55,7 @@
     txt('h-alt', nf(i.altKm, 1) + ' km');
     txt('h-vel', nf(n.vf * 0.1, 1) + ' km/s');
     txt('h-puntos', Math.round(sim.puntos).toLocaleString('es-CL'));
-    ancho('b-escudo', n.escudo / N.escudoMax, true); ancho('b-comb', n.combustible / N.combustibleMax, true);
+    ancho('b-escudo', n.escudo / N.escudoMax, true); ancho('b-comb', n.combustible / n.combMax, true);
     ancho('b-prog', i.progreso);
     /* jefe: barra de vida, estado, frase y mensajes */
     const jf = i.jefe, hj = $('hud-jefe'), dg = $('dialogo'), IMG = OC3.IMG64 || {};
@@ -93,12 +94,38 @@
       '<p class="ctl"><b>← ↑ ↓ →</b> / <b>WASD</b> mover · <b>Espacio</b> disparar · <b>P</b> pausa · <b>M</b> sonido<br>Táctil: arrastra a la izquierda para mover, botón <b>FUEGO</b> a la derecha.</p>' +
       '<p class="ctl">Al final del tramo te espera el <b style="color:#ffd24d">Profesor Alex</b>: cuando <b>respira</b> puedes dañarlo; cuando <b>habla</b> es invulnerable y lanza rayos.</p>' +
       '<p class="ctl">Recoge <b style="color:#ffa53b">combustible</b> y <b style="color:#5dffa0">kits de herramientas</b> (reparan el escudo). Con la gravedad del planeta, soltar los mandos te hace caer.</p>',
-      [['Iniciar', comenzar]]);
+      [['Iniciar', comenzar], ['Hangar', pantallaHangar, 1]]);
+    $('p-cuerpo').parentNode.classList.remove('hangar'); enHangar = false; vista.vitrina = false;
     $('sel-planeta').onchange = (e) => { const u = new URL(location.href); u.searchParams.set('planeta', e.target.value); location.href = u.toString(); };
   }
-  function comenzar() { OC3.Sonido.activar(); cerrarPantalla(); pausado = false; enMarcha = true; ultimo = performance.now(); }
+  /* ---------- hangar: equipar módulos de la nave ---------- */
+  function pantallaHangar() {
+    const M = OC3.Config.modulos, fmt = (v, d) => nf(v, d == null ? 1 : d);
+    const filas = Object.keys(M).map(id => {
+      const d = OC3.Nave.describir(id);
+      return '<div class="mod" data-id="' + id + '"><div class="mi">' + M[id].icono + '</div><div class="mt"><b>' + M[id].nombre + '</b>' +
+        d.ventajas.map(t => '<span class="ok">▲ ' + t + '</span>').join('') + d.inconvenientes.map(t => '<span class="mal">▼ ' + t + '</span>').join('') +
+        '</div><div class="mc"><button data-d="-1" aria-label="Quitar">−</button><b id="c-' + id + '"></b><span>/' + M[id].max + '</span><button data-d="1" aria-label="Agregar">+</button></div></div>';
+    }).join('');
+    pantalla('<h2>Hangar</h2><p class="sub">Equipa tu nave: cada módulo da una ventaja y cobra un precio.</p>' + filas + '<div id="hg-res"></div>', [['Listo', pantallaInicio]]);
+    const p = $('pantalla'); p.classList.add('hangar'); enHangar = true; vista.vitrina = true;
+    const base = OC3.Nave.resumen({});
+    function pintar() {
+      const r = OC3.Nave.resumen(equipo), f = OC3.Nave.factores(equipo);
+      for (const id in M) $('c-' + id).textContent = equipo[id];
+      $('hg-res').innerHTML = 'Velocidad de crucero <b>' + fmt(r.km_s) + ' km/s</b> (base ' + fmt(base.km_s) + ') · Empuje de mandos <b>×' + fmt(r.accel, 2) + '</b><br>' +
+        'Consumo <b>×' + fmt(r.consumo, 2) + '</b> · Depósito <b>' + fmt(r.capacidad, 0) + '</b> (base ' + fmt(base.capacidad, 0) + ') · Autonomía en reposo <b>' + fmt(r.autonomia, 0) + ' s</b>';
+    }
+    function aplicar() {
+      equipo = OC3.Nave.normalizar(equipo); OC3.Nave.guardar(equipo);
+      sim = OC3.Sim.crear({ planeta: PLANETA, semilla: +q.get('semilla') || 11, equipo }); vista.reiniciar(sim); pintar();
+    }
+    p.querySelectorAll('.mod').forEach(row => row.querySelectorAll('button').forEach(b => b.onclick = () => { equipo[row.dataset.id] += +b.dataset.d; aplicar(); }));
+    pintar();
+  }
+  function comenzar() { OC3.Sonido.activar(); enHangar = false; vista.vitrina = false; cerrarPantalla(); pausado = false; enMarcha = true; ultimo = performance.now(); }
   function reiniciar() {
-    sim = OC3.Sim.crear({ planeta: PLANETA, semilla: (Math.random() * 1e9) | 0 }); vista.reiniciar(sim);
+    sim = OC3.Sim.crear({ planeta: PLANETA, semilla: (Math.random() * 1e9) | 0, equipo }); vista.reiniciar(sim);
     for (const k in cache) delete cache[k]; cerrarPantalla(); pausado = false; ultimo = performance.now();
   }
   function enviarPuntaje(s, ok) {
@@ -106,7 +133,7 @@
     try {
       if (window.DF && Math.round(s.puntos) > 0) {
         DF.ofrecer({ tipo: 'puntaje', juego: 'odisea2', titulo: 'Odisea 2', puntaje: Math.round(s.puntos),
-          extra: { planeta: OC3.Planetas[PLANETA].nombre, victoria: !!ok, golpesJefe: s.stats.golpesJefe, jefe: s.jefe ? Math.round(s.jefe.hp) : 0 } });
+          extra: { planeta: OC3.Planetas[PLANETA].nombre, propulsores: s.equipo.propulsor, tanques: s.equipo.tanque, victoria: !!ok, golpesJefe: s.stats.golpesJefe, jefe: s.jefe ? Math.round(s.jefe.hp) : 0 } });
       }
     } catch (e) {}
   }
@@ -127,12 +154,12 @@
       const antes = sim.estado; sim.paso(dt, enMarcha ? entrada() : {});
       if (antes === 'jugando' && sim.estado !== 'jugando') setTimeout(fin, 1400);
     }
-    vista.actualizar(pausado ? 0 : dt); hud();
+    vista.actualizar(pausado ? (enHangar ? dt : 0) : dt); hud();
   }
 
   /* ---------- arranque ---------- */
   OC3.Assets.cargar(() => {
-    sim = OC3.Sim.crear({ planeta: PLANETA, semilla: +q.get('semilla') || 11 });
+    sim = OC3.Sim.crear({ planeta: PLANETA, semilla: +q.get('semilla') || 11, equipo });
     vista = OC3.Vista.crear(canvas, sim);
     $('carga').hidden = true; ultimo = performance.now(); requestAnimationFrame(bucle);
     $('h-aviso').hidden = PLANETA === OC3.PlanetaInicial;
