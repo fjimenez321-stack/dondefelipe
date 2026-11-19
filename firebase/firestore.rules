@@ -98,7 +98,7 @@ service cloud.firestore {
     // y en RITMOS de firebase/df.js.
     function reglaJuego(j) {
       return j == 'odisea'            ? { 'tope': 100000, 'ritmo': 4000 }
-        : (j == 'odisea2'             ? { 'tope': 20000,  'ritmo': 1500 }
+        : (j == 'odisea2'             ? { 'tope': 20000,  'ritmo': 3000 }
         : (j == 'operacion-barrera'   ? { 'tope': 20000,  'ritmo': 2500 }
         : (j == 'segunda-barrera'     ? { 'tope': 20000,  'ritmo': 2500 }
         : (j == 'ruta-paes'           ? { 'tope': 5000,   'ritmo': 600 }

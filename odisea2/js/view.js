@@ -56,8 +56,12 @@
     suelo.rotation.x = -Math.PI / 2; scene.add(suelo);
 
     /* nave */
-    const nave = OC3.Assets.crear('nave'); scene.add(nave);
-    const motor = nave.getObjectByName('motor');
+    let nave = null, motor = null, vitrina = false, giro = 0;
+    function construirNave(eq) {
+      if (nave) scene.remove(nave);
+      nave = OC3.Assets.crearNave(eq); scene.add(nave); motor = nave.getObjectByName('motor');
+    }
+    construirNave(sim.equipo);
 
     /* jefe: sprites del Profesor Alex (billboards) con aura de estado */
     const IMG = OC3.IMG64 || {}, cargador = new THREE.TextureLoader(), PX = 0.3;   // unidades por píxel del sprite
@@ -159,9 +163,10 @@
       roll += (-n.vel.x * 0.022 - roll) * Math.min(1, dt * 8);
       cabeceo += (n.vel.y * 0.012 - cabeceo) * Math.min(1, dt * 8);
       nave.position.set(n.pos.x, n.pos.y, n.pos.z);
-      nave.rotation.set(Math.max(-0.5, Math.min(0.5, cabeceo)), 0, Math.max(-0.9, Math.min(0.9, roll)), 'YXZ');
+      giro = vitrina ? giro + dt * 0.9 : 0;            // en el hangar la nave gira para lucir sus módulos
+      nave.rotation.set(Math.max(-0.5, Math.min(0.5, cabeceo)), giro, Math.max(-0.9, Math.min(0.9, roll)), 'YXZ');
       nave.visible = sim.estado !== 'destruida';
-      if (motor) { const f = 0.85 + Math.sin(sim.t * 40) * 0.15; motor.scale.setScalar((n.combustible > 0 ? 1.7 : 0.6) * f); }
+      if (motor) { const f = 0.85 + Math.sin(sim.t * 40) * 0.15; motor.scale.setScalar((n.combustible > 0 ? 1.7 * (motor.userData.base || 1) : 0.6) * f); }
       if (n.inv > 0 && sim.estado === 'jugando') nave.visible = Math.floor(sim.t * 18) % 2 === 0;   // parpadeo tras un golpe
 
       actualizarAlex(dt);
@@ -193,7 +198,7 @@
       const kc = 1 - Math.exp(-7 * dt);
       cam.x += (n.pos.x * 0.8 - cam.x) * kc;
       cam.y += (Math.max(3, n.pos.y + 5.6) - cam.y) * kc;
-      cam.z = n.pos.z + (camera.aspect < 0.8 ? 17 : 13);
+      cam.z = n.pos.z + (camera.aspect < 0.8 ? 17 : 13) + (vitrina ? (camera.aspect < 0.8 ? 6 : -3) : 0);
       let sx = 0, sy = 0; if (sacudida > 0) { sx = (Math.random() - 0.5) * sacudida * 1.6; sy = (Math.random() - 0.5) * sacudida * 1.6; sacudida = Math.max(0, sacudida - dt * 2.2); }
       camera.position.set(cam.x + sx, Math.max(1.5, cam.y + sy), cam.z);
       camera.lookAt(n.pos.x * 0.65, n.pos.y * 0.85 + 0.5, n.pos.z - 30);
@@ -211,7 +216,7 @@
 
     /* reinicio con una simulación nueva del MISMO planeta (sin recrear el renderizador) */
     function reiniciar(nuevo) {
-      sim = nuevo;
+      sim = nuevo; construirNave(sim.equipo);
       for (const m of mallas.values()) scene.remove(m); mallas.clear();
       pVida.fill(0); if (alex) { alex.visible = aura.visible = escudo.visible = false; } roll = 0; cabeceo = 0; sacudida = 0; cam.x = 0; cam.y = 44;
     }
@@ -222,7 +227,7 @@
     }
     addEventListener('resize', tamano); tamano();
 
-    return { actualizar, reiniciar, tamano, renderer, scene, camera, destruir() { removeEventListener('resize', tamano); renderer.dispose(); } };
+    return { actualizar, reiniciar, set vitrina(v) { vitrina = !!v; }, tamano, renderer, scene, camera, destruir() { removeEventListener('resize', tamano); renderer.dispose(); } };
   }
   OC3.Vista = { crear };
 })(window);

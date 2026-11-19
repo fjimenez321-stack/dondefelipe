@@ -21,7 +21,15 @@
                     escala: 2.6,                              // ~4,2 u de alto (el esquema anterior medía 1,9)
                     flat: true, material: { roughness: 0.55, metalness: 0.35 },
                     aura: 'rgba(255,150,40,0.8)' },
-    herramientas: { glb: null }                               // kit de herramientas (esquema)
+    herramientas: { glb: null },                              // kit de herramientas (esquema)
+    propulsor:    { glb: null },                              // módulo de la nave (esquema)
+    tanque:       { glb: null }                               // módulo de la nave (esquema)
+  };
+
+  /* Dónde se montan los módulos en la nave (coordenadas locales de la nave, frente = −Z). */
+  const RANURAS = {
+    propulsor: [[-0.9, 0.0, 1.25], [0.9, 0.0, 1.25], [-1.75, 0.0, 1.5], [1.75, 0.0, 1.5]],
+    tanque:    [[-0.65, -0.62, 0.3], [0.65, -0.62, 0.3], [-2.6, -0.45, 0.9], [2.6, -0.45, 0.9]]
   };
 
   const modelos = {};
@@ -81,6 +89,21 @@
     g.add(aura('rgba(90,255,150,0.8)'));
     return g;
   }
+  function esquemaPropulsor() {
+    const g = new THREE.Group(), metal = new THREE.MeshStandardMaterial({ color: 0x9aa3b5, roughness: 0.35, metalness: 0.85, flatShading: true });
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 1.5, 10).rotateX(Math.PI / 2), metal));
+    const tobera = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.24, 0.35, 10, 1, true).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xff8a1f, emissive: 0x5a2200, side: THREE.DoubleSide, flatShading: true }));
+    tobera.position.z = 0.85; g.add(tobera);
+    const f = glow('rgba(255,150,60,0.95)', 1.5, 0.9); f.position.z = 1.15; f.name = 'llama'; g.add(f);
+    return g;
+  }
+  function esquemaTanque() {
+    const g = new THREE.Group(), cuerpo = new THREE.MeshStandardMaterial({ color: 0x3d6f8f, roughness: 0.45, metalness: 0.5, flatShading: true });
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 1.9, 12).rotateX(Math.PI / 2), cuerpo));
+    for (const sz of [-1, 1]) { const c = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 8), cuerpo); c.position.z = sz * 0.95; g.add(c); }
+    const banda = new THREE.Mesh(new THREE.CylinderGeometry(0.355, 0.355, 0.3, 12).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xffc233, emissive: 0x332400 })); g.add(banda);
+    return g;
+  }
   function esquemaMeteoroide() { // por si el GLB no carga: roca irregular
     const geo = new THREE.IcosahedronGeometry(1, 2), p = geo.attributes.position;
     for (let i = 0; i < p.count; i++) { const k = 1 + 0.12 * Math.sin(p.getX(i) * 5 + p.getY(i) * 3) * Math.cos(p.getZ(i) * 4); p.setXYZ(i, p.getX(i) * k, p.getY(i) * k, p.getZ(i) * k); }
@@ -88,7 +111,7 @@
     const g = new THREE.Group(); g.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x6b645c, roughness: 0.95, metalness: 0.05 })));
     return g;
   }
-  const ESQUEMAS = { nave: esquemaNave, combustible: esquemaCombustible, herramientas: esquemaHerramientas, meteoroide: esquemaMeteoroide };
+  const ESQUEMAS = { nave: esquemaNave, combustible: esquemaCombustible, herramientas: esquemaHerramientas, meteoroide: esquemaMeteoroide, propulsor: esquemaPropulsor, tanque: esquemaTanque };
 
   /* ---------- carga ---------- */
   function b64ToBuf(b64) { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
@@ -138,7 +161,16 @@
   }
   /* devuelve una instancia nueva (THREE.Group) del modelo */
   function crear(nombre) { return modelos[nombre].crear(); }
+  /* nave + módulos equipados (equipo = { propulsor: n, tanque: n }) */
+  function crearNave(equipo) {
+    const g = crear('nave'), e = (OC3.Nave ? OC3.Nave.normalizar(equipo) : equipo) || {};
+    for (const id in RANURAS) for (let i = 0; i < Math.min(e[id] || 0, RANURAS[id].length); i++) {
+      const m = crear(id); m.position.set(RANURAS[id][i][0], RANURAS[id][i][1], RANURAS[id][i][2]); m.name = id + i; g.add(m);
+    }
+    const motor = g.getObjectByName('motor'); if (motor) motor.userData.base = 1 + 0.15 * (e.propulsor || 0);
+    return g;
+  }
   function esReal(nombre) { return !!(modelos[nombre] && modelos[nombre].real); }
 
-  OC3.Assets = { MANIFIESTO, cargar, crear, esReal, glow, glowTex };
+  OC3.Assets = { MANIFIESTO, RANURAS, cargar, crear, crearNave, esReal, glow, glowTex };
 })(window);

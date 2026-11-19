@@ -48,17 +48,17 @@
     const P = OC3.Planetas[planetaId];
     const R = rng(opt.semilla || 7);
     const gJ = P.g * C.escala.gJuego;           // gravedad en u/s²
-    const N = C.nave;
+    const N = Object.assign({}, C.nave, OC3.Nave.derivados(opt.equipo));   // la nave base + sus módulos
 
     const s = {
       planetaId, planeta: P, gJuego: gJ,
       t: 0, estado: 'jugando', puntos: 0, dist: 0,
       ents: [], eventos: [], _id: 1,
       stats: { destruidos: 0, golpes: 0, bonus: 0, golpesJefe: 0 },
-      jefe: null, msg: { texto: '', t: 0 },
+      jefe: null, msg: { texto: '', t: 0 }, equipo: OC3.Nave.normalizar(opt.equipo),
       nave: {
         tipo: 'nave', pos: { x: 0, y: 40, z: 0 }, vel: { x: 0, y: 0, z: -N.vCrucero },
-        vf: N.vCrucero, radio: N.radio, escudo: N.escudoMax, combustible: N.combustibleMax,
+        vf: N.vCrucero, radio: N.radio, escudo: N.escudoMax, combustible: N.combustibleMax, combMax: N.combustibleMax,
         cd: 0, lado: 1, inv: 0, impacto: 0
       },
       _tMeteoro: 2.0, _tBonus: 6.0, _ultimoBonus: ''
@@ -232,7 +232,7 @@
       vf += ((vacio ? N.vCrucero * N.sinCombustible : N.vCrucero) - vf) * Math.min(1, N.govAdelante * dt);
       vf = A.frenar(vf, k, dt);
       n.vel.x = vx; n.vel.y = vy; n.vel.z = -vf; n.vf = vf;
-      n.combustible = Math.max(0, n.combustible - (N.consumo.base + N.consumo.mando * (Math.abs(inX) + Math.abs(inY)) * 0.5) * dt);
+      n.combustible = Math.max(0, n.combustible - (N.consumo.base + N.consumo.mando * (Math.abs(inX) + Math.abs(inY)) * 0.5) * N.consumoMult * dt);
       n.inv = Math.max(0, n.inv - dt); n.impacto = Math.max(0, n.impacto - dt * 2.5);
 
       /* --- disparo --- */
@@ -240,7 +240,8 @@
       if (inp.fuego && n.cd <= 0) { disparar(); n.cd = N.fuego.cadencia; }
 
       /* --- aparición progresiva --- */
-      s._tMeteoro -= dt; if (s._tMeteoro <= 0) s._tMeteoro = lanzarMeteoro();
+      /* los meteoroides aparecen por DISTANCIA recorrida (no por tiempo): ir más rápido no hace el tramo más fácil */
+      s._tMeteoro -= dt * (n.vf / C.nave.vCrucero); if (s._tMeteoro <= 0) s._tMeteoro = lanzarMeteoro();
       s._tBonus -= dt; if (s._tBonus <= 0) s._tBonus = lanzarBonus();
 
       /* --- objetos: gravedad y atmósfera (menos lasers y bonus) --- */
@@ -310,7 +311,7 @@
         planeta: P.nombre, g: P.g, tipoAtm: P.atm.tipo, composicion: P.atm.composicion, presion: P.atm.presion,
         altKm: A.altitudKm(n.pos.y), densidad: A.densidad(P, n.pos.y), razon: A.razon(P, n.pos.y),
         velocidad: n.vf * C.escala.mPorUnidad / 1000 * 3600 / 1000, // «km/s» de juego
-        progreso: clamp(s.dist / C.mundo.distanciaNivel, 0, 1),
+        progreso: clamp(s.dist / C.mundo.distanciaNivel, 0, 1), factores: N.factores,
         jefe: s.jefe ? { nombre: s.jefe.nombre, hp: s.jefe.hp, hpMax: s.jefe.hpMax, fase: s.jefe.fase, vulnerable: s.jefe.vulnerable, frase: s.jefe.frase, muerto: s.jefe.muerto } : null
       };
     }
