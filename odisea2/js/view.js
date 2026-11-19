@@ -167,6 +167,7 @@
       nave.rotation.set(Math.max(-0.5, Math.min(0.5, cabeceo)), giro, Math.max(-0.9, Math.min(0.9, roll)), 'YXZ');
       nave.visible = sim.estado !== 'destruida';
       if (motor) { const f = 0.85 + Math.sin(sim.t * 40) * 0.15; motor.scale.setScalar((n.combustible > 0 ? 1.7 * (motor.userData.base || 1) : 0.6) * f); }
+      if (nave.userData.llamas) for (const l of nave.userData.llamas) l.scale.setScalar((n.combustible > 0 ? 1.3 : 0.35) * (0.85 + Math.sin(sim.t * 45 + l.id) * 0.15));
       if (n.inv > 0 && sim.estado === 'jugando') nave.visible = Math.floor(sim.t * 18) % 2 === 0;   // parpadeo tras un golpe
 
       actualizarAlex(dt);
