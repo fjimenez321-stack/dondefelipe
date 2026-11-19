@@ -934,13 +934,17 @@ const artVigente = a => a.activa && (a.stock === -1 || a.stock > 0);
 const CUPON = 'Ruleta: 20% de descuento en un artículo de la Tienda';
 const precioCupon = p => Math.round(p * 0.8);
 const misCupones = () => misBenef.filter(m => m.item === CUPON);
+// 🌟 Súper cupón (sale del súper cofre, ≈1 en 105.000): cualquier artículo o beneficio de la Tienda, gratis.
+const SUPER = 'Súper cofre: cualquier cosa de la Tienda gratis';
+const misSuper = () => misBenef.filter(m => m.item === SUPER);
 const imgOkArt = u => /^(https:\/\/|[a-z0-9_\-\/]+\.(webp|png|jpe?g|gif|svg)$)/i.test(String(u || ''));
 function pintarTienda() {
   $('tProfe').hidden = !esProfe; $('tMisPedidos').hidden = !usuario || esProfe;
   const l = articulos.filter(a => esProfe || a.activa).sort((a, b) => (artVigente(b) - artVigente(a)) || (a.precio - b.precio));
-  const cup = !esProfe && usuario ? misCupones().length : 0;
-  $('tCupon').hidden = !cup;
-  if (cup) $('tCupon').innerHTML = `🛍️ <b>Tienes ${cup === 1 ? 'un cupón' : cup + ' cupones'} de −20%</b> ganado${cup === 1 ? '' : 's'} en la ruleta. Elige «Usar cupón» en el artículo que quieras: pagas el 80%.`;
+  const cup = !esProfe && usuario ? misCupones().length : 0, sup = !esProfe && usuario && cuenta ? misSuper().length : 0;
+  $('tCupon').hidden = !cup && !sup;
+  $('tCupon').innerHTML = (sup ? `🌟 <b>¡Tienes ${sup === 1 ? 'un súper cupón' : sup + ' súper cupones'}!</b> Elige <b>cualquier</b> artículo o beneficio de la Tienda y llévatelo gratis con el botón «🌟 Gratis».` + (cup ? '<br>' : '') : '')
+    + (cup ? `🛍️ <b>Tienes ${cup === 1 ? 'un cupón' : cup + ' cupones'} de −20%</b> ganado${cup === 1 ? '' : 's'} en la ruleta. Elige «Usar cupón» en el artículo que quieras: pagas el 80%.` : '');
   $('gTienda').innerHTML = l.map(a => {
     const agot = !artVigente(a);
     let acc = esProfe ? '' : agot ? '<span class="mio-tag">Agotado</span>' : botonPedir('a:' + a.id, a.precio, `data-pedir-a="${esc(a.id)}"`);
@@ -948,6 +952,7 @@ function pintarTienda() {
       const pc = precioCupon(a.precio), ok = (cuenta.saldo || 0) >= pc;
       acc += `<button class="btn ${ok ? 'p' : ''} cupon" data-pedir-ac="${esc(a.id)}"${ok ? '' : ' disabled title="No te alcanza todavía"'}>🛍️ Usar cupón: ${fmt(pc)}</button>`;
     }
+    if (sup && !agot && !/disabled>Comprado/.test(acc)) acc += `<button class="btn p cupon" data-pedir-as="${esc(a.id)}">🌟 Gratis con súper cupón</button>`;
     const quedan = a.stock === -1 ? '' : `<span class="chip ${a.stock <= 2 ? 'hot' : 'lim'}">${a.stock > 0 ? 'Quedan ' + a.stock : 'Agotado'}</span>`;
     const fs = fotosDe(a);
     return `<article class="item${agot ? ' agotado' : ''}"><div class="foto"${fs.length ? ` data-ver-art="${esc(a.id)}" title="Ver fotos"` : ''}>${fs.length ? `<img src="${esc(fs[0])}" alt="Foto de ${esc(a.nombre)}" loading="lazy">${fs.length > 1 ? `<span class="n-fotos">1/${fs.length} · ver</span>` : ''}` : `<span class="emo">${esc(a.ico || '🎁')}</span>`}</div>
@@ -1067,7 +1072,7 @@ function pintarBeneficios() {
     return `<article class="item${rebaja ? ' destacada' : ''}"><div class="ico">${esc(b.ico)}</div><h3>${esc(b.nombre)}</h3>
     ${rebaja ? `<div class="chips"><span class="chip ok">🎓 −${Math.round(d * 100)}% por tu gatito héroe</span></div>` : b.academico ? '<div class="chips"><span class="chip">🎓 Académica</span></div>' : ''}
     <p>${esc(b.desc ? b.desc + ' ' : '')}Queda «por usar» hasta que el profe lo aplique.</p>
-    <div class="pie"><span class="precios">${rebaja ? `<s>${fmt(b.precio)}</s>` : ''}<span class="precio">${fmt(p)}</span></span>${botonPedir('b:' + b.nombre, p, `data-pedir-b="${i}"`)}</div></article>`; }).join('')
+    <div class="pie"><span class="precios">${rebaja ? `<s>${fmt(b.precio)}</s>` : ''}<span class="precio">${fmt(p)}</span></span>${botonPedir('b:' + b.nombre, p, `data-pedir-b="${i}"`)}${usuario && cuenta && !esProfe && misSuper().length ? `<button class="btn p cupon" data-pedir-bs="${i}">🌟 Gratis con súper cupón</button>` : ''}</div></article>`; }).join('')
     || '<p class="intro">No hay beneficios en el catálogo.</p>';
 }
 function pintarEstudiantes() {
@@ -1134,8 +1139,9 @@ function movPropio(F, db, tx, cu, monto, motivo, tipo, extra) {
 async function pedir(datos) {
   if (misPedidos.filter(p => p.estado === 'pendiente').length >= 5) return aviso('Tienes 5 pedidos esperando al profe: espera a que los revise.', 'err');
   if (datos.precio > (cuenta.saldo || 0)) return aviso('No te alcanza.', 'err');
-  const lista = datos.lista || datos.precio; delete datos.lista;
-  if (!confirm(`¿Comprar «${datos.item}» por ${fmt(datos.precio)}${datos.cupon ? ' (con tu cupón −20%; precio normal ' + fmt(lista) + ')' : ''}?\nEl pago sale ahora y queda retenido hasta que el profe autorice. Si la rechaza o la cancelas, te vuelve.`)) return;
+  const lista = datos.lista || datos.precio, gratis = !!datos.gratis; delete datos.lista; delete datos.gratis;
+  if (!confirm(gratis ? `🌟 ¿Usar tu súper cupón en «${datos.item}»? Es gratis.\nEl profe autoriza y te lo entrega. Si lo rechaza o lo cancelas, el súper cupón vuelve.`
+    : `¿Comprar «${datos.item}» por ${fmt(datos.precio)}${datos.cupon ? ' (con tu cupón −20%; precio normal ' + fmt(lista) + ')' : ''}?\nEl pago sale ahora y queda retenido hasta que el profe autorice. Si la rechaza o la cancelas, te vuelve.`)) return;
   const { F, db } = await DF.listo();
   try {
     const rp = F.doc(F.collection(db, 'mercado_pedidos')), pid = rp.id || rp.path.split('/').pop();
@@ -1148,19 +1154,19 @@ async function pedir(datos) {
       const [sc, sx, scup] = await Promise.all(lect), spub = datos.tipo === 'reventa' ? sx : null, sart = datos.tipo === 'articulo' ? sx : null;
       if (rcup) {
         const c = scup && scup.exists() ? scup.data() : null;
-        if (!c || c.item !== CUPON || c.canje !== 'pendiente') throw new Error('ese cupón ya no está disponible');
+        if (!c || ![CUPON, SUPER].includes(c.item) || c.canje !== 'pendiente') throw new Error('ese cupón ya no está disponible');
         tx.update(rcup, { canje: 'en-compra', pedido: pid });
       }
       if (sart) {
         const a = sart.exists() ? sart.data() : null;
         if (!a || !artVigente(a)) throw new Error('se agotó o ya no está a la venta');
-        if (a.precio !== lista || (datos.cupon && precioCupon(a.precio) !== datos.precio)) throw new Error('el profe cambió el precio; revisa y vuelve a comprar');
+        if (a.precio !== lista || (datos.cupon && !gratis && precioCupon(a.precio) !== datos.precio)) throw new Error('el profe cambió el precio; revisa y vuelve a comprar');
         tx.update(sart.ref || F.doc(db, 'tienda_articulos', datos.articulo), { stock: a.stock === -1 ? -1 : a.stock - 1, vendidos: (a.vendidos || 0) + 1, ultimoPedido: pid });
       }
       if (spub && (!spub.exists() || spub.data().estado !== 'venta')) throw new Error('alguien lo pidió antes que tú');
       if (spub && spub.data().precio !== datos.precio) throw new Error('el vendedor cambió el precio; revisa y vuelve a pedirlo');
       const extra = { item: datos.item, canje: 'retenida', pedido: pid }; if (datos.gatito) extra.gatito = datos.gatito;
-      const movId = movPropio(F, db, tx, sc.data(), -datos.precio, `Mercado: ${datos.item}${datos.cupon ? ' (con cupón −20%)' : ''} (pagado, esperando autorización)`, 'compra', extra);
+      const movId = movPropio(F, db, tx, sc.data(), datos.precio ? -datos.precio : 0, `Mercado: ${datos.item}${gratis ? ' (🌟 gratis con súper cupón)' : datos.cupon ? ' (con cupón −20%)' : ''} (${gratis ? 'esperando autorización' : 'pagado, esperando autorización'})`, 'compra', extra);
       tx.set(rp, Object.assign({ comprador: cuentaId, compradorNombre: nombreCuenta().slice(0, 160), compradorNumero: String(cuenta.numero || '').slice(0, 20),
         uid: usuario.uid, estado: 'pendiente', creada: F.serverTimestamp(), mov: movId }, datos));
       if (spub) tx.update(F.doc(db, 'mercado_items', datos.publicacion), { estado: 'reservado', reservadoPor: pid, actualizado: F.serverTimestamp() });
@@ -1464,7 +1470,11 @@ document.addEventListener('click', ev => {
     else if (rg.dataset.regVolver) recuperarRegalo(rg.dataset.regVolver);
     return;
   }
-  const b = ev.target.closest('[data-pedir-b],[data-pedir-a],[data-pedir-ac],[data-art],[data-pedir-r],[data-publicar],[data-retirar],[data-cancelar-p]'); if (!b || b.disabled) return;
+  const b = ev.target.closest('[data-pedir-b],[data-pedir-a],[data-pedir-ac],[data-pedir-as],[data-pedir-bs],[data-art],[data-pedir-r],[data-publicar],[data-retirar],[data-cancelar-p]'); if (!b || b.disabled) return;
+  if (b.dataset.pedirAs) { const x = articulos.find(a => a.id === b.dataset.pedirAs), c = misSuper()[0];
+    if (x && c) pedir({ tipo: 'articulo', articulo: x.id, item: x.nombre, ico: x.ico || '📦', precio: 0, lista: x.precio, cupon: c.id, gratis: true }); return; }
+  if (b.dataset.pedirBs) { const x = BENEF[+b.dataset.pedirBs], c = misSuper()[0];
+    if (x && c) pedir({ tipo: 'beneficio', item: x.nombre, ico: x.ico, precio: 0, cupon: c.id, gratis: true }); return; }
   if (b.dataset.pedirAc) { const x = articulos.find(a => a.id === b.dataset.pedirAc), c = misCupones()[0];
     if (x && c) pedir({ tipo: 'articulo', articulo: x.id, item: x.nombre, ico: x.ico || '📦', precio: precioCupon(x.precio), lista: x.precio, cupon: c.id }); return; }
   if (b.dataset.pedirA) { const x = articulos.find(a => a.id === b.dataset.pedirA); if (x) pedir({ tipo: 'articulo', articulo: x.id, item: x.nombre, ico: x.ico || '📦', precio: x.precio }); return; }

@@ -122,6 +122,9 @@ h1 span{color:var(--acid)}
 .cf-item:hover,.cf-item:focus-visible{transform:translateY(-3px);border-color:var(--acid);outline:none}
 .cf-item img{width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
 .cf-item.raro{border-color:rgba(255,214,10,.6);box-shadow:0 0 18px rgba(255,214,10,.25)}
+.cf-item.super{border-color:#ff2e7e;background:radial-gradient(circle at 50% 30%,rgba(255,46,126,.25),var(--slab2) 70%);box-shadow:0 0 26px rgba(255,46,126,.45),0 0 10px rgba(204,255,0,.35)}
+.cf-item.super img,#cfImg.super{filter:hue-rotate(290deg) saturate(1.8) brightness(1.15) drop-shadow(0 0 14px rgba(255,46,126,.8))}
+.cf-super-nota{margin:8px 0 0;padding:8px 10px;border-radius:12px;border:1px dashed #ff2e7e;font-size:13px}
 .cf-item b{font-size:13px}.cf-item small{color:var(--mute);font-size:11.5px;line-height:1.25}
 .cf-item.cf-vencido{cursor:default;opacity:.75}
 .cf-item:not(.cf-vencido) img{animation:cfLat 3.2s ease-in-out infinite}
@@ -976,7 +979,12 @@ const COFRES = {
     'Llave de cofre': { precio: 25000, rompe: 3, abre: ['comun'], img: '🗝️' },
     'Llave dorada':   { precio: 100000, rompe: 4, abre: ['comun', 'raro'], img: '🔑' }
   },
-  nombre: { comun: 'Cofre', raro: 'Cofre especial' },
+  nombre: { comun: 'Cofre', raro: 'Cofre especial', super: '🌟 Súper cofre' },
+  // Súper cofre (inédito): aparece al abrir cualquier cofre (si la llave no se rompe) con probabilidad
+  // 10 / 16^5 ≈ 0,00095% (≈ 1 en 105.000). Se abre sin llave y trae el «Súper cupón»: cualquier cosa de la
+  // Tienda gratis. Igual que superSale() en las reglas.
+  superCupon: 'Súper cofre: cualquier cosa de la Tienda gratis',
+  superSale: h => h.slice(6, 10) === '0000' && parseInt(h[10], 16) < 10,
   // 16 casillas iguales (1/16 = 6,25% cada una). En promedio devuelven ~93% de su precio.
   tabla: {
     comun: [['d', 50000], ['d', 100000], ['d', 200000], ['d', 200000],
@@ -1000,7 +1008,7 @@ function precargarCofres() {
   if (cofresPrecarga) return; cofresPrecarga = true;
   ['abrir-2', 'abrir-3', 'abrir-4', 'abrir-5', 'abrir-6', 'abrir-7', 'danado', 'vacio', 'bloqueado'].forEach(n => { const i = new Image(); i.src = 'cofres/' + n + '.webp'; });
 }
-const cofreImg = c => 'cofres/' + (c.estado === 'abierto' ? (c.malo ? 'danado' : 'vacio') : c.tipo === 'raro' ? 'especial' : 'cerrado') + '.webp';
+const cofreImg = c => 'cofres/' + (c.estado === 'abierto' ? (c.malo ? 'danado' : 'vacio') : c.tipo === 'raro' || c.tipo === 'super' ? 'especial' : 'cerrado') + '.webp';
 const msTs = t => t && t.toMillis ? t.toMillis() : (t && t.seconds ? t.seconds * 1000 : 0);
 
 let cofresUlt = '', cofresAbiertosSesion = [];
@@ -1049,15 +1057,16 @@ function cofresPintar() {
     <small class="nota" style="flex-basis:100%;margin:0">Para abrir un cofre necesitas una llave. 🗝️ abre cofres básicos (se rompe ≈19% de las veces); 🔑 dorada abre cualquiera (se rompe 25%). Si se rompe, el cofre sigue cerrado y la llave se pierde. Las llaves sobrantes se pueden vender o regalar en el Mercado.</small></div>`;
   box.innerHTML = `<h2>🧰 Tus cofres</h2>${tienda}${llaves}
     ${cerrados.length ? `<p class="nota" style="margin:8px 0 0">Ábrelos cuando quieras: pueden traer Hipopesos, un gatito, un beneficio… o un castigo.</p>
-    <div class="cf-lista">${cerrados.map(c => `<button class="cf-item ${c.tipo === 'raro' ? 'raro' : ''}" type="button" data-cofre="${esc(c.id)}">
+    <div class="cf-lista">${cerrados.map(c => `<button class="cf-item ${c.tipo === 'raro' ? 'raro' : c.tipo === 'super' ? 'super' : ''}" type="button" data-cofre="${esc(c.id)}">
       <img src="${cofreImg(c)}" alt="" width="92" height="92"><b>${esc(COFRES.nombre[c.tipo] || 'Cofre')}</b>
-      <small>${esc(c.motivo || (c.profe === '' ? 'Comprado' : 'Regalo del profe'))}</small>${c.estado === 'abriendo' || llavePara(c.tipo)
+      <small>${esc(c.motivo || (c.profe === '' ? 'Comprado' : 'Regalo del profe'))}</small>${c.tipo === 'super' ? '<span class="btn p" style="padding:5px 12px;font-size:12px">¡Abrir! (sin llave)</span>' : c.estado === 'abriendo' || llavePara(c.tipo)
         ? `<span class="btn p" style="padding:5px 12px;font-size:12px">${c.estado === 'abriendo' ? 'Terminar de abrir' : 'Abrir con ' + COFRES.llaves[llavePara(c.tipo).item].img}</span>`
         : `<span class="btn" style="padding:5px 12px;font-size:12px">${c.tipo === 'raro' ? 'Necesitas 🔑' : 'Necesitas 🗝️'}</span>`}</button>`).join('')}</div>`
       : '<p class="nota" style="margin:8px 0 0">No tienes cofres por abrir. Cómpralos aquí o gánalos: el profe los entrega por buen trabajo y participación.</p>'}
-    <details style="margin-top:10px"><summary class="nota" style="cursor:pointer">¿Qué puede salir? (cada resultado 1 de 16 = 6,25%)</summary>${probCofres()}</details>
+    ${cerrados.some(c => c.tipo === 'super') ? '<p class="cf-super-nota">🌟 <b>¡Tienes un súper cofre!</b> Casi nadie lo verá nunca: aparece 1 vez cada ~105.000 cofres abiertos. Ábrelo (no necesita llave) y elige gratis cualquier cosa de la Tienda.</p>' : ''}
+    <details style="margin-top:10px"><summary class="nota" style="cursor:pointer">¿Qué puede salir? Probabilidades reales</summary>${probCofres()}</details>
     ${enVenta.length ? `<p class="nota" style="margin:8px 0 0">🔒 ${enVenta.length === 1 ? 'Tienes 1 cofre' : 'Tienes ' + enVenta.length + ' cofres'} a la venta en el <a href="gatitos.html#mio">Mercado</a> (no se pueden abrir mientras estén publicados).</p>` : ''}
-    ${abiertos.length ? `<ul class="cf-hist">${abiertos.map(c => `<li>${c.tipo === 'raro' ? '✨' : '🧰'} <b>${esc(c.premio || '')}</b></li>`).join('')}</ul>` : ''}`;
+    ${abiertos.length ? `<ul class="cf-hist">${abiertos.map(c => `<li>${c.tipo === 'raro' ? '✨' : c.tipo === 'super' ? '🌟' : '🧰'} <b>${esc(c.premio || '')}</b></li>`).join('')}</ul>` : ''}`;
 }
 
 function nombreCasillaCofre(k) {
@@ -1066,14 +1075,20 @@ function nombreCasillaCofre(k) {
   return { g: 'Gatito común', G: 'Gatito sorpresa (hasta ₣1.000.000)', D: 'Disertación' }[k[0]];
 }
 function probCofres() {
+  const pct = x => (Math.round(x * 1000) / 10).toLocaleString('es-CL') + '%';
   return ['comun', 'raro'].map(t => {
     const l = COFRES.tabla[t], cnt = {};
     l.forEach(k => { const n = nombreCasillaCofre(k); cnt[n] = (cnt[n] || 0) + 1; });
     const malo = k => (k[0] === 'd' && k[1] < 0) || k[0] === 'D';
-    const nMal = l.filter(malo).length, nVac = l.filter(k => k[0] === 'd' && k[1] === 0).length;
-    return `<p class="nota"><b>${t === 'raro' ? '✨' : '🧰'} ${COFRES.nombre[t]} (${fmt(COFRES.precio[t])})</b> · premio ${Math.round((16 - nMal - nVac) / 16 * 100)}% · castigo ${Math.round(nMal / 16 * 100)}%${nVac ? ' · vacío ' + Math.round(nVac / 16 * 100) + '%' : ''}<br>`
+    const nMal = l.filter(malo).length, nVac = l.filter(k => k[0] === 'd' && k[1] === 0).length, nBien = 16 - nMal - nVac;
+    const L = t === 'raro' ? COFRES.llaves['Llave dorada'] : COFRES.llaves['Llave de cofre'], pr = L.rompe / 16, ok = 1 - pr;
+    return `<p class="nota"><b>${t === 'raro' ? '✨' : '🧰'} ${COFRES.nombre[t]} (${fmt(COFRES.precio[t])}, se abre con ${L.img} ${fmt(L.precio)})</b><br>
+      En cada intento: ${L.img} se rompe <b>${pct(pr)}</b> (el cofre sigue cerrado y vuelve lo retenido) ·
+      premio <b>${pct(ok * nBien / 16)}</b> · castigo <b>${pct(ok * nMal / 16)}</b>${nVac ? ' · vacío <b>' + pct(ok * nVac / 16) + '</b>' : ''}.<br>
+      Una vez abierto: premio ${pct(nBien / 16)} · castigo ${pct(nMal / 16)}${nVac ? ' · vacío ' + pct(nVac / 16) : ''} (cada resultado 6,25%):<br>`
       + Object.keys(cnt).map(n => esc(n) + (cnt[n] > 1 ? ' (×' + cnt[n] + ')' : '')).join(' · ') + '</p>';
-  }).join('') + '<p class="nota">Contando cofre y llave, en promedio recuperas un poco menos de lo que gastas (≈89% el básico, ≈86% el especial): es suerte, no inversión. Al abrir se retiene lo del peor castigo y vuelve con tu premio.</p>';
+  }).join('') + '<p class="nota">🌟 <b>Súper cofre</b>: al abrir cualquier cofre hay ≈0,001% (1 en ~105.000) de que además aparezca uno. Se abre sin llave y trae: <b>cualquier cosa de la Tienda gratis</b>.</p>'
+    + '<p class="nota">Contando cofre y llave, en promedio recuperas un poco menos de lo que gastas (≈89% el básico, ≈86% el especial): es suerte, no inversión. Al abrir se retiene lo del peor castigo y vuelve con tu premio.</p>';
 }
 async function comprarCofre(tipo) {
   if (!cuentaId || cofreAbriendo) return;
@@ -1138,6 +1153,7 @@ function premioCofre(c, h, ids) {
 async function abrirCofre(id) {
   if (cofreAbriendo || !cuentaId) return;
   const c0 = misCofres.find(c => c.id === id) || { tipo: 'comun' };
+  if (c0.tipo === 'super') return abrirSuperCofre(id);
   const llave = c0.estado === 'abriendo' ? null : llavePara(c0.tipo);
   if (c0.estado !== 'abriendo' && !llave) { aviso('Necesitas una ' + (c0.tipo === 'raro' ? '🔑 llave dorada' : '🗝️ llave de cofre (o una dorada)') + ' para abrir este cofre. Cómprala arriba.', 'err'); return; }
   if (llave && c0.tipo === 'comun' && llave.item === 'Llave dorada' && !confirm('Solo tienes llave dorada. ¿Usarla en este cofre básico?')) return;
@@ -1162,12 +1178,13 @@ async function abrirCofre(id) {
       if (f.estado !== 'cerrado') throw new Error('ese cofre está a la venta: retíralo del Mercado para abrirlo');
       const rl = F.doc(db, 'banco_movs', llave.id), sl = await tx.get(rl);
       if (!sl.exists() || sl.data().canje !== 'pendiente') throw new Error('esa llave ya no está disponible');
+      // ojo: con saldo 0 se retiene 0, y el movimiento debe llevar 0 (no −0: Firestore lo guardaría como decimal y las reglas lo rechazan)
       const c = sc.data(), ret = Math.min(c.saldo || 0, COFRES.retenerMax[f.tipo] || COFRES.retenerMax.comun), saldo = (c.saldo || 0) - ret, ops = (c.ops || 0) + 1;
       tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
       tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), Object.assign(datosMov(c, ops, saldo), {
-        monto: -ret, motivo: (COFRES.nombre[f.tipo] || 'Cofre') + ': retenido mientras se abre (' + llave.item.toLowerCase() + ')', tipo: 'cofre-abrir', llave: llave.id }));
+        monto: ret ? -ret : 0, motivo: (COFRES.nombre[f.tipo] || 'Cofre') + ': retenido mientras se abre (' + llave.item.toLowerCase() + ')', tipo: 'cofre-abrir', llave: llave.id }));
       tx.update(rl, { canje: 'en-uso' });
-      tx.update(rf, { estado: 'abriendo', tFecha: F.serverTimestamp(), retenido: ret, llave: llave.id });
+      tx.update(rf, { estado: 'abriendo', tFecha: F.serverTimestamp(), retenido: ret, llave: llave.id, llaveItem: sl.data().item });
     });
     // PASO 2 · resolver con la hora que anotó el servidor
     const res = await F.runTransaction(db, async tx => {
@@ -1177,8 +1194,10 @@ async function abrirCofre(id) {
       const h = await sha256hex(COFRES.sal + '|' + id + '|' + Math.floor(f.tFecha.toMillis()));
       const tipoK = (COFRES.tabla[f.tipo] || COFRES.tabla.comun)[parseInt(h[0], 16)][0];
       // ¿Se rompió la llave? (6º carácter del hash)
-      const rl = f.llave ? F.doc(db, 'banco_movs', f.llave) : null, sl = rl ? await tx.get(rl) : null;
-      const itemL = sl && sl.exists() ? sl.data().item : '', rota = !!rl && parseInt(h[5], 16) < ((COFRES.llaves[itemL] || {}).rompe || 0);
+      const rl = f.llave ? F.doc(db, 'banco_movs', f.llave) : null;
+      // el cofre anota qué llave se usó (llaveItem); los abiertos antes de este cambio la leen
+      const itemL = f.llaveItem || (rl ? ((await tx.get(rl)).data() || {}).item || '' : '');
+      const rota = !!rl && parseInt(h[5], 16) < ((COFRES.llaves[itemL] || {}).rompe || 0);
       if (rota) {
         const c = sc.data(), saldo = (c.saldo || 0) + (f.retenido || 0), ops = (c.ops || 0) + 1;
         tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
@@ -1202,12 +1221,16 @@ async function abrirCofre(id) {
       tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
       tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), mov);
       tx.update(rf, { estado: 'abierto', abiertoEn: F.serverTimestamp(), premio: (r.emoji + ' ' + r.texto).slice(0, 200) });
+      // 🌟 ¿Apareció el súper cofre? (≈1 en 105.000)
+      const superNuevo = COFRES.superSale(h) ? { cuenta: cuentaId, nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim().slice(0, 120), curso: String(c.curso || '').slice(0, 40),
+        tipo: 'super', estado: 'cerrado', motivo: '¡Apareció al abrir un cofre!', creado: F.serverTimestamp(), profe: '' } : null;
+      if (superNuevo) tx.set(F.doc(db, 'cofres', 's-' + id), superNuevo);
       if (gatoNuevo) {
         const nuevos = ids.concat([r.gatito]);
         tx.set(rg, { uid: usuario.uid, nombre: DF.nombreCorto(usuario.displayName, usuario.email).slice(0, 80), ids: nuevos,
           favorito: prev.favorito && nuevos.includes(prev.favorito) ? prev.favorito : r.gatito, actualizado: F.serverTimestamp() });
       }
-      return Object.assign(r, { saldo, tipo: f.tipo, idMov: 'op-' + cuentaId + '-' + ops });
+      return Object.assign(r, { saldo, tipo: f.tipo, idMov: 'op-' + cuentaId + '-' + ops, superNuevo: superNuevo ? Object.assign({ id: 's-' + id }, superNuevo, { creado: { toMillis: () => Date.now() } }) : null });
     });
     // Animación: un poco de suspenso y luego se abre (o sale el cofre dañado si es castigo).
     await new Promise(ok => setTimeout(ok, Math.max(0, 1400 - (Date.now() - t0))));
@@ -1238,15 +1261,60 @@ async function abrirCofre(id) {
     if (f) { misCofres = misCofres.filter(x => x !== f); cofresAbiertosSesion.unshift(Object.assign(f, { estado: 'abierto', premio: res.emoji + ' ' + res.texto })); }
     if (cuenta) cuenta.saldo = res.saldo;
     if (res.tema) { disert.push({ id: res.idMov, tema: res.tema, tipo: 'cofre' }); pintarDisertaciones(); }
+    if (res.superNuevo) {
+      misCofres.push(res.superNuevo); confeti(260);
+      $('cfTit').textContent = '🌟 ¡¡SÚPER COFRE!!';
+      $('cfTxt').innerHTML += '<br><b>Además apareció un súper cofre</b> (1 en ~105.000): ábrelo y elige gratis cualquier cosa de la Tienda.';
+    }
     cofresPintar(); pintar();
   } catch (e) {
     img.className = ''; $('cfTit').textContent = 'No se pudo abrir';
-    $('cfTxt').textContent = (e.message || String(e)) + '. Si algo quedó retenido, vuelve a entrar: el cofre se termina de abrir solo.';
+    $('cfTxt').textContent = (/permission|insufficient/i.test(e.message || '') ? 'El banco rechazó la operación (si recién hubo cambios, el profe debe publicar las reglas nuevas)' : (e.message || String(e)))
+      + '. Si algo quedó retenido, vuelve a entrar: el cofre se termina de abrir solo; si sigue trabado, el profe puede destrabarlo.';
+    cofresUlt = ''; cofreAbriendo = false; cofresCargar();
   }
   $('cfOk').hidden = false; $('cfOk').focus();
   cofreAbriendo = false;
 }
 
+// 🌟 Súper cofre: se abre de una vez, sin llave ni retención, y deja el «Súper cupón» por usar.
+async function abrirSuperCofre(id) {
+  if (cofreAbriendo || !cuentaId) return;
+  cofreAbriendo = true;
+  const img = $('cfImg'), rayos = $('cfRayos');
+  $('cfVelo').hidden = false; $('cfOk').hidden = true; rayos.className = 'cf-rayos';
+  $('cfTit').textContent = 'Abriendo el súper cofre…'; $('cfTxt').textContent = '';
+  img.src = 'cofres/especial.webp'; img.className = 'agita super';
+  try {
+    const { F, db } = await DF.listo();
+    const rc = F.doc(db, 'banco_cuentas', cuentaId), rf = F.doc(db, 'cofres', id);
+    const saldo = await F.runTransaction(db, async tx => {
+      const [sc, sf] = await Promise.all([tx.get(rc), tx.get(rf)]);
+      const f = sf.exists() ? sf.data() : null;
+      if (!f || f.tipo !== 'super' || f.estado !== 'cerrado') throw new Error('ese súper cofre ya no está disponible');
+      const c = sc.data(), ops = (c.ops || 0) + 1, saldo = c.saldo || 0;
+      tx.update(rc, { saldo, ops, actualizado: F.serverTimestamp() });
+      tx.set(F.doc(db, 'banco_movs', 'op-' + cuentaId + '-' + ops), { cuenta: cuentaId, numero: String(c.numero || ''), nombre: ((c.nombre || '') + ' ' + (c.apellido || '')).trim(), curso: c.curso || '',
+        monto: 0, motivo: '🌟 Súper cofre: cualquier cosa de la Tienda gratis', tipo: 'cofre-super', saldoDespues: saldo, profe: '', fecha: F.serverTimestamp(),
+        cofre: id, item: COFRES.superCupon, canje: 'pendiente' });
+      tx.update(rf, { estado: 'abierto', abiertoEn: F.serverTimestamp(), premio: '🌟 Súper cupón: cualquier cosa de la Tienda gratis' });
+      return saldo;
+    });
+    await new Promise(ok => setTimeout(ok, reducido ? 200 : 1600));
+    img.className = 'super'; rayos.className = 'cf-rayos on'; confeti(300);
+    if (sonido) [523, 659, 784, 1047, 1319].forEach((f, i) => beep(f, .18, 'triangle', .12, i * .1));
+    $('cfTit').textContent = '🌟 ¡Súper cupón!';
+    $('cfTxt').innerHTML = 'Elige <b>cualquier cosa de la Tienda gratis</b>: en el <a href="gatitos.html#tienda">Mercado → Tienda</a> aparece el botón «🌟 Gratis con súper cupón».<br><small>Saldo: ' + fmt(saldo) + '</small>';
+    misCofres = misCofres.filter(x => x.id !== id);
+    cofresAbiertosSesion.unshift({ id, tipo: 'super', estado: 'abierto', premio: '🌟 Súper cupón: cualquier cosa de la Tienda gratis' });
+    cofresPintar();
+  } catch (e) {
+    img.className = ''; $('cfTit').textContent = 'No se pudo abrir';
+    $('cfTxt').textContent = e.message || String(e);
+  }
+  $('cfOk').hidden = false; $('cfOk').focus();
+  cofreAbriendo = false;
+}
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-cofre]'); if (b) { abrirCofre(b.dataset.cofre); return; }
   const bc = e.target.closest('[data-cfcomprar]'); if (bc && !bc.disabled) { comprarCofre(bc.dataset.cfcomprar); return; }
