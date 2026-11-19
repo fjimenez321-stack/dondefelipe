@@ -15,15 +15,19 @@
 
   const MANIFIESTO = {
     meteoroide:   { glb: 'assets/meteoroide_rocoso.glb' },   // asset real (paquete del desarrollador)
-    nave:         { glb: null },                              // esquema básico por ahora
+    nave:         { glb: 'assets/nave/nave_base.glb',          // casco real (con empties de anclaje: slot_*, punto_*)
+                    flat: true, material: { roughness: 0.45, metalness: 0.4 } },
     combustible:  { glb: 'assets/barril_combustible.glb',     // barril de combustible (asset real)
                     zArriba: true,                            // este GLB trae el eje del barril en Z: se endereza a Y
                     escala: 2.6,                              // ~4,2 u de alto (el esquema anterior medía 1,9)
                     flat: true, material: { roughness: 0.55, metalness: 0.35 },
                     aura: 'rgba(255,150,40,0.8)' },
     herramientas: { glb: null },                              // kit de herramientas (esquema)
-    propulsor:    { glb: null },                              // módulo de la nave (esquema)
-    tanque:       { glb: null }                               // módulo de la nave (esquema)
+    propulsor:    { glb: 'assets/nave/propulsor.glb',          // módulo real (anclaje_montaje, punto_fuego)
+                    flat: true, material: { roughness: 0.35, metalness: 0.7 } },
+    tanque:       { glb: 'assets/nave/tanque.glb',              // módulo real (anclaje_montaje, punto_carga)
+                    flat: true, material: { roughness: 0.45, metalness: 0.5 } }
+    /* tanque_grande.glb ya está en assets/nave/; falta decidir si es un módulo aparte */
   };
 
   /* Dónde se montan los módulos en la nave (coordenadas locales de la nave, frente = −Z). */
@@ -31,6 +35,12 @@
     propulsor: [[-0.9, 0.0, 1.25], [0.9, 0.0, 1.25], [-1.75, 0.0, 1.5], [1.75, 0.0, 1.5]],
     tanque:    [[-0.65, -0.62, 0.3], [0.65, -0.62, 0.3], [-2.6, -0.45, 0.9], [2.6, -0.45, 0.9]]
   };
+
+  /* Con el casco real, los módulos se montan en los empties del propio GLB (nave_base.glb):
+     un propulsor/tanque se coloca de modo que su 'anclaje_montaje' coincida con el slot.
+     Con 1, 2, 3 o 4 propulsores la distribución es simétrica. */
+  const SLOTS_PROPULSOR = { 1: ['centro'], 2: ['2', '3'], 3: ['1', 'centro', '4'], 4: ['1', '2', '3', '4'] };
+  const ESCALA_NAVE = 1.3;
 
   const modelos = {};
 
@@ -145,7 +155,13 @@
     const def = MANIFIESTO[nombre];
     const usarEsquema = (why) => { if (why) console.info('[assets] ' + nombre + ': uso el esquema básico (' + why + ')'); modelos[nombre] = { crear: ESQUEMAS[nombre], real: false }; cb(); };
     if (!def.glb || !THREE.GLTFLoader) return usarEsquema(def.glb ? 'sin GLTFLoader' : null);
-    const ok = (gltf) => { const base = prepararGLB(gltf.scene, def); modelos[nombre] = { crear: () => base.clone(true), real: true }; cb(); };
+    const ok = (gltf) => {
+      const base = prepararGLB(gltf.scene, def);
+      /* anclajes: empties del GLB (posición en el espacio del modelo) */
+      const anclas = {}; base.updateMatrixWorld(true);
+      base.traverse(o => { if (!o.isMesh && /^(slot_|punto_|anclaje_)/.test(o.name || '')) anclas[o.name] = o.getWorldPosition(new THREE.Vector3()); });
+      modelos[nombre] = { crear: () => base.clone(true), real: true, anclas }; cb();
+    };
     const loader = new THREE.GLTFLoader();
     loader.load(def.glb, ok, undefined, () => {
       /* sin servidor (file://) la descarga falla: se usa la copia incrustada en assets_embed.js */
@@ -164,9 +180,28 @@
   /* nave + módulos equipados (equipo = { propulsor: n, tanque: n }) */
   function crearNave(equipo) {
     const g = crear('nave'), e = (OC3.Nave ? OC3.Nave.normalizar(equipo) : equipo) || {};
-    for (const id in RANURAS) for (let i = 0; i < Math.min(e[id] || 0, RANURAS[id].length); i++) {
-      const m = crear(id); m.position.set(RANURAS[id][i][0], RANURAS[id][i][1], RANURAS[id][i][2]); m.name = id + i; g.add(m);
+    const A = modelos.nave.anclas || {}, llamas = [];
+    const montar = (id, i, slot) => {
+      const m = crear(id), anc = modelos[id].anclas && modelos[id].anclas.anclaje_montaje;
+      if (slot) m.position.copy(slot).sub(anc || new THREE.Vector3());   // anclaje del módulo = slot del casco
+      m.name = id + i; g.add(m); return m;
+    };
+    if (modelos.nave.real && modelos.propulsor.real && modelos.tanque.real) {
+      const np = Math.min(e.propulsor || 0, 4), nt = Math.min(e.tanque || 0, 4);
+      (SLOTS_PROPULSOR[np] || []).forEach((k, i) => {
+        const m = montar('propulsor', i, A['slot_propulsor_' + k]), pf = modelos.propulsor.anclas.punto_fuego;
+        if (pf) { const f = glow('rgba(255,150,60,0.95)', 1.3, 0.85); f.position.copy(pf); f.name = 'llama'; m.add(f); llamas.push(f); }
+      });
+      for (let i = 0; i < nt; i++) montar('tanque', i, A['slot_tanque_' + (i + 1)]);
+      const pm = A.punto_motor_central;                                     // fuego del motor principal
+      const f = glow('rgba(80,200,255,0.9)', 1.7, 0.8); f.name = 'motor'; if (pm) f.position.copy(pm); g.add(f);
+      g.scale.setScalar(ESCALA_NAVE);
+    } else {
+      for (const id in RANURAS) for (let i = 0; i < Math.min(e[id] || 0, RANURAS[id].length); i++) {
+        const m = crear(id); m.position.set(RANURAS[id][i][0], RANURAS[id][i][1], RANURAS[id][i][2]); m.name = id + i; g.add(m);
+      }
     }
+    g.userData.llamas = llamas;
     const motor = g.getObjectByName('motor'); if (motor) motor.userData.base = 1 + 0.15 * (e.propulsor || 0);
     return g;
   }

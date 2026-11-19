@@ -1,0 +1,156 @@
+{
+  "units": "meters",
+  "axes": {
+    "up": "Y",
+    "forward": "-Z",
+    "rear": " +Z",
+    "right": "X"
+  },
+  "empty_defaults": {
+    "scale": [
+      1,
+      1,
+      1
+    ],
+    "rotation_deg": [
+      0,
+      0,
+      0
+    ]
+  },
+  "anchors": {
+    "nave_base": {
+      "slot_propulsor_1": [
+        -2.0,
+        -0.16,
+        2.45
+      ],
+      "slot_propulsor_2": [
+        -1.0,
+        -0.16,
+        2.45
+      ],
+      "slot_propulsor_3": [
+        1.0,
+        -0.16,
+        2.45
+      ],
+      "slot_propulsor_4": [
+        2.0,
+        -0.16,
+        2.45
+      ],
+      "slot_propulsor_centro": [
+        0,
+        -0.16,
+        2.45
+      ],
+      "slot_tanque_1": [
+        -2.35,
+        -0.18,
+        0.25
+      ],
+      "slot_tanque_2": [
+        2.35,
+        -0.18,
+        0.25
+      ],
+      "slot_tanque_3": [
+        -2.85,
+        -0.18,
+        1.15
+      ],
+      "slot_tanque_4": [
+        2.85,
+        -0.18,
+        1.15
+      ],
+      "punto_laser_izq": [
+        -0.9,
+        -0.1,
+        -2.6
+      ],
+      "punto_laser_der": [
+        0.9,
+        -0.1,
+        -2.6
+      ],
+      "punto_laser_centro": [
+        0,
+        0,
+        -2.8
+      ],
+      "punto_motor_central": [
+        0,
+        0,
+        2.8
+      ],
+      "punto_camara": [
+        0,
+        2.4,
+        7.5
+      ],
+      "punto_centro_masa": [
+        0,
+        0,
+        0
+      ],
+      "slot_escudo_1": [
+        0,
+        0.7,
+        -0.6
+      ],
+      "slot_arma_1": [
+        -1.3,
+        -0.25,
+        -1.4
+      ],
+      "slot_arma_2": [
+        1.3,
+        -0.25,
+        -1.4
+      ],
+      "slot_dorso_1": [
+        0,
+        0.55,
+        1.1
+      ]
+    },
+    "propulsor": {
+      "anclaje_montaje": [
+        0,
+        0,
+        -0.75
+      ],
+      "punto_fuego": [
+        0,
+        0,
+        0.85
+      ]
+    },
+    "tanque": {
+      "anclaje_montaje": [
+        0,
+        0.35,
+        0
+      ],
+      "punto_carga": [
+        0,
+        0,
+        -1.15
+      ]
+    },
+    "tanque_grande": {
+      "anclaje_montaje": [
+        0,
+        0.5,
+        0
+      ],
+      "punto_carga": [
+        0,
+        0,
+        -1.6
+      ]
+    }
+  }
+}

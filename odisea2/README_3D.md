@@ -16,7 +16,8 @@ Probar otro planeta: `index.html?planeta=venus` (o desde el menú). Solo **Mercu
 
 - `meteoroide` → **asset real** `assets/meteoroide_rocoso.glb` (el del paquete; se le calculan normales al cargarlo porque el GLB trae solo posición y color).
 - `combustible` → **asset real** `assets/barril_combustible.glb` (barril azul con franja amarilla; se endereza de Z a Y, se centra y se escala ×2,6 desde el manifiesto).
-- `nave` y `herramientas` (caja roja con cruz) → **esquemas básicos** hechos con formas simples.
+- `nave`, `propulsor` y `tanque` → **assets reales** en `assets/nave/` (casco con empties de anclaje `slot_*` y `punto_*`, y cada módulo con su `anclaje_montaje`). El juego monta cada módulo haciendo coincidir su anclaje con el slot del casco; propulsores simétricos con 1 (centro), 2 (interior), 3 (exterior+centro) o 4. `tanque_grande.glb` está en la carpeta pero aún no se usa. `anclajes.json` documenta todas las coordenadas.
+- `herramientas` (caja roja con cruz) → **esquema básico** hecho con formas simples.
 - Para reemplazar un esquema: copia tu `.glb` a `assets/` y escribe su ruta en `MANIFIESTO`. Convención: origen centrado, ~2 u de diámetro, el frente de la nave mira a −Z.
 - Para abrir sin servidor, `tools/embed_assets.py` guarda una copia base64 en `js/assets_embed.js`. Vuelve a ejecutarlo si cambias el GLB del meteoroide.
 
