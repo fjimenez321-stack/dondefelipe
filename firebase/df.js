@@ -386,8 +386,8 @@
      su inicio de partida (partidas/<uid>__<juego>) apenas hay sesión. Si alguien entra con
      su cuenta recién al final, el puntaje se guarda tras esperar el tiempo que falte.
      Mantener RITMOS igual que reglaJuego() en las reglas. */
-  var RITMOS = { 'odisea': 4000, 'operacion-barrera': 2500, 'segunda-barrera': 2500, 'ruta-paes': 600, 'energia-pista': 300, 'ludo-chileno': 600 };
-  var JUEGO_PAGINA = [[/\/odisea\//, 'odisea'], [/operacionbarrera\.html/, 'operacion-barrera'], [/segundabarrera\.html/, 'segunda-barrera'],
+  var RITMOS = { 'odisea': 4000, 'odisea2': 1500, 'operacion-barrera': 2500, 'segunda-barrera': 2500, 'ruta-paes': 600, 'energia-pista': 300, 'ludo-chileno': 600 };
+  var JUEGO_PAGINA = [[/\/odisea\//, 'odisea'], [/\/odisea2\//, 'odisea2'], [/operacionbarrera\.html/, 'operacion-barrera'], [/segundabarrera\.html/, 'segunda-barrera'],
                       [/ruta-paes/, 'ruta-paes'], [/pista-energia/, 'energia-pista'], [/ludo-chileno/, 'ludo-chileno']];
   var partidas = {};   // juego → { t: hora local del inicio, p: promesa de la escritura }
   function iniciarPartida(juego) {
