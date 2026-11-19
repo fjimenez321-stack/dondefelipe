@@ -54,14 +54,14 @@
       planetaId, planeta: P, gJuego: gJ,
       t: 0, estado: 'jugando', puntos: 0, dist: 0,
       ents: [], eventos: [], _id: 1,
-      stats: { destruidos: 0, golpes: 0, bonus: 0, golpesJefe: 0 },
+      stats: { destruidos: 0, golpes: 0, bonus: 0, golpesJefe: 0, monedas: 0, monedasLanzadas: 0 }, dinero: 0, dineroJefe: 0,
       jefe: null, msg: { texto: '', t: 0 }, equipo: OC3.Nave.normalizar(opt.equipo),
       nave: {
         tipo: 'nave', pos: { x: 0, y: 40, z: 0 }, vel: { x: 0, y: 0, z: -N.vCrucero },
         vf: N.vCrucero, radio: N.radio, escudo: N.escudoMax, combustible: N.combustibleMax, combMax: N.combustibleMax,
         cd: 0, lado: 1, inv: 0, impacto: 0
       },
-      _tMeteoro: 2.0, _tBonus: 6.0, _ultimoBonus: ''
+      _tMeteoro: 2.0, _tBonus: 6.0, _dMoneda: 250, _ultimoBonus: ''
     };
 
     const ev = (t, o) => { o.t = t; s.eventos.push(o); };
@@ -92,6 +92,7 @@
       },
       'nave|rayo': (n, r) => { dañarNave(C.jefe.dañoRayo, r.pos); r.hp = 0; explotar(r, 2, 'nave'); },
       'combustible|nave': (b, n) => { b.hp = 0; n.combustible = Math.min(N.combustibleMax, n.combustible + C.bonus.combustible); s.stats.bonus++; ev('bonus', { tipo: 'combustible', pos: b.pos }); },
+      'moneda|nave': (m, n) => { m.hp = 0; s.dinero += C.economia.monedaValor; s.stats.monedas++; ev('bonus', { tipo: 'moneda', pos: m.pos }); },
       'herramientas|nave': (b, n) => { b.hp = 0; n.escudo = Math.min(N.escudoMax, n.escudo + C.bonus.herramientas); s.stats.bonus++; ev('bonus', { tipo: 'herramientas', pos: b.pos }); }
     };
     const clave = (a, b) => [a.tipo, b.tipo].sort().join('|');
@@ -141,6 +142,17 @@
         rot: { x: 0, y: 0, z: 0 }, spin: { x: 0, y: 1.2, z: 0 } });
       return C.bonus.intervalo[0] + R() * (C.bonus.intervalo[1] - C.bonus.intervalo[0]);
     }
+    /* grupo de monedas en línea (se lanza por DISTANCIA recorrida); la nave las recoge al cruzarlas */
+    function lanzarMonedas() {
+      const E = C.economia, n = s.nave, x = (R() - 0.5) * 56, y0 = 12 + R() * 50;
+      for (let i = 0; i < E.monedasPorGrupo; i++) {
+        alta({ tipo: 'moneda', colision: 'bonus', radio: 2.4, y0, fase: R() * 6.28,
+          pos: { x, y: y0, z: n.pos.z - C.mundo.aparece - i * E.separacion }, vel: { x: 0, y: 0, z: 0 },
+          rot: { x: 0, y: 0, z: 0 }, spin: { x: 0, y: 3, z: 0 } });
+        s.stats.monedasLanzadas++;
+      }
+      return E.cadaDist * (0.8 + R() * 0.4);
+    }
     function disparar() {
       const n = s.nave, F = N.fuego;
       n.lado = -n.lado;
@@ -165,7 +177,7 @@
     }
     function derrotarJefe() {
       const j = s.jefe; j.muerto = true; j.vulnerable = false; j.fase = 'muerto';
-      s.puntos += J.puntos; s.estado = 'completo';
+      s.puntos += J.puntos; s.estado = 'completo'; s.dineroJefe = C.economia.recompensaJefe; s.dinero += s.dineroJefe;
       for (let i = 0; i < 4; i++) ev('explosion', { pos: { x: j.pos.x + (R() - 0.5) * 14, y: j.pos.y + (R() - 0.5) * 8, z: j.pos.z }, tam: 9, color: 'nave' });
       s.msg = { texto: '¡Profesor Alex derrotado!', t: 4 };
       ev('fin', { ok: true });
@@ -243,6 +255,7 @@
       /* los meteoroides aparecen por DISTANCIA recorrida (no por tiempo): ir más rápido no hace el tramo más fácil */
       s._tMeteoro -= dt * (n.vf / C.nave.vCrucero); if (s._tMeteoro <= 0) s._tMeteoro = lanzarMeteoro();
       s._tBonus -= dt; if (s._tBonus <= 0) s._tBonus = lanzarBonus();
+      if (!s.jefe && s.dist < C.mundo.distanciaNivel) { s._dMoneda -= vf * dt; if (s._dMoneda <= 0) s._dMoneda = lanzarMonedas(); }
 
       /* --- objetos: gravedad y atmósfera (menos lasers y bonus) --- */
       for (const e of s.ents) {
@@ -250,7 +263,7 @@
           const ke = A.coefArrastre(s.planeta, e.pos.y);
           e.vel.y -= gJ * dt;
           e.vel.x = A.frenar(e.vel.x, ke, dt); e.vel.y = A.frenar(e.vel.y, ke, dt); e.vel.z = A.frenar(e.vel.z, ke, dt);
-        } else if (e.tipo === 'combustible' || e.tipo === 'herramientas') {
+        } else if (e.tipo === 'combustible' || e.tipo === 'herramientas' || e.tipo === 'moneda') {
           e.pos.y = e.y0 + Math.sin(s.t * 1.6 + e.fase) * 1.2;
         } else if (e.tipo === 'laser' || e.tipo === 'rayo') { e.vida -= dt; if (e.vida <= 0) e.hp = 0; }
       }
@@ -311,7 +324,7 @@
         planeta: P.nombre, g: P.g, tipoAtm: P.atm.tipo, composicion: P.atm.composicion, presion: P.atm.presion,
         altKm: A.altitudKm(n.pos.y), densidad: A.densidad(P, n.pos.y), razon: A.razon(P, n.pos.y),
         velocidad: n.vf * C.escala.mPorUnidad / 1000 * 3600 / 1000, // «km/s» de juego
-        progreso: clamp(s.dist / C.mundo.distanciaNivel, 0, 1), factores: N.factores,
+        progreso: clamp(s.dist / C.mundo.distanciaNivel, 0, 1), factores: N.factores, dinero: s.dinero,
         jefe: s.jefe ? { nombre: s.jefe.nombre, hp: s.jefe.hp, hpMax: s.jefe.hpMax, fase: s.jefe.fase, vulnerable: s.jefe.vulnerable, frase: s.jefe.frase, muerto: s.jefe.muerto } : null
       };
     }

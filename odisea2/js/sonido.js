@@ -24,6 +24,7 @@
       else if (e.t === 'habla') { tono(330, 330, 0.18, 'triangle', 0.09); setTimeout(() => tono(392, 392, 0.18, 'triangle', 0.09), 160); setTimeout(() => tono(494, 440, 0.3, 'triangle', 0.09), 330); }
       else if (e.t === 'jefe') { tono(220, 330, 0.5, 'sawtooth', 0.07); }
       else if (e.t === 'daño') tono(160, 50, 0.3, 'sawtooth', 0.12);
+      else if (e.t === 'bonus' && e.tipo === 'moneda') { tono(1100, 1500, 0.07, 'square', 0.05); setTimeout(() => tono(1500, 1900, 0.1, 'square', 0.05), 60); }
       else if (e.t === 'bonus') { tono(520, 780, 0.12, 'triangle', 0.1); setTimeout(() => tono(780, 1100, 0.14, 'triangle', 0.1), 90); }
     }
   };

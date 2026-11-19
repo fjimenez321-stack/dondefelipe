@@ -44,6 +44,11 @@ En el **Hangar** (botón en el menú de inicio) se equipan módulos; se guardan 
 - Los meteoroides aparecen por **distancia**, no por tiempo, así que ir más rápido no facilita el tramo.
 - Agregar un módulo: una entrada en `C.modulos` (+ su forma en `assets.js` y su ranura en `RANURAS`). Las estadísticas disponibles son `potencia`, `velocidad`, `consumo` y `capacidad`; una nueva (p. ej. escudo) se declara en `ESTAT` y se lee en `sim.js`.
 
+## Economía y menú previo a la misión (`C.economia` en `config.js`)
+Antes de **cada** misión aparece «Preparar misión»: ahí se instalan módulos, y **cada instalación cuesta $10.000**. El dinero (billetera, guardada en el navegador) se gana recogiendo **monedas** ($200 c/u, en grupos de 4 cada ~560 u de tramo) y derrotando a Alex (+$3.000). Si destruyen la nave te quedas con el 50 % de lo recogido. Quitar un módulo que instalaste en ese menú devuelve el dinero; quitar uno de antes no.
+- **Equilibrio:** lo máximo posible por misión (monedas + Alex) ≈ 1,5 × el costo de instalar un módulo; un jugador bueno instala ~1 módulo por misión y equipar los 8 toma varias. Una prueba (`tests/sim.test.js`) falla si cambias un número y se rompe ese rango (`topeMaxMision`).
+- Para probar: `?dinero=50000` fija la billetera.
+
 ## Jefe: Profesor Alex (`js/sim.js`, config en `C.jefe`)
 Al terminar el tramo aparece Alex. **Respira** → vulnerable (aura verde). **Toma aire** → aviso. **Habla** → invulnerable (los rayos rebotan) y lanza rayos de notas; con la mitad de vida lanza tres a la vez y con poca vida acelera. Las frases están en `C.jefe.frases` (las 3 primeras salen en orden, el resto al azar). Sus sprites van incrustados en `js/assets_embed.js` (`tools/embed_assets.py`).
 
