@@ -27,6 +27,7 @@ Probar otro planeta: `index.html?planeta=venus` (o desde el menú). Solo **Mercu
 | `js/config.js` | Todos los números ajustables (velocidad, daños, frecuencia, bonus…) |
 | `js/planets.js` | g y atmósfera de los 8 planetas |
 | `js/atmosfera.js` | Instrucciones de atmósfera |
+| `js/nave.js` | Módulos de la nave y sus estadísticas |
 | `js/sim.js` | Física, reglas, aparición de objetos |
 | `js/assets.js` | Registro de assets y esquemas |
 | `js/view.js` | Dibujo (three.js r147 local en `vendor/`), cámara, partículas |
@@ -35,4 +36,18 @@ Probar otro planeta: `index.html?planeta=venus` (o desde el menú). Solo **Mercu
 ## Controles
 Flechas / WASD mover · Espacio disparar · P pausa · M sonido · Táctil: arrastrar a la izquierda + botón FUEGO.
 
-## 
+## Nave modular (`js/nave.js`, datos en `C.modulos` de `config.js`)
+En el **Hangar** (botón en el menú de inicio) se equipan módulos; se guardan en el navegador. Cada módulo multiplica estadísticas y, con N unidades, el factor se aplica N veces (compuesto).
+- **Propulsor** (hasta 4): potencia del motor ×1,2 (velocidad de crucero y empuje de los mandos) · consumo de combustible ×1,1.
+- **Tanque auxiliar** (hasta 4): capacidad de combustible ×1,25 · velocidad ×0,93 (valores propuestos: ajústalos en `config.js`).
+- Los meteoroides aparecen por **distancia**, no por tiempo, así que ir más rápido no facilita el tramo.
+- Agregar un módulo: una entrada en `C.modulos` (+ su forma en `assets.js` y su ranura en `RANURAS`). Las estadísticas disponibles son `potencia`, `velocidad`, `consumo` y `capacidad`; una nueva (p. ej. escudo) se declara en `ESTAT` y se lee en `sim.js`.
+
+## Jefe: Profesor Alex (`js/sim.js`, config en `C.jefe`)
+Al terminar el tramo aparece Alex. **Respira** → vulnerable (aura verde). **Toma aire** → aviso. **Habla** → invulnerable (los rayos rebotan) y lanza rayos de notas; con la mitad de vida lanza tres a la vez y con poca vida acelera. Las frases están en `C.jefe.frases` (las 3 primeras salen en orden, el resto al azar). Sus sprites van incrustados en `js/assets_embed.js` (`tools/embed_assets.py`).
+
+## Ranking
+Al terminar, envía el puntaje con `DF.ofrecer({juego:'odisea2'})` (solo en Mercurio). Requiere que `reglaJuego` de `firebase/firestore.rules` incluya `odisea2`.
+
+## Pendiente
+Rayo especial y minas del juego 2D, naves enemigas, preguntas, resto de planetas jugables, assets definitivos (nave, herramientas, módulos).
