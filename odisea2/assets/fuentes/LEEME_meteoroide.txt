@@ -1,0 +1,22 @@
+METEOROIDE ROCOSO — PAQUETE PARA DESARROLLO
+
+Archivos:
+- meteoroide_roca.glb: formato recomendado para importar en Godot, Unity o Unreal.
+- meteoroide_rocoso.obj: alternativa de compatibilidad; puede requerir reasignar material.
+- crear_meteoroide.py: generador procedural editable (requiere Python, numpy y trimesh).
+
+Especificación:
+- Malla triangular irregular, aprox. 5.120 caras.
+- Pivot/origen centrado en el objeto.
+- Escala normalizada: diámetro aproximado de 2 unidades.
+- Colores de vértice en tonos basalto y minerales cálidos; no incluye mapas UV/PBR separados.
+- Sin animación ni luces horneadas: rotación, escala e iluminación quedan a cargo del motor del juego.
+
+Uso recomendado:
+1. Importar el GLB al motor.
+2. Crear múltiples instancias del mismo recurso.
+3. Asignar rotaciones aleatorias en X/Y/Z y escalas distintas por instancia.
+4. Usar LOD del motor o versiones simplificadas si habrá muchos asteroides simultáneos.
+5. Configurar material con roughness alto (0,85–1,0) y metallic bajo (0–0,1).
+
+Nota: el modelo es una reconstrucción procedural inspirada en la referencia visual, no una conversión pixel a pixel de la imagen.
