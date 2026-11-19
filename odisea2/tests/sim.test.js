@@ -130,4 +130,34 @@ t('Bot derrota al Profesor Alex y completa el nivel (jugable)', () => {
   console.log('   estado:', s.estado, '· tiempo', s.t.toFixed(0), 's · puntos', Math.round(s.puntos), '· escudo', Math.round(s.nave.escudo), '· comb', Math.round(s.nave.combustible), s.stats, '· jefe hp', s.jefe && s.jefe.hp);
   assert(Number.isFinite(s.puntos)); assert(s.estado === 'completo' || s.estado === 'destruida');
 });
+t('Economía: una moneda recogida suma su valor; el jefe da su recompensa', () => {
+  const E = OC3.Config.economia, s = OC3.Sim.crear({ planeta: 'mercurio' }); s._tMeteoro = 999; s._tBonus = 999; s._dMoneda = 1e9; const n = s.nave; n.pos.y = 40;
+  s.ents.push({ id: 1, tipo: 'moneda', colision: 'bonus', radio: 2.4, y0: 40, fase: 0, hp: 1, pos: { x: n.pos.x, y: 40, z: n.pos.z - 6 }, vel: { x: 0, y: 0, z: 0 }, rot: { x: 0, y: 0, z: 0 }, spin: { x: 0, y: 3, z: 0 } });
+  for (let i = 0; i < 20; i++) s.paso(1 / 30, {});
+  assert(s.dinero === E.monedaValor && s.stats.monedas === 1, 'dinero ' + s.dinero);
+  const m = OC3.Sim.crear({ planeta: 'mercurio' }); m._tMeteoro = 999; m._tBonus = 999; m.nave.pos.z = -8001; m.nave.pos.y = 40; m.dist = 8001; m.paso(1 / 60, {}); m.jefe.fase = 'respira'; m.jefe.tDisparo = 99; for (let i = 0; i < 3; i++) m.paso(1 / 60, {}); m.jefe.fase = 'respira'; m.jefe.t = 0; m.jefe.vulnerable = true; m.jefe.hp = 0.5; m.jefe.tDisparo = 99;
+  m.ents.push({ id: 9, tipo: 'laser', colision: 'destruye', radio: 0.55, daño: 1, hp: 1, vida: 3, pos: { x: m.jefe.pos.x, y: m.jefe.pos.y, z: m.jefe.pos.z + 6 }, vel: { x: 0, y: 0, z: -300 }, rot: { x: 0, y: 0, z: 0 }, spin: { x: 0, y: 0, z: 0 } });
+  m.paso(1 / 60, {}); assert(m.estado === 'completo' && m.dinero === E.recompensaJefe, 'recompensa ' + m.dinero);
+});
+t('Economía: instalar cuesta lo fijado, sin dinero no se instala, y quitar devuelve solo lo instalado ahora', () => {
+  const E = OC3.Config.economia, N = OC3.Nave, ab = { propulsor: 1, tanque: 0 };
+  let r = N.cambiar({ propulsor: 1, tanque: 0 }, ab, E.costoInstalacion - 1, 'propulsor', 1); assert(!r.ok && r.motivo === 'sin dinero');
+  r = N.cambiar({ propulsor: 1, tanque: 0 }, ab, E.costoInstalacion, 'propulsor', 1); assert(r.ok && r.dinero === 0 && r.equipo.propulsor === 2);
+  r = N.cambiar(r.equipo, ab, r.dinero, 'propulsor', -1); assert(r.ok && r.dinero === E.costoInstalacion && r.equipo.propulsor === 1, 'devolución de lo instalado ahora');
+  r = N.cambiar(r.equipo, ab, r.dinero, 'propulsor', -1); assert(r.ok && r.dinero === E.costoInstalacion && r.equipo.propulsor === 0, 'lo instalado antes no se devuelve');
+  r = N.cambiar({ propulsor: 4, tanque: 0 }, { propulsor: 4 }, 1e9, 'propulsor', 1); assert(!r.ok && r.motivo === 'máximo');
+  assert(E.costoInstalacion === 10000);
+});
+t('Economía AJUSTADA: lo máximo que se gana en una misión ronda 1,2–1,8 veces el costo de instalar un módulo', () => {
+  const E = OC3.Config.economia; let lanzadas = 0, ganado = 0, comp = 0;
+  for (const semilla of [3, 5, 8]) {
+    const s = OC3.Sim.crear({ planeta: 'mercurio', semilla });
+    for (let i = 0; i < 60 * 300 && s.estado === 'jugando'; i++) { s.paso(1 / 60, bot(s, i)); s.nave.escudo = 100; s.nave.combustible = s.nave.combMax; }
+    lanzadas += s.stats.monedasLanzadas; ganado += s.dinero; comp += s.stats.monedas;
+    const tope = s.stats.monedasLanzadas * E.monedaValor + E.recompensaJefe, r = tope / E.costoInstalacion;
+    console.log('   semilla', semilla, '· monedas lanzadas', s.stats.monedasLanzadas, '· máximo $' + tope, '(×' + r.toFixed(2) + ') · el bot ganó $' + s.dinero, '· estado', s.estado);
+    assert(r >= E.topeMaxMision[0] && r <= E.topeMaxMision[1], 'desequilibrio: máximo ×' + r.toFixed(2) + ' del costo');
+  }
+  assert(Number.isFinite(ganado) && ganado > 0);
+});
 console.log('\n' + ok + ' pruebas OK');

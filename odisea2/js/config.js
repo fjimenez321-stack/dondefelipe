@@ -44,6 +44,20 @@
       radio: 3.0,
       combustible: 35, herramientas: 30
     },
+    /* ECONOMÍA. Todo el dinero sale de aquí; si cambias un número, el equilibrio se mantiene si respetas esta regla:
+       lo máximo que se puede ganar en una misión (monedas + Alex) debe rondar 1,5 veces el costo de instalar un módulo,
+       así que un jugador bueno instala ~1 módulo por misión y equipar los 8 lleva varias misiones.
+       Hay una prueba en tests/sim.test.js que falla si el equilibrio se rompe. */
+    economia: {
+      costoInstalacion: 10000,   // $ por cada módulo instalado
+      monedaValor: 200,          // $ por moneda
+      monedasPorGrupo: 4, separacion: 12,
+      cadaDist: 560,             // distancia media entre grupos de monedas (unidades; el tramo mide 8000)
+      recompensaJefe: 3000,      // $ al derrotar a Alex
+      derrota: 0.5,              // fracción de lo recogido que se conserva si destruyen la nave
+      dineroInicial: 0,
+      topeMaxMision: [1.2, 1.8]  // rango válido de (máximo posible / costo) — lo usa la prueba de equilibrio
+    },
     /* Jefe del tramo: el Profesor Alex. Respira → es vulnerable · Habla → lanza rayos y es invulnerable */
     jefe: {
       activo: true, nombre: 'Profesor Alex', hp: 30, radio: 11,

@@ -16,6 +16,10 @@
   #hud-izq small{color:#9aa6cc;display:block}
   #h-aviso{color:#ffcf5a;margin-top:4px}
   #hud-der{right:12px;top:12px;text-align:right}
+  #h-dinero{font-weight:800;color:#ffd24d}
+  .precio{font-size:12px;color:#ffd24d;font-weight:700}
+  .billetera{font-size:22px;font-weight:800;color:#ffd24d;margin:4px 0 6px}
+  .mc button:disabled{opacity:.35;cursor:not-allowed}
   #h-puntos{font-size:26px;font-weight:800;color:var(--cyan);line-height:1}
   #hud-der small{color:#9aa6cc;letter-spacing:2px;font-size:10px}
   #prog{position:absolute;left:50%;top:14px;transform:translateX(-50%);width:min(34vw,300px);height:8px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden;border:1px solid var(--line)}
@@ -80,7 +84,7 @@
     <div class="barra"><label>ESCUDO</label><i><b id="b-escudo"></b></i></div>
     <div class="barra"><label>COMBUSTIBLE</label><i><b id="b-comb"></b></i></div>
   </div>
-  <div class="caja" id="hud-tel">Altitud <span id="h-alt">—</span><br>Velocidad <span id="h-vel">—</span></div>
+  <div class="caja" id="hud-tel"><span id="h-dinero">$0</span> en monedas<br>Altitud <span id="h-alt">—</span><br>Velocidad <span id="h-vel">—</span></div>
 </div>
 <button id="btn-pausa" aria-label="Pausa">❚❚</button>
 <button id="btn-fuego">FUEGO</button>

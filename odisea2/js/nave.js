@@ -54,8 +54,30 @@
     return { vCrucero: d.vCrucero, accel: d.factores.potencia, consumo: d.consumoMult, capacidad: d.combustibleMax, autonomia: d.combustibleMax / base,
              km_s: d.vCrucero * C().escala.mPorUnidad / 1000 };
   }
+  /* ---------- ECONOMÍA: billetera e instalación (puro, sin DOM) ---------- */
+  const CLAVE_D = 'odisea2_dinero';
+  function dineroCargar() { try { const v = root.localStorage.getItem(CLAVE_D); return v == null ? C().economia.dineroInicial : Math.max(0, Math.round(Number(v) || 0)); } catch (e) { return C().economia.dineroInicial; } }
+  function dineroGuardar(v) { try { root.localStorage.setItem(CLAVE_D, String(Math.max(0, Math.round(v)))); } catch (e) {} }
+  /* +1 instala (cuesta costoInstalacion) · −1 quita. Quitar algo que instalaste en ESTE menú devuelve el dinero;
+     quitar algo ya instalado de antes no lo devuelve. Devuelve {ok, equipo, dinero, motivo}. */
+  function cambiar(equipo, abierto, dinero, id, delta) {
+    const M = C().modulos[id], costo = C().economia.costoInstalacion, e = normalizar(equipo), r = { ok: false, equipo: e, dinero, motivo: '' };
+    if (!M) { r.motivo = 'módulo desconocido'; return r; }
+    if (delta > 0) {
+      if (e[id] >= M.max) { r.motivo = 'máximo'; return r; }
+      if (dinero < costo) { r.motivo = 'sin dinero'; return r; }
+      e[id]++; r.dinero = dinero - costo;
+    } else {
+      if (e[id] <= 0) { r.motivo = 'ninguno'; return r; }
+      if (e[id] > ((abierto && abierto[id]) || 0)) r.dinero = dinero + costo;
+      e[id]--;
+    }
+    r.ok = true; return r;
+  }
+  /* lo que se lleva a la billetera al terminar la misión */
+  function ganancia(s, ok) { return Math.floor(s.dinero * (ok ? 1 : C().economia.derrota)); }
   function cargar() { try { return normalizar(JSON.parse(root.localStorage.getItem(CLAVE) || '{}')); } catch (e) { return normalizar({}); } }
   function guardar(eq) { try { root.localStorage.setItem(CLAVE, JSON.stringify(normalizar(eq))); } catch (e) {} }
 
-  OC3.Nave = { ESTAT, normalizar, factores, derivados, describir, resumen, cargar, guardar };
+  OC3.Nave = { dineroCargar, dineroGuardar, cambiar, ganancia, ESTAT, normalizar, factores, derivados, describir, resumen, cargar, guardar };
 })(typeof window !== 'undefined' ? window : globalThis);

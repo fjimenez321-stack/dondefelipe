@@ -8,7 +8,9 @@
   const PLANETA = OC3.Planetas[q.get('planeta')] ? q.get('planeta') : OC3.PlanetaInicial;
   const canvas = $('c3d');
   let sim = null, vista = null, pausado = true, ultimo = 0, enMarcha = false;
-  let equipo = OC3.Nave.cargar(), enHangar = false;
+  let equipo = OC3.Nave.cargar(), enHangar = false, dinero = OC3.Nave.dineroCargar();
+  if (q.get('dinero') != null) { dinero = Math.max(0, +q.get('dinero') || 0); OC3.Nave.dineroGuardar(dinero); }   // para probar: ?dinero=50000
+  const $$ = (n) => '$' + Math.round(n).toLocaleString('es-CL');
   const teclas = {}, tactil = { x: 0, y: 0, fuego: false };
   const cache = {};
 
@@ -54,7 +56,7 @@
     txt('h-atm', i.tipoAtm + ' · densidad ' + (i.razon >= 1 ? '×' + nf(i.razon, 1) + ' la de la Tierra' : pct(i.razon) + ' de la Tierra'));
     txt('h-alt', nf(i.altKm, 1) + ' km');
     txt('h-vel', nf(n.vf * 0.1, 1) + ' km/s');
-    txt('h-puntos', Math.round(sim.puntos).toLocaleString('es-CL'));
+    txt('h-puntos', Math.round(sim.puntos).toLocaleString('es-CL')); txt('h-dinero', $$(sim.dinero));
     ancho('b-escudo', n.escudo / N.escudoMax, true); ancho('b-comb', n.combustible / n.combMax, true);
     ancho('b-prog', i.progreso);
     /* jefe: barra de vida, estado, frase y mensajes */
@@ -93,41 +95,49 @@
       '<label class="sel">Planeta <select id="sel-planeta">' + opts + '</select></label>' +
       '<p class="ctl"><b>← ↑ ↓ →</b> / <b>WASD</b> mover · <b>Espacio</b> disparar · <b>P</b> pausa · <b>M</b> sonido<br>Táctil: arrastra a la izquierda para mover, botón <b>FUEGO</b> a la derecha.</p>' +
       '<p class="ctl">Al final del tramo te espera el <b style="color:#ffd24d">Profesor Alex</b>: cuando <b>respira</b> puedes dañarlo; cuando <b>habla</b> es invulnerable y lanza rayos.</p>' +
-      '<p class="ctl">Recoge <b style="color:#ffa53b">combustible</b> y <b style="color:#5dffa0">kits de herramientas</b> (reparan el escudo). Con la gravedad del planeta, soltar los mandos te hace caer.</p>',
-      [['Iniciar', comenzar], ['Hangar', pantallaHangar, 1]]);
+      '<p class="ctl">Recoge <b style="color:#ffd24d">monedas</b> para pagar el equipamiento de la próxima misión, <b style="color:#ffa53b">combustible</b> y <b style="color:#5dffa0">kits de herramientas</b> (reparan el escudo). Con la gravedad del planeta, soltar los mandos te hace caer.</p>',
+      [['Iniciar misión', reiniciar]]);
     $('p-cuerpo').parentNode.classList.remove('hangar'); enHangar = false; vista.vitrina = false;
     $('sel-planeta').onchange = (e) => { const u = new URL(location.href); u.searchParams.set('planeta', e.target.value); location.href = u.toString(); };
   }
-  /* ---------- hangar: equipar módulos de la nave ---------- */
-  function pantallaHangar() {
-    const M = OC3.Config.modulos, fmt = (v, d) => nf(v, d == null ? 1 : d);
+  /* ---------- menú previo a CADA misión: equipamiento (cada instalación cuesta C.economia.costoInstalacion) ---------- */
+  function pantallaEquipo() {
+    const M = OC3.Config.modulos, COSTO = OC3.Config.economia.costoInstalacion, fmt = (v, d) => nf(v, d == null ? 1 : d);
+    const abierto = Object.assign({}, equipo);
     const filas = Object.keys(M).map(id => {
       const d = OC3.Nave.describir(id);
-      return '<div class="mod" data-id="' + id + '"><div class="mi">' + M[id].icono + '</div><div class="mt"><b>' + M[id].nombre + '</b>' +
+      return '<div class="mod" data-id="' + id + '"><div class="mi">' + M[id].icono + '</div><div class="mt"><b>' + M[id].nombre + '</b> <span class="precio">instalar ' + $$(COSTO) + ' c/u</span>' +
         d.ventajas.map(t => '<span class="ok">▲ ' + t + '</span>').join('') + d.inconvenientes.map(t => '<span class="mal">▼ ' + t + '</span>').join('') +
-        '</div><div class="mc"><button data-d="-1" aria-label="Quitar">−</button><b id="c-' + id + '"></b><span>/' + M[id].max + '</span><button data-d="1" aria-label="Agregar">+</button></div></div>';
+        '</div><div class="mc"><button data-d="-1" aria-label="Quitar">−</button><b id="c-' + id + '"></b><span>/' + M[id].max + '</span><button data-d="1" aria-label="Instalar">+</button></div></div>';
     }).join('');
-    pantalla('<h2>Hangar</h2><p class="sub">Equipa tu nave: cada módulo da una ventaja y cobra un precio.</p>' + filas + '<div id="hg-res"></div>', [['Listo', pantallaInicio]]);
-    const p = $('pantalla'); p.classList.add('hangar'); enHangar = true; vista.vitrina = true;
+    pantalla('<h2>Preparar misión</h2><div class="billetera" id="hg-dinero"></div><p class="sub">Cada módulo instalado cuesta ' + $$(COSTO) + '. Quitar uno que instalaste ahora te devuelve el dinero; quitar uno de antes, no.</p>' + filas + '<div id="hg-res"></div>',
+      [['Despegar', comenzar], ['Volver', pantallaInicio, 1]]);
+    const p = $('pantalla'); p.classList.add('hangar'); enHangar = true; enMarcha = false; pausado = true; vista.vitrina = true;
     const base = OC3.Nave.resumen({});
     function pintar() {
-      const r = OC3.Nave.resumen(equipo), f = OC3.Nave.factores(equipo);
-      for (const id in M) $('c-' + id).textContent = equipo[id];
+      const r = OC3.Nave.resumen(equipo);
+      $('hg-dinero').textContent = '💰 ' + $$(dinero);
+      p.querySelectorAll('.mod').forEach(row => { const id = row.dataset.id, b = row.querySelectorAll('button');
+        $('c-' + id).textContent = equipo[id];
+        b[0].disabled = equipo[id] <= 0; b[1].disabled = equipo[id] >= M[id].max || dinero < COSTO; });
       $('hg-res').innerHTML = 'Velocidad de crucero <b>' + fmt(r.km_s) + ' km/s</b> (base ' + fmt(base.km_s) + ') · Empuje de mandos <b>×' + fmt(r.accel, 2) + '</b><br>' +
         'Consumo <b>×' + fmt(r.consumo, 2) + '</b> · Depósito <b>' + fmt(r.capacidad, 0) + '</b> (base ' + fmt(base.capacidad, 0) + ') · Autonomía en reposo <b>' + fmt(r.autonomia, 0) + ' s</b>';
     }
     function aplicar() {
-      equipo = OC3.Nave.normalizar(equipo); OC3.Nave.guardar(equipo);
-      sim = OC3.Sim.crear({ planeta: PLANETA, semilla: +q.get('semilla') || 11, equipo }); vista.reiniciar(sim); pintar();
+      OC3.Nave.guardar(equipo); OC3.Nave.dineroGuardar(dinero);
+      sim = OC3.Sim.crear({ planeta: PLANETA, semilla: semilla(), equipo }); vista.reiniciar(sim); pintar();
     }
-    p.querySelectorAll('.mod').forEach(row => row.querySelectorAll('button').forEach(b => b.onclick = () => { equipo[row.dataset.id] += +b.dataset.d; aplicar(); }));
-    pintar();
+    p.querySelectorAll('.mod').forEach(row => row.querySelectorAll('button').forEach(b => b.onclick = () => {
+      const r = OC3.Nave.cambiar(equipo, abierto, dinero, row.dataset.id, +b.dataset.d);
+      if (r.ok) { equipo = r.equipo; dinero = r.dinero; aplicar(); }
+    }));
+    aplicar();
   }
+  const semillaFija = +q.get('semilla') || 0;
+  function semilla() { return semillaFija || ((Math.random() * 1e9) | 0); }
   function comenzar() { OC3.Sonido.activar(); enHangar = false; vista.vitrina = false; cerrarPantalla(); pausado = false; enMarcha = true; ultimo = performance.now(); }
-  function reiniciar() {
-    sim = OC3.Sim.crear({ planeta: PLANETA, semilla: (Math.random() * 1e9) | 0, equipo }); vista.reiniciar(sim);
-    for (const k in cache) delete cache[k]; cerrarPantalla(); pausado = false; ultimo = performance.now();
-  }
+  /* una misión nueva siempre empieza en el menú de equipamiento */
+  function reiniciar() { for (const k in cache) delete cache[k]; ultimo = performance.now(); pantallaEquipo(); }
   function enviarPuntaje(s, ok) {
     /* ranking del colegio (firebase/df.js); si el sitio no lo carga, no hace nada */
     try {
@@ -140,9 +150,12 @@
   function fin() {
     const s = sim, ok = s.estado === 'completo';
     if (PLANETA === OC3.PlanetaInicial) enviarPuntaje(s, ok);
+    const ganado = OC3.Nave.ganancia(s, ok); if (!s.cobrado) { s.cobrado = true; dinero += ganado; OC3.Nave.dineroGuardar(dinero); }
+    const E = OC3.Config.economia;
     pantalla('<h2>' + (ok ? '¡Profesor Alex derrotado!' : 'Nave destruida') + '</h2><p class="sub">' + (ok ? 'Cruzaste ' + OC3.Planetas[PLANETA].nombre + ' y silenciaste al profesor de música.' : (s.jefe ? 'Alex te alcanzó con ' + Math.round(s.jefe.hp / s.jefe.hpMax * 100) + ' % de vida.' : 'Recorriste el ' + Math.round(s.dist / OC3.Config.mundo.distanciaNivel * 100) + ' % del tramo.')) + '</p>' +
       '<p class="reglas">Puntos <b>' + Math.round(s.puntos) + '</b> · meteoroides destruidos <b>' + s.stats.destruidos + '</b> · golpes <b>' + s.stats.golpes + '</b> · bonus <b>' + s.stats.bonus + '</b></p>' +
-      '', [['Jugar de nuevo', reiniciar], ['Menú', () => location.reload(), 1]]);
+      '<p class="reglas">Monedas <b>' + s.stats.monedas + '</b> · recogido <b>' + $$(s.dinero - s.dineroJefe) + '</b>' + (s.dineroJefe ? ' + recompensa de Alex <b>' + $$(s.dineroJefe) + '</b>' : '') + (ok ? '' : ' · nave destruida: te quedas con el ' + Math.round(E.derrota * 100) + ' %') + '</p>' +
+      '<div class="billetera">+ ' + $$(ganado) + ' · billetera ' + $$(dinero) + '</div>', [['Siguiente misión', reiniciar], ['Menú', () => location.reload(), 1]]);
   }
 
   /* ---------- bucle ---------- */
@@ -164,6 +177,7 @@
     $('carga').hidden = true; ultimo = performance.now(); requestAnimationFrame(bucle);
     $('h-aviso').hidden = PLANETA === OC3.PlanetaInicial;
     if (q.get('auto') === '1') comenzar(); else pantallaInicio();
+    if (q.get('equipo') === '1') pantallaEquipo();
   });
 
   OC3.Juego = { get sim() { return sim; }, get vista() { return vista; }, comenzar, reiniciar, pausar, entrada, tactil, teclas };

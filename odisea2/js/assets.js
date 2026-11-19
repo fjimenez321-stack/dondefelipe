@@ -22,6 +22,7 @@
                     escala: 2.6,                              // ~4,2 u de alto (el esquema anterior medía 1,9)
                     flat: true, material: { roughness: 0.55, metalness: 0.35 },
                     aura: 'rgba(255,150,40,0.8)' },
+    moneda:       { glb: null },                              // moneda (esquema)
     herramientas: { glb: null },                              // kit de herramientas (esquema)
     propulsor:    { glb: 'assets/nave/propulsor.glb',          // módulo real (anclaje_montaje, punto_fuego)
                     flat: true, material: { roughness: 0.35, metalness: 0.7 } },
@@ -114,6 +115,14 @@
     const banda = new THREE.Mesh(new THREE.CylinderGeometry(0.355, 0.355, 0.3, 12).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xffc233, emissive: 0x332400 })); g.add(banda);
     return g;
   }
+  function esquemaMoneda() {
+    const g = new THREE.Group(), oro = new THREE.MeshStandardMaterial({ color: 0xffc933, emissive: 0x6a4a00, roughness: 0.3, metalness: 0.9, flatShading: true });
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.3, 18).rotateX(Math.PI / 2), oro));
+    const aro = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.1, 6, 18), new THREE.MeshStandardMaterial({ color: 0xfff1a8, emissive: 0x5a4a10, metalness: 0.9, roughness: 0.3 }));
+    aro.position.z = 0.17; g.add(aro); const aro2 = aro.clone(); aro2.position.z = -0.17; g.add(aro2);
+    const g2 = glow('rgba(255,210,70,0.9)', 5, 0.45); g2.name = 'aura'; g.add(g2);
+    return g;
+  }
   function esquemaMeteoroide() { // por si el GLB no carga: roca irregular
     const geo = new THREE.IcosahedronGeometry(1, 2), p = geo.attributes.position;
     for (let i = 0; i < p.count; i++) { const k = 1 + 0.12 * Math.sin(p.getX(i) * 5 + p.getY(i) * 3) * Math.cos(p.getZ(i) * 4); p.setXYZ(i, p.getX(i) * k, p.getY(i) * k, p.getZ(i) * k); }
@@ -121,7 +130,7 @@
     const g = new THREE.Group(); g.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x6b645c, roughness: 0.95, metalness: 0.05 })));
     return g;
   }
-  const ESQUEMAS = { nave: esquemaNave, combustible: esquemaCombustible, herramientas: esquemaHerramientas, meteoroide: esquemaMeteoroide, propulsor: esquemaPropulsor, tanque: esquemaTanque };
+  const ESQUEMAS = { nave: esquemaNave, combustible: esquemaCombustible, herramientas: esquemaHerramientas, moneda: esquemaMoneda, meteoroide: esquemaMeteoroide, propulsor: esquemaPropulsor, tanque: esquemaTanque };
 
   /* ---------- carga ---------- */
   function b64ToBuf(b64) { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
