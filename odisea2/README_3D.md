@@ -15,7 +15,8 @@ Probar otro planeta: `index.html?planeta=venus` (o desde el menú). Solo **Mercu
 ## Assets 3D (`js/assets.js`)
 
 - `meteoroide` → **asset real** `assets/meteoroide_rocoso.glb` (el del paquete; se le calculan normales al cargarlo porque el GLB trae solo posición y color).
-- `nave`, `combustible` (lata naranja), `herramientas` (caja roja con cruz) → **esquemas básicos** hechos con formas simples.
+- `combustible` → **asset real** `assets/barril_combustible.glb` (barril azul con franja amarilla; se endereza de Z a Y, se centra y se escala ×2,6 desde el manifiesto).
+- `nave` y `herramientas` (caja roja con cruz) → **esquemas básicos** hechos con formas simples.
 - Para reemplazar un esquema: copia tu `.glb` a `assets/` y escribe su ruta en `MANIFIESTO`. Convención: origen centrado, ~2 u de diámetro, el frente de la nave mira a −Z.
 - Para abrir sin servidor, `tools/embed_assets.py` guarda una copia base64 en `js/assets_embed.js`. Vuelve a ejecutarlo si cambias el GLB del meteoroide.
 

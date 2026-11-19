@@ -1,0 +1,16 @@
+BARRIL DE COMBUSTIBLE — ASSET 3D v1.0
+
+Archivos:
+- barril_combustible.glb: escena 3D con piezas separadas por nombre. Recomendado para Unity, Godot y Unreal.
+- barril_combustible.obj: malla combinada de compatibilidad.
+- crear_barril_combustible.py: generador procedural editable (requiere trimesh y numpy).
+
+Diseño: tambor industrial de acero pintado azul petróleo, aros metálicos, tapas superiores, tapones de llenado y franja de seguridad amarilla. El pivote está en el centro del eje, a nivel del suelo.
+
+Uso recomendado en juego:
+- Reutilizar una sola malla como instancias.
+- Rotar libremente en X/Y/Z y variar escala (por ejemplo 0.7–1.4).
+- Cambiar iluminación desde el motor del juego; el asset no contiene luces ni sombras horneadas.
+- Para distancia, usar LOD del motor o reducir detalle según la cámara.
+
+Nota: el GLB contiene geometría y colores de vértice; el desarrollador puede sustituirlos por materiales PBR y añadir mapas de roughness/metallic/normal.

@@ -16,7 +16,11 @@
   const MANIFIESTO = {
     meteoroide:   { glb: 'assets/meteoroide_rocoso.glb' },   // asset real (paquete del desarrollador)
     nave:         { glb: null },                              // esquema básico por ahora
-    combustible:  { glb: null },                              // carga de combustible (esquema)
+    combustible:  { glb: 'assets/barril_combustible.glb',     // barril de combustible (asset real)
+                    zArriba: true,                            // este GLB trae el eje del barril en Z: se endereza a Y
+                    escala: 2.6,                              // ~4,2 u de alto (el esquema anterior medía 1,9)
+                    flat: true, material: { roughness: 0.55, metalness: 0.35 },
+                    aura: 'rgba(255,150,40,0.8)' },
     herramientas: { glb: null }                               // kit de herramientas (esquema)
   };
 
@@ -89,20 +93,36 @@
   /* ---------- carga ---------- */
   function b64ToBuf(b64) { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
 
-  function prepararGLB(scene) {
+  /* def.zArriba: algunos GLB (hechos con trimesh) traen el eje vertical en Z. Se gira a Y, se centra
+     y se gira 180° para que el frente (+Y del archivo) mire hacia la cámara trasera (+Z).
+     def.escala, def.flat, def.material y def.aura se aplican aquí; así cada asset se ajusta desde el manifiesto. */
+  function prepararGLB(scene, def) {
+    def = def || {};
+    const mat = def.material || { roughness: 0.92, metalness: 0.05 };
     scene.traverse(o => {
       if (!o.isMesh) return;
       if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals();   // el GLB trae solo posición y color
-      const m = o.material; m.flatShading = false; m.roughness = 0.92; m.metalness = 0.05; m.needsUpdate = true;
+      const m = o.material; m.flatShading = !!def.flat; m.roughness = mat.roughness; m.metalness = mat.metalness;
+      if (def.material && /rim|hoop|cap/i.test(o.name || '')) { m.roughness = 0.35; m.metalness = 0.85; }   // aros y tapas: metal
+      m.needsUpdate = true;
     });
-    return scene;
+    if (!def.zArriba && !def.escala && !def.aura) return scene;
+    const caja = new THREE.Box3().setFromObject(scene), c = caja.getCenter(new THREE.Vector3());
+    const interno = new THREE.Group(); interno.add(scene);
+    scene.position.set(-c.x, -c.y, -c.z);                                    // centra el modelo en su origen
+    const giro = new THREE.Group(); giro.add(interno);
+    if (def.zArriba) { interno.rotation.x = -Math.PI / 2; giro.rotation.y = Math.PI; }
+    const raiz = new THREE.Group(); raiz.add(giro);
+    if (def.escala) raiz.scale.setScalar(def.escala);
+    if (def.aura) { const a = glow(def.aura, 9 / (def.escala || 1), 0.55); a.name = 'aura'; raiz.add(a); }
+    return raiz;
   }
 
   function cargarUno(nombre, cb) {
     const def = MANIFIESTO[nombre];
     const usarEsquema = (why) => { if (why) console.info('[assets] ' + nombre + ': uso el esquema básico (' + why + ')'); modelos[nombre] = { crear: ESQUEMAS[nombre], real: false }; cb(); };
     if (!def.glb || !THREE.GLTFLoader) return usarEsquema(def.glb ? 'sin GLTFLoader' : null);
-    const ok = (gltf) => { const base = prepararGLB(gltf.scene); modelos[nombre] = { crear: () => base.clone(true), real: true }; cb(); };
+    const ok = (gltf) => { const base = prepararGLB(gltf.scene, def); modelos[nombre] = { crear: () => base.clone(true), real: true }; cb(); };
     const loader = new THREE.GLTFLoader();
     loader.load(def.glb, ok, undefined, () => {
       /* sin servidor (file://) la descarga falla: se usa la copia incrustada en assets_embed.js */
