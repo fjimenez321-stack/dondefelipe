@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Odisea 3D · prototipo de vuelo</title>
+<style>
+  :root{--acid:#ccff00;--cyan:#22e3ff;--red:#ff4d57;--bg:#02030a;--glass:rgba(6,10,22,.62);--line:rgba(255,255,255,.14)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:#e8ecff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+  #c3d{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #hud{position:fixed;inset:0;pointer-events:none;font-variant-numeric:tabular-nums}
+  .caja{position:absolute;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:8px 12px;backdrop-filter:blur(4px)}
+  #hud-izq{left:12px;top:12px;max-width:min(330px,56vw);font-size:12px;line-height:1.5}
+  #h-planeta{font-weight:800;letter-spacing:3px;color:var(--acid);font-size:13px}
+  #hud-izq small{color:#9aa6cc;display:block}
+  #h-aviso{color:#ffcf5a;margin-top:4px}
+  #hud-der{right:12px;top:12px;text-align:right}
+  #h-puntos{font-size:26px;font-weight:800;color:var(--cyan);line-height:1}
+  #hud-der small{color:#9aa6cc;letter-spacing:2px;font-size:10px}
+  #prog{position:absolute;left:50%;top:14px;transform:translateX(-50%);width:min(34vw,300px);height:8px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden;border:1px solid var(--line)}
+  #b-prog{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--acid))}
+  #hud-inf{left:12px;bottom:12px;width:min(260px,44vw)}
+  .barra{margin:4px 0}.barra label{display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;color:#9aa6cc}
+  .barra i{display:block;height:9px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:2px}
+  .barra b{display:block;height:100%;width:100%;border-radius:5px;transition:width .15s}
+  #b-escudo{background:linear-gradient(90deg,#27d6ff,#5dffa0)}#b-comb{background:linear-gradient(90deg,#ff8a1f,#ffd24d)}
+  .barra b.bajo{background:var(--red);animation:pulsa .5s infinite alternate}
+  @keyframes pulsa{to{opacity:.45}}
+  #hud-tel{right:12px;bottom:12px;text-align:right;font-size:12px;line-height:1.6}
+  #hud-tel span{color:var(--acid);font-weight:700}
+  #flash{position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(255,40,50,.9));opacity:0;pointer-events:none}
+  #zona-mando{position:fixed;left:0;top:0;width:58%;height:100%;touch-action:none}
+  #anillo,#punto{display:none;position:fixed;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+  #anillo{width:112px;height:112px;border:2px solid rgba(255,255,255,.3)}#punto{width:44px;height:44px;background:rgba(204,255,0,.5);border:2px solid var(--acid)}
+  #btn-fuego{position:fixed;right:18px;bottom:76px;width:92px;height:92px;border-radius:50%;border:2px solid #ff7b3a;background:rgba(255,123,58,.22);color:#fff;font-weight:800;letter-spacing:2px;font-size:12px;display:none;align-items:center;justify-content:center;touch-action:none}
+  #btn-fuego.on{background:rgba(255,123,58,.6)}
+  #btn-pausa{position:fixed;right:12px;top:66px;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--glass);color:#fff;font-size:15px;cursor:pointer;pointer-events:auto}
+  @media (pointer:coarse){#btn-fuego{display:flex}#hud-tel{bottom:176px}.ctl-pc{display:none}}
+  #pantalla,#carga{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(2,4,14,.7),rgba(2,3,10,.93));text-align:center;padding:20px;overflow:auto}
+  #pantalla[hidden],#carga[hidden]{display:none}
+  #p-cuerpo{max-width:560px}
+  h1{font-size:clamp(34px,8vw,60px);margin:0;letter-spacing:6px;font-weight:900}h1 span{color:var(--acid)}h2{font-size:30px;margin:0 0 6px;letter-spacing:3px;color:var(--acid)}
+  .sub{color:#9aa6cc;margin:4px 0 16px;letter-spacing:1px}.reglas,.ctl{font-size:14px;line-height:1.6;color:#c9d2ee;margin:10px 0}.ctl{font-size:13px;color:#9aa6cc}
+  .sel{display:inline-flex;gap:10px;align-items:center;margin:8px 0;font-size:13px;color:#9aa6cc}.sel select{background:#0b1226;color:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px}
+  #p-botones{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+  #p-botones button{font:inherit;font-weight:800;letter-spacing:2px;text-transform:uppercase;font-size:14px;padding:13px 26px;border-radius:10px;border:0;background:var(--acid);color:#0a0c00;cursor:pointer}
+  #p-botones button.sec{background:transparent;color:#fff;border:1px solid var(--line)}
+  b{color:#fff}
+</style>
+</head>
+<body>
+<canvas id="c3d"></canvas>
+<div id="zona-mando"></div><div id="anillo"></div><div id="punto"></div>
+<div id="flash"></div>
+<div id="hud">
+  <div class="caja" id="hud-izq"><div id="h-planeta">—</div><small id="h-g"></small><small id="h-atm"></small><div id="h-aviso" hidden>Planeta de prueba: solo para sentir la física.</div></div>
+  <div id="prog"><div id="b-prog"></div></div>
+  <div class="caja" id="hud-der"><div id="h-puntos">0</div><small>PUNTOS</small></div>
+  <div class="caja" id="hud-inf">
+    <div class="barra"><label>ESCUDO</label><i><b id="b-escudo"></b></i></div>
+    <div class="barra"><label>COMBUSTIBLE</label><i><b id="b-comb"></b></i></div>
+  </div>
+  <div class="caja" id="hud-tel">Altitud <span id="h-alt">—</span><br>Velocidad <span id="h-vel">—</span></div>
+</div>
+<button id="btn-pausa" aria-label="Pausa">❚❚</button>
+<button id="btn-fuego">FUEGO</button>
+<div id="pantalla" hidden><div id="p-cuerpo"></div><div id="p-botones"></div></div>
+<div id="carga"><div><h2>Cargando assets 3D…</h2><p class="sub">Si esto no desaparece, abre la consola (F12).</p></div></div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="js/config.js"></script>
+<script src="js/planets.js"></script>
+<script src="js/atmosfera.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/assets_embed.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/sonido.js"></script>
+<script src="js/view.js"></script>
+<script src="js/juego.js"></script>
+</body>
+</html>
