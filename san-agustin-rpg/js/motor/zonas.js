@@ -85,6 +85,7 @@ function aparecerEnZona(juego, z, inicial) {
   const libres = [];
   for (let y = z.y; y < z.y + z.h; y++) for (let x = z.x; x < z.x + z.w; x++) {
     if (juego.obstaculo(x, y, null) || juego.mapa.portalEn(x, y) || juego.mapa.puertaEn(x, y)) continue;
+    if (juego.mapa.tileset.npcPuedePisar && !juego.mapa.tileset.npcPuedePisar(juego.mapa, x, y)) continue;
     if (Math.abs(x - j.x) + Math.abs(y - j.y) < 3) continue;
     libres.push([x, y]);
   }

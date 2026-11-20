@@ -73,6 +73,13 @@ export class Mapa {
   portalEn(x, y) {
     return this.portales.find((p) => x >= p.x && x < p.x + p.w && y >= p.y && y < p.y + p.h) || null;
   }
+  /** Función a ejecutar al interactuar con la casilla (o null). */
+  interaccionEn(x, y) {
+    if (this.tileset.interaccionEn) return this.tileset.interaccionEn(this, x, y);
+    const t = this.tile(x, y);
+    return t?.interactuar ? (juego) => t.interactuar(juego, x, y) : null;
+  }
+
   zonasEn(x, y) {
     return this.zonas.filter((z) => x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h);
   }
@@ -84,6 +91,7 @@ export class Mapa {
     if (p) return p.apertura >= 1 ? null : 'puerta';
     const o = this.objetoEn(x, y);
     if (o && o.solido) return 'objeto';
+    if (this.tileset.solidoEn) return this.tileset.solidoEn(this, x, y) ? 'muro' : null;
     const t = this.tile(x, y);
     if (!t || t.solido) return 'muro';
     return null;

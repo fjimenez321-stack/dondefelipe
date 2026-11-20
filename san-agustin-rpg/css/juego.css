@@ -9,25 +9,14 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--fondo); color: var(--texto); font-family: system-ui, sans-serif; overflow: hidden; }
-#pantalla { position: fixed; inset: 0; }
-#lienzo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; touch-action: none; image-rendering: pixelated; cursor: pointer; }
-
-/* ── HUD ── */
-#hud {
-  position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: .5rem;
-  padding: calc(.4rem + env(safe-area-inset-top)) .6rem .4rem; background: linear-gradient(#0b0f19ee, #0b0f1900);
-  font-family: var(--pixel); font-size: .55rem; pointer-events: none;
-}
-#hud > span { background: var(--panel); border: 1px solid #334155; border-radius: 6px; padding: .35rem .5rem; white-space: nowrap; }
-#hud-mapa { color: var(--oro); }
-#hud-items:empty { display: none; }
-#hud .hud-espacio { flex: 1; background: none; border: 0; padding: 0; }
-#hud button { pointer-events: auto; background: var(--panel); border: 1px solid #334155; color: var(--texto); border-radius: 6px; padding: .3rem .45rem; font-size: .9rem; cursor: pointer; }
-#hud button:hover { border-color: var(--oro); }
+body { display: block !important; clip-path: none !important; }
+#pantalla { position: fixed; inset: 0; top: 40px; }
+#lienzo { aspect-ratio: auto !important; max-width: none !important; max-height: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important;
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; touch-action: none; image-rendering: pixelated; cursor: pointer; }
 
 /* ── Aviso ── */
 #aviso {
-  position: absolute; top: 6.5rem; left: 50%; transform: translate(-50%, -10px); opacity: 0;
+  position: fixed; z-index: 460; top: 5.5rem; left: 50%; transform: translate(-50%, -10px); opacity: 0;
   background: var(--panel); border: 1px solid var(--oro); color: #fde68a; border-radius: 8px;
   padding: .5rem .9rem; font-family: var(--pixel); font-size: .55rem; transition: .25s; pointer-events: none; text-align: center; max-width: 90vw;
 }
@@ -35,10 +24,10 @@ html, body { margin: 0; height: 100%; background: var(--fondo); color: var(--tex
 
 /* ── Diálogo ── */
 #dialogo {
-  position: absolute; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom)); transform: translate(-50%, 20px);
+  position: fixed; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom)); transform: translate(-50%, 20px);
   width: min(720px, 94vw); display: none; gap: .8rem; align-items: flex-start;
   background: var(--panel); border: 2px solid var(--borde); border-radius: 10px; padding: .9rem 1rem;
-  box-shadow: 0 10px 30px #000a, inset 0 0 0 1px #fbbf2433; opacity: 0; transition: opacity .15s, transform .15s; cursor: pointer; z-index: 5;
+  box-shadow: 0 10px 30px #000a, inset 0 0 0 1px #fbbf2433; opacity: 0; transition: opacity .15s, transform .15s; cursor: pointer; z-index: 450;
 }
 #dialogo.abierto { display: flex; opacity: 1; transform: translate(-50%, 0); }
 .dlg-retrato { font-size: 2.2rem; line-height: 1; padding-top: .2rem; }
@@ -52,7 +41,7 @@ html, body { margin: 0; height: 100%; background: var(--fondo); color: var(--tex
 @keyframes rebote { 50% { transform: translateY(3px); } }
 
 /* ── Táctil ── */
-#tactil { display: none; position: absolute; left: 0; right: 0; bottom: calc(.8rem + env(safe-area-inset-bottom)); padding: 0 1rem; justify-content: space-between; align-items: flex-end; pointer-events: none; z-index: 4; }
+#tactil { display: none; position: fixed; left: 0; right: 0; bottom: calc(.8rem + env(safe-area-inset-bottom)); padding: 0 1rem; justify-content: space-between; align-items: flex-end; pointer-events: none; z-index: 455; }
 #tactil.visible { display: flex; }
 #dialogo.abierto ~ #tactil .cruceta { opacity: .35; }
 #tactil button { pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; border: 2px solid #475569; background: rgba(15, 23, 42, .7); color: var(--texto); font-size: 1.1rem; }
@@ -65,8 +54,8 @@ html, body { margin: 0; height: 100%; background: var(--fondo); color: var(--tex
 .b-a { margin-bottom: 26px; border-color: var(--oro) !important; color: var(--oro) !important; }
 
 /* ── Ayuda ── */
-#ayuda { display: none; position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: min(620px, 94vw); max-height: 86vh; overflow: auto;
-  background: var(--panel); border: 2px solid var(--borde); border-radius: 12px; padding: 1.1rem 1.3rem; z-index: 10; }
+#ayuda { display: none; position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: min(620px, 94vw); max-height: 86vh; overflow: auto;
+  background: var(--panel); border: 2px solid var(--borde); border-radius: 12px; padding: 1.1rem 1.3rem; z-index: 470; }
 #ayuda.abierto { display: block; }
 #ayuda h2 { font-family: var(--pixel); font-size: .8rem; color: var(--oro); margin: 0 0 .8rem; }
 #ayuda table { border-collapse: collapse; width: 100%; font-size: .88rem; }
@@ -77,7 +66,7 @@ kbd { background: #1e293b; border: 1px solid #475569; border-bottom-width: 2px; 
 #ayuda button, #inicio button { font-family: var(--pixel); font-size: .6rem; background: linear-gradient(#fbbf24, #f59e0b); color: #111; border: 0; border-radius: 8px; padding: .8rem 1rem; cursor: pointer; }
 
 /* ── Inicio ── */
-#inicio { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(#0b0f19aa, #0b0f19f2); z-index: 20; transition: opacity .3s; }
+#inicio { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(#0b0f19aa, #0b0f19f2); z-index: 600; transition: opacity .3s; }
 #inicio.oculto { opacity: 0; pointer-events: none; }
 #inicio .tarjeta { background: var(--panel); border: 2px solid var(--borde); border-radius: 14px; padding: 1.6rem 1.8rem; text-align: center; display: flex; flex-direction: column; gap: .7rem; width: min(360px, 90vw); box-shadow: 0 0 40px #b4530944; }
 #inicio .logo { font-size: 2.6rem; }
@@ -88,8 +77,28 @@ kbd { background: #1e293b; border: 1px solid #475569; border-bottom-width: 2px; 
 #inicio a { color: #fde68a; }
 
 @media (max-width: 560px) {
-  #hud { font-size: .45rem; gap: .3rem; }
-  #hud-items { display: none; }
   .dlg-texto { font-size: .92rem; }
   body.con-tactil #dialogo { bottom: calc(10.5rem + env(safe-area-inset-bottom)); }
 }
+
+#inicio input { font: inherit; font-size: 1rem; padding: .6rem .8rem; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: var(--texto); text-align: center; }
+
+/* ═══ Integración de los paneles del v4 ═══ */
+/* Barra superior del v4 = HUD */
+#ui-bar { position: fixed; top: 0; left: 0; right: 0; max-width: none !important; z-index: 170; flex-wrap: wrap;
+  padding-top: calc(4px + env(safe-area-inset-top)) !important; background: linear-gradient(180deg, #111827f2, #0d1117e6) !important; }
+#hud-stats, #hud-pista { font-family: 'Press Start 2P', monospace; font-size: .42rem; padding: 3px 6px; border-radius: 5px; background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.1); white-space: nowrap; }
+#hud-pista { color: #fbbf24; }
+#ui-bar .hud-extra { font-size: .8rem; padding: 2px 6px; }
+/* Contenedor de paneles: ocupa la pantalla, pero no tapa el mapa salvo donde hay un panel */
+#game-container { position: fixed !important; inset: 0; max-width: none !important; padding: 0 !important; display: block !important;
+  pointer-events: none; z-index: 400; overflow: visible !important; }
+#game-container > * { pointer-events: auto; }
+#game-container > #enc-flash { pointer-events: none; border-radius: 0; }
+#zone-tag { position: fixed !important; top: 4.2rem !important; right: 12px !important; pointer-events: none; }
+#battle { inset: auto !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%);
+  width: min(500px, 100vw); height: min(560px, 100dvh); box-shadow: 0 0 60px #000; }
+#dlg-box { display: none !important; } /* los diálogos del v4 usan la caja del motor */
+.ov { z-index: 420; }
+body.panel-v4 #tactil { display: none !important; }
+body.panel-v4 #lienzo { cursor: default; }

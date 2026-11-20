@@ -1,77 +1,54 @@
 // ═══════════════════════════════════════════════════════════════
-// ARRANQUE: une el motor con los datos y la interfaz (HUD, ayuda).
-// Los sistemas de juego (combate, misiones, laboratorios del v4) se
-// conectarán aquí escuchando eventos, sin tocar /motor.
+// ARRANQUE: une el motor nuevo con el contenido del v4 (window.V4,
+// definido en v4/puente.js) y con la interfaz.
 // ═══════════════════════════════════════════════════════════════
 import { Juego } from './motor/juego.js';
-import { leerPartida, borrarPartida } from './motor/guardado.js';
 import { tilesetColegio } from './datos/tileset-colegio.js';
-import { mapas } from './datos/mapas.js';
-import { personajes } from './datos/personajes.js';
 import { comunidad } from './datos/comunidad.js';
+import { zonasV4 } from './datos/zonas-v4.js';
 
 const $ = (s) => document.querySelector(s);
+const V4 = window.V4;
 
 const juego = new Juego({
   canvas: $('#lienzo'),
   dialogo: $('#dialogo'),
   aviso: $('#aviso'),
-  tilesets: { colegio: tilesetColegio },
-  mapas,
-  personajes,
+  tilesets: { v4: V4.tileset, colegio: tilesetColegio },
+  mapas: V4.mapas(zonasV4),
   comunidad,
+  externo: {
+    frame: () => V4.frame(),
+    bloquea: () => V4.bloqueaMotor(),
+    teclas: (entrada) => V4.teclas(entrada),
+    guardar: (silencioso) => (silencioso ? V4.guardarSilencioso() : V4.guardar()),
+  },
 });
+V4.conectar(juego);
 window.juego = juego; // para probar cosas desde la consola del navegador
 
-// ── Sonidos mínimos (Web Audio, sin archivos) ──────────────────
-let ac = null, silencio = false;
-function blip(f = 660, d = 0.06, tipo = 'square', vol = 0.04) {
-  if (silencio) return;
-  try {
-    ac ||= new AudioContext();
-    const o = ac.createOscillator(), g = ac.createGain();
-    o.type = tipo; o.frequency.value = f;
-    g.gain.setValueAtTime(vol, ac.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + d);
-    o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + d);
-  } catch {}
-}
+// ── Atajos de interfaz ──────────────────────────────────────────
 const ev = juego.eventos;
-ev.on('npc:hablar', () => blip(880, 0.05));
-ev.on('puerta:abrir', () => { blip(220, 0.08, 'triangle', 0.06); setTimeout(() => blip(330, 0.08, 'triangle', 0.05), 70); });
-ev.on('mapa:entrar', () => blip(520, 0.1, 'sine', 0.05));
-ev.on('inventario', ({ n }) => n > 0 && [660, 880, 1100].forEach((f, i) => setTimeout(() => blip(f, 0.07), i * 70)));
-ev.on('ui:silencio', () => { silencio = !silencio; juego.aviso(silencio ? '🔇 Sonido apagado' : '🔊 Sonido encendido'); });
+ev.on('ui:mochila', () => V4.abrir.mochila());
+ev.on('ui:misiones', () => V4.abrir.misiones());
+ev.on('ui:perfil', () => V4.abrir.stats());
+ev.on('ui:volver', () => { if (!V4.cerrarPanel()) V4.volver(); });
+ev.on('ui:silencio', () => $('#btn-music')?.click());
 
-// ── Encuentros: punto de conexión del combate ───────────────────
-const ENEMIGOS = {
-  pasillo: ['😴 Alumno Cansado', '😤 Desmotivación', '📝 Prueba Sorpresa', '🤒 Resfriado', '📱 Celular en Clase'],
+// ── HUD: la barra del v4 + datos y botones del motor ────────────
+const barra = $('#ui-bar');
+const grupoIzq = barra.firstElementChild;
+grupoIzq.insertAdjacentHTML('beforeend', '<span id="hud-stats"></span><span id="hud-pista" style="display:none"></span>');
+const grupoDer = barra.lastElementChild;
+grupoDer.insertAdjacentHTML('beforeend', `
+  <button class="btn-ui hud-extra" id="btn-diseno" title="Modo diseño (F3)">🧩</button>
+  <button class="btn-ui hud-extra" id="btn-tactil" title="Mostrar/ocultar cruceta">🎮</button>
+  <button class="btn-ui hud-extra" id="btn-ayuda" title="Comandos (H)">❔</button>`);
+const ajustarAlto = () => {
+  $('#pantalla').style.top = barra.getBoundingClientRect().height + 'px';
+  juego.render.redimensionar();
 };
-ev.on('encuentro', ({ pool }) => {
-  const lista = ENEMIGOS[pool] || ['👾 Algo'];
-  const e = lista[Math.floor(Math.random() * lista.length)];
-  blip(150, 0.2, 'sawtooth', 0.05);
-  juego.decir({
-    inicio: 'a',
-    nodos: {
-      a: { texto: `⚔️ ¡Apareció ${e}!\n\n(El combate del v4 se conectará aquí,\nescuchando el evento "encuentro".)`,
-        opciones: [{ texto: 'Motivar 💬', ir: 'b' }, { texto: 'Huir 🏃' }] },
-      b: { texto: '¡Funcionó! Se fue más animado. ✨', accion: (j) => j.monedas(2) },
-    },
-  });
-});
-
-// ── HUD ─────────────────────────────────────────────────────────
-const NOMBRES_ITEMS = { llave_bodega: '🔑', caramelo: '🍬', cafe: '☕', microscopio: '🔬' };
-setInterval(() => {
-  if (!juego.mapa) return;
-  $('#hud-mapa').textContent = juego.mapa.nombre;
-  const h = juego.reloj.hora;
-  $('#hud-reloj').textContent = `${h >= 20 || h < 6 ? '🌙' : h >= 18 || h < 7 ? '🌅' : '☀️'} ${juego.reloj.texto}`;
-  $('#hud-monedas').textContent = `🪙 ${juego.estado.monedas}`;
-  $('#hud-items').textContent = Object.entries(juego.estado.inventario)
-    .map(([k, n]) => (NOMBRES_ITEMS[k] || '📦') + (n > 1 ? '×' + n : '')).join(' ');
-}, 250);
+addEventListener('resize', ajustarAlto);
 
 // ── Ayuda ───────────────────────────────────────────────────────
 const ayuda = $('#ayuda');
@@ -79,42 +56,54 @@ const alternarAyuda = () => ayuda.classList.toggle('abierto');
 ev.on('ui:ayuda', alternarAyuda);
 $('#btn-ayuda').onclick = alternarAyuda;
 $('#ayuda-cerrar').onclick = alternarAyuda;
-$('#btn-guardar').onclick = () => juego.guardar();
 $('#btn-diseno').onclick = () => { juego.render.depurar = !juego.render.depurar; };
 
 // ── Controles táctiles ──────────────────────────────────────────
 document.querySelectorAll('[data-accion]').forEach((b) => juego.entrada.vincularBoton(b, b.dataset.accion));
 const tactil = $('#tactil');
-const ponerTactil = (on) => { tactil.classList.toggle('visible', on); document.body.classList.toggle('con-tactil', on); };
-ponerTactil(juego.tactil);
+const ponerTactil = (on) => {
+  tactil.classList.toggle('visible', on);
+  document.body.classList.toggle('con-tactil', on);
+  try { localStorage.setItem('rpg_dpad', on ? '1' : '0'); } catch {}
+};
+window.__ponerTactil = ponerTactil;
+let prefTactil = null;
+try { prefTactil = localStorage.getItem('rpg_dpad'); } catch {}
+ponerTactil(prefTactil ? prefTactil === '1' : juego.tactil);
 $('#btn-tactil').onclick = () => ponerTactil(!tactil.classList.contains('visible'));
 
+// Ocultar la cruceta mientras hay un panel del v4 abierto (batalla, tienda...)
+setInterval(() => document.body.classList.toggle('panel-v4', V4.bloqueaMotor()), 150);
+
 // ── Pantalla de inicio ──────────────────────────────────────────
-const guardada = leerPartida();
 const inicio = $('#inicio');
+const inputNombre = $('#inicio-nombre');
+inputNombre.value = V4.nombreGuardado();
+const guardada = V4.partidaGuardada();
 if (guardada) {
-  $('#btn-continuar').hidden = false;
-  $('#btn-continuar').textContent = `Continuar (${mapas[guardada.mapa]?.nombre || guardada.mapa})`;
+  const b = $('#btn-continuar');
+  b.hidden = false;
+  b.textContent = `Continuar · LV ${guardada.stats?.level ?? 1}`;
 }
-function empezar(cargar) {
+function empezar(continuar) {
+  V4.registrar(inputNombre.value);
   inicio.classList.add('oculto');
   juego.modo = 'explorar';
-  if (cargar && guardada && mapas[guardada.mapa]) juego.cargarPartida(guardada);
-  else {
-    borrarPartida();
-    juego.estado.monedas = 10;
-    juego.cargarMapa('jardin', 10, 9, 'arriba');
+  if (!(continuar && V4.continuar())) {
+    V4.nuevaPartida();
     setTimeout(() => juego.decir([
-      { quien: 'San Agustín RPG', retrato: '🏫', texto: '¡Bienvenido, Profe Felipe!\n\nEste es el motor nuevo del juego.' },
-      { quien: 'Controles', retrato: '🎮', texto: 'Flechas o WASD para caminar (Shift corre).\nE o Espacio para hablar.\nToca el mapa para ir caminando.\nH para ver todos los comandos.' },
-    ]), 400);
+      { quien: 'San Agustín RPG', retrato: '🏫', texto: `¡Bienvenido, ${inputNombre.value.trim() || 'Profe'}!\n\nEstás en el Jardín Edén del Colegio San Agustín.` },
+      { quien: 'Controles', retrato: '🎮', texto: 'Flechas o WASD para caminar (Shift corre).\nE o Espacio para hablar.\nEsc para salir de una sala o cerrar un panel.\nH para ver todos los comandos.' },
+    ]), 500);
   }
+  setTimeout(ajustarAlto, 50);
   $('#lienzo').focus();
 }
 $('#btn-nueva').onclick = () => empezar(false);
 $('#btn-continuar').onclick = () => empezar(true);
+inputNombre.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') empezar(!!guardada); });
 
-juego.render.redimensionar();
-juego.cargarMapa('jardin', 10, 9, 'arriba'); // fondo detrás del menú
+ajustarAlto();
+juego.cargarMapa('jardin_eden', 11, 6, 'arriba'); // fondo detrás del menú
 juego.modo = 'pausa';
 juego.iniciar();

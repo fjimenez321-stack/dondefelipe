@@ -49,6 +49,9 @@ export class Dialogo {
     raiz.addEventListener('click', (e) => { if (!e.target.closest('button')) this.avanzar(); });
   }
 
+  /** true si hay un diálogo abierto o esperando turno. */
+  get ocupado() { return this.activo || this._cola.length > 0; }
+
   /** Abre un guion. ctx: {quien, retrato} por defecto para las líneas. */
   mostrar(guion, ctx = {}) {
     const g = normalizar(guion);

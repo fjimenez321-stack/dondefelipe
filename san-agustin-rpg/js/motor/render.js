@@ -85,8 +85,11 @@ export class Render {
     const y1 = Math.min(mapa.alto - 1, Math.ceil(this.cam.y + this.vistaH) + 1);
     const dentro = (x, y) => x >= x0 - 1 && x <= x1 + 1 && y >= y0 - 1 && y <= y1 + 1;
 
-    // 1) Tiles
-    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    // 1) Tiles (o el dibujo completo del mapa, si el tileset lo hace él mismo)
+    if (ts.dibujarFondo) {
+      g.save(); ts.dibujarFondo(g, this, mapa); g.restore();
+      g.setTransform(this.zoom, 0, 0, this.zoom, -camX * this.zoom, -camY * this.zoom);
+    } else for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       const tile = mapa.tile(x, y);
       tile?.dibujar?.(g, x * S, y * S, S, { x, y, t, mapa, hash: hash(x, y) });
     }
@@ -124,6 +127,12 @@ export class Render {
       g.restore();
     }
 
+    // 5b) Capa superior del tileset (noche, luces, letreros) — oscurece también a los personajes
+    if (ts.dibujarFrente) {
+      g.save(); ts.dibujarFrente(g, this, mapa); g.restore();
+      g.setTransform(this.zoom, 0, 0, this.zoom, -camX * this.zoom, -camY * this.zoom);
+    }
+
     // 6) Nombres de NPC cercanos, burbujas y aviso de interacción
     const j = juego.jugador;
     for (const e of ents) {
@@ -156,7 +165,7 @@ export class Render {
     // ── Capas de pantalla (sin cámara) ──
     g.setTransform(1, 0, 0, 1, 0, 0);
     const W = this.canvas.width, H = this.canvas.height;
-    const noche = juego.reloj.oscuridad * (mapa.interior ? 0.35 : 0.62);
+    const noche = ts.gestionaNoche ? 0 : juego.reloj.oscuridad * (mapa.interior ? 0.35 : 0.62);
     if (noche > 0.01) { g.fillStyle = `rgba(10,14,48,${noche})`; g.fillRect(0, 0, W, H); }
     if (this.cartel) {
       this.cartel.t += dt;

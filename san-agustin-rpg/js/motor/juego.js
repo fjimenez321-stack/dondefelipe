@@ -33,7 +33,7 @@ const PASO = 1 / 60;
 const GIRO_MS = 110; // toque más corto que esto = solo girar
 
 export class Juego {
-  constructor({ canvas, dialogo, aviso, tilesets, mapas, personajes = {}, comunidad = [] }) {
+  constructor({ canvas, dialogo, aviso, tilesets, mapas, personajes = {}, comunidad = [], externo = null }) {
     this.eventos = new Eventos();
     this.entrada = new Entrada();
     this.render = new Render(canvas);
@@ -58,6 +58,8 @@ export class Juego {
     this.rutaJugador = null;
     this.pendiente = null; // interacción al terminar la ruta tocada
     this._acum = 0;
+    // Sistema externo (el v4): { frame(dt), bloquea() → bool, teclas(entrada), guardar() }
+    this.externo = externo;
 
     this.entrada.vincularCanvas(canvas);
   }
@@ -80,10 +82,13 @@ export class Juego {
   actualizar(dt) {
     this.tiempo += dt;
     this.entrada.leerGamepad();
-    if (this.modo !== 'dialogo') this.reloj.actualizar(dt);
+    const bloqueado = !!this.externo?.bloquea?.();
+    if (this.modo !== 'dialogo' && !bloqueado) this.reloj.actualizar(dt);
+    this.externo?.frame?.(dt);
 
     this._globales();
     if (this.modo === 'dialogo') this._controlDialogo();
+    else if (bloqueado) { this.externo?.teclas?.(this.entrada); this.entrada.tomarToque(); this.rutaJugador = null; }
     else if (this.modo === 'explorar') this._controlJugador(dt);
     this._transicion(dt);
 
@@ -95,7 +100,7 @@ export class Juego {
     actualizarApariciones(this, dt);
     this.dialogo.actualizar(dt);
     this.render.seguir(this.mapa, this.jugador, dt);
-    this.objetivoInteraccion = this.modo === 'explorar' && !this.jugador.moviendo ? this._objetivo() : null;
+    this.objetivoInteraccion = this.modo === 'explorar' && !bloqueado && !this.jugador.moviendo ? this._objetivo() : null;
 
     this.entrada.finFrame();
   }
@@ -110,6 +115,7 @@ export class Juego {
       if (this.mapa.portalEn(x, y) && !quien.def?.usaPortales) return 'portal';
       if (this.mapa.puertaEn(x, y)) return 'puerta';
       if (this.mapa.tile(x, y)?.soloJugador) return 'muro';
+      if (this.mapa.tileset.npcPuedePisar && !this.mapa.tileset.npcPuedePisar(this.mapa, x, y)) return 'muro';
     }
     for (const e of this.entidades) if (e !== quien && e.solido && e.ocupa(x, y)) return 'entidad';
     return null;
@@ -122,6 +128,7 @@ export class Juego {
     if (en.pulso('ayuda')) this.eventos.emit('ui:ayuda');
     if (en.pulso('silencio')) this.eventos.emit('ui:silencio');
     if (en.pulso('guardar') && this.modo === 'explorar') this.guardar();
+    for (const a of ['mochila', 'misiones', 'perfil']) if (en.pulso(a)) this.eventos.emit('ui:' + a);
   }
 
   _controlDialogo() {
@@ -145,7 +152,10 @@ export class Juego {
 
     // 2) Botón de acción
     if (en.pulso('accion')) { this.rutaJugador = null; this.interactuar(); return; }
-    if (en.pulso('cancelar')) { this.rutaJugador = null; this.pendiente = null; }
+    if (en.pulso('cancelar')) {
+      if (!this.rutaJugador) this.eventos.emit('ui:volver');
+      this.rutaJugador = null; this.pendiente = null;
+    }
 
     if (j.moviendo) return;
 
@@ -209,7 +219,7 @@ export class Juego {
     const j = this.jugador;
     if (c.x === j.x && c.y === j.y) return this.interactuar();
     const hayAlgo = this.entidades.some((e) => e !== j && e.ocupa(c.x, c.y)) || this.mapa.puertaEn(c.x, c.y)
-      || this.mapa.objetoEn(c.x, c.y) || this.mapa.tile(c.x, c.y)?.interactuar;
+      || this.mapa.objetoEn(c.x, c.y) || this.mapa.interaccionEn(c.x, c.y);
     const libre = !this.obstaculo(c.x, c.y, j);
     if (hayAlgo && !(this.mapa.puertaEn(c.x, c.y)?.abierta)) {
       if (Math.abs(c.x - j.x) + Math.abs(c.y - j.y) === 1) { j.mirarA(c.x, c.y); return this.interactuar(); }
@@ -242,8 +252,8 @@ export class Juego {
       if (p && (!p.abierta || p.cerrable)) return { tipo: 'puerta', p, x, y };
       const o = this.mapa.objetoEn(x, y);
       if (o && (o.texto || o.dialogo || o.accion)) return { tipo: 'objeto', o, x, y };
-      const t = this.mapa.tile(x, y);
-      if (t?.interactuar) return { tipo: 'tile', t, x, y };
+      const fn = this.mapa.interaccionEn(x, y);
+      if (fn) return { tipo: 'tile', fn, x, y };
       return null;
     };
     const r = ver(x, y);
@@ -265,7 +275,7 @@ export class Juego {
       if (ob.accion) return ob.accion(this, ob);
       return this.decir(typeof ob.dialogo === 'function' ? ob.dialogo(this, ob) : ob.dialogo || ob.texto, { quien: ob.nombre, retrato: ob.emoji });
     }
-    if (o.tipo === 'tile') return o.t.interactuar(this, o.x, o.y);
+    if (o.tipo === 'tile') return o.fn(this, o.x, o.y);
   }
 
   /** Conversación con un NPC. dialogo puede ser async (punto de conexión para un LLM). */
@@ -291,7 +301,7 @@ export class Juego {
     if (this.modo === 'explorar') this.modo = 'dialogo';
     this.rutaJugador = null;
     return this.dialogo.mostrar(guion, ctx).then(() => {
-      if (!this.dialogo.activo && this.modo === 'dialogo') this.modo = 'explorar';
+      if (!this.dialogo.ocupado && this.modo === 'dialogo') this.modo = 'explorar';
     });
   }
 
@@ -344,6 +354,7 @@ export class Juego {
     this.eventos.emit('jugador:paso', { x: j.x, y: j.y, mapa });
     const portal = mapa.portalEn(j.x, j.y);
     if (portal) { this.rutaJugador = null; return this.usarPortal(portal); }
+    if (mapa.tileset.alPisar?.(this, j.x, j.y)) { this.rutaJugador = null; return; }
     mapa.tile(j.x, j.y)?.alPisar?.(this, j.x, j.y);
     if (zonasAlPisar(this)) this.rutaJugador = null;
   }
@@ -369,7 +380,7 @@ export class Juego {
       if (r.fundido >= 1) { this.cargarMapa(tr.mapaId, tr.x, tr.y, tr.dir); tr.fase = 'entra'; }
     } else {
       r.fundido = Math.max(0, r.fundido - dt * 4);
-      if (r.fundido <= 0) { this._trans = null; this.modo = 'explorar'; tr.despues?.(); }
+      if (r.fundido <= 0) { this._trans = null; this.modo = this.dialogo.ocupado ? 'dialogo' : 'explorar'; tr.despues?.(); }
     }
   }
 
@@ -411,7 +422,7 @@ export class Juego {
     this.render.mostrarCartel(mapa.nombre);
     this.eventos.emit('mapa:entrar', { mapa, anterior });
     mapa.def.alEntrar?.(this);
-    if (anterior) this.guardar(true);
+    if (anterior && anterior !== mapa) this.guardar(true);
   }
 
   _casillaLibreCerca(x, y) {
@@ -451,6 +462,7 @@ export class Juego {
   monedas(delta = 0) { this.estado.monedas = Math.max(0, this.estado.monedas + delta); if (delta) this.eventos.emit('monedas', { total: this.estado.monedas, delta }); return this.estado.monedas; }
 
   guardar(silencioso = false) {
+    if (this.externo?.guardar) return this.externo.guardar(silencioso);
     const ok = guardarPartida(this);
     if (!silencioso) this.aviso(ok ? '💾 Partida guardada' : '⚠️ No se pudo guardar');
     return ok;

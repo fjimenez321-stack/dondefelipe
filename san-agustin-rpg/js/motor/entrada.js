@@ -14,6 +14,7 @@
 //   Esc / Q          cancelar · cerrar
 //   1-9              elegir opción de diálogo
 //   G                guardar        H / F1   ayuda
+//   I mochila   N cuaderno de misiones   P estadísticas   Esc (sin ruta) = volver/salir de la sala
 //   M                silenciar      F3 / º   modo diseño (ver colisiones y zonas)
 // Táctil:  cruceta (mantener), A = acción, B = correr/cancelar,
 //          tocar el mapa = caminar hasta ahí (y hablar si tocas a alguien)
@@ -29,6 +30,7 @@ const TECLAS = {
   KeyE: 'accion', Space: 'accion', Enter: 'accion', NumpadEnter: 'accion',
   Escape: 'cancelar', KeyQ: 'cancelar', Backspace: 'cancelar',
   KeyG: 'guardar', KeyH: 'ayuda', F1: 'ayuda', KeyM: 'silencio',
+  KeyI: 'mochila', KeyN: 'misiones', KeyP: 'perfil',
   F3: 'depurar', Backquote: 'depurar', IntlBackslash: 'depurar',
 };
 const DIRECCIONES = ['arriba', 'abajo', 'izquierda', 'derecha'];
