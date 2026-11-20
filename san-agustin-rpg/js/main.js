@@ -94,7 +94,7 @@ function empezar(continuar) {
     V4.nuevaPartida();
     setTimeout(() => juego.decir([
       { quien: 'San Agustín RPG', retrato: '🏫', texto: `¡Bienvenido, ${inputNombre.value.trim() || 'Profe'}!\n\nEstás en el Jardín Edén del Colegio San Agustín.` },
-      { quien: 'Controles', retrato: '🎮', texto: 'Flechas o WASD para caminar (Shift corre).\nE o Espacio para hablar.\nEsc para salir de una sala o cerrar un panel.\nH para ver todos los comandos.' },
+      { quien: 'Controles', retrato: '🎮', texto: 'Flechas para caminar (Shift corre).\nA, Espacio o Enter para hablar.\nEsc para salir de una sala o cerrar un panel.\nH para ver todos los comandos.' },
     ]), 500);
   }
   setTimeout(ajustarAlto, 50);

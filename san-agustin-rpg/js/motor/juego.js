@@ -30,7 +30,6 @@ import { zonasAlPisar, actualizarApariciones } from './zonas.js';
 import { guardarPartida } from './guardado.js';
 
 const PASO = 1 / 60;
-const GIRO_MS = 110; // toque más corto que esto = solo girar
 
 export class Juego {
   constructor({ canvas, dialogo, aviso, tilesets, mapas, personajes = {}, comunidad = [], externo = null }) {
@@ -164,7 +163,6 @@ export class Juego {
     const vel = en.mantiene('correr') ? j.velCorrer : j.velocidad;
     if (d) {
       this.rutaJugador = null; this.pendiente = null;
-      if (d.dir !== j.dir && d.ms < GIRO_MS && !this._caminando) { j.dir = d.dir; return; }
       this._caminando = true;
       if (!j.intentarMover(d.dir, this, vel)) this._choque(j);
       return;
