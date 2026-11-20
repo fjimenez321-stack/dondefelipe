@@ -8,7 +8,7 @@
  * Para publicar cambios a quienes ya instalaron la app,
  * sube el número de CACHE_VERSION: al activarse se borran las cachés viejas.
  */
-const CACHE_VERSION = 'v102';
+const CACHE_VERSION = 'v103';
 const CACHE_NAME = `mundo-felipe-${CACHE_VERSION}`;
 
 // Portada y piezas mínimas para abrir la app sin conexión.
@@ -26,6 +26,7 @@ const EXCLUDED_PATHS = [
   /\/a-frame\//,           // mundos A-Frame
   /\/__\//,                // rutas reservadas de Firebase Hosting
   /\/juegos\/ruta-estelar\/(js|lib)\//, // módulos del juego 3D: siempre frescos (no mezclar versiones)
+  /\/san-agustin-rpg\/(js|v4|css)\//, // San Agustín RPG: motor y contenido siempre frescos
   /\.(mp4|webm|mov|rar|zip)$/i, // videos y archivos comprimidos pesados
 ];
 
