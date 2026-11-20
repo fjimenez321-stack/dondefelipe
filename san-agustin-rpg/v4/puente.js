@@ -304,11 +304,43 @@
   document.addEventListener('click', musicaInicio, { once: true });
   document.addEventListener('touchstart', musicaInicio, { once: true });
 
+  // ── NPC del v4 que pasan a ser entidades con IA ─────────────
+  /** Conversación con un NPC levantado: la de siempre del v4 (NPC_ACT).
+   *  La promesa termina cuando se cerró todo lo que abrió (diálogos, tienda...). */
+  function hablarNPC(letra, npc) {
+    sincronizarJugador(); // el jugador ya mira al NPC (el motor lo giró)
+    const fn = NPC_ACT[letra];
+    if (!fn) return Promise.resolve();
+    fn();
+    return new Promise((listo) => {
+      const revisar = () => (STATE === 'exploring' && !juego.dialogo.ocupado ? listo() : setTimeout(revisar, 120));
+      setTimeout(revisar, 60);
+    });
+  }
+
+  /** Saca la letra del NPC de la grilla del v4 y devuelve su definición de entidad. */
+  function levantarNPCs(lista) {
+    const porMapa = {};
+    for (const n of lista) {
+      const fila = MAPS[n.mapa]?.[n.y];
+      if (!fila || fila[n.x] !== n.letra) { console.warn(`[npc-v4] "${n.letra}" no está en ${n.mapa} (${n.x},${n.y}); se deja como en el v4`); continue; }
+      fila[n.x] = n.piso || '.';
+      const id = `${n.mapa}:${n.letra}`;
+      (porMapa[n.mapa] ||= []).push({
+        ...n, id, uid: id, x: n.x, y: n.y,
+        pisa: n.pisa || '.',
+        alHablar: (j, npc) => hablarNPC(n.letra, npc),
+      });
+    }
+    return porMapa;
+  }
+
   /** Definiciones de mapa para el motor, a partir de MAPS del v4. */
-  function mapas(extras = {}) {
+  function mapas(extras = {}, npcs = {}) {
     const defs = {};
     for (const id of Object.keys(MAPS)) {
       defs[id] = { id, nombre: nombreMapa(id), tileset: 'v4', grilla: MAPS[id], ...(extras[id] || {}) };
+      if (npcs[id]) defs[id].npcs = [...(defs[id].npcs || []), ...npcs[id]];
     }
     return defs;
   }
@@ -320,14 +352,14 @@
     tiles: { v4: { nombre: 'v4' }, _desconocido: { nombre: '?', solido: true } },
     gestionaNoche: true,
     solidoEn: (mapa, x, y) => bloqueado(mapa.id, x, y),
-    npcPuedePisar: (mapa, x, y) => MAPS[mapa.id]?.[y]?.[x] === '.',
+    npcPuedePisar: (mapa, x, y, quien) => (quien?.def?.pisa || '.').includes(MAPS[mapa.id]?.[y]?.[x]),
     interaccionEn: (mapa, x, y) => interaccionEn(mapa.id, x, y),
     alPisar: () => alPisar(),
     dibujarFondo, dibujarFrente,
   };
 
   window.V4 = {
-    conectar, mapas, tileset, frame, bloqueaMotor, actualizarHUD, teclas, cerrarPanel,
+    conectar, mapas, tileset, levantarNPCs, frame, bloqueaMotor, actualizarHUD, teclas, cerrarPanel,
     registrar, nombreGuardado, partidaGuardada, continuar, nuevaPartida,
     guardar: () => saveGame(), guardarSilencioso: () => saveGameSilent(),
     volver: () => goBack(),

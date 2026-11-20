@@ -115,7 +115,7 @@ export class Juego {
       if (this.mapa.portalEn(x, y) && !quien.def?.usaPortales) return 'portal';
       if (this.mapa.puertaEn(x, y)) return 'puerta';
       if (this.mapa.tile(x, y)?.soloJugador) return 'muro';
-      if (this.mapa.tileset.npcPuedePisar && !this.mapa.tileset.npcPuedePisar(this.mapa, x, y)) return 'muro';
+      if (this.mapa.tileset.npcPuedePisar && !this.mapa.tileset.npcPuedePisar(this.mapa, x, y, quien)) return 'muro';
     }
     for (const e of this.entidades) if (e !== quien && e.solido && e.ocupa(x, y)) return 'entidad';
     return null;

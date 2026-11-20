@@ -48,6 +48,7 @@ san-agustin-rpg/
     │   ├── mapa.js · entidades.js · ia.js · ruta.js · zonas.js · dialogo.js
     │   ├── entrada.js · render.js · sprites.js · reloj.js · guardado.js · eventos.js
     └── datos/
+        ├── npc-v4.js           NPC del v4 que ahora caminan (Inspector, José, profes, guardabosques…)
         ├── comunidad.js        personajes que aparecen y caminan solos
         ├── zonas-v4.js         dónde aparecen en los mapas del v4
         └── tileset-colegio.js  tileset propio, base para mapas nuevos con el formato del motor
@@ -64,6 +65,7 @@ san-agustin-rpg/
 | Fundido entre mapas | Combate, tiendas, mochila, oficios, COVID, música |
 | Reloj único (día/noche) | Guardado (`saveGame` / `loadGame`), ranking |
 | Personajes de la comunidad con IA | Monedas azules, caramelos, encuentros |
+| Movimiento e IA de los NPC levantados (`npc-v4.js`) | Lo que dicen y hacen esos NPC (`NPC_ACT`) |
 
 `v4/puente.js` es lo único que conecta ambos: redirige `transitionTo`, `showDialog` y `getGameTime`
 al motor, y le entrega al motor las colisiones, la interacción, lo que pasa al dar un paso y el dibujo
@@ -177,6 +179,27 @@ Formatos de diálogo: texto, lista de líneas, o árbol `{inicio, nodos}` con `o
 juego.eventos.on('encuentro', ({ pool }) => combate.iniciar(pool));
 ```
 
+## NPC del v4 que caminan
+
+En el v4 cada personaje era una letra fija en la grilla. `js/datos/npc-v4.js` los "levanta": al cargar,
+la casilla pasa a ser piso y aparece una entidad del motor con sprite propio, IA y saludos en burbuja.
+Lo que dicen y hacen **no cambia**: al hablarles se llama a `NPC_ACT[letra]` del v4, y el NPC se queda
+quieto mirándote hasta que se cierra todo lo que abrió (diálogo, tienda, misión…).
+
+Hoy caminan 18: en el pasillo el Inspector (patrulla), José, Tía Claudita, Valeria, Tío Antonio y Jorge;
+los profes de 5° a 8°; Gonzalo (trota por la cancha) y Juan; Constanza y Paula; Francisco; Yael; y los
+guardabosques Martínez y Rojas. Por defecto pisan solo `.`; con `pisa: 'v'` (cancha) o `pisa: '.g'`
+(reserva) se les permite otro suelo. Nunca pisan salidas ni otros NPC del v4.
+
+```js
+{ mapa: 'pasillo', x: 8, y: 1, letra: 'I', nombre: 'Inspector', emoji: '👮',
+  apariencia: { piel: '#c99668', pelo: '#2b2b2b', peinado: 'corto', ropa: '#0f172a', lentes: true },
+  ia: { tipo: 'patrulla', ruta: [[8, 2], [30, 2], [30, 12], [8, 12]] },
+  saludo: { radio: 2, cada: 14, frases: ['¡Sin correr por el pasillo!'] } }
+```
+Si la letra ya no está en esa posición (porque cambió el mapa del v4), se avisa en la consola y el NPC
+queda como en el v4. Para devolver un NPC a su casilla fija, basta con borrar su entrada.
+
 ## Para agregar…
 
 - **Un personaje de la comunidad:** una entrada en `js/datos/comunidad.js`. Aparece solo en las zonas de `zonas-v4.js` (o de cualquier mapa con `aparicion`).
@@ -206,7 +229,8 @@ Antes de activarlo con estudiantes hay que decidir: moderación, tope de gasto, 
 
 ## Pendiente
 
-- [ ] Migrar los NPC del v4 (hoy son casillas fijas) a entidades con IA: Inspector que patrulla, alumnos que caminan…
+- [x] Inspector, José, profes y otros 15 NPC del v4 caminan con IA (`npc-v4.js`)
+- [ ] Levantar el resto (Dahian y sus gatos, Carol, Jeanette, Profe Alex, carabineros del centro, BuinZoo…)
 - [ ] Pasar las salidas del v4 (`checkMapExit`) a `portales` en datos
 - [ ] Guardado en Firestore + login del sitio (hoy: localStorage/IndexedDB del v4)
 - [ ] Ranking en línea: falta configurar `FB_CONFIG` en `v4/17-sistema.js`

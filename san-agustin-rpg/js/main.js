@@ -6,6 +6,7 @@ import { Juego } from './motor/juego.js';
 import { tilesetColegio } from './datos/tileset-colegio.js';
 import { comunidad } from './datos/comunidad.js';
 import { zonasV4 } from './datos/zonas-v4.js';
+import { npcV4 } from './datos/npc-v4.js';
 
 const $ = (s) => document.querySelector(s);
 const V4 = window.V4;
@@ -15,7 +16,7 @@ const juego = new Juego({
   dialogo: $('#dialogo'),
   aviso: $('#aviso'),
   tilesets: { v4: V4.tileset, colegio: tilesetColegio },
-  mapas: V4.mapas(zonasV4),
+  mapas: V4.mapas(zonasV4, V4.levantarNPCs(npcV4)),
   comunidad,
   externo: {
     frame: () => V4.frame(),
