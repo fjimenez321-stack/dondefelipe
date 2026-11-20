@@ -157,9 +157,9 @@ Formatos de diálogo: texto, lista de líneas, o árbol `{inicio, nodos}` con `o
 
 | Tecla | Acción |
 |---|---|
-| Flechas / WASD | caminar (mantener = seguir caminando; toque corto = girar) |
+| Flechas | caminar (cada toque = un paso; mantener = seguir caminando) |
 | Shift | correr |
-| E / Espacio / Enter | hablar, abrir, leer, avanzar el diálogo |
+| A / E / Espacio / Enter | hablar, abrir, leer, avanzar el diálogo (A, como en el v4) |
 | 1–9 | elegir opción |
 | Esc / Q | cerrar diálogo o panel; si no hay nada abierto, salir de la sala (como «← Salir» del v4) |
 | I · N · P | mochila · cuaderno de misiones · estadísticas |

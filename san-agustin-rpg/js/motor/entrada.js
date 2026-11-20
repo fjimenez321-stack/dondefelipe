@@ -8,9 +8,9 @@
 //   Pulsaciones (una vez):       accion, cancelar, guardar, ayuda, depurar, silencio
 //
 // Teclado:
-//   Flechas / WASD   caminar (mantener = caminar seguido; toque corto = solo girar)
+//   Flechas          caminar (cada toque = un paso; mantener = caminar seguido)
 //   Shift            correr
-//   E / Espacio / Enter   hablar · interactuar · avanzar diálogo
+//   A / E / Espacio / Enter   hablar · interactuar · avanzar diálogo (A como en el v4)
 //   Esc / Q          cancelar · cerrar
 //   1-9              elegir opción de diálogo
 //   G                guardar        H / F1   ayuda
@@ -22,10 +22,9 @@
 // ═══════════════════════════════════════════════════════════════
 
 const TECLAS = {
-  ArrowUp: 'arriba', KeyW: 'arriba',
-  ArrowDown: 'abajo', KeyS: 'abajo',
-  ArrowLeft: 'izquierda', KeyA: 'izquierda',
-  ArrowRight: 'derecha', KeyD: 'derecha',
+  // Mismas teclas que el v4: flechas para caminar y A / Espacio / Enter para interactuar
+  ArrowUp: 'arriba', ArrowDown: 'abajo', ArrowLeft: 'izquierda', ArrowRight: 'derecha',
+  KeyA: 'accion',
   ShiftLeft: 'correr', ShiftRight: 'correr',
   KeyE: 'accion', Space: 'accion', Enter: 'accion', NumpadEnter: 'accion',
   Escape: 'cancelar', KeyQ: 'cancelar', Backspace: 'cancelar',
