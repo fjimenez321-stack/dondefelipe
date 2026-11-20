@@ -61,17 +61,20 @@ $('#btn-diseno').onclick = () => { juego.render.depurar = !juego.render.depurar;
 
 // ── Controles táctiles ──────────────────────────────────────────
 document.querySelectorAll('[data-accion]').forEach((b) => juego.entrada.vincularBoton(b, b.dataset.accion));
+// En pantallas táctiles se camina con el joystick flotante (arrastrar sobre el mapa)
+// y siempre están los botones A/B. La cruceta es opcional (botón 🎮).
 const tactil = $('#tactil');
-const ponerTactil = (on) => {
-  tactil.classList.toggle('visible', on);
-  document.body.classList.toggle('con-tactil', on);
-  try { localStorage.setItem('rpg_dpad', on ? '1' : '0'); } catch {}
+const ponerCruceta = (on) => {
+  tactil.classList.toggle('con-cruceta', on);
+  tactil.classList.toggle('visible', on || juego.tactil);
+  document.body.classList.toggle('con-tactil', on || juego.tactil);
+  try { localStorage.setItem('rpg_cruceta', on ? '1' : '0'); } catch {}
 };
-window.__ponerTactil = ponerTactil;
-let prefTactil = null;
-try { prefTactil = localStorage.getItem('rpg_dpad'); } catch {}
-ponerTactil(prefTactil ? prefTactil === '1' : juego.tactil);
-$('#btn-tactil').onclick = () => ponerTactil(!tactil.classList.contains('visible'));
+window.__ponerTactil = ponerCruceta;
+let prefCruceta = null;
+try { prefCruceta = localStorage.getItem('rpg_cruceta'); } catch {}
+ponerCruceta(prefCruceta === '1');
+$('#btn-tactil').onclick = () => ponerCruceta(!tactil.classList.contains('con-cruceta'));
 
 // Ocultar la cruceta mientras hay un panel del v4 abierto (batalla, tienda...)
 setInterval(() => document.body.classList.toggle('panel-v4', V4.bloqueaMotor()), 150);

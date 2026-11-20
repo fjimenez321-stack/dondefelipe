@@ -60,7 +60,7 @@ export class Juego {
     // Sistema externo (el v4): { frame(dt), bloquea() → bool, teclas(entrada), guardar() }
     this.externo = externo;
 
-    this.entrada.vincularCanvas(canvas);
+    this.entrada.vincularCanvas(canvas, document.getElementById('joy'), document.getElementById('knob'));
   }
 
   // ═══ ARRANQUE Y BUCLE ═══════════════════════════════════════

@@ -166,7 +166,7 @@ Formatos de diálogo: texto, lista de líneas, o árbol `{inicio, nodos}` con `o
 | 1–9 en batalla | elegir acción |
 | Clic / tocar el mapa | caminar hasta ahí; si tocas a alguien, vas y le hablas (también a través de un mostrador) |
 | G | guardar · M silenciar · H ayuda · F3 modo diseño |
-| Celular | cruceta (mantener), **A** acción, **B** correr/cancelar |
+| Celular / mouse | **joystick flotante** (como en Mapu): arrastrar sobre el mapa y aparece un círculo que guía al Profe · tocar sin arrastrar = ir hasta ahí · **A** acción · **B** correr/cancelar · 🎮 cruceta opcional |
 | Gamepad | cruceta o stick, A, B, Start |
 
 ## Eventos disponibles
