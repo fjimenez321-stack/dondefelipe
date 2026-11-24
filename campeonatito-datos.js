@@ -9,7 +9,7 @@ window.CAMPEONATITO = (function () {
   };
   const PARTIDOS = [
     { n: 1, a: '6B', b: '7B', ga: 0,    gb: 5    },
-    { n: 2, a: '5B', b: '6B', ga: null, gb: null },
+    { n: 2, a: '5B', b: '6B', ga: 1,    gb: 1    },
     { n: 3, a: '5B', b: '7B', ga: null, gb: null },
   ];
 
