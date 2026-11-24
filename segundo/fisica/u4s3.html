@@ -85,6 +85,7 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
 @media (prefers-reduced-motion:reduce){.anim{animation:none}.slide.active .em{animation:none;background-size:100% 100%}}
 .cmp .nt{display:block;font-size:.68em;color:var(--muted);font-weight:400}
 .cmp td:not(:first-child){text-align:center;font-weight:700;font-size:1.05em}
+.formula{font-family:Cambria,Georgia,serif;font-size:1.15em;color:var(--navy);text-align:center;margin:.2em 0;font-weight:700}
 /* nav */
 .nav{position:fixed;left:0;right:0;bottom:0;height:7vh;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 1.4vw;background:rgba(251,250,247,.94);border-top:1px solid var(--line);z-index:10;font-size:16px}
 .nav button{font:inherit;font-size:15px;font-weight:700;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:6px;padding:6px 14px;cursor:pointer}
@@ -104,7 +105,7 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
   <div style="position:relative">
     <div class="kicker">Física · 2° Medio · Unidad 4: El Universo</div>
     <h1>Galileo apunta<br>un telescopio al cielo</h1>
-    <p class="sub">Sesión 3 — Tycho, Galileo y las evidencias que desafiaron al geocentrismo</p>
+    <p class="sub">Sesión 3 — La física detrás de las evidencias que desafiaron al geocentrismo</p>
   </div>
 </section>
 
@@ -112,11 +113,11 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
 <section class="slide">
   <div class="kicker">Objetivo de la clase</div>
   <h2>Hoy vamos a…</h2>
-  <div class="card navy"><p style="font-size:1.1em">Identificar las <b>evidencias</b> que debilitaron al modelo geocéntrico y distinguir los aportes de <b>Tycho Brahe</b> y <b>Galileo Galilei</b>.</p></div>
+  <div class="card navy"><p style="font-size:1.1em">Identificar las <b>evidencias</b> que debilitaron al geocentrismo y usar la <b>física</b> para entenderlas: medición de ángulos, óptica, órbitas e inercia.</p></div>
   <div class="grid3" style="margin-top:.5em">
-    <div class="card"><h3>1 · Medir</h3><p class="small">Tycho: el mejor observador sin telescopio.</p></div>
-    <div class="card"><h3>2 · Observar</h3><p class="small">Galileo: lo que se vio por primera vez en 1610.</p></div>
-    <div class="card"><h3>3 · Decidir</h3><p class="small">¿Qué modelos sobreviven a la evidencia?</p></div>
+    <div class="card"><h3>1 · Medir</h3><p class="small">Tycho y los límites de la precisión.</p></div>
+    <div class="card"><h3>2 · Observar y calcular</h3><p class="small">Telescopio, montañas lunares, lunas de Júpiter y fases de Venus.</p></div>
+    <div class="card"><h3>3 · Explicar</h3><p class="small">Galileo y la inercia: ¿por qué no sentimos que la Tierra se mueve?</p></div>
   </div>
 </section>
 
@@ -130,57 +131,52 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
   </div>
   <div class="card amber" style="margin-top:.4em"><p class="big-q" style="font-size:1.2em">En parejas: si los dos modelos predicen casi igual… <b>¿qué haría falta para desempatar?</b></p></div>
   <button class="reveal-btn" data-reveal="r1">Ver respuesta</button>
-  <div class="card navy revealable hidden" id="r1" style="margin-top:.4em"><p><b>Nuevas observaciones</b>: datos más precisos o cosas que nadie hubiera visto antes. Eso es lo que traen Tycho y Galileo.</p></div>
+  <div class="card navy revealable hidden" id="r1" style="margin-top:.4em"><p><b>Mediciones más precisas</b> y <b>observaciones nuevas</b>. Y una física que explique por qué no sentimos el movimiento.</p></div>
 </section>
 
 <!-- 4 TYCHO -->
 <section class="slide">
-  <div class="kicker">El gran observador</div>
+  <div class="kicker">El gran medidor</div>
   <h2>Tycho Brahe (1546–1601)</h2>
   <div class="grid2">
     <div>
       <ul class="clean">
-        <li>Noble danés. El rey le regaló una <b>isla completa</b> para construir su observatorio, Uraniborg.</li>
-        <li>Fabricó instrumentos gigantes para medir ángulos, <b>sin telescopio</b>.</li>
-        <li>Logró las mediciones más precisas de su época, noche tras noche, durante más de 20 años.</li>
+        <li>Noble danés. Construyó un observatorio en una isla con instrumentos gigantes para medir <b>ángulos</b>, sin telescopio.</li>
+        <li>Midió durante más de 20 años con una precisión de cerca de <span class="em">1 minuto de arco</span>.</li>
+        <li>Descubrió que una estrella nueva (1572) y un cometa (1577) estaban <b>más allá de la Luna</b>: el cielo sí cambia.</li>
       </ul>
     </div>
     <div class="card amber">
-      <p class="big-q" style="font-size:1.1em">Dato curioso</p>
-      <p style="margin-top:.3em">Perdió parte de la nariz en un duelo de espadas cuando era estudiante y usó una prótesis de metal el resto de su vida.</p>
+      <h3>¿Cuánto es 1 minuto de arco?</h3>
+      <p>Un grado se divide en 60 minutos (′), y un minuto en 60 segundos (″).</p>
+      <p style="margin-top:.3em">La Luna llena mide unos <b>30′</b> de ancho. Tycho podía distinguir <b>1/30 del ancho de la Luna</b>.</p>
     </div>
   </div>
 </section>
 
-<!-- 5 TYCHO CIELO CAMBIA -->
+<!-- 5 FISICA PARALAJE -->
 <section class="slide">
-  <div class="kicker">Tycho · Evidencia 1</div>
-  <h2>El cielo "perfecto" cambia</h2>
-  <div class="grid2">
-    <div class="card"><h3>1572 · Una estrella nueva</h3><p>Apareció una estrella brillante donde antes no había nada. Tycho la midió: <b>no tenía paralaje</b>, así que estaba mucho más lejos que la Luna.</p><p class="small" style="margin-top:.3em">Hoy sabemos que era una supernova: una estrella que explotó.</p></div>
-    <div class="card"><h3>1577 · Un cometa</h3><p>Midió que el cometa también estaba <b>más allá de la Luna</b>, y su camino atravesaba las "esferas" donde supuestamente iban los planetas.</p></div>
-  </div>
-  <div class="card navy" style="margin-top:.4em"><p><b>Consecuencia:</b> el cielo no es inmutable, y las esferas de cristal que cargaban a los planetas <span class="em">no podían existir</span>.</p></div>
-</section>
-
-<!-- 6 TYCHO PARALAJE -->
-<section class="slide">
-  <div class="kicker">Tycho · Evidencia 2</div>
-  <h2>Buscó el paralaje… y no lo encontró</h2>
+  <div class="kicker">Física · El límite de la medición</div>
+  <h2>¿Por qué Tycho no vio el paralaje?</h2>
   <div class="grid2">
     <div>
-      <p>Con sus instrumentos, Tycho podía detectar diferencias de ángulo muy pequeñas. Buscó el paralaje de las estrellas que exigía el modelo de Copérnico.</p>
-      <p style="margin-top:.4em"><b>No encontró nada.</b></p>
+      <table class="tbl">
+        <tr><th>Ángulo</th><th>Valor</th></tr>
+        <tr><td>Precisión de Tycho</td><td>≈ 1′ = <b>60″</b></td></tr>
+        <tr><td>Paralaje de la estrella más cercana</td><td><b>0,77″</b></td></tr>
+      </table>
+      <div class="card amber" style="margin-top:.5em"><p class="big-q" style="font-size:1.1em">¿Cuántas veces más pequeño es el paralaje que lo que Tycho podía medir?</p></div>
+      <button class="reveal-btn" data-reveal="r2">Ver respuesta</button>
     </div>
-    <div class="card amber">
-      <p class="big-q" style="font-size:1.15em">¿Qué concluirías tú?</p>
-      <p style="margin-top:.3em">Opción 1: la Tierra no se mueve.<br>Opción 2: las estrellas están a distancias inimaginables.</p>
-      <p class="small" style="margin-top:.4em">Tycho eligió la opción 1. Con la evidencia de 1580, ¿era una mala decisión?</p>
+    <div class="card navy revealable hidden" id="r2">
+      <p><b>60 ÷ 0,77 ≈ 78</b>: casi <b>80 veces</b> más pequeño.</p>
+      <p style="margin-top:.4em">0,77″ es el ángulo que ocupa una <b>moneda de 2 cm vista desde 5 km</b>.</p>
+      <p class="small" style="margin-top:.4em">Tycho no se equivocó al medir: su instrumento no alcanzaba. Concluyó que la Tierra no se movía. <b>Toda medición tiene un límite.</b></p>
     </div>
   </div>
 </section>
 
-<!-- 7 MODELO TYCHO -->
+<!-- 6 MODELO TYCHO -->
 <section class="slide">
   <div class="kicker">Un tercer modelo (1588)</div>
   <div class="grid2" style="align-items:center;grid-template-columns:1fr 1fr">
@@ -189,9 +185,9 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
       <ul class="clean">
         <li>La <b>Tierra</b> sigue inmóvil en el centro.</li>
         <li>La <b>Luna</b> y el <b>Sol</b> giran alrededor de la Tierra.</li>
-        <li>Los demás <b>planetas giran alrededor del Sol</b>, y el Sol los arrastra en su vuelta.</li>
+        <li>Los demás <b>planetas giran alrededor del Sol</b>.</li>
       </ul>
-      <div class="card amber" style="margin-top:.4em"><p>Explica el retrógrado y a Venus como Copérnico… <b>sin mover la Tierra</b>. Geométricamente, predice lo mismo.</p></div>
+      <div class="card amber" style="margin-top:.4em"><p>Geométricamente predice lo mismo que Copérnico… <b>sin mover la Tierra</b>. Y calzaba con la falta de paralaje.</p></div>
     </div>
     <svg viewBox="-160 -160 320 320" style="width:100%;max-height:64vh">
       <circle r="155" fill="#0f2229"/>
@@ -218,45 +214,82 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
   </div>
 </section>
 
-<!-- 8 GALILEO -->
+<!-- 7 TELESCOPIO -->
 <section class="slide">
-  <div class="kicker">Entra Galileo</div>
-  <h2>Galileo Galilei (1564–1642)</h2>
-  <div class="grid2">
+  <div class="kicker">Física · Óptica</div>
+  <h2>¿Cómo funciona el telescopio de Galileo?</h2>
+  <div class="grid2" style="align-items:center">
     <div>
-      <ul class="clean">
-        <li>Profesor de matemáticas en Italia. Estudiaba el movimiento: caída de los cuerpos, péndulos, proyectiles.</li>
-        <li>En 1609 supo de un invento holandés para ver lejos. <b>No lo inventó</b>: construyó el suyo y lo mejoró hasta aumentar unas 20 veces.</li>
-        <li>Lo <b>apuntó al cielo</b> noche tras noche, dibujó lo que veía y lo <b>publicó</b>.</li>
-      </ul>
+      <svg viewBox="0 0 340 150" style="width:100%">
+        <rect x="0" y="0" width="340" height="150" rx="8" fill="#0f2229"/>
+        <g stroke="#f2c27a" stroke-width="1.5" fill="none">
+          <line x1="8" y1="35" x2="60" y2="35"/><line x1="8" y1="75" x2="60" y2="75"/><line x1="8" y1="115" x2="60" y2="115"/>
+          <line x1="60" y1="35" x2="210" y2="66"/><line x1="60" y1="75" x2="210" y2="75"/><line x1="60" y1="115" x2="210" y2="84"/>
+          <line x1="210" y1="66" x2="320" y2="66"/><line x1="210" y1="75" x2="320" y2="75"/><line x1="210" y1="84" x2="320" y2="84"/>
+          <line x1="210" y1="66" x2="270" y2="75" stroke-dasharray="3 3" opacity=".5"/><line x1="210" y1="84" x2="270" y2="75" stroke-dasharray="3 3" opacity=".5"/>
+        </g>
+        <path d="M54 25 Q66 75 54 125 Q42 75 54 25 Z" transform="translate(6 0)" fill="#9fd6d8" opacity=".75"/>
+        <path d="M204 58 Q212 75 204 92 L216 92 Q208 75 216 58 Z" fill="#9fd6d8" opacity=".75"/>
+        <circle cx="270" cy="75" r="2.5" fill="#B8791F"/>
+        <text x="30" y="142" font-size="11" fill="#cfe7e8">objetivo (convergente)</text>
+        <text x="170" y="112" font-size="11" fill="#cfe7e8">ocular (divergente)</text>
+        <text x="262" y="96" font-size="10" fill="#f2c27a">foco</text>
+        <text x="296" y="58" font-size="11" fill="#cfe7e8">ojo</text>
+      </svg>
+      <p class="small" style="margin-top:.3em">El objetivo junta la luz; el ocular la "endereza" antes de que llegue al foco. La imagen se ve derecha y más grande.</p>
     </div>
-    <div class="card amber">
-      <p class="big-q" style="font-size:1.15em">1610: <i>El mensajero sideral</i></p>
-      <p style="margin-top:.3em">Un librito corto, con dibujos, que contaba lo que había visto. Se volvió famoso en toda Europa en semanas.</p>
+    <div>
+      <div class="card"><h3>Aumento</h3><p class="formula">A = f<sub>objetivo</sub> ÷ f<sub>ocular</sub></p><p class="small">Uno de los telescopios de Galileo: objetivo de 98 cm y ocular de unos 4,7 cm → <b>≈ 21 aumentos</b>.</p></div>
+      <div class="card amber"><p><b>Calcula:</b> con el mismo objetivo, ¿qué distancia focal debería tener el ocular para lograr 30 aumentos?</p></div>
+      <button class="reveal-btn" data-reveal="r3">Ver respuesta</button>
+      <p class="revealable hidden" id="r3" style="margin-top:.3em"><b>98 ÷ 30 ≈ 3,3 cm.</b> Ocular más corto, más aumento.</p>
     </div>
   </div>
 </section>
 
-<!-- 9 LUNA Y CIELO IMPERFECTO -->
+<!-- 8 LUNA MONTANAS -->
 <section class="slide">
-  <div class="kicker">Galileo · Observación 1</div>
-  <h2>El cielo no es perfecto</h2>
-  <div class="grid3">
-    <div class="card"><h3>La Luna</h3><p class="small">Tiene <b>montañas y cráteres</b>. Galileo calculó su altura midiendo la longitud de sus sombras.</p></div>
-    <div class="card"><h3>El Sol</h3><p class="small">Tiene <b>manchas</b> que se desplazan: el Sol gira sobre sí mismo.</p></div>
-    <div class="card"><h3>La Vía Láctea</h3><p class="small">No es una nube: son <b>miles de estrellas</b> que a simple vista no se distinguen.</p></div>
+  <div class="kicker">Galileo · Observación 1 · Física y geometría <span class="chip">≈10 min</span></div>
+  <h2 style="font-size:1.4em;margin-bottom:.2em">¿Qué tan altas son las montañas de la Luna?</h2>
+  <div class="grid2" style="align-items:center">
+    <div>
+      <p class="small">Cerca de la línea entre luz y sombra, Galileo vio <b>puntos iluminados dentro de la zona oscura</b>: cimas de montañas que alcanzan la luz del Sol antes que el suelo.</p>
+      <svg viewBox="0 0 300 232" style="width:100%;max-height:36vh;margin-top:.2em">
+        <rect width="300" height="232" rx="8" fill="#0f2229"/>
+        <path d="M150 50 A90 90 0 0 1 150 230" fill="#e9dfc4" transform="translate(0 -10)"/>
+        <circle cx="150" cy="130" r="90" fill="none" stroke="#9aa" />
+        <line x1="290" y1="40" x2="95" y2="40" stroke="#f2c27a" stroke-width="1.6"/>
+        <text x="232" y="33" font-size="11" fill="#f2c27a">luz del Sol</text>
+        <line x1="150" y1="130" x2="150" y2="40" stroke="#9fd6d8" stroke-dasharray="4 3"/>
+        <line x1="150" y1="130" x2="100" y2="40" stroke="#9fd6d8" stroke-dasharray="4 3"/>
+        <polygon points="96,48 100,40 104,49" fill="#f2c27a"/>
+        <text x="156" y="92" font-size="12" fill="#9fd6d8">R</text>
+        <text x="88" y="96" font-size="12" fill="#9fd6d8">R + h</text>
+        <text x="118" y="34" font-size="12" fill="#f2c27a">d</text>
+        <circle cx="150" cy="130" r="2.5" fill="#cfe7e8"/>
+      </svg>
+    </div>
+    <div>
+      <div class="card"><p class="small"><b>Datos:</b> radio de la Luna <b>R ≈ 1.700 km</b>; distancia del punto iluminado a la línea de sombra <b>d ≈ 170 km</b>.</p>
+        <p class="formula">(R + h)² = R² + d²</p>
+        <p class="small">Como h es muy pequeño comparado con R, se aproxima a:</p>
+        <p class="formula">h ≈ d² ÷ (2R)</p></div>
+      <button class="reveal-btn" data-reveal="r4">Ver respuesta</button>
+      <div class="card amber revealable hidden" id="r4"><p class="small" style="color:var(--ink)"><b>h ≈ 28.900 ÷ 3.400 ≈ 8,5 km.</b> Galileo estimó unos 7 km: montañas como las de la Tierra. <b>La Luna es un mundo, no una esfera perfecta.</b></p></div>
+    </div>
   </div>
-  <div class="card navy" style="margin-top:.5em"><p class="big-q" style="font-size:1.15em">Para Aristóteles, el cielo era perfecto y distinto de la Tierra. ¿Qué pasa con esa idea si la Luna tiene montañas como aquí?</p></div>
 </section>
 
-<!-- 10 LUNAS DE JUPITER -->
+<!-- 9 LUNAS DE JUPITER -->
 <section class="slide">
   <div class="kicker">Galileo · Observación 2 · Enero de 1610</div>
   <div class="grid2" style="grid-template-columns:.8fr 1.2fr;align-items:center">
     <div>
       <h2>Unos puntitos junto a Júpiter</h2>
-      <p>Galileo vio tres o cuatro "estrellitas" en línea junto a Júpiter. Las dibujó <b>cada noche</b>.</p>
-      <div class="card amber" style="margin-top:.4em"><p><b>Avancen noche a noche.</b> ¿Qué está pasando con esos puntos? ¿Qué explicación darían ustedes?</p></div>
+      <p>Galileo vio "estrellitas" en línea junto a Júpiter y las dibujó <b>cada noche</b>.</p>
+      <div class="card amber" style="margin-top:.4em"><p><b>Avancen noche a noche.</b> ¿Qué está pasando con esos puntos?</p></div>
+      <button class="reveal-btn" data-reveal="r5">¿Qué significa?</button>
+      <div class="card navy revealable hidden" id="r5" style="margin-top:.3em"><p class="small">Son <b>lunas que giran en torno a Júpiter</b>: no todo gira alrededor de la Tierra. Y Júpiter se mueve sin "dejar atrás" sus lunas, igual que la Tierra con la Luna.</p></div>
     </div>
     <div>
       <canvas id="jup" width="720" height="300" style="width:100%;height:auto"></canvas>
@@ -269,23 +302,40 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
   </div>
 </section>
 
-<!-- 11 POR QUE IMPORTA JUPITER -->
+<!-- 10 KEPLER 3 -->
 <section class="slide">
-  <div class="kicker">¿Por qué importa?</div>
-  <h2>Cuatro lunas que giran en torno a Júpiter</h2>
-  <div class="grid2">
-    <div class="card"><h3>Golpe 1</h3><p>Hay cuerpos que <b>no giran alrededor de la Tierra</b>. La Tierra no es el centro de todos los movimientos.</p></div>
-    <div class="card"><h3>Golpe 2</h3><p>Se decía: "si la Tierra se moviera, dejaría atrás a la Luna". Pero Júpiter se mueve y <b>no pierde sus lunas</b>.</p></div>
+  <div class="kicker">Física · Una ley para todas las órbitas <span class="chip">≈10 min</span></div>
+  <h2 style="margin-bottom:.2em">Júpiter: un sistema solar en miniatura</h2>
+  <p class="small">Kepler (1619) descubrió que en los planetas el <b>período al cuadrado (T²)</b> es proporcional a la <b>distancia al cubo (a³)</b>. Compruébalo en tu cuaderno.</p>
+  <div class="grid2" style="margin-top:.3em">
+    <div>
+      <table class="tbl">
+        <tr><th>Planeta</th><th>a (Tierra = 1)</th><th>T (años)</th><th>a³</th><th>T²</th></tr>
+        <tr><td>Marte</td><td>1,52</td><td>1,88</td><td>3,51</td><td>3,53</td></tr>
+        <tr><td>Júpiter</td><td>5,2</td><td>11,9</td><td>?</td><td>?</td></tr>
+        <tr><td>Saturno</td><td>9,5</td><td>29,5</td><td>?</td><td>?</td></tr>
+      </table>
+      <button class="reveal-btn" data-reveal="r6">Ver respuesta</button>
+      <p class="small revealable hidden" id="r6">Júpiter: a³ ≈ 141 y T² ≈ 142. Saturno: a³ ≈ 857 y T² ≈ 870. <b>T² ≈ a³</b> para todos.</p>
+    </div>
+    <div>
+      <table class="tbl">
+        <tr><th>Luna de Júpiter</th><th>a (radios de Júpiter)</th><th>T (días)</th><th>T² ÷ a³</th></tr>
+        <tr><td>Ío</td><td>5,9</td><td>1,77</td><td>0,0153</td></tr>
+        <tr><td>Europa</td><td>9,4</td><td>3,55</td><td>0,0152</td></tr>
+        <tr><td>Ganímedes</td><td>15,0</td><td>7,15</td><td>0,0152</td></tr>
+        <tr><td>Calisto</td><td>26,4</td><td>16,7</td><td>0,0152</td></tr>
+      </table>
+      <div class="card amber" style="margin-top:.3em"><p class="small"><b>La misma ley se cumple en las lunas de Júpiter</b>, con otra constante. Newton explicará por qué: la constante depende de la masa del cuerpo central.</p></div>
+    </div>
   </div>
-  <div class="card navy" style="margin-top:.4em"><p><b>Ojo:</b> esto no prueba que la Tierra gire alrededor del Sol. En el modelo de Tycho, Júpiter con sus lunas también puede girar alrededor del Sol mientras el Sol gira alrededor de la Tierra.</p></div>
 </section>
 
-<!-- 12 FASES DE VENUS -->
+<!-- 11 FASES DE VENUS -->
 <section class="slide">
   <div class="kicker">Galileo · Observación 3 · Fines de 1610</div>
   <h2>Las fases de Venus</h2>
-  <p>Venus, como la Luna, tiene fases. ¿Qué fases debería mostrar en cada modelo?</p>
-  <div class="grid2" style="margin-top:.3em">
+  <div class="grid2" style="margin-top:.2em">
     <div class="card">
       <h3>Si Ptolomeo tuviera razón</h3>
       <p class="small">Venus siempre está entre la Tierra y el Sol.</p>
@@ -296,12 +346,13 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
       <h3>Lo que vio Galileo</h3>
       <p class="small">Venus pasa por detrás y por delante del Sol.</p>
       <svg id="phObs" viewBox="0 0 400 110" style="width:100%;margin-top:.3em"></svg>
-      <p class="small"><b>Todas las fases</b>: casi llena y pequeña cuando está lejos; creciente y grande cuando está cerca.</p>
+      <p class="small"><b>Todas las fases</b>, y además cambia mucho de tamaño.</p>
     </div>
   </div>
+  <div class="card navy" style="margin-top:.4em"><p class="small"><b>Física del tamaño aparente:</b> un objeto se ve más pequeño mientras más lejos está. La distancia Tierra–Venus va de 0,28 a 1,72 veces la distancia Tierra–Sol. <b>¿Cuántas veces más grande se ve Venus cuando está más cerca?</b> (1,72 ÷ 0,28 ≈ 6)</p></div>
 </section>
 
-<!-- 13 QUIEN SOBREVIVE -->
+<!-- 12 QUIEN SOBREVIVE -->
 <section class="slide">
   <div class="kicker">La pregunta clave</div>
   <h2>¿Qué modelos sobreviven a las fases de Venus?</h2>
@@ -310,65 +361,89 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
     <div class="card"><h3>Copérnico</h3><p class="small">Venus gira alrededor del Sol.</p></div>
     <div class="card"><h3>Tycho</h3><p class="small">Venus gira alrededor del Sol, que gira alrededor de la Tierra.</p></div>
   </div>
-  <button class="reveal-btn" data-reveal="r2">Ver respuesta</button>
-  <div class="card navy revealable hidden" id="r2" style="margin-top:.4em">
+  <button class="reveal-btn" data-reveal="r7">Ver respuesta</button>
+  <div class="card navy revealable hidden" id="r7" style="margin-top:.4em">
     <p><b>Ptolomeo queda descartado.</b> Copérnico y Tycho sobreviven: en ambos Venus gira alrededor del Sol.</p>
     <p class="small" style="margin-top:.3em">Una evidencia puede <b>descartar</b> un modelo sin <b>demostrar</b> cuál de los que quedan es el correcto.</p>
   </div>
 </section>
 
-<!-- 14 FUENTE: DIALOGO -->
+<!-- 13 BARCO ANIMACION -->
+<section class="slide">
+  <div class="kicker">Física · Inercia y sistemas de referencia</div>
+  <div class="grid2" style="grid-template-columns:.8fr 1.2fr;align-items:center">
+    <div>
+      <h2>La piedra en el barco</h2>
+      <p class="small">Una piedra se suelta desde lo alto del mástil de un barco que avanza. ¿Dónde cae?</p>
+      <ul class="clean small" style="margin-top:.3em">
+        <li><b>Desde el barco:</b> cae en línea recta, al pie del mástil.</li>
+        <li><b>Desde la orilla:</b> la piedra conserva la velocidad del barco y describe una curva… pero también cae al pie del mástil.</li>
+      </ul>
+      <p class="small" style="margin-top:.3em">Conexión: <b>Unidad 1</b> (sistemas de referencia) y <b>Unidad 2</b> (primera ley de Newton).</p>
+    </div>
+    <div>
+      <canvas id="ship" width="720" height="380" style="width:100%;height:auto"></canvas>
+      <div class="ctrls">
+        <button id="sDrop">▶ Soltar piedra</button>
+        <button id="sView">Ver desde el barco</button>
+        <button id="sSimp">Mostrar idea de Simplicio</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 FUENTE DIALOGO -->
 <section class="slide">
   <div class="kicker">Análisis de fuente · <i>Diálogo sobre los dos máximos sistemas del mundo</i> (1632)</div>
-  <h2 style="font-size:1.35em">¿Y la piedra que cae en el mismo lugar?</h2>
+  <h2 style="font-size:1.35em">Galileo lo explicó así</h2>
   <div class="card navy" style="font-size:.86em">
     <p><b>SIMPLICIO:</b> Si se suelta una piedra desde lo alto del mástil de un barco que avanza, caerá atrás, hacia la popa, porque el barco se habrá movido mientras la piedra caía.</p>
     <p><b>SALVIATI:</b> ¿Lo has comprobado? Enciérrate con un amigo en la cabina bajo cubierta de un gran barco, con moscas, mariposas y una pecera. Con el barco quieto, observa cómo vuelan y nadan hacia todos lados, y cómo caen las gotas de una botella en la vasija de abajo. Luego haz que el barco avance a la velocidad que quieras, sin sacudidas: no notarás ningún cambio, ni podrás saber por ellos si el barco se mueve o está quieto. Y la piedra caerá al pie del mástil.</p>
     <p><b>SAGREDO:</b> Recuerdo haberlo pensado en mis viajes, aunque nunca lo observé con tanta atención.</p>
   </div>
-  <p class="small" style="margin-top:.3em">Fragmento adaptado de la Segunda Jornada. Personajes: <b>Salviati</b> defiende a Copérnico, <b>Simplicio</b> defiende a Aristóteles y Ptolomeo, <b>Sagredo</b> es un ciudadano curioso.</p>
+  <p class="small" style="margin-top:.3em">Fragmento adaptado de la Segunda Jornada. <b>Salviati</b> defiende a Copérnico, <b>Simplicio</b> a Aristóteles y Ptolomeo, <b>Sagredo</b> es un ciudadano curioso.</p>
 </section>
 
 <!-- 15 PREGUNTAS FUENTE -->
 <section class="slide">
-  <div class="kicker">Análisis de fuente · En parejas, en el cuaderno <span class="chip">≈15 min</span></div>
-  <h2>Preguntas sobre el fragmento</h2>
+  <div class="kicker">En parejas, en el cuaderno <span class="chip">≈15 min</span></div>
+  <h2>Preguntas sobre el barco</h2>
   <ol class="steps">
     <li>¿Qué argumento de la <b>Sesión 1</b> está defendiendo Simplicio?</li>
-    <li>¿Cómo le responde Salviati? Explícalo con un ejemplo actual (un bus, un avión).</li>
-    <li>Galileo escribió en <b>italiano</b> y no en latín, y en forma de <b>diálogo</b>. ¿A quién quería llegar? ¿Por qué ese formato?</li>
-    <li>El nombre "Simplicio" suena a <i>simplón</i>. ¿Qué te dice eso sobre la intención del autor? ¿Es un debate justo?</li>
+    <li>El barco avanza a <b>5 m/s</b> y la piedra tarda <b>2 s</b> en caer. Visto desde la orilla, ¿cuántos metros avanza la piedra horizontalmente mientras cae? ¿Dónde cae respecto del mástil?</li>
+    <li>¿Qué <b>ley de Newton</b> explica que la piedra conserve su velocidad horizontal? Explícala con tus palabras.</li>
+    <li>Aplícalo a la Tierra: en Villa Alemana nos movemos a unos <b>1.400 km/h</b>. ¿Por qué una piedra lanzada hacia arriba cae en el mismo lugar?</li>
   </ol>
-  <p class="small" style="margin-top:.4em">Conexión con Lengua y Literatura: el diálogo como género argumentativo.</p>
+  <p class="small" style="margin-top:.3em"><b>Extra:</b> Galileo escribió en italiano y no en latín, y en forma de diálogo. ¿A quién quería llegar?</p>
 </section>
 
 <!-- 16 DISCUSION GRUPAL -->
 <section class="slide">
-  <div class="kicker">Discusión grupal · Copia y completa en tu cuaderno <span class="chip">≈15 min</span></div>
+  <div class="kicker">Discusión grupal · Copia y completa en tu cuaderno <span class="chip">≈10 min</span></div>
   <h2 style="margin-bottom:.25em">¿Qué evidencia afecta a qué modelo?</h2>
   <table class="cmp">
     <tr><th>Evidencia</th><th>Ptolomeo</th><th>Tycho</th><th>Copérnico</th></tr>
-    <tr><td>Estrella nueva y cometa más allá de la Luna</td><td></td><td></td><td></td></tr>
+    <tr><td>No se ve paralaje (con la precisión de Tycho)</td><td></td><td></td><td></td></tr>
     <tr><td>Montañas en la Luna</td><td></td><td></td><td></td></tr>
     <tr><td>Lunas de Júpiter</td><td></td><td></td><td></td></tr>
-    <tr><td>Fases de Venus</td><td></td><td></td><td></td></tr>
-    <tr><td>No se ve paralaje</td><td></td><td></td><td></td></tr>
+    <tr><td>Fases y tamaño de Venus</td><td></td><td></td><td></td></tr>
+    <tr><td>La piedra cae al pie del mástil</td><td></td><td></td><td></td></tr>
   </table>
-  <p class="small" style="margin-top:.3em">Escribe <b>✓</b> si el modelo la explica bien, <b>✗</b> si la contradice y <b>~</b> si no la afecta.</p>
+  <p class="small" style="margin-top:.3em">Escribe <b>✓</b> si el modelo la explica o es compatible, <b>✗</b> si la contradice y <b>~</b> si no la afecta.</p>
 </section>
 
-<!-- 17 RESPUESTAS DISCUSION -->
+<!-- 17 RESPUESTAS -->
 <section class="slide">
   <div class="kicker">Puesta en común</div>
   <h2 style="margin-bottom:.25em">Revisemos</h2>
-  <button class="reveal-btn" data-reveal="r3" style="margin-bottom:.3em">Mostrar tabla completa</button>
-  <table class="cmp revealable hidden" id="r3">
+  <button class="reveal-btn" data-reveal="r8" style="margin-bottom:.3em">Mostrar tabla completa</button>
+  <table class="cmp revealable hidden" id="r8">
     <tr><th>Evidencia</th><th>Ptolomeo</th><th>Tycho</th><th>Copérnico</th></tr>
-    <tr><td>Estrella nueva y cometa</td><td>✗ <span class="nt">cielo inmutable y esferas</span></td><td>✓</td><td>~</td></tr>
+    <tr><td>No se ve paralaje</td><td>✓</td><td>✓</td><td>✗ <span class="nt">hasta 1838</span></td></tr>
     <tr><td>Montañas en la Luna</td><td>✗ <span class="nt">cielo perfecto</span></td><td>~</td><td>~</td></tr>
     <tr><td>Lunas de Júpiter</td><td>✗ <span class="nt">no todo gira en torno a la Tierra</span></td><td>✓</td><td>✓</td></tr>
-    <tr><td>Fases de Venus</td><td>✗</td><td>✓</td><td>✓</td></tr>
-    <tr><td>No se ve paralaje</td><td>✓</td><td>✓</td><td>✗ <span class="nt">hasta 1838</span></td></tr>
+    <tr><td>Fases y tamaño de Venus</td><td>✗</td><td>✓</td><td>✓</td></tr>
+    <tr><td>La piedra cae al pie del mástil</td><td>~ <span class="nt">quita un argumento a favor</span></td><td>~</td><td>✓ <span class="nt">la Tierra puede moverse sin notarlo</span></td></tr>
   </table>
 </section>
 
@@ -377,16 +452,16 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
   <div class="kicker">Conclusión</div>
   <h2>En 1610 cae Ptolomeo… pero hay un nuevo empate</h2>
   <div class="grid2">
-    <div class="card"><h3>Tycho vs. Copérnico</h3><p>Ambos explican lo que vio Galileo. Tycho incluso tenía a su favor la falta de paralaje y el sentido común.</p></div>
+    <div class="card"><h3>Tycho vs. Copérnico</h3><p>Ambos explican lo que vio Galileo. La inercia quitó el principal argumento contra el movimiento de la Tierra, pero aún no probaba que se moviera.</p></div>
     <div class="card amber"><h3>¿Cómo se desempató?</h3>
       <ul class="clean small" style="color:var(--ink)">
-        <li><b>Kepler</b> (ayudante de Tycho) usó sus datos y descubrió que las órbitas son <b>elipses</b> alrededor del Sol (1609): predicciones mucho más precisas.</li>
-        <li><b>Newton</b> (1687) explicó con la gravedad por qué los planetas giran alrededor del Sol.</li>
-        <li><b>Bessel</b> (1838) midió por fin el paralaje.</li>
+        <li><b>Kepler</b> usó los datos de Tycho: órbitas <b>elípticas</b> alrededor del Sol y la ley T² ∝ a³.</li>
+        <li><b>Newton</b> (1687) explicó con la gravedad por qué se cumplen esas leyes.</li>
+        <li><b>Bessel</b> (1838), con mejores instrumentos, midió por fin el paralaje.</li>
       </ul>
     </div>
   </div>
-  <p class="small" style="margin-top:.4em">Los datos de Tycho, que creía en una Tierra inmóvil, terminaron sirviendo para demostrar que se mueve.</p>
+  <p class="small" style="margin-top:.4em">Los datos precisos de Tycho, que creía en una Tierra inmóvil, terminaron sirviendo para demostrar que se mueve.</p>
 </section>
 
 <!-- 19 SEMAFORO -->
@@ -395,9 +470,9 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
   <h2>Semáforo: ¿cómo quedé?</h2>
   <div class="card">
     <div class="sema">
-      <div class="dot" style="background:var(--ok)"></div><p><b>Verde:</b> puedo explicar qué observó Galileo y por qué las fases de Venus descartan a Ptolomeo.</p>
-      <div class="dot" style="background:var(--warn)"></div><p><b>Amarillo:</b> conozco las observaciones, pero me cuesta explicar qué modelo afecta cada una.</p>
-      <div class="dot" style="background:var(--bad)"></div><p><b>Rojo:</b> no entiendo en qué se diferencia el modelo de Tycho de los otros dos.</p>
+      <div class="dot" style="background:var(--ok)"></div><p><b>Verde:</b> puedo explicar con la inercia por qué no sentimos el movimiento de la Tierra y qué evidencias descartan a Ptolomeo.</p>
+      <div class="dot" style="background:var(--warn)"></div><p><b>Amarillo:</b> entiendo las observaciones, pero me costaron los cálculos.</p>
+      <div class="dot" style="background:var(--bad)"></div><p><b>Rojo:</b> todavía no entiendo por qué la piedra cae al pie del mástil.</p>
     </div>
   </div>
 </section>
@@ -519,6 +594,52 @@ canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block
     [[0.98,10],[0.85,12],[0.6,16],[0.45,21],[0.25,27],[0.08,32]].forEach(function(v,i){o+=phase(30+i*66,55,v[1],v[0]);});
     document.getElementById('phPto').innerHTML=p;
     document.getElementById('phObs').innerHTML=o;
+  })();
+  // Ship: inertia and reference frames
+  (function(){
+    var cv=document.getElementById('ship'), c=cv.getContext('2d'), W=cv.width, H=cv.height;
+    var SEA=300, MAST=190, VX=2.2, G=0.1, X0=110;
+    var t=-1, shipView=false, simp=false, trail=[], ghost=[];
+    function shipX(tt){return X0+VX*Math.min(Math.max(tt,0),102);}
+    function drawShip(x){
+      c.fillStyle='#7a4b2a';c.beginPath();c.moveTo(x-90,SEA-30);c.lineTo(x+90,SEA-30);c.lineTo(x+65,SEA+5);c.lineTo(x-65,SEA+5);c.closePath();c.fill();
+      c.fillStyle='#5c3920';c.fillRect(x-3,SEA-30-MAST,6,MAST);
+      c.fillStyle='#e8e2d0';c.beginPath();c.moveTo(x+4,SEA-30-MAST+10);c.lineTo(x+70,SEA-60);c.lineTo(x+4,SEA-60);c.closePath();c.fill();
+    }
+    var HOLD=40, FALL=62, END=HOLD+FALL+30;
+    function frame(){
+      if(t>=0&&t<END)t++;
+      var tt=Math.max(t,0), sx=shipX(tt);
+      var off=shipView?(W/2-sx):0;
+      c.fillStyle='#d9ecef';c.fillRect(0,0,W,H);
+      c.fillStyle='#2E7D82';c.fillRect(0,SEA,W,H-SEA);
+      for(var k=-12;k<14;k++){var bx=k*90+off;if(bx<-20||bx>W+20)continue;c.fillStyle='#1F3A44';c.fillRect(bx,SEA-18,6,18);c.fillStyle='#5b6b72';c.fillRect(bx-6,SEA-24,18,6);}
+      drawShip(sx+off);
+      var topY=SEA-30-MAST;
+      if(t>HOLD){
+        var ft=Math.min(t-HOLD,FALL), y=Math.min(topY+0.5*G*ft*ft,SEA-30);
+        var xr=shipX(HOLD)+VX*ft, sxf=shipX(HOLD+ft);
+        if(t-HOLD<=FALL){trail.push([xr,y,xr-sxf]);ghost.push([shipX(HOLD),y,shipX(HOLD)-sxf]);}
+        function X(p){return shipView?W/2+p[2]:p[0];}
+        c.strokeStyle='#B8791F';c.lineWidth=2.5;c.setLineDash([]);c.beginPath();
+        trail.forEach(function(p,i){i?c.lineTo(X(p),p[1]):c.moveTo(X(p),p[1]);});c.stroke();
+        if(simp){c.strokeStyle='#b33a3a';c.setLineDash([6,5]);c.beginPath();ghost.forEach(function(p,i){i?c.lineTo(X(p),p[1]):c.moveTo(X(p),p[1]);});c.stroke();c.setLineDash([]);
+          var g=ghost[ghost.length-1];c.lineWidth=2;c.beginPath();c.arc(X(g),g[1],8,0,7);c.stroke();
+          c.fillStyle='#b33a3a';c.font='bold 16px Calibri, Arial';c.textAlign='center';c.fillText('Simplicio',X(g),g[1]-14);}
+        var last=trail[trail.length-1];
+        c.fillStyle='#1d2a30';c.beginPath();c.arc(X(last),last[1],8,0,7);c.fill();
+      } else {
+        c.fillStyle='#1d2a30';c.beginPath();c.arc(sx+off,topY,8,0,7);c.fill();
+      }
+      c.fillStyle='#1F3A44';c.font='bold 18px Calibri, Arial';c.textAlign='left';
+      c.fillText(shipView?'Vista desde el barco: la piedra cae en línea recta':'Vista desde la orilla: la piedra describe una curva',14,28);
+      if(t>=HOLD+FALL){c.fillStyle='#2e7d4f';c.fillText('Cae al pie del mástil ✓',14,54);}
+      requestAnimationFrame(frame);
+    }
+    document.getElementById('sDrop').onclick=function(){t=0;trail=[];ghost=[];this.textContent='↺ Repetir';};
+    document.getElementById('sView').onclick=function(){shipView=!shipView;this.textContent=shipView?'Ver desde la orilla':'Ver desde el barco';};
+    document.getElementById('sSimp').onclick=function(){simp=!simp;this.textContent=simp?'Ocultar idea de Simplicio':'Mostrar idea de Simplicio';};
+    frame();
   })();
   go(0);
 })();
