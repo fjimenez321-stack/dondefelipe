@@ -146,43 +146,12 @@
     <footer>El Mundo de Felipe · Campeonatito 2026</footer>
   </div>
 
+<script src="campeonatito-datos.js?v=20261124"></script>
 <script>
-/* ═══ DATOS · editar solo aquí ═══
-   Para cargar un resultado: poner los goles en ga / gb (null = por jugar). */
-const EQUIPOS = {
-  '5B': { nombre: '5° Básico', chip: '5°B', color: 'var(--c5)' },
-  '6B': { nombre: '6° Básico', chip: '6°B', color: 'var(--c6)' },
-  '7B': { nombre: '7° Básico', chip: '7°B', color: 'var(--c7)' },
-};
-const PARTIDOS = [
-  { n: 1, a: '6B', b: '7B', ga: 0,    gb: 5    },
-  { n: 2, a: '5B', b: '6B', ga: null, gb: null },
-  { n: 3, a: '5B', b: '7B', ga: null, gb: null },
-];
-
-/* ═══ Lógica ═══ */
-const jugado = p => p.ga !== null && p.gb !== null;
+/* Los resultados se editan en campeonatito-datos.js */
+const { EQUIPOS, PARTIDOS, jugado } = window.CAMPEONATITO;
+const calcularTabla = window.CAMPEONATITO.tabla;
 const chip = id => `<span class="chip" style="--c:${EQUIPOS[id].color}">${EQUIPOS[id].chip}</span>`;
-
-function calcularTabla() {
-  const t = {};
-  for (const id in EQUIPOS) t[id] = { id, pj:0, g:0, e:0, p:0, gf:0, gc:0, pts:0 };
-  PARTIDOS.filter(jugado).forEach(({a, b, ga, gb}) => {
-    const A = t[a], B = t[b];
-    A.pj++; B.pj++; A.gf += ga; A.gc += gb; B.gf += gb; B.gc += ga;
-    if (ga > gb) { A.g++; B.p++; A.pts += 3; }
-    else if (ga < gb) { B.g++; A.p++; B.pts += 3; }
-    else { A.e++; B.e++; A.pts++; B.pts++; }
-  });
-  const directo = (x, y) => {
-    const m = PARTIDOS.find(p => jugado(p) && ((p.a === x && p.b === y) || (p.a === y && p.b === x)));
-    if (!m) return 0;
-    const gx = m.a === x ? m.ga : m.gb, gy = m.a === x ? m.gb : m.ga;
-    return gy - gx;
-  };
-  return Object.values(t).sort((x, y) =>
-    y.pts - x.pts || (y.gf - y.gc) - (x.gf - x.gc) || y.gf - x.gf || directo(x.id, y.id) || x.id.localeCompare(y.id));
-}
 
 function render() {
   const tabla = calcularTabla();
@@ -212,17 +181,8 @@ function render() {
   }).join('');
 
   // estado
-  const jugados = PARTIDOS.filter(jugado), pend = PARTIDOS.filter(p => !jugado(p));
-  let txt;
-  if (!jugados.length) txt = '<b>Por comenzar.</b> Primer partido: ' + EQUIPOS[PARTIDOS[0].a].nombre + ' vs ' + EQUIPOS[PARTIDOS[0].b].nombre + '.';
-  else if (pend.length) {
-    const u = jugados[jugados.length - 1];
-    const gan = u.ga === u.gb ? null : (u.ga > u.gb ? u.a : u.b);
-    const res = gan ? `${EQUIPOS[gan].nombre} ganó ${Math.max(u.ga, u.gb)}-${Math.min(u.ga, u.gb)} a ${EQUIPOS[gan === u.a ? u.b : u.a].nombre}.`
-                    : `${EQUIPOS[u.a].nombre} y ${EQUIPOS[u.b].nombre} empataron ${u.ga}-${u.gb}.`;
-    txt = `<b>Partido ${u.n}:</b> ${res} Próximo: ${EQUIPOS[pend[0].a].nombre} vs ${EQUIPOS[pend[0].b].nombre}.`;
-  } else txt = `<b>¡Triangular terminado!</b> Campeón: ${EQUIPOS[tabla[0].id].nombre} con ${tabla[0].pts} puntos.`;
-  document.getElementById('estado').innerHTML = txt;
+  const st = window.CAMPEONATITO.estado();
+  document.getElementById('estado').innerHTML = `<b>${st.corto}.</b> ${st.txt}`.replace('!.', '!');
 
   // triángulo
   const pos = { '5B': [100, 22], '6B': [24, 170], '7B': [176, 170] };
