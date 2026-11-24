@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unidad 4 · Sesión 3 — Galileo apunta un telescopio al cielo</title>
+<style>
+:root{
+  --navy:#1F3A44; --teal:#2E7D82; --amber:#B8791F;
+  --ink:#1d2a30; --muted:#5b6b72; --line:#d6dee1; --bg:#fbfaf7;
+  --ok:#2e7d4f; --warn:#c79a1c; --bad:#b33a3a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);overflow:hidden}
+body{font-family:Calibri,"Segoe UI",Carlito,Arial,sans-serif;font-size:clamp(16px,2.6vw,36px);line-height:1.3}
+h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;color:var(--navy);line-height:1.12}
+h1{font-size:2.3em}
+h2{font-size:1.65em;margin-bottom:.45em}
+h3{font-size:1.08em;margin-bottom:.25em}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;padding:3.2vh 5vw 9vh;display:none;flex-direction:column;justify-content:center;overflow:hidden}
+.slide.active{display:flex;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kicker{font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:.35em}
+.chip{display:inline-block;font-size:.55em;padding:.15em .6em;border:1.5px solid var(--amber);color:var(--amber);border-radius:99px;font-weight:700;vertical-align:middle;margin-left:.5em;letter-spacing:.03em}
+.card{background:#fff;border:1px solid var(--line);border-left:6px solid var(--teal);border-radius:6px;padding:.6em .9em;margin:.3em 0}
+.card.amber{border-left-color:var(--amber)}
+.card.navy{border-left-color:var(--navy)}
+.card p+p{margin-top:.3em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.8em;align-items:start}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7em;align-items:stretch}
+.big-q{font-family:Cambria,Georgia,serif;font-size:1.5em;color:var(--navy);line-height:1.2}
+ul.clean{list-style:none}
+ul.clean li{padding-left:1.1em;position:relative;margin:.22em 0}
+ul.clean li::before{content:"";position:absolute;left:0;top:.5em;width:.45em;height:.45em;background:var(--teal);border-radius:1px}
+ol.steps{padding-left:1.4em}
+ol.steps li{margin:.2em 0}
+.small{font-size:.8em;color:var(--muted)}
+.em{color:var(--amber);font-weight:700}
+.tl{color:var(--teal);font-weight:700}
+.reveal-btn{font:inherit;font-size:.7em;font-weight:700;color:#fff;background:var(--navy);border:none;border-radius:6px;padding:.35em .9em;cursor:pointer;margin-top:.5em;align-self:flex-start}
+.reveal-btn:hover{background:var(--teal)}
+.hidden{visibility:hidden;opacity:0}
+.revealable{transition:opacity .35s}
+.title-slide{background:linear-gradient(135deg,#132a32 0%,#1F3A44 60%,#2E7D82 140%);color:#fff}
+.title-slide h1{color:#fff}
+.title-slide .kicker{color:#f2c27a}
+.title-slide .sub{font-size:1.05em;opacity:.9;margin-top:.5em;max-width:28em}
+.stars{position:absolute;inset:0;pointer-events:none;opacity:.55}
+.num{font-family:Cambria,Georgia,serif;font-size:2.2em;color:var(--amber);font-weight:700;line-height:1}
+svg text{font-family:Calibri,"Segoe UI",Arial,sans-serif}
+canvas{background:#0f2229;border-radius:8px;width:100%;height:auto;display:block}
+.ctrls{display:flex;gap:.4em;flex-wrap:wrap;margin-top:.4em}
+.ctrls button{font:inherit;font-size:.62em;font-weight:700;padding:.3em .8em;border-radius:6px;border:1.5px solid var(--teal);background:#fff;color:var(--teal);cursor:pointer}
+.ctrls button:hover{background:var(--teal);color:#fff}
+.sema{display:grid;grid-template-columns:auto 1fr;gap:.45em .7em;align-items:center}
+.dot{width:1.3em;height:1.3em;border-radius:50%}
+.lvl h3{display:flex;align-items:center;gap:.4em}
+.lvl .tag{font-size:.6em;font-weight:700;padding:.12em .5em;border-radius:4px;color:#fff}
+.tbl{border-collapse:collapse;width:100%;font-size:.78em;background:#fff}
+.tbl th{background:var(--navy);color:#fff;text-align:left;padding:.3em .5em;font-weight:700}
+.tbl td{border-bottom:1px solid var(--line);padding:.28em .5em}
+.timeline{display:grid;grid-template-columns:repeat(9,1fr);gap:.3em;position:relative;margin-top:.8em}
+.timeline::before{content:"";position:absolute;left:0;right:0;top:.55em;height:3px;background:var(--line)}
+.tl-item{position:relative;padding-top:1.4em;font-size:.62em;line-height:1.25}
+.tl-item::before{content:"";position:absolute;top:.15em;left:0;width:.9em;height:.9em;border-radius:50%;background:var(--teal)}
+.tl-item.hl::before{background:var(--amber);width:1.1em;height:1.1em;top:.05em}
+.tl-item .yr{display:block;font-family:Cambria,Georgia,serif;font-weight:700;color:var(--navy);font-size:1.25em;margin-bottom:.2em}
+.tl-item.hl .yr{color:var(--amber)}
+.cmp{border-collapse:collapse;width:100%;background:#fff;font-size:.82em}
+.cmp th{background:var(--navy);color:#fff;text-align:left;padding:.35em .6em;font-family:Cambria,Georgia,serif;line-height:1.1}
+.cmp th span{font-family:Calibri,Arial,sans-serif;font-weight:400;font-size:.75em;opacity:.85}
+.cmp td{border:1.5px solid var(--line);padding:.35em .6em;height:2.6em;vertical-align:top}
+.cmp td:first-child{width:36%;font-weight:700;color:var(--navy)}
+/* text animations */
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-26px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.92)}70%{transform:scale(1.02)}100%{opacity:1;transform:none}}
+@keyframes mark{to{background-size:100% 100%}}
+.anim{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.anim.kicker,.anim.li{animation-name:slideIn}
+.anim.card,.anim.tl-item,.anim.vis{animation-name:pop}
+.slide.active .em{background:linear-gradient(transparent 62%,rgba(184,121,31,.28) 0) no-repeat;background-size:0 100%;animation:mark .7s 1.1s forwards}
+.title-slide.active .em{background-image:none}
+@media (prefers-reduced-motion:reduce){.anim{animation:none}.slide.active .em{animation:none;background-size:100% 100%}}
+.cmp .nt{display:block;font-size:.68em;color:var(--muted);font-weight:400}
+.cmp td:not(:first-child){text-align:center;font-weight:700;font-size:1.05em}
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;height:7vh;min-height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 1.4vw;background:rgba(251,250,247,.94);border-top:1px solid var(--line);z-index:10;font-size:16px}
+.nav button{font:inherit;font-size:15px;font-weight:700;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:6px;padding:6px 14px;cursor:pointer}
+.nav button:hover{background:var(--navy);color:#fff}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.dots span{width:10px;height:10px;border-radius:50%;background:var(--line);cursor:pointer}
+.dots span.on{background:var(--teal)}
+.counter{color:var(--muted);font-weight:700;min-width:4.5em;text-align:center}
+.left,.right{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+<!-- 1 PORTADA -->
+<section class="slide title-slide">
+  <svg class="stars" viewBox="0 0 100 60" preserveAspectRatio="none" id="starfield"></svg>
+  <div style="position:relative">
+    <div class="kicker">Física · 2° Medio · Unidad 4: El Universo</div>
+    <h1>Galileo apunta<br>un telescopio al cielo</h1>
+    <p class="sub">Sesión 3 — Tycho, Galileo y las evidencias que desafiaron al geocentrismo</p>
+  </div>
+</section>
+
+<!-- 2 OBJETIVO -->
+<section class="slide">
+  <div class="kicker">Objetivo de la clase</div>
+  <h2>Hoy vamos a…</h2>
+  <div class="card navy"><p style="font-size:1.1em">Identificar las <b>evidencias</b> que debilitaron al modelo geocéntrico y distinguir los aportes de <b>Tycho Brahe</b> y <b>Galileo Galilei</b>.</p></div>
+  <div class="grid3" style="margin-top:.5em">
+    <div class="card"><h3>1 · Medir</h3><p class="small">Tycho: el mejor observador sin telescopio.</p></div>
+    <div class="card"><h3>2 · Observar</h3><p class="small">Galileo: lo que se vio por primera vez en 1610.</p></div>
+    <div class="card"><h3>3 · Decidir</h3><p class="small">¿Qué modelos sobreviven a la evidencia?</p></div>
+  </div>
+</section>
+
+<!-- 3 ACTIVACION -->
+<section class="slide">
+  <div class="kicker">Recordemos <span class="chip">≈5 min</span></div>
+  <h2>El empate de 1550</h2>
+  <div class="grid2">
+    <div class="card"><h3>Ptolomeo</h3><p>Predice bien, calza con lo que sentimos. Pero necesita epiciclos y ecuante.</p></div>
+    <div class="card"><h3>Copérnico</h3><p>Explica el retrógrado y Venus de forma natural. Pero no predice mejor y no hay paralaje.</p></div>
+  </div>
+  <div class="card amber" style="margin-top:.4em"><p class="big-q" style="font-size:1.2em">En parejas: si los dos modelos predicen casi igual… <b>¿qué haría falta para desempatar?</b></p></div>
+  <button class="reveal-btn" data-reveal="r1">Ver respuesta</button>
+  <div class="card navy revealable hidden" id="r1" style="margin-top:.4em"><p><b>Nuevas observaciones</b>: datos más precisos o cosas que nadie hubiera visto antes. Eso es lo que traen Tycho y Galileo.</p></div>
+</section>
+
+<!-- 4 TYCHO -->
+<section class="slide">
+  <div class="kicker">El gran observador</div>
+  <h2>Tycho Brahe (1546–1601)</h2>
+  <div class="grid2">
+    <div>
+      <ul class="clean">
+        <li>Noble danés. El rey le regaló una <b>isla completa</b> para construir su observatorio, Uraniborg.</li>
+        <li>Fabricó instrumentos gigantes para medir ángulos, <b>sin telescopio</b>.</li>
+        <li>Logró las mediciones más precisas de su época, noche tras noche, durante más de 20 años.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.1em">Dato curioso</p>
+      <p style="margin-top:.3em">Perdió parte de la nariz en un duelo de espadas cuando era estudiante y usó una prótesis de metal el resto de su vida.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 TYCHO CIELO CAMBIA -->
+<section class="slide">
+  <div class="kicker">Tycho · Evidencia 1</div>
+  <h2>El cielo "perfecto" cambia</h2>
+  <div class="grid2">
+    <div class="card"><h3>1572 · Una estrella nueva</h3><p>Apareció una estrella brillante donde antes no había nada. Tycho la midió: <b>no tenía paralaje</b>, así que estaba mucho más lejos que la Luna.</p><p class="small" style="margin-top:.3em">Hoy sabemos que era una supernova: una estrella que explotó.</p></div>
+    <div class="card"><h3>1577 · Un cometa</h3><p>Midió que el cometa también estaba <b>más allá de la Luna</b>, y su camino atravesaba las "esferas" donde supuestamente iban los planetas.</p></div>
+  </div>
+  <div class="card navy" style="margin-top:.4em"><p><b>Consecuencia:</b> el cielo no es inmutable, y las esferas de cristal que cargaban a los planetas <span class="em">no podían existir</span>.</p></div>
+</section>
+
+<!-- 6 TYCHO PARALAJE -->
+<section class="slide">
+  <div class="kicker">Tycho · Evidencia 2</div>
+  <h2>Buscó el paralaje… y no lo encontró</h2>
+  <div class="grid2">
+    <div>
+      <p>Con sus instrumentos, Tycho podía detectar diferencias de ángulo muy pequeñas. Buscó el paralaje de las estrellas que exigía el modelo de Copérnico.</p>
+      <p style="margin-top:.4em"><b>No encontró nada.</b></p>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.15em">¿Qué concluirías tú?</p>
+      <p style="margin-top:.3em">Opción 1: la Tierra no se mueve.<br>Opción 2: las estrellas están a distancias inimaginables.</p>
+      <p class="small" style="margin-top:.4em">Tycho eligió la opción 1. Con la evidencia de 1580, ¿era una mala decisión?</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 MODELO TYCHO -->
+<section class="slide">
+  <div class="kicker">Un tercer modelo (1588)</div>
+  <div class="grid2" style="align-items:center;grid-template-columns:1fr 1fr">
+    <div>
+      <h2>El modelo de Tycho</h2>
+      <ul class="clean">
+        <li>La <b>Tierra</b> sigue inmóvil en el centro.</li>
+        <li>La <b>Luna</b> y el <b>Sol</b> giran alrededor de la Tierra.</li>
+        <li>Los demás <b>planetas giran alrededor del Sol</b>, y el Sol los arrastra en su vuelta.</li>
+      </ul>
+      <div class="card amber" style="margin-top:.4em"><p>Explica el retrógrado y a Venus como Copérnico… <b>sin mover la Tierra</b>. Geométricamente, predice lo mismo.</p></div>
+    </div>
+    <svg viewBox="-160 -160 320 320" style="width:100%;max-height:64vh">
+      <circle r="155" fill="#0f2229"/>
+      <circle r="150" fill="none" stroke="#B8791F" stroke-dasharray="2 4"/>
+      <circle r="70" fill="none" stroke="#f2c27a" stroke-width="1.5"/>
+      <circle r="22" fill="none" stroke="#9aa" />
+      <circle r="9" fill="#2E7D82"/><text x="-16" y="24" font-size="11" fill="#cfe7e8">Tierra</text>
+      <circle cx="22" cy="0" r="3.5" fill="#ddd"/>
+      <g transform="translate(49.5,-49.5)">
+        <circle r="22" fill="none" stroke="#a9a9a9" stroke-dasharray="3 3"/>
+        <circle r="38" fill="none" stroke="#f3e2b0" stroke-dasharray="3 3"/>
+        <circle r="80" fill="none" stroke="#d1603d" stroke-dasharray="3 3"/>
+        <circle r="11" fill="#f2c27a"/>
+        <circle cx="0" cy="-22" r="3" fill="#a9a9a9"/>
+        <circle cx="-38" cy="0" r="4" fill="#f3e2b0"/>
+        <circle cx="56.6" cy="56.6" r="4.5" fill="#d1603d"/>
+        <text x="14" y="4" font-size="11" fill="#f2c27a">Sol</text>
+        <text x="-66" y="-6" font-size="10" fill="#f3e2b0">Venus</text>
+        <text x="62" y="70" font-size="10" fill="#f3d0c4">Marte</text>
+      </g>
+      <text x="-150" y="-132" font-size="10" fill="#f2c27a">estrellas fijas</text>
+      <text x="-60" y="96" font-size="10" fill="#f2c27a">órbita del Sol</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 8 GALILEO -->
+<section class="slide">
+  <div class="kicker">Entra Galileo</div>
+  <h2>Galileo Galilei (1564–1642)</h2>
+  <div class="grid2">
+    <div>
+      <ul class="clean">
+        <li>Profesor de matemáticas en Italia. Estudiaba el movimiento: caída de los cuerpos, péndulos, proyectiles.</li>
+        <li>En 1609 supo de un invento holandés para ver lejos. <b>No lo inventó</b>: construyó el suyo y lo mejoró hasta aumentar unas 20 veces.</li>
+        <li>Lo <b>apuntó al cielo</b> noche tras noche, dibujó lo que veía y lo <b>publicó</b>.</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <p class="big-q" style="font-size:1.15em">1610: <i>El mensajero sideral</i></p>
+      <p style="margin-top:.3em">Un librito corto, con dibujos, que contaba lo que había visto. Se volvió famoso en toda Europa en semanas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9 LUNA Y CIELO IMPERFECTO -->
+<section class="slide">
+  <div class="kicker">Galileo · Observación 1</div>
+  <h2>El cielo no es perfecto</h2>
+  <div class="grid3">
+    <div class="card"><h3>La Luna</h3><p class="small">Tiene <b>montañas y cráteres</b>. Galileo calculó su altura midiendo la longitud de sus sombras.</p></div>
+    <div class="card"><h3>El Sol</h3><p class="small">Tiene <b>manchas</b> que se desplazan: el Sol gira sobre sí mismo.</p></div>
+    <div class="card"><h3>La Vía Láctea</h3><p class="small">No es una nube: son <b>miles de estrellas</b> que a simple vista no se distinguen.</p></div>
+  </div>
+  <div class="card navy" style="margin-top:.5em"><p class="big-q" style="font-size:1.15em">Para Aristóteles, el cielo era perfecto y distinto de la Tierra. ¿Qué pasa con esa idea si la Luna tiene montañas como aquí?</p></div>
+</section>
+
+<!-- 10 LUNAS DE JUPITER -->
+<section class="slide">
+  <div class="kicker">Galileo · Observación 2 · Enero de 1610</div>
+  <div class="grid2" style="grid-template-columns:.8fr 1.2fr;align-items:center">
+    <div>
+      <h2>Unos puntitos junto a Júpiter</h2>
+      <p>Galileo vio tres o cuatro "estrellitas" en línea junto a Júpiter. Las dibujó <b>cada noche</b>.</p>
+      <div class="card amber" style="margin-top:.4em"><p><b>Avancen noche a noche.</b> ¿Qué está pasando con esos puntos? ¿Qué explicación darían ustedes?</p></div>
+    </div>
+    <div>
+      <canvas id="jup" width="720" height="300" style="width:100%;height:auto"></canvas>
+      <div class="ctrls">
+        <button id="jPrev">◀ Noche anterior</button>
+        <button id="jNext">Noche siguiente ▶</button>
+        <button id="jTop">Ver desde arriba</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 POR QUE IMPORTA JUPITER -->
+<section class="slide">
+  <div class="kicker">¿Por qué importa?</div>
+  <h2>Cuatro lunas que giran en torno a Júpiter</h2>
+  <div class="grid2">
+    <div class="card"><h3>Golpe 1</h3><p>Hay cuerpos que <b>no giran alrededor de la Tierra</b>. La Tierra no es el centro de todos los movimientos.</p></div>
+    <div class="card"><h3>Golpe 2</h3><p>Se decía: "si la Tierra se moviera, dejaría atrás a la Luna". Pero Júpiter se mueve y <b>no pierde sus lunas</b>.</p></div>
+  </div>
+  <div class="card navy" style="margin-top:.4em"><p><b>Ojo:</b> esto no prueba que la Tierra gire alrededor del Sol. En el modelo de Tycho, Júpiter con sus lunas también puede girar alrededor del Sol mientras el Sol gira alrededor de la Tierra.</p></div>
+</section>
+
+<!-- 12 FASES DE VENUS -->
+<section class="slide">
+  <div class="kicker">Galileo · Observación 3 · Fines de 1610</div>
+  <h2>Las fases de Venus</h2>
+  <p>Venus, como la Luna, tiene fases. ¿Qué fases debería mostrar en cada modelo?</p>
+  <div class="grid2" style="margin-top:.3em">
+    <div class="card">
+      <h3>Si Ptolomeo tuviera razón</h3>
+      <p class="small">Venus siempre está entre la Tierra y el Sol.</p>
+      <svg id="phPto" viewBox="0 0 400 110" style="width:100%;margin-top:.3em"></svg>
+      <p class="small">Solo "nueva" o <b>creciente delgada</b>. Nunca llena.</p>
+    </div>
+    <div class="card amber">
+      <h3>Lo que vio Galileo</h3>
+      <p class="small">Venus pasa por detrás y por delante del Sol.</p>
+      <svg id="phObs" viewBox="0 0 400 110" style="width:100%;margin-top:.3em"></svg>
+      <p class="small"><b>Todas las fases</b>: casi llena y pequeña cuando está lejos; creciente y grande cuando está cerca.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 13 QUIEN SOBREVIVE -->
+<section class="slide">
+  <div class="kicker">La pregunta clave</div>
+  <h2>¿Qué modelos sobreviven a las fases de Venus?</h2>
+  <div class="grid3">
+    <div class="card"><h3>Ptolomeo</h3><p class="small">Venus siempre entre la Tierra y el Sol.</p></div>
+    <div class="card"><h3>Copérnico</h3><p class="small">Venus gira alrededor del Sol.</p></div>
+    <div class="card"><h3>Tycho</h3><p class="small">Venus gira alrededor del Sol, que gira alrededor de la Tierra.</p></div>
+  </div>
+  <button class="reveal-btn" data-reveal="r2">Ver respuesta</button>
+  <div class="card navy revealable hidden" id="r2" style="margin-top:.4em">
+    <p><b>Ptolomeo queda descartado.</b> Copérnico y Tycho sobreviven: en ambos Venus gira alrededor del Sol.</p>
+    <p class="small" style="margin-top:.3em">Una evidencia puede <b>descartar</b> un modelo sin <b>demostrar</b> cuál de los que quedan es el correcto.</p>
+  </div>
+</section>
+
+<!-- 14 FUENTE: DIALOGO -->
+<section class="slide">
+  <div class="kicker">Análisis de fuente · <i>Diálogo sobre los dos máximos sistemas del mundo</i> (1632)</div>
+  <h2 style="font-size:1.35em">¿Y la piedra que cae en el mismo lugar?</h2>
+  <div class="card navy" style="font-size:.86em">
+    <p><b>SIMPLICIO:</b> Si se suelta una piedra desde lo alto del mástil de un barco que avanza, caerá atrás, hacia la popa, porque el barco se habrá movido mientras la piedra caía.</p>
+    <p><b>SALVIATI:</b> ¿Lo has comprobado? Enciérrate con un amigo en la cabina bajo cubierta de un gran barco, con moscas, mariposas y una pecera. Con el barco quieto, observa cómo vuelan y nadan hacia todos lados, y cómo caen las gotas de una botella en la vasija de abajo. Luego haz que el barco avance a la velocidad que quieras, sin sacudidas: no notarás ningún cambio, ni podrás saber por ellos si el barco se mueve o está quieto. Y la piedra caerá al pie del mástil.</p>
+    <p><b>SAGREDO:</b> Recuerdo haberlo pensado en mis viajes, aunque nunca lo observé con tanta atención.</p>
+  </div>
+  <p class="small" style="margin-top:.3em">Fragmento adaptado de la Segunda Jornada. Personajes: <b>Salviati</b> defiende a Copérnico, <b>Simplicio</b> defiende a Aristóteles y Ptolomeo, <b>Sagredo</b> es un ciudadano curioso.</p>
+</section>
+
+<!-- 15 PREGUNTAS FUENTE -->
+<section class="slide">
+  <div class="kicker">Análisis de fuente · En parejas, en el cuaderno <span class="chip">≈15 min</span></div>
+  <h2>Preguntas sobre el fragmento</h2>
+  <ol class="steps">
+    <li>¿Qué argumento de la <b>Sesión 1</b> está defendiendo Simplicio?</li>
+    <li>¿Cómo le responde Salviati? Explícalo con un ejemplo actual (un bus, un avión).</li>
+    <li>Galileo escribió en <b>italiano</b> y no en latín, y en forma de <b>diálogo</b>. ¿A quién quería llegar? ¿Por qué ese formato?</li>
+    <li>El nombre "Simplicio" suena a <i>simplón</i>. ¿Qué te dice eso sobre la intención del autor? ¿Es un debate justo?</li>
+  </ol>
+  <p class="small" style="margin-top:.4em">Conexión con Lengua y Literatura: el diálogo como género argumentativo.</p>
+</section>
+
+<!-- 16 DISCUSION GRUPAL -->
+<section class="slide">
+  <div class="kicker">Discusión grupal · Copia y completa en tu cuaderno <span class="chip">≈15 min</span></div>
+  <h2 style="margin-bottom:.25em">¿Qué evidencia afecta a qué modelo?</h2>
+  <table class="cmp">
+    <tr><th>Evidencia</th><th>Ptolomeo</th><th>Tycho</th><th>Copérnico</th></tr>
+    <tr><td>Estrella nueva y cometa más allá de la Luna</td><td></td><td></td><td></td></tr>
+    <tr><td>Montañas en la Luna</td><td></td><td></td><td></td></tr>
+    <tr><td>Lunas de Júpiter</td><td></td><td></td><td></td></tr>
+    <tr><td>Fases de Venus</td><td></td><td></td><td></td></tr>
+    <tr><td>No se ve paralaje</td><td></td><td></td><td></td></tr>
+  </table>
+  <p class="small" style="margin-top:.3em">Escribe <b>✓</b> si el modelo la explica bien, <b>✗</b> si la contradice y <b>~</b> si no la afecta.</p>
+</section>
+
+<!-- 17 RESPUESTAS DISCUSION -->
+<section class="slide">
+  <div class="kicker">Puesta en común</div>
+  <h2 style="margin-bottom:.25em">Revisemos</h2>
+  <button class="reveal-btn" data-reveal="r3" style="margin-bottom:.3em">Mostrar tabla completa</button>
+  <table class="cmp revealable hidden" id="r3">
+    <tr><th>Evidencia</th><th>Ptolomeo</th><th>Tycho</th><th>Copérnico</th></tr>
+    <tr><td>Estrella nueva y cometa</td><td>✗ <span class="nt">cielo inmutable y esferas</span></td><td>✓</td><td>~</td></tr>
+    <tr><td>Montañas en la Luna</td><td>✗ <span class="nt">cielo perfecto</span></td><td>~</td><td>~</td></tr>
+    <tr><td>Lunas de Júpiter</td><td>✗ <span class="nt">no todo gira en torno a la Tierra</span></td><td>✓</td><td>✓</td></tr>
+    <tr><td>Fases de Venus</td><td>✗</td><td>✓</td><td>✓</td></tr>
+    <tr><td>No se ve paralaje</td><td>✓</td><td>✓</td><td>✗ <span class="nt">hasta 1838</span></td></tr>
+  </table>
+</section>
+
+<!-- 18 CONCLUSION -->
+<section class="slide">
+  <div class="kicker">Conclusión</div>
+  <h2>En 1610 cae Ptolomeo… pero hay un nuevo empate</h2>
+  <div class="grid2">
+    <div class="card"><h3>Tycho vs. Copérnico</h3><p>Ambos explican lo que vio Galileo. Tycho incluso tenía a su favor la falta de paralaje y el sentido común.</p></div>
+    <div class="card amber"><h3>¿Cómo se desempató?</h3>
+      <ul class="clean small" style="color:var(--ink)">
+        <li><b>Kepler</b> (ayudante de Tycho) usó sus datos y descubrió que las órbitas son <b>elipses</b> alrededor del Sol (1609): predicciones mucho más precisas.</li>
+        <li><b>Newton</b> (1687) explicó con la gravedad por qué los planetas giran alrededor del Sol.</li>
+        <li><b>Bessel</b> (1838) midió por fin el paralaje.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="small" style="margin-top:.4em">Los datos de Tycho, que creía en una Tierra inmóvil, terminaron sirviendo para demostrar que se mueve.</p>
+</section>
+
+<!-- 19 SEMAFORO -->
+<section class="slide">
+  <div class="kicker">Cierre</div>
+  <h2>Semáforo: ¿cómo quedé?</h2>
+  <div class="card">
+    <div class="sema">
+      <div class="dot" style="background:var(--ok)"></div><p><b>Verde:</b> puedo explicar qué observó Galileo y por qué las fases de Venus descartan a Ptolomeo.</p>
+      <div class="dot" style="background:var(--warn)"></div><p><b>Amarillo:</b> conozco las observaciones, pero me cuesta explicar qué modelo afecta cada una.</p>
+      <div class="dot" style="background:var(--bad)"></div><p><b>Rojo:</b> no entiendo en qué se diferencia el modelo de Tycho de los otros dos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 20 PROXIMA -->
+<section class="slide title-slide">
+  <div style="position:relative">
+    <div class="kicker">Próxima clase</div>
+    <h1 style="font-size:1.9em">Galileo ante<br>la Inquisición</h1>
+    <p class="sub">El <i>Diálogo</i> le costó caro. ¿Qué pasa cuando una evidencia científica choca con el poder de su época?</p>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <div class="left"><button id="prevBtn">◀</button><button id="nextBtn">▶</button></div>
+  <div class="dots" id="dots"></div>
+  <div class="right"><span class="counter" id="counter"></span><button id="fsBtn">⛶ Pantalla completa</button></div>
+</div>
+
+<script>
+(function(){
+  // starfield
+  var sf=document.getElementById('starfield'), s='';
+  for(var i=0;i<90;i++){var x=(Math.sin(i*12.9898)*43758.5453)%1,y=(Math.sin(i*78.233)*12345.678)%1;x=Math.abs(x)*100;y=Math.abs(y)*60;s+='<circle cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="'+(0.08+(i%4)*0.06).toFixed(2)+'" fill="#fff"/>';}
+  sf.innerHTML=s;
+
+  var slides=[].slice.call(document.querySelectorAll('.slide')), cur=0;
+  var dots=document.getElementById('dots'), counter=document.getElementById('counter');
+  slides.forEach(function(_,i){var d=document.createElement('span');d.onclick=function(){go(i)};dots.appendChild(d);});
+  // text animations
+  var SEL='.kicker,h1,h2,.sub,.card,.slide>p,.grid2>div>p,.grid2>div>ul>li,.slide>ul>li,ol.steps>li,.tbl tr,.cmp tr,.tl-item,svg:not(.stars),canvas,.ctrls,.reveal-btn,.sema>p';
+  function animateIn(root){
+    var els=[].slice.call(root.querySelectorAll(SEL)).filter(function(e){
+      if(e.closest('.revealable.hidden'))return false;
+      var c=e.parentElement&&e.parentElement.closest('.card');
+      return !c;
+    });
+    els.forEach(function(e,i){
+      e.classList.remove('anim','li','vis');
+      void e.offsetWidth;
+      if(e.tagName==='LI')e.classList.add('li');
+      if(e.tagName==='svg'||e.tagName==='CANVAS'||e.tagName==='svg'.toUpperCase())e.classList.add('vis');
+      e.style.animationDelay=Math.min(0.05+i*0.09,1.6).toFixed(2)+'s';
+      e.classList.add('anim');
+    });
+  }
+  function go(n){
+    cur=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach(function(sl,i){sl.classList.toggle('active',i===cur)});
+    [].forEach.call(dots.children,function(d,i){d.classList.toggle('on',i===cur)});
+    counter.textContent=(cur+1)+' / '+slides.length;
+    animateIn(slides[cur]);
+  }
+  document.getElementById('prevBtn').onclick=function(){go(cur-1)};
+  document.getElementById('nextBtn').onclick=function(){go(cur+1)};
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(cur+1)}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1)}
+    else if(e.key==='Home'){go(0)} else if(e.key==='End'){go(slides.length-1)}
+  });
+  var tx=null;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50)go(cur+(dx<0?1:-1));tx=null},{passive:true});
+  var fsBtn=document.getElementById('fsBtn');
+  fsBtn.onclick=function(){
+    if(!document.fullscreenElement){(document.documentElement.requestFullscreen||function(){}).call(document.documentElement)}
+    else{document.exitFullscreen()}
+  };
+  document.addEventListener('fullscreenchange',function(){fsBtn.textContent=document.fullscreenElement?'↩ Volver':'⛶ Pantalla completa'});
+
+  // reveals
+  [].forEach.call(document.querySelectorAll('.reveal-btn'),function(b){
+    b.onclick=function(){var t=document.getElementById(b.dataset.reveal);var h=t.classList.toggle('hidden');if(!h){t.querySelectorAll('.anim').forEach(function(x){x.classList.remove('anim')});animateIn(t);if(t.classList.contains('card')){t.classList.remove('anim');void t.offsetWidth;t.style.animationDelay='0s';t.classList.add('anim');}}b.dataset.lbl=b.dataset.lbl||b.textContent;b.textContent=h?b.dataset.lbl:'Ocultar';};
+  });
+
+  // Jupiter moons (Galilean), side view night by night
+  (function(){
+    var cv=document.getElementById('jup'), c=cv.getContext('2d'), W=cv.width, H=cv.height;
+    var moons=[{n:'Ío',a:5.9,P:1.769,f:0.3},{n:'Europa',a:9.4,P:3.551,f:2.1},{n:'Ganímedes',a:15.0,P:7.155,f:4.0},{n:'Calisto',a:26.4,P:16.69,f:1.2}];
+    var night=1, top=false, sc=12.2;
+    function draw(){
+      c.fillStyle='#0f2229';c.fillRect(0,0,W,H);
+      c.fillStyle='rgba(255,255,255,.35)';for(var i=0;i<50;i++)c.fillRect(Math.abs(Math.sin(i*91.7))*W,Math.abs(Math.sin(i*37.3))*H,1.4,1.4);
+      var cx=W/2, cy=top?H/2:H/2;
+      c.font='bold 18px Calibri, Arial';c.textAlign='left';c.fillStyle='#f2c27a';
+      c.fillText('Noche '+night+(top?' · vista desde arriba':' · lo que ve Galileo'),16,28);
+      if(top){
+        moons.forEach(function(m){c.strokeStyle='rgba(159,214,216,.35)';c.setLineDash([4,4]);c.beginPath();c.ellipse(cx,cy,m.a*sc,m.a*sc*0.38,0,0,7);c.stroke();c.setLineDash([]);});
+      }
+      c.fillStyle='#d8b98a';c.beginPath();c.arc(cx,cy,14,0,7);c.fill();
+      c.fillStyle='#b08a5a';c.fillRect(cx-13,cy-3,26,3);
+      moons.forEach(function(m){
+        var th=2*Math.PI*night/m.P+m.f, x=cx+m.a*sc*Math.cos(th), y=top?cy-m.a*sc*0.38*Math.sin(th):cy;
+        var behind=!top&&Math.abs(m.a*Math.cos(th))<1.2&&Math.sin(th)>0;
+        if(behind)return;
+        c.fillStyle='#ffffff';c.beginPath();c.arc(x,y,4.5,0,7);c.fill();
+        if(top){c.fillStyle='#cfe7e8';c.font='14px Calibri, Arial';c.textAlign='center';c.fillText(m.n,x,y-9);}
+      });
+      c.fillStyle='#9fd6d8';c.font='14px Calibri, Arial';c.textAlign='right';
+      c.fillText(top?'Las lunas giran en torno a Júpiter':'Oeste  ·  Júpiter  ·  Este',W-16,H-14);
+    }
+    document.getElementById('jPrev').onclick=function(){if(night>1)night--;draw();};
+    document.getElementById('jNext').onclick=function(){night++;draw();};
+    document.getElementById('jTop').onclick=function(){top=!top;this.textContent=top?'Ver como Galileo':'Ver desde arriba';draw();};
+    draw();
+  })();
+
+  // Venus phases
+  function phase(cx,cy,r,k){
+    var rx=r*Math.abs(2*k-1), sw=k>0.5?1:0;
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#33464d"/>'+
+      '<path d="M'+cx+','+(cy-r)+' A'+r+','+r+' 0 0 1 '+cx+','+(cy+r)+' A'+rx.toFixed(2)+','+r+' 0 0 '+sw+' '+cx+','+(cy-r)+' Z" fill="#f3e2b0"/>';
+  }
+  (function(){
+    var p='',o='';
+    [[0.05,30],[0.12,30],[0.2,29],[0.25,28],[0.18,29],[0.08,30]].forEach(function(v,i){p+=phase(40+i*64,55,v[1]*0.9,v[0]);});
+    [[0.98,10],[0.85,12],[0.6,16],[0.45,21],[0.25,27],[0.08,32]].forEach(function(v,i){o+=phase(30+i*66,55,v[1],v[0]);});
+    document.getElementById('phPto').innerHTML=p;
+    document.getElementById('phObs').innerHTML=o;
+  })();
+  go(0);
+})();
+</script>
+</body>
+</html>
