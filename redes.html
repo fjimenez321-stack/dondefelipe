@@ -170,6 +170,7 @@ const hoyTxt = () => new Date().toLocaleDateString('es-CL', { weekday: 'long', d
 const fechaCorta = t => new Date(t).toLocaleString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
 let datos = {}, plantilla = 'futbolV', formato = 'post', opcion = {};
+{ const q = new URLSearchParams(location.search); if (q.get('p')) plantilla = q.get('p'); if (q.get('f') === 'historia') formato = 'historia'; }
 
 /* ═════════ lectura de datos ═════════ */
 async function leerHTML(url) { const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' }); return new DOMParser().parseFromString(await r.text(), 'text/html'); }
@@ -216,6 +217,11 @@ async function cargarTorneos() {
     const fin = [...d.querySelectorAll('.round.final .slot')].map(x => txt(x.querySelector('.nombre')));
     datos.quem = { cuartos: ronda('.round.cuartos'), semis: ronda('.round.semifinal'), fin, campeon: txt(d.querySelector('.final-match .txt')), fase: txt(d.querySelector('h1 .fase')), estado: txt(d.querySelector('.estado .txt')) };
   } catch (e) { datos.quem = { error: e.message }; }
+  // Campeonatito: datos compartidos con campeonatito.html (se recarga el script para tener lo último)
+  try {
+    await new Promise((ok, mal) => { const sc = document.createElement('script'); sc.src = 'campeonatito-datos.js?t=' + Date.now(); sc.onload = ok; sc.onerror = () => mal(new Error('sin datos')); document.head.appendChild(sc); });
+    datos.campe = window.CAMPEONATITO;
+  } catch (e) { datos.campe = { error: e.message }; }
   for (const [k, url] of [['golV', 'goleadores.html'], ['golD', 'goleadoras.html']]) {
     try {
       const d = await leerHTML(url);
@@ -274,6 +280,7 @@ const PL = {
   golV: { nombre: '🥅 Goleadores', tema: ['#ccff00', 'rgba(204,255,0,.22)', 'rgba(34,227,255,.16)'], kick: 'Copa San Agustín 2026', titulo: 'Tabla de <b>goleadores</b>', html: () => htmlGoles(datos.golV) },
   golD: { nombre: '🥅 Goleadoras', tema: ['#ff4d94', 'rgba(255,77,148,.25)', 'rgba(255,215,0,.12)'], kick: 'Copa San Agustín 2026', titulo: 'Tabla de <b>goleadoras</b>', html: () => htmlGoles(datos.golD) },
   quem: { nombre: '🔥 Quemados', tema: ['#ff6a1a', 'rgba(255,106,26,.26)', 'rgba(255,214,10,.12)'], kick: 'Torneo de Quemados 2026', titulo: 'Torneo de <b>Quemados</b>', html: () => htmlQuemados() },
+  campe: { nombre: '⚽ Campeonatito', tema: ['#4fe08a', 'rgba(31,168,85,.28)', 'rgba(255,200,61,.14)'], kick: 'Triangular 5° · 6° · 7° Básico', titulo: '<b>Campeonatito</b>', html: () => htmlCampeonatito() },
   merc: { nombre: '🤝 Venden los estudiantes', tema: ['#22e3ff', 'rgba(34,227,255,.22)', 'rgba(255,46,126,.14)'], kick: 'Mercado entre estudiantes', titulo: 'Se <b>vende</b>', html: () => htmlMercEst(),
     opciones: () => selOp('mercTipo', 'Qué mostrar', [['todo', 'Todo'], ['fisico', '📦 Artículos físicos'], ['gatito', '🐱 Gatitos'], ['beneficio', '🎟️ Beneficios']]) + selOp('mercNom', 'Vendedor', [['no', 'Sin nombres'], ['si', 'Mostrar quién vende']]) },
   ruleta: { nombre: '🎡 Ruleta', tema: ['#f5c400', 'rgba(245,196,0,.22)', 'rgba(255,46,126,.16)'], kick: 'Ruleta de la Fortuna · Hipopesos', titulo: 'La <b>Ruleta</b>', html: () => htmlRuleta() },
@@ -441,6 +448,22 @@ function htmlQuemados() {
     ${d.semis.length ? `<div class="caja ${finOk ? '' : 'dest'}"><div class="etq">Semifinales</div>${d.semis.map(p => `<div style="margin:10px 0">${vsHTML(p, !finOk)}</div>`).join('')}</div>` : ''}
     ${(H || !finOk) && d.cuartos.length ? `<div class="caja"><div class="etq">Cuartos de final</div>${d.cuartos.map(p => `<div style="margin:6px 0;transform:scale(.85);transform-origin:center">${vsHTML(p)}</div>`).join('')}</div>` : ''}`;
 }
+function htmlCampeonatito() {
+  const C = datos.campe;
+  if (!C || C.error) return '<div class="vacio">No se pudo leer el Campeonatito.</div>';
+  const E = C.EQUIPOS, st = C.estado(), H = formato === 'historia';
+  const jugados = C.PARTIDOS.filter(C.jugado), pend = C.PARTIDOS.filter(p => !C.jugado(p));
+  const vsP = (p, grande) => { const ok = C.jugado(p);
+    return vsHTML({ l: E[p.a].nombre, r: E[p.b].nombre, mid: ok ? p.ga + ' – ' + p.gb : 'VS', lw: ok && p.ga > p.gb, rw: ok && p.gb > p.ga }, grande); };
+  const tabla = `<div class="caja"><div class="etq">Posiciones</div><table class="tabla"><tr><th>#</th><th>Curso</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DG</th><th>PTS</th></tr>
+    ${C.tabla().map((t, i) => { const dg = t.gf - t.gc; return `<tr><td>${i + 1}</td><td><span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${esc(E[t.id].color)};margin-right:12px"></span>${esc(E[t.id].nombre)}</td><td>${t.pj}</td><td>${t.g}</td><td>${t.e}</td><td>${t.p}</td><td>${dg > 0 ? '+' : ''}${dg}</td><td class="pts">${t.pts}</td></tr>`; }).join('')}</table></div>`;
+  const ult = jugados[jugados.length - 1];
+  return `${st.campeon ? `<div class="caja dest" style="text-align:center"><div class="etq">🏆 Campeón</div><div style="font:900 110px/1 var(--fd);text-transform:uppercase;color:var(--tema)">${esc(E[st.campeon].nombre)}</div></div>`
+      : ult ? `<div class="caja dest"><div class="etq">Resultado · Partido ${ult.n}</div>${vsP(ult, true)}</div>` : ''}
+    ${tabla}
+    ${pend.length ? `<div class="caja"><div class="etq">${pend.length === 1 ? 'Último partido' : 'Próximos partidos'}</div>${pend.map(p => `<div style="margin:8px 0">${vsP(p)}</div>`).join('')}</div>` : ''}
+    ${H && jugados.length > 1 ? `<div class="caja"><div class="etq">Resultados</div>${jugados.map(p => `<div style="margin:8px 0">${vsP(p)}</div>`).join('')}</div>` : ''}`;
+}
 function htmlMercEst() {
   const t = opcion.mercTipo || 'todo', conNom = opcion.mercNom === 'si';
   const l = (datos.merc || []).filter(x => t === 'todo' || x.tipo === t).slice(0, formato === 'historia' ? 6 : 4);
@@ -541,6 +564,8 @@ async function cargarTodo() {
   await Promise.all([cargarTorneos(), cargarFirebase().catch(e => { $('aviso').innerHTML = `<div class="aviso">No se pudieron leer los datos del banco: ${esc(e.message)}</div>`; })]);
   $('nota').textContent = 'Datos de ' + new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) + ' · Usa «Datos al día» si algo cambió.';
   try { await document.fonts.ready; } catch (e) {}
+  if (!PL[plantilla]) plantilla = 'futbolV';
+  [...$('formato').children].forEach(x => x.classList.toggle('on', x.dataset.f === formato));
   pintarControles(); dibujar();
 }
 $('recargar').onclick = cargarTodo;
