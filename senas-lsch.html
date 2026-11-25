@@ -36,7 +36,7 @@ h1 span{color:var(--acid)}
 .visor .pend{color:#333;text-align:center;padding:24px}
 .visor .pend b{display:block;font:900 44px/1 var(--ff-d);margin-bottom:8px}
 .tag{position:absolute;top:10px;left:10px;font:800 11px var(--ff);letter-spacing:1px;text-transform:uppercase;padding:4px 9px;border-radius:999px}
-.tag.dic{background:#0f3d24;color:#9ff5c4}.tag.dac{background:#3a3108;color:#ffe58a}.tag.pen{background:#4a141b;color:#ffb3ad}.tag.prop{background:#14304a;color:#a8d6ff}
+.tag.dic{background:#0f3d24;color:#9ff5c4}.tag.dac{background:#3a3108;color:#ffe58a}.tag.pen{background:#4a141b;color:#ffb3ad}.tag.prop{background:#14304a;color:#a8d6ff}.tag.ext{background:#2e1c4a;color:#d6b8ff}
 .glosa{font:900 clamp(32px,8vw,48px)/1 var(--ff-d);text-transform:uppercase;letter-spacing:.5px}
 .info{color:var(--mute);font-size:14px;margin-top:6px}
 .info i{color:var(--brass)}
@@ -45,13 +45,13 @@ h1 span{color:var(--acid)}
 .ctrl input[type=range]{accent-color:var(--acid)}
 .tira{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .tk{border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:8px;padding:4px 8px;font:800 13px var(--ff);cursor:pointer}
-.tk.dic{border-color:#1f6b42}.tk.dac{border-color:#7a6612;border-style:dashed}.tk.pen{border-color:#7a2730;color:#ffb3ad}.tk.prop{border-color:#2b5f8f}
+.tk.dic{border-color:#1f6b42}.tk.dac{border-color:#7a6612;border-style:dashed}.tk.pen{border-color:#7a2730;color:#ffb3ad}.tk.prop{border-color:#2b5f8f}.tk.ext{border-color:#6b44a8}
 .tk.on{background:var(--acid);color:#141a00;border-color:var(--acid)}
 .tk.sep{background:none;border:none;color:var(--mute);cursor:default;padding:4px 2px}
 .frase{color:var(--mute);font-size:14px;margin:10px 0 2px}
 .ley{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:10px}
 .ley span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.ley .a::before{background:#1f6b42}.ley .b::before{background:#7a6612}.ley .c::before{background:#7a2730}.ley .d::before{background:#2b5f8f}
+.ley .a::before{background:#1f6b42}.ley .b::before{background:#7a6612}.ley .c::before{background:#7a2730}.ley .d::before{background:#2b5f8f}.ley .e::before{background:#6b44a8}
 details summary{cursor:pointer;font-weight:800}
 details img{max-width:100%;border-radius:10px;margin-top:10px;background:#fff}
 .aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:14px;font-size:14px}
@@ -91,7 +91,8 @@ details img{max-width:100%;border-radius:10px;margin-top:10px;background:#fff}
     <div id="frases"></div>
     <div class="ley">
       <span class="a">Foto del diccionario</span>
-      <span class="b">Deletreo (dactilológico)</span>
+      <span class="b">Deletreo (alfabeto manual)</span>
+      <span class="e">Lámina de pronombres</span>
       <span class="d">Seña que subiste tú</span>
       <span class="c">Pendiente: no está en el diccionario</span>
     </div>
@@ -106,8 +107,9 @@ details img{max-width:100%;border-radius:10px;margin-top:10px;background:#fff}
   </div>
 
   <div class="aviso">
-    <b>Sobre lo que falta.</b> El diccionario no trae <b>YO, TÚ, MI, CON, MUCHO, LICEO, TÉCNICO</b> ni los números (51). YO, TÚ y MI suelen hacerse apuntando, pero eso no está en el diccionario, así que no se muestra nada inventado. Para cada seña pendiente puedes subir una foto o un clip corto grabado por alguien que sepa LSCh; el abecedario del deletreo funciona igual. Lo que subas queda guardado solo en este navegador.
-    <br><span class="muted">TRABAJO usa la foto de TRABAJAR: el diccionario presenta las dos entradas juntas con una sola foto.</span>
+    <b>Fuentes.</b> Señas: Diccionario Bilingüe LSCh–Español (UMCE). Deletreos: alfabeto manual chileno de LENSE Bío Bío, publicado por BioBioChile. YO y TÚ: lámina «Los pronombres». Uso educativo y sin fines de lucro.
+    <br><b>Lo que falta:</b> <b>MI, CON, MUCHO, LICEO, TÉCNICO</b> y el número <b>51</b> no aparecen en ninguna de esas fuentes, así que no se muestra nada inventado. Puedes subir una foto o un clip corto grabado por alguien que sepa LSCh; queda guardado solo en este navegador.
+    <br><br><span class="muted">TRABAJO usa la foto de TRABAJAR: el diccionario presenta las dos entradas juntas con una sola foto.</span>
   </div>
 </div>
 
@@ -141,6 +143,12 @@ const D={
  "TRANQUILA":{img:"TRANQUILA.jpg",vol:"I–Z",pag:343,ent:"TRANQUILO/A",def:"Persona libre de inquietudes."}
 };
 D["AÑOS"]=D["AÑO"];
+// Pronombres: lámina externa (no está en el diccionario)
+const EXT={
+ "YO":{img:"YO.jpg",def:"Pronombre de primera persona: el índice apunta al propio pecho.",fuente:"Lámina «Los pronombres» (fuente no indicada)"},
+ "TÚ":{img:"TU.jpg",def:"Pronombre de segunda persona: el índice apunta a la persona con quien se habla.",fuente:"Lámina «Los pronombres» (fuente no indicada)"}
+};
+const ALFA="Alfabeto manual chileno · LENSE Bío Bío / BioBioChile";
 
 const PARTES=[
  {t:"Parte 1 · Presentación",f:[
@@ -170,6 +178,8 @@ function tokens(frase){
       out.push({tipo:"dac",g:limpio,letras:limpio.split("-")});
     }else if(D[limpio]){
       out.push({tipo:"dic",g:limpio});
+    }else if(EXT[limpio]){
+      out.push({tipo:"ext",g:limpio});
     }else{
       out.push({tipo:"pen",g:limpio});
     }
@@ -198,13 +208,19 @@ function render(){
     tag=`<span class="tag dic">Diccionario</span>`;
     $("glosa").textContent=tk.g;
     info=`${d.def}<br><i class="fa-solid fa-book"></i> Entrada <b>${d.ent}</b> · tomo ${d.vol}, p. ${d.pag}`;
+  }else if(tk.tipo==="ext"){
+    const e=EXT[tk.g];
+    html=`<img src="senas-lsch/${e.img}" alt="Seña ${tk.g} en LSCh">`;
+    tag=`<span class="tag ext">Lámina</span>`;
+    $("glosa").textContent=tk.g;
+    info=`${e.def}<br><i class="fa-solid fa-image"></i> ${e.fuente}`;
   }else if(tk.tipo==="dac"){
     const k="LETRA-"+s.L, p=propia(k);
-    html=p?media(p,"Letra "+s.L):`<div class="letra">${s.L}</div>`;
+    const arch="letra-"+(s.L==="Ñ"?"NN":s.L)+".jpg";
+    html=p?media(p,"Letra "+s.L):`<img src="senas-lsch/${arch}" alt="Letra ${s.L} del alfabeto manual chileno" style="min-height:260px;object-fit:contain">`;
     tag=p?`<span class="tag prop">Subida por ti</span>`:`<span class="tag dac">Deletreo</span>`;
     $("glosa").innerHTML=tk.letras.map((L,j)=>j===s.li?`<span style="color:var(--acid)">${L}</span>`:L).join("-");
-    info=`Deletreo con el alfabeto manual, letra ${s.li+1} de ${tk.letras.length}. El diccionario no trae el abecedario completo; ${p?"esta letra usa la imagen que subiste.":"sube la imagen de esta letra para verla aquí."}`;
-    subir=botonSubir(k,"letra "+s.L);
+    info=`Deletreo con el alfabeto manual, letra <b>${s.L}</b> (${s.li+1} de ${tk.letras.length}).<br><i class="fa-solid fa-image"></i> ${ALFA}`;
   }else{
     const p=propia(tk.g);
     html=p?media(p,"Seña "+tk.g):`<div class="pend"><b>${tk.g}</b>Esta seña no está en el diccionario.<br>No se muestra nada inventado.</div>`;
