@@ -97,6 +97,12 @@ PARCHES = [
      "  if(!progress.questLog) progress.questLog={};\n  syncUI(); updateCamera();\n  window.__v4Cargado?.(); // el motor carga el mapa guardado",
      'Al cargar partida, el motor se ubica en el mapa y posición guardados.'),
 ]
+# Reemplazos en TODO el archivo (no solo la primera vez): (archivo, buscar, reemplazar, motivo)
+REEMPLAZOS = [
+    ('06-batalla.js', "typeMsg('¿Qué hará Profe Felipe?',showBact)",
+     "typeMsg('¿Qué hará '+(window.__nombreProta||'Profe Felipe')+'?',showBact)",
+     'En la historia el protagonista es un niño o niña: la batalla usa su nombre.'),
+]
 # Vista de 10×10 casillas fija → tamaño de la pantalla actual
 VISTA = (r'for\(let r=0;r<10;r\+\+\) for\(let c=0;c<10;c\+\+\)', 'for(let r=0;r<VH;r++) for(let c=0;c<VW;c++)')
 
@@ -113,6 +119,11 @@ def main():
         if buscar_ not in txt:
             sys.exit(f'Parche no aplicable en {archivo}: {buscar_[:60]!r}')
         contenido[archivo] = [txt.replace(buscar_, reemplazo, 1)]
+    for archivo, buscar_, reemplazo, _ in REEMPLAZOS:
+        txt = '\n'.join(contenido[archivo])
+        if buscar_ not in txt:
+            sys.exit(f'Reemplazo no aplicable en {archivo}: {buscar_[:60]!r}')
+        contenido[archivo] = [txt.replace(buscar_, reemplazo)]
     total = 0
     for archivo, partes in contenido.items():
         txt = '\n'.join(partes)

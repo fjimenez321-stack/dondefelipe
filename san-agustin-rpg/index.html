@@ -31,6 +31,9 @@
     <div class="dlg-sig">▼</div>
   </section>
 
+  <!-- Joystick flotante (aparece donde se arrastra el dedo, como en Mapu) -->
+  <div id="joy"><div id="knob"></div></div>
+
   <!-- Controles táctiles -->
   <div id="tactil">
     <div class="cruceta">
@@ -49,9 +52,9 @@
   <section id="ayuda">
     <h2>🎮 Comandos</h2>
     <table>
-      <tr><td><kbd>←↑↓→</kbd> / <kbd>WASD</kbd></td><td>Caminar · mantener = caminar seguido · toque corto = girar</td></tr>
+      <tr><td><kbd>←↑↓→</kbd></td><td>Caminar · cada toque = un paso · mantener = caminar seguido</td></tr>
       <tr><td><kbd>Shift</kbd></td><td>Correr</td></tr>
-      <tr><td><kbd>E</kbd> <kbd>Espacio</kbd> <kbd>Enter</kbd></td><td>Hablar · abrir · leer · avanzar diálogo</td></tr>
+      <tr><td><kbd>A</kbd> <kbd>E</kbd> <kbd>Espacio</kbd> <kbd>Enter</kbd></td><td>Hablar · abrir · leer · avanzar diálogo</td></tr>
       <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Elegir opción del diálogo o acción de batalla</td></tr>
       <tr><td><kbd>Esc</kbd> / <kbd>Q</kbd></td><td>Cerrar panel · salir de la sala (volver)</td></tr>
       <tr><td><kbd>I</kbd> · <kbd>N</kbd> · <kbd>P</kbd></td><td>Mochila · Cuaderno de misiones · Estadísticas</td></tr>
@@ -59,7 +62,7 @@
       <tr><td><kbd>G</kbd></td><td>Guardar partida</td></tr>
       <tr><td><kbd>F3</kbd> / <kbd>º</kbd></td><td>Modo diseño: colisiones, zonas y coordenadas</td></tr>
       <tr><td><kbd>H</kbd> / <kbd>F1</kbd></td><td>Esta ayuda</td></tr>
-      <tr><td>Celular</td><td>Cruceta (mantener) · <b>A</b> acción · <b>B</b> correr/cancelar</td></tr>
+      <tr><td>Celular / mouse</td><td><b>Arrastra</b> sobre el mapa: aparece un círculo que funciona como joystick · <b>A</b> acción · <b>B</b> correr/cancelar · 🎮 muestra la cruceta</td></tr>
       <tr><td>Control</td><td>Cruceta o stick · <b>A</b> acción · <b>B</b> correr · <b>Start</b> ayuda</td></tr>
     </table>
     <p class="nota">Arriba están los botones del v4: 📊 estadísticas, 🎒 mochila, 📓 misiones, 💾 guardar, 📂 cargar, 📤 exportar, 🏆 ranking y ⚙️ ajustes.</p>
@@ -71,8 +74,13 @@
     <div class="tarjeta">
       <div class="logo">🏫</div>
       <h1>SAN AGUSTÍN RPG</h1>
-      <p>Colegio San Agustín · Villa Alemana</p>
-      <input id="inicio-nombre" type="text" maxlength="20" placeholder="Tu nombre..." autocomplete="off">
+      <p>El Plan Asfalto · Colegio San Agustín</p>
+      <p class="inicio-sub">Elige quién salvará el colegio del calor:</p>
+      <div class="inicio-genero" role="radiogroup">
+        <button type="button" class="gen sel" data-genero="nino" role="radio" aria-checked="true">👦<span>Niño</span></button>
+        <button type="button" class="gen" data-genero="nina" role="radio" aria-checked="false">👧<span>Niña</span></button>
+      </div>
+      <input id="inicio-nombre" type="text" maxlength="16" placeholder="Nombre de tu personaje" autocomplete="off">
       <button id="btn-continuar" hidden>Continuar</button>
       <button id="btn-nueva">Nueva partida →</button>
       <p class="pie">Motor v5 + contenido del v4 · <a href="../profe-rpg-v4.html">jugar el v4 original</a></p>

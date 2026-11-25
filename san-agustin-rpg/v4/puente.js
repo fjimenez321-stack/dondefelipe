@@ -369,5 +369,26 @@
     },
     admin: (tecla) => _checkAdmin(tecla),
     get STATE() { return STATE; },
+    ponerEstado: (s) => { STATE = s; },
+    musica: (que) => { try { que === 'entrar' ? Music.battleIn() : Music.battleOut(); } catch (e) {} },
+    // Para la historia: progreso guardado del v4 (se guarda con 💾 y al cambiar de mapa)
+    progreso: () => progress,
+    misiones: () => ({ defs: QUEST_DEFS, log: (progress.questLog ||= {}) }),
+    sumar: ({ xp = 0, monedas = 0 } = {}) => {
+      stats.xp += xp; coins += monedas;
+      if (stats.xp >= stats.xpNext) { // misma subida de nivel que una victoria en batalla del v4
+        stats.xp -= stats.xpNext; stats.level++; stats.xpNext = Math.floor(stats.xpNext * 1.45);
+        stats.maxHp += 12; stats.hp = stats.maxHp; stats.maxMp += 6; stats.mp = stats.maxMp; stats.atk += 3; stats.def += 1;
+        setTimeout(() => showLvlUp(stats.level), 400);
+      }
+      syncUI();
+    },
+    nivel: () => stats.level,
+    batallaJugador: (nombre, emoji) => {
+      const pn = document.getElementById('b-pn'); if (pn) pn.textContent = nombre.toUpperCase();
+      const ps = document.getElementById('b-ps'); if (ps) ps.textContent = emoji;
+      const st = document.querySelector('#stats-panel div[style*="fbbf24"]'); if (st) st.textContent = '📊 ' + nombre.toUpperCase();
+      window.__nombreProta = nombre;
+    },
   };
 })();

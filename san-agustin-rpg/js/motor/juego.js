@@ -30,7 +30,6 @@ import { zonasAlPisar, actualizarApariciones } from './zonas.js';
 import { guardarPartida } from './guardado.js';
 
 const PASO = 1 / 60;
-const GIRO_MS = 110; // toque más corto que esto = solo girar
 
 export class Juego {
   constructor({ canvas, dialogo, aviso, tilesets, mapas, personajes = {}, comunidad = [], externo = null }) {
@@ -60,8 +59,11 @@ export class Juego {
     this._acum = 0;
     // Sistema externo (el v4): { frame(dt), bloquea() → bool, teclas(entrada), guardar() }
     this.externo = externo;
+    // Interceptores de conversación: (npc) => Promise | false. El primero que devuelve
+    // una promesa se queda con la conversación (así la historia toma el control).
+    this.interceptores = [];
 
-    this.entrada.vincularCanvas(canvas);
+    this.entrada.vincularCanvas(canvas, document.getElementById('joy'), document.getElementById('knob'));
   }
 
   // ═══ ARRANQUE Y BUCLE ═══════════════════════════════════════
@@ -164,7 +166,6 @@ export class Juego {
     const vel = en.mantiene('correr') ? j.velCorrer : j.velocidad;
     if (d) {
       this.rutaJugador = null; this.pendiente = null;
-      if (d.dir !== j.dir && d.ms < GIRO_MS && !this._caminando) { j.dir = d.dir; return; }
       this._caminando = true;
       if (!j.intentarMover(d.dir, this, vel)) this._choque(j);
       return;
@@ -287,6 +288,10 @@ export class Juego {
     this.eventos.emit('npc:hablar', { npc });
     try {
       const def = npc.def;
+      for (const f of this.interceptores) {
+        const r = f(npc);
+        if (r) { await r; return; }
+      }
       if (def.alHablar) await def.alHablar(this, npc);
       let guion = typeof def.dialogo === 'function' ? await def.dialogo(this, npc) : def.dialogo;
       if (guion == null) guion = npc.siguienteFrase();

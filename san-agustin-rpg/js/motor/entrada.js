@@ -8,24 +8,24 @@
 //   Pulsaciones (una vez):       accion, cancelar, guardar, ayuda, depurar, silencio
 //
 // Teclado:
-//   Flechas / WASD   caminar (mantener = caminar seguido; toque corto = solo girar)
+//   Flechas          caminar (cada toque = un paso; mantener = caminar seguido)
 //   Shift            correr
-//   E / Espacio / Enter   hablar · interactuar · avanzar diálogo
+//   A / E / Espacio / Enter   hablar · interactuar · avanzar diálogo (A como en el v4)
 //   Esc / Q          cancelar · cerrar
 //   1-9              elegir opción de diálogo
 //   G                guardar        H / F1   ayuda
 //   I mochila   N cuaderno de misiones   P estadísticas   Esc (sin ruta) = volver/salir de la sala
 //   M                silenciar      F3 / º   modo diseño (ver colisiones y zonas)
-// Táctil:  cruceta (mantener), A = acción, B = correr/cancelar,
+// Táctil:  JOYSTICK FLOTANTE: arrastrar el dedo sobre el mapa (como en Mapu)
 //          tocar el mapa = caminar hasta ahí (y hablar si tocas a alguien)
+//          A = acción, B = correr/cancelar, cruceta opcional (botón 🎮)
 // Gamepad: cruceta o stick, A = acción, B = correr/cancelar, Start = ayuda
 // ═══════════════════════════════════════════════════════════════
 
 const TECLAS = {
-  ArrowUp: 'arriba', KeyW: 'arriba',
-  ArrowDown: 'abajo', KeyS: 'abajo',
-  ArrowLeft: 'izquierda', KeyA: 'izquierda',
-  ArrowRight: 'derecha', KeyD: 'derecha',
+  // Mismas teclas que el v4: flechas para caminar y A / Espacio / Enter para interactuar
+  ArrowUp: 'arriba', ArrowDown: 'abajo', ArrowLeft: 'izquierda', ArrowRight: 'derecha',
+  KeyA: 'accion',
   ShiftLeft: 'correr', ShiftRight: 'correr',
   KeyE: 'accion', Space: 'accion', Enter: 'accion', NumpadEnter: 'accion',
   Escape: 'cancelar', KeyQ: 'cancelar', Backspace: 'cancelar',
@@ -73,12 +73,59 @@ export class Entrada {
     el.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
-  /** Toques/clics sobre el canvas → caminar hasta ahí. */
-  vincularCanvas(canvas) {
+  /**
+   * Toques/clics sobre el canvas, con JOYSTICK FLOTANTE (como en Mapu):
+   *  - tocar y soltar rápido sin arrastrar → caminar hasta ahí (o hablar)
+   *  - tocar y arrastrar → aparece un círculo donde pusiste el dedo y el
+   *    personaje camina hacia donde lo empujas; si arrastras más allá del
+   *    borde, el círculo te sigue. Al soltar, desaparece.
+   * joyEl / knobEl: el círculo y la perilla (opcionales; sin ellos no se dibuja).
+   */
+  vincularCanvas(canvas, joyEl = null, knobEl = null) {
+    const R = 46;          // radio del círculo (px)
+    const UMBRAL = 12;     // px de arrastre para que sea joystick y no toque
+    const ZONA_MUERTA = 0.35;
+    const ocultar = () => { if (joyEl) joyEl.style.display = 'none'; };
+    const fin = (e) => {
+      const j = this.joy;
+      if (!j || (e && e.pointerId !== j.id)) return;
+      if (e && !j.arrastre && performance.now() - j.t0 < 400) this.toque = { clientX: j.x0, clientY: j.y0 };
+      this.joy = null;
+      ocultar();
+    };
     canvas.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
-      this.toque = { clientX: e.clientX, clientY: e.clientY };
+      if (e.button !== 0 || this.joy) return;
+      e.preventDefault();
+      this.joy = { id: e.pointerId, x0: e.clientX, y0: e.clientY, ox: e.clientX, oy: e.clientY, t0: performance.now(), arrastre: false, dir: null, tDir: 0 };
+      try { canvas.setPointerCapture(e.pointerId); } catch {}
     });
+    canvas.addEventListener('pointermove', (e) => {
+      const j = this.joy;
+      if (!j || e.pointerId !== j.id) return;
+      let dx = e.clientX - j.ox, dy = e.clientY - j.oy;
+      if (!j.arrastre) {
+        if (Math.hypot(dx, dy) < UMBRAL) return;
+        j.arrastre = true;
+        if (joyEl) { joyEl.style.left = j.ox + 'px'; joyEl.style.top = j.oy + 'px'; joyEl.style.display = 'block'; }
+      }
+      const m = Math.hypot(dx, dy);
+      if (m > R) { // el círculo sigue al dedo
+        j.ox += (dx / m) * (m - R); j.oy += (dy / m) * (m - R);
+        dx = e.clientX - j.ox; dy = e.clientY - j.oy;
+        if (joyEl) { joyEl.style.left = j.ox + 'px'; joyEl.style.top = j.oy + 'px'; }
+      }
+      if (knobEl) knobEl.style.transform = `translate(${dx}px,${dy}px)`;
+      const nx = dx / R, ny = dy / R;
+      let dir = null;
+      if (Math.hypot(nx, ny) > ZONA_MUERTA) dir = Math.abs(nx) > Math.abs(ny) ? (nx > 0 ? 'derecha' : 'izquierda') : (ny > 0 ? 'abajo' : 'arriba');
+      if (dir !== j.dir) { j.dir = dir; j.tDir = performance.now(); }
+    });
+    canvas.addEventListener('pointerup', fin);
+    canvas.addEventListener('pointercancel', (e) => { if (this.joy) this.joy.arrastre = true; fin(e); });
+    canvas.addEventListener('lostpointercapture', (e) => { if (this.joy?.id === e.pointerId) { this.joy.arrastre = true; fin(e); } });
+    // Red de seguridad (como en Mapu): que el joystick nunca quede pegado
+    addEventListener('blur', () => { this.joy = null; ocultar(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { this.joy = null; ocultar(); } });
   }
 
   /** La dirección mantenida más reciente (o null) y hace cuánto se mantiene (ms). */
@@ -88,6 +135,7 @@ export class Entrada {
       const t = this.mantenidas.get(d);
       if (t !== undefined && t > t0) { mejor = d; t0 = t; }
     }
+    if (this.joy?.dir && this.joy.tDir > t0) { mejor = this.joy.dir; t0 = this.joy.tDir; }
     return mejor ? { dir: mejor, ms: performance.now() - t0 } : null;
   }
 

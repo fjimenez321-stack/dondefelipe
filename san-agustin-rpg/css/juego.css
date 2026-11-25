@@ -46,7 +46,14 @@ body { display: block !important; clip-path: none !important; }
 #dialogo.abierto ~ #tactil .cruceta { opacity: .35; }
 #tactil button { pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; border: 2px solid #475569; background: rgba(15, 23, 42, .7); color: var(--texto); font-size: 1.1rem; }
 #tactil button.activo { background: rgba(251, 191, 36, .35); border-color: var(--oro); }
-.cruceta { display: grid; grid-template: repeat(3, 52px) / repeat(3, 52px); }
+.cruceta { display: none; grid-template: repeat(3, 52px) / repeat(3, 52px); }
+#tactil.con-cruceta .cruceta { display: grid; }
+.botones { margin-left: auto; }
+/* Joystick flotante (de Mapu) */
+#joy { position: fixed; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; z-index: 300;
+  border: 2px solid rgba(255,255,255,.35); background: rgba(15,23,42,.18); display: none; pointer-events: none; }
+#knob { position: absolute; left: 25px; top: 25px; width: 50px; height: 50px; border-radius: 50%;
+  background: rgba(255,255,255,.35); box-shadow: 0 0 12px rgba(251,191,36,.35); }
 .cruceta button { border-radius: 10px; }
 .c-ar { grid-area: 1 / 2; } .c-iz { grid-area: 2 / 1; } .c-de { grid-area: 2 / 3; } .c-ab { grid-area: 3 / 2; }
 .botones { display: flex; gap: .8rem; align-items: flex-end; }
@@ -81,6 +88,12 @@ kbd { background: #1e293b; border: 1px solid #475569; border-bottom-width: 2px; 
   body.con-tactil #dialogo { bottom: calc(10.5rem + env(safe-area-inset-bottom)); }
 }
 
+#inicio .inicio-sub { color: #fde68a; font-size: .8rem; margin-top: .3rem; }
+.inicio-genero { display: flex; gap: .6rem; }
+.inicio-genero .gen { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .2rem; font-size: 2rem !important;
+  background: #0f172a !important; color: var(--texto) !important; border: 2px solid #334155 !important; border-radius: 10px; padding: .6rem !important; cursor: pointer; }
+.inicio-genero .gen span { font-family: 'Press Start 2P', monospace; font-size: .5rem; }
+.inicio-genero .gen.sel { border-color: var(--oro) !important; background: #3b2a0b !important; box-shadow: 0 0 14px #fbbf2455; }
 #inicio input { font: inherit; font-size: 1rem; padding: .6rem .8rem; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: var(--texto); text-align: center; }
 
 /* ═══ Integración de los paneles del v4 ═══ */
@@ -102,3 +115,42 @@ kbd { background: #1e293b; border: 1px solid #475569; border-bottom-width: 2px; 
 .ov { z-index: 420; }
 body.panel-v4 #tactil { display: none !important; }
 body.panel-v4 #lienzo { cursor: default; }
+
+/* ═══ Debates (historia) ═══ */
+#debate { display: none; position: fixed; inset: 0; z-index: 430; background: radial-gradient(circle at 50% 30%, rgba(30,58,138,.55), rgba(2,6,23,.94));
+  align-items: center; justify-content: center; padding: 12px; }
+#debate.abierto { display: flex; }
+.db-caja { width: min(560px, 100%); max-height: 100%; overflow-y: auto; background: linear-gradient(180deg, #0f172a, #111827); border: 2px solid #4ade80;
+  border-radius: 14px; padding: 14px 16px; box-shadow: 0 0 50px rgba(74,222,128,.25); font-family: 'VT323', monospace; color: #e2e8f0; }
+.db-titulo { font-family: 'Press Start 2P', monospace; font-size: .6rem; color: #4ade80; text-align: center; letter-spacing: 2px; margin-bottom: 10px; }
+.db-rival, .db-yo { display: flex; align-items: center; gap: 12px; }
+.db-yo { justify-content: flex-end; text-align: right; margin-top: 6px; }
+.db-emoji { font-size: 3rem; line-height: 1; filter: drop-shadow(0 0 12px rgba(248,113,113,.6)); }
+.db-emoji.yo { filter: drop-shadow(0 0 12px rgba(74,222,128,.6)); }
+.db-info { flex: 1; }
+.db-nombre { font-family: 'Press Start 2P', monospace; font-size: .5rem; color: #fde68a; margin-bottom: 4px; }
+.db-barra { height: 10px; background: #1e293b; border-radius: 5px; overflow: hidden; border: 1px solid #334155; }
+.db-relleno { height: 100%; width: 100%; transition: width .4s; }
+.db-relleno.rival { background: linear-gradient(90deg, #ef4444, #f97316); }
+.db-relleno.animo { background: linear-gradient(90deg, #22c55e, #4ade80); margin-left: auto; }
+.db-etq { font-size: .95rem; color: #94a3b8; margin-top: 2px; }
+.db-cita { font-size: 1.15rem; color: #fca5a5; font-style: italic; text-align: center; margin: 10px 0 4px; }
+.db-msg { min-height: 4.6em; white-space: pre-wrap; background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 10px 12px;
+  margin: 10px 0; font-size: 1.25rem; line-height: 1.25; cursor: pointer; position: relative; }
+.db-msg.espera::after { content: '▼'; position: absolute; right: 10px; bottom: 6px; color: #fbbf24; font-size: .9rem; animation: rebote .8s infinite; }
+.db-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.db-btn { font-family: 'VT323', monospace; font-size: 1.1rem; text-align: left; color: #e2e8f0; background: #1e293b; border: 1.5px solid #334155;
+  border-radius: 8px; padding: 7px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.db-btn span { font-size: 1.1rem; }
+.db-btn:hover:not(:disabled) { border-color: #fbbf24; background: #3b2a0b; }
+.db-btn:disabled { opacity: .35; cursor: default; }
+.db-btn.cat-ciencia { border-left: 4px solid #38bdf8; } .db-btn.cat-cercania { border-left: 4px solid #4ade80; }
+.db-btn.cat-ahorro { border-left: 4px solid #fbbf24; } .db-btn.cat-accion { border-left: 4px solid #f472b6; }
+.db-btn.especial { border-color: #a78bfa; background: #2e1065; }
+.db-btn.escuchar { border-color: #0ea5e9; } .db-btn.retirar { color: #94a3b8; }
+.db-ayuda { text-align: center; color: #64748b; font-size: .9rem; margin-top: 8px; }
+.golpe { animation: db-golpe .35s; }
+@keyframes db-golpe { 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-3px); } }
+#hud-historia { font-family: 'Press Start 2P', monospace; font-size: .42rem; padding: 3px 6px; border-radius: 5px; cursor: pointer;
+  background: rgba(22,101,52,.45); border: 1px solid #4ade80; color: #bbf7d0; white-space: nowrap; max-width: 52vw; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 560px) { .db-acciones { grid-template-columns: 1fr; } .db-emoji { font-size: 2.3rem; } }
