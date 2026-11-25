@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#08080c">
+<title>Lengua de Señas Chilena · El Mundo de Felipe</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ffd60a;--cyan:#1fdd6c;--pink:#ff2b3d;--brass:#e9b949;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:880px;margin:0 auto;padding:14px 14px 70px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}
+h1{font:900 clamp(34px,9vw,58px)/.9 var(--ff-d);text-transform:uppercase;margin:14px 0 4px}
+h1 span{color:var(--acid)}
+.sub{color:var(--mute);margin:0 0 12px;font-size:15px}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin-top:14px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.tab{border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:8px 14px;font:800 13px var(--ff);letter-spacing:.6px;text-transform:uppercase;cursor:pointer}
+.tab.on{background:var(--acid);color:#141a00;border-color:var(--acid)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:10px 16px;font:700 15px var(--ff);cursor:pointer}
+.btn.p{background:var(--cyan);color:#001a10;border-color:var(--cyan);font-weight:800}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.stage{display:grid;grid-template-columns:1fr;gap:12px}
+.visor{position:relative;background:#e9e9e9;border-radius:14px;min-height:300px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.visor img,.visor video{max-width:100%;max-height:420px;display:block}
+.visor .letra{font:900 160px/1 var(--ff-d);color:#111}
+.visor .pend{color:#333;text-align:center;padding:24px}
+.visor .pend b{display:block;font:900 44px/1 var(--ff-d);margin-bottom:8px}
+.tag{position:absolute;top:10px;left:10px;font:800 11px var(--ff);letter-spacing:1px;text-transform:uppercase;padding:4px 9px;border-radius:999px}
+.tag.dic{background:#0f3d24;color:#9ff5c4}.tag.dac{background:#3a3108;color:#ffe58a}.tag.pen{background:#4a141b;color:#ffb3ad}.tag.prop{background:#14304a;color:#a8d6ff}
+.glosa{font:900 clamp(32px,8vw,48px)/1 var(--ff-d);text-transform:uppercase;letter-spacing:.5px}
+.info{color:var(--mute);font-size:14px;margin-top:6px}
+.info i{color:var(--brass)}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.ctrl label{color:var(--mute);font-size:13px;display:flex;align-items:center;gap:6px}
+.ctrl input[type=range]{accent-color:var(--acid)}
+.tira{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tk{border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:8px;padding:4px 8px;font:800 13px var(--ff);cursor:pointer}
+.tk.dic{border-color:#1f6b42}.tk.dac{border-color:#7a6612;border-style:dashed}.tk.pen{border-color:#7a2730;color:#ffb3ad}.tk.prop{border-color:#2b5f8f}
+.tk.on{background:var(--acid);color:#141a00;border-color:var(--acid)}
+.tk.sep{background:none;border:none;color:var(--mute);cursor:default;padding:4px 2px}
+.frase{color:var(--mute);font-size:14px;margin:10px 0 2px}
+.ley{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:10px}
+.ley span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.ley .a::before{background:#1f6b42}.ley .b::before{background:#7a6612}.ley .c::before{background:#7a2730}.ley .d::before{background:#2b5f8f}
+details summary{cursor:pointer;font-weight:800}
+details img{max-width:100%;border-radius:10px;margin-top:10px;background:#fff}
+.aviso{padding:12px 14px;border-radius:12px;background:#2a2410;color:#ffe9a6;border:1px solid #5a4a12;margin-top:14px;font-size:14px}
+.subir{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--mute);font-size:13px}
+@media (min-width:760px){.stage{grid-template-columns:1.3fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="index.html"><i class="fa-solid fa-arrow-left"></i> El Mundo de Felipe · Misceláneos</a>
+  <h1>Lengua de señas <span>chilena</span></h1>
+  <p class="sub">Reproductor de glosas con las fotos del <b>Diccionario Bilingüe Lengua de Señas Chilena–Español</b> (UMCE · Acuña, Adamo y Cabrera).</p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="card">
+    <div class="stage">
+      <div class="visor" id="visor"></div>
+      <div>
+        <div class="glosa" id="glosa"></div>
+        <div class="info" id="info"></div>
+        <div id="zonaSubir"></div>
+        <div class="ctrl">
+          <button class="btn" id="bAnt" aria-label="Anterior"><i class="fa-solid fa-backward-step"></i></button>
+          <button class="btn p" id="bPlay"><i class="fa-solid fa-play"></i> Reproducir</button>
+          <button class="btn" id="bSig" aria-label="Siguiente"><i class="fa-solid fa-forward-step"></i></button>
+        </div>
+        <div class="ctrl">
+          <label>Velocidad <input type="range" id="vel" min="1" max="6" step="0.5" value="3"> <span id="velTxt">3 s</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="frases"></div>
+    <div class="ley">
+      <span class="a">Foto del diccionario</span>
+      <span class="b">Deletreo (dactilológico)</span>
+      <span class="d">Seña que subiste tú</span>
+      <span class="c">Pendiente: no está en el diccionario</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary><i class="fa-solid fa-circle-info"></i> Cómo leer las flechas y símbolos de las fotos</summary>
+      <img src="senas-lsch/simbologia1.jpg" alt="Simbología del diccionario: contacto, flexión, movimientos de las manos, componente no manual, repeticiones" loading="lazy">
+      <img src="senas-lsch/simbologia2.jpg" alt="Simbología del diccionario: movimientos de los dedos y flechas" loading="lazy">
+    </details>
+  </div>
+
+  <div class="aviso">
+    <b>Sobre lo que falta.</b> El diccionario no trae <b>YO, TÚ, MI, CON, MUCHO, LICEO, TÉCNICO</b> ni los números (51). YO, TÚ y MI suelen hacerse apuntando, pero eso no está en el diccionario, así que no se muestra nada inventado. Para cada seña pendiente puedes subir una foto o un clip corto grabado por alguien que sepa LSCh; el abecedario del deletreo funciona igual. Lo que subas queda guardado solo en este navegador.
+    <br><span class="muted">TRABAJO usa la foto de TRABAJAR: el diccionario presenta las dos entradas juntas con una sola foto.</span>
+  </div>
+</div>
+
+<script>
+(function(){
+const D={
+ "HOLA":{img:"HOLA.jpg",vol:"A–H",pag:341,ent:"HOLA",def:"Seña que se emplea para saludar."},
+ "NOMBRE":{img:"NOMBRE.jpg",vol:"I–Z",pag:147,ent:"1. NOMBRE",def:"Palabra con que se denomina algo o alguien."},
+ "TENER":{img:"TENER.jpg",vol:"I–Z",pag:324,ent:"TENER",def:"Verbo pleno. Poseer familiares, bienes o animales."},
+ "AÑO":{img:"ANO.jpg",vol:"A–H",pag:49,ent:"AÑO",def:"Período de doce meses."},
+ "GUSTAR":{img:"GUSTAR.jpg",vol:"A–H",pag:325,ent:"GUSTAR",def:"Verbo pleno. Agradar una cosa, parecer bien."},
+ "TRABAJAR":{img:"TRABAJAR.jpg",vol:"I–Z",pag:340,ent:"1. TRABAJAR",def:"Verbo pleno. Ocuparse en cualquier oficio, obra o tarea."},
+ "TRABAJO":{img:"TRABAJAR.jpg",vol:"I–Z",pag:340,ent:"2. TRABAJO",def:"Tarea que se realiza. (Misma foto que TRABAJAR en el diccionario.)"},
+ "CANTAR":{img:"CANTAR.jpg",vol:"A–H",pag:119,ent:"CANTAR",def:"Verbo pleno. Formar con la voz sonidos melodiosos y variados."},
+ "ESTUDIAR":{img:"ESTUDIAR.jpg",vol:"A–H",pag:257,ent:"ESTUDIAR",def:"Verbo pleno. Ejercitar el entendimiento para aprender o comprender una cosa."},
+ "EDUCACIÓN-DIFERENCIAL":{img:"EDUCACIONDIFERENCIAL.jpg",vol:"A–H",pag:225,ent:"EDUCACIÓN-DIFERENCIAL",def:"Sistema de educación que atiende a personas que presentan necesidades educativas especiales. (Secuencia de 3 fotos.)"},
+ "VIVIR":{img:"VIVIR.jpg",vol:"I–Z",pag:376,ent:"VIVIR",def:"Verbo pleno. Habitar o residir en algún lugar o país."},
+ "HIJA":{img:"HIJA.jpg",vol:"A–H",pag:337,ent:"HIJO/A",def:"Persona respecto de su padre o de su madre."},
+ "GRACIAS":{img:"GRACIAS.jpg",vol:"A–H",pag:315,ent:"1. GRACIAS",def:"Expresión formal de cortesía. (El diccionario trae también 2. GRACIAS, informal, en la misma página.)"},
+ "CHAO":{img:"CHAO.jpg",vol:"A–H",pag:177,ent:"CHAO",def:"Expresión que se utiliza para despedida."},
+ "DÓNDE":{img:"DONDE.jpg",vol:"A–H",pag:216,ent:"DÓNDE",def:"Interrogativo. En qué lugar, a qué lugar."},
+ "ESCUELA":{img:"ESCUELA.jpg",vol:"A–H",pag:245,ent:"ESCUELA",def:"Establecimiento donde se da instrucción. (Secuencia de 2 fotos.)"},
+ "SORDOS":{img:"SORDO.jpg",vol:"I–Z",pag:303,ent:"SORDO/A",def:"Persona que no oye. (Secuencia de 2 fotos.)"},
+ "MAÑANA":{img:"MANANA.jpg",vol:"I–Z",pag:103,ent:"2. MAÑANA",def:"Tiempo desde que amanece hasta el mediodía. (1. MAÑANA es «el día siguiente», otra seña.)"},
+ "TARDE":{img:"TARDE.jpg",vol:"I–Z",pag:318,ent:"1. TARDE",def:"Tiempo desde el mediodía hasta el anochecer. (2. TARDE es «con atraso», otra seña.)"},
+ "AYUDAR":{img:"AYUDAR.jpg",vol:"A–H",pag:64,ent:"AYUDAR",def:"Verbo de concordancia. Prestar cooperación a otros."},
+ "NIÑOS":{img:"NINO.jpg",vol:"I–Z",pag:144,ent:"NIÑO/A",def:"Persona que tiene pocos años."},
+ "FELIZ":{img:"FELIZ.jpg",vol:"A–H",pag:272,ent:"FELIZ",def:"Que tiene felicidad."},
+ "SÍ":{img:"SI.jpg",vol:"I–Z",pag:293,ent:"SÍ",def:"Afirmación para responder a una pregunta."},
+ "CASA":{img:"CASA.jpg",vol:"A–H",pag:123,ent:"CASA",def:"Construcción para habitar."},
+ "TRANQUILA":{img:"TRANQUILA.jpg",vol:"I–Z",pag:343,ent:"TRANQUILO/A",def:"Persona libre de inquietudes."}
+};
+D["AÑOS"]=D["AÑO"];
+
+const PARTES=[
+ {t:"Parte 1 · Presentación",f:[
+  "HOLA. MI NOMBRE J-E-A-N-E-T-T-E L-A-G-O-S.","YO TENER 51 AÑOS.","YO GUSTAR TRABAJAR. YO GUSTAR CANTAR.",
+  "YO ESTUDIAR TÉCNICO EDUCACIÓN-DIFERENCIAL, I-P-P.","YO VIVIR CON MI HIJA.","GRACIAS. CHAO."]},
+ {t:"Pregunta 2 · ¿Dónde trabajas?",f:[
+  "¿TÚ TRABAJAR DÓNDE?","YO TRABAJAR ESCUELA SORDOS MAÑANA.","TARDE YO TRABAJAR LICEO P-I-E.","YO AYUDAR NIÑOS.","YO FELIZ."]},
+ {t:"Pregunta 3 · ¿Te gusta cantar?",f:[
+  "¿TÚ GUSTAR CANTAR?","SÍ. YO GUSTAR CANTAR MUCHO.","YO CANTAR CASA, YO CANTAR TRABAJO.","CANTAR YO FELIZ, CANTAR YO TRANQUILA."]}
+];
+
+// ---- almacenamiento local de señas subidas (solo este navegador) ----
+const KEY="lsch-propias-v1";
+let propias={};
+try{propias=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){propias={}}
+const memoria={}; // clips grandes que no caben en localStorage: solo durante la visita
+function guardar(){try{localStorage.setItem(KEY,JSON.stringify(propias));return true}catch(e){return false}}
+function propia(k){return memoria[k]||propias[k]||null}
+
+// ---- tokens ----
+function tokens(frase){
+  const out=[];
+  frase.split(/\s+/).forEach(w=>{
+    const limpio=w.replace(/[¿?.,]/g,"");
+    if(!limpio)return;
+    if(/^[A-ZÁÉÍÓÚÑ](-[A-ZÁÉÍÓÚÑ])+$/.test(limpio) && !D[limpio]){
+      out.push({tipo:"dac",g:limpio,letras:limpio.split("-")});
+    }else if(D[limpio]){
+      out.push({tipo:"dic",g:limpio});
+    }else{
+      out.push({tipo:"pen",g:limpio});
+    }
+  });
+  return out;
+}
+// pasos: cada letra de un deletreo es un paso
+function pasos(parte){
+  const ps=[];
+  parte.f.forEach((fr,fi)=>tokens(fr).forEach((tk,ti)=>{
+    if(tk.tipo==="dac") tk.letras.forEach((L,li)=>ps.push({tk,fi,ti,L,li}));
+    else ps.push({tk,fi,ti});
+  }));
+  return ps;
+}
+
+let parteI=0, P=pasos(PARTES[0]), i=0, timer=null;
+const $=id=>document.getElementById(id);
+
+function render(){
+  const s=P[i], tk=s.tk, v=$("visor");
+  let tag="", html="", info="", subir="";
+  if(tk.tipo==="dic"){
+    const d=D[tk.g];
+    html=`<img src="senas-lsch/${d.img}" alt="Seña ${tk.g} en LSCh, foto del diccionario">`;
+    tag=`<span class="tag dic">Diccionario</span>`;
+    $("glosa").textContent=tk.g;
+    info=`${d.def}<br><i class="fa-solid fa-book"></i> Entrada <b>${d.ent}</b> · tomo ${d.vol}, p. ${d.pag}`;
+  }else if(tk.tipo==="dac"){
+    const k="LETRA-"+s.L, p=propia(k);
+    html=p?media(p,"Letra "+s.L):`<div class="letra">${s.L}</div>`;
+    tag=p?`<span class="tag prop">Subida por ti</span>`:`<span class="tag dac">Deletreo</span>`;
+    $("glosa").innerHTML=tk.letras.map((L,j)=>j===s.li?`<span style="color:var(--acid)">${L}</span>`:L).join("-");
+    info=`Deletreo con el alfabeto manual, letra ${s.li+1} de ${tk.letras.length}. El diccionario no trae el abecedario completo; ${p?"esta letra usa la imagen que subiste.":"sube la imagen de esta letra para verla aquí."}`;
+    subir=botonSubir(k,"letra "+s.L);
+  }else{
+    const p=propia(tk.g);
+    html=p?media(p,"Seña "+tk.g):`<div class="pend"><b>${tk.g}</b>Esta seña no está en el diccionario.<br>No se muestra nada inventado.</div>`;
+    tag=p?`<span class="tag prop">Subida por ti</span>`:`<span class="tag pen">Pendiente</span>`;
+    $("glosa").textContent=tk.g;
+    info=p?"Seña subida por ti (no viene del diccionario).":"Súbela grabada o fotografiada por alguien que sepa LSCh; se usará en todas las veces que aparezca.";
+    subir=botonSubir(tk.g,tk.g);
+  }
+  v.innerHTML=tag+html;
+  $("info").innerHTML=info;
+  $("zonaSubir").innerHTML=subir;
+  const inp=$("archivo"); if(inp) inp.onchange=e=>cargar(e.target.files[0],inp.dataset.k);
+  const del=$("borrar"); if(del) del.onclick=()=>{delete propias[del.dataset.k];delete memoria[del.dataset.k];guardar();render();pintarTira();};
+  document.querySelectorAll(".tk[data-p]").forEach(b=>b.classList.toggle("on",b.dataset.p.split(",").includes(String(i))));
+  $("bAnt").disabled=i===0; $("bSig").disabled=i===P.length-1;
+}
+function media(p,alt){return p.tipo.startsWith("video")?`<video src="${p.url}" autoplay muted loop playsinline></video>`:`<img src="${p.url}" alt="${alt}">`;}
+function botonSubir(k,nombre){
+  const tiene=propia(k);
+  return `<div class="subir"><label class="btn" style="font-size:13px;padding:7px 12px"><i class="fa-solid fa-upload"></i> ${tiene?"Cambiar":"Subir"} ${nombre}
+    <input type="file" id="archivo" data-k="${k}" accept="image/*,video/*" hidden></label>
+    ${tiene?`<button class="btn" id="borrar" data-k="${k}" style="font-size:13px;padding:7px 12px"><i class="fa-solid fa-trash"></i></button>`:""}</div>`;
+}
+function cargar(f,k){
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const item={url:r.result,tipo:f.type||"image/jpeg"};
+    propias[k]=item;
+    if(!guardar()){delete propias[k];memoria[k]=item;alert("El archivo es muy pesado para guardarlo en el navegador: se verá solo mientras tengas abierta esta página.");}
+    render();pintarTira();
+  };
+  r.readAsDataURL(f);
+}
+
+function pintarTira(){
+  const parte=PARTES[parteI]; let h="";
+  parte.f.forEach((fr,fi)=>{
+    h+=`<div class="frase">${fr}</div><div class="tira">`;
+    tokens(fr).forEach((tk,ti)=>{
+      const idx=P.map((s,n)=>s.fi===fi&&s.ti===ti?n:-1).filter(n=>n>=0);
+      let cls=tk.tipo;
+      if(tk.tipo==="pen"&&propia(tk.g))cls="prop";
+      h+=`<button class="tk ${cls}" data-p="${idx.join(",")}">${tk.g}</button>`;
+    });
+    h+=`</div>`;
+  });
+  $("frases").innerHTML=h;
+  document.querySelectorAll(".tk[data-p]").forEach(b=>b.onclick=()=>{parar();i=+b.dataset.p.split(",")[0];render();if(window.innerWidth<760)$("visor").scrollIntoView({behavior:"smooth",block:"start"});});
+}
+function pintarTabs(){
+  $("tabs").innerHTML=PARTES.map((p,n)=>`<button class="tab ${n===parteI?"on":""}" data-n="${n}">${p.t}</button>`).join("");
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{parar();parteI=+b.dataset.n;P=pasos(PARTES[parteI]);i=0;pintarTabs();pintarTira();render();});
+}
+function seg(){return parseFloat($("vel").value)*(P[i].tk.tipo==="dac"?0.45:1)*1000}
+function tick(){if(i<P.length-1){i++;render();timer=setTimeout(tick,seg());}else parar();}
+function play(){if(timer){parar();return;}if(i>=P.length-1)i=0;render();$("bPlay").innerHTML='<i class="fa-solid fa-pause"></i> Pausa';timer=setTimeout(tick,seg());}
+function parar(){clearTimeout(timer);timer=null;$("bPlay").innerHTML='<i class="fa-solid fa-play"></i> Reproducir';}
+$("bPlay").onclick=play;
+$("bAnt").onclick=()=>{parar();if(i>0){i--;render();}};
+$("bSig").onclick=()=>{parar();if(i<P.length-1){i++;render();}};
+$("vel").oninput=()=>{$("velTxt").textContent=$("vel").value+" s";};
+document.addEventListener("keydown",e=>{if(e.key==="ArrowRight")$("bSig").click();if(e.key==="ArrowLeft")$("bAnt").click();if(e.key===" "){e.preventDefault();play();}});
+pintarTabs();pintarTira();render();
+})();
+</script>
+</body>
+</html>
