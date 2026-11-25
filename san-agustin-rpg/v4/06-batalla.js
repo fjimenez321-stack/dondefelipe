@@ -34,7 +34,7 @@ function openBattle(){
   const alexC=_('alex-c'); if(alexC) alexC.style.display=e.id==='alex_boss'?'block':'none';
   EL.bArena.className=''; EL.bArena.classList.add(ARENA_MAP[e.id]||'t-aula');
   if(EL.bEnemyBg) EL.bEnemyBg.style.background=`radial-gradient(circle,`+e.glow.replace(/[0-9.]+\)$/,'.45)')+` 0%,transparent 70%)`;
-  if(EL.bEtype) EL.bEtype.textContent=ETYPES_MAP[e.id]||'❓ Desconocido'; EL.bEs.textContent=e.emoji; EL.bEs.style.filter=`drop-shadow(0 0 20px ${e.glow})`; syncBE(); syncBP(); hideBact(); typeMsg(e.intro,()=>typeMsg('¿Qué hará Profe Felipe?',showBact)); }
+  if(EL.bEtype) EL.bEtype.textContent=ETYPES_MAP[e.id]||'❓ Desconocido'; EL.bEs.textContent=e.emoji; EL.bEs.style.filter=`drop-shadow(0 0 20px ${e.glow})`; syncBE(); syncBP(); hideBact(); typeMsg(e.intro,()=>typeMsg('¿Qué hará '+(window.__nombreProta||'Profe Felipe')+'?',showBact)); }
 function syncBE(){ const e=battle.enemy,p=e.hp/e.maxHp; EL.bEn.textContent=e.name.toUpperCase(); EL.bHt.textContent=`HP: ${e.hp}/${e.maxHp}`; EL.bEhp.style.cssText=`width:${(p*100).toFixed(1)}%;background:${hpColor(p)}`; }
 function syncBP(){
   const hp=stats.hp/stats.maxHp,mp=stats.mp/stats.maxMp;
@@ -127,7 +127,7 @@ function enemyTurn(){
   hitAnim('b-ps'); dmgPop(dmg,false); syncBP(); syncUI();
   let msg=`${e.name} usó ${atk?.name||'Ataque'}!\n${atk?.msg||'Atacó directamente.'}\n¡El profe recibe ${dmg}!`; if(atk.mpDrain) msg+=`\n¡Y pierde ${atk.mpDrain} MP!`;
   if(stats.hp<=0){typeMsg(msg+'\n\n💔 ¡El profe cayó agotado!',()=>battleLose()); return;}
-  typeMsg(msg,()=>typeMsg('¿Qué hará Profe Felipe?',showBact));
+  typeMsg(msg,()=>typeMsg('¿Qué hará '+(window.__nombreProta||'Profe Felipe')+'?',showBact));
 }
 
 function useAscuas(){

@@ -7,16 +7,22 @@ import { tilesetColegio } from './datos/tileset-colegio.js';
 import { comunidad } from './datos/comunidad.js';
 import { zonasV4 } from './datos/zonas-v4.js';
 import { npcV4 } from './datos/npc-v4.js';
+import { Historia, npcsHistoria, estadoHistoria } from './historia/historia.js';
 
 const $ = (s) => document.querySelector(s);
 const V4 = window.V4;
+function unirNPCs(...listas) {
+  const out = {};
+  for (const l of listas) for (const [m, arr] of Object.entries(l)) (out[m] ||= []).push(...arr);
+  return out;
+}
 
 const juego = new Juego({
   canvas: $('#lienzo'),
   dialogo: $('#dialogo'),
   aviso: $('#aviso'),
   tilesets: { v4: V4.tileset, colegio: tilesetColegio },
-  mapas: V4.mapas(zonasV4, V4.levantarNPCs(npcV4)),
+  mapas: V4.mapas(zonasV4, unirNPCs(V4.levantarNPCs(npcV4), npcsHistoria())),
   comunidad,
   externo: {
     frame: () => V4.frame(),
@@ -26,7 +32,9 @@ const juego = new Juego({
   },
 });
 V4.conectar(juego);
+const historia = new Historia(juego);
 window.juego = juego; // para probar cosas desde la consola del navegador
+window.historia = historia;
 
 // ── Atajos de interfaz ──────────────────────────────────────────
 const ev = juego.eventos;
@@ -82,26 +90,39 @@ setInterval(() => document.body.classList.toggle('panel-v4', V4.bloqueaMotor()),
 // ── Pantalla de inicio ──────────────────────────────────────────
 const inicio = $('#inicio');
 const inputNombre = $('#inicio-nombre');
-inputNombre.value = V4.nombreGuardado();
+let genero = 'nino';
+document.querySelectorAll('.inicio-genero .gen').forEach((b) => {
+  b.onclick = () => {
+    genero = b.dataset.genero;
+    document.querySelectorAll('.inicio-genero .gen').forEach((x) => { x.classList.toggle('sel', x === b); x.setAttribute('aria-checked', x === b); });
+  };
+});
 const guardada = V4.partidaGuardada();
+const protaGuardado = guardada?.progress?.historia?.prota;
+inputNombre.value = protaGuardado?.nombre || '';
+if (protaGuardado) document.querySelector(`.inicio-genero .gen[data-genero="${protaGuardado.genero}"]`)?.click();
 if (guardada) {
   const b = $('#btn-continuar');
   b.hidden = false;
-  b.textContent = `Continuar · LV ${guardada.stats?.level ?? 1}`;
+  b.textContent = protaGuardado ? `Continuar con ${protaGuardado.nombre} · LV ${guardada.stats?.level ?? 1}` : `Continuar · LV ${guardada.stats?.level ?? 1}`;
 }
-function empezar(continuar) {
+async function empezar(continuar) {
   V4.registrar(inputNombre.value);
   inicio.classList.add('oculto');
   juego.modo = 'explorar';
-  if (!(continuar && V4.continuar())) {
-    V4.nuevaPartida();
-    setTimeout(() => juego.decir([
-      { quien: 'San Agustín RPG', retrato: '🏫', texto: `¡Bienvenido, ${inputNombre.value.trim() || 'Profe'}!\n\nEstás en el Jardín Edén del Colegio San Agustín.` },
-      { quien: 'Controles', retrato: '🎮', texto: 'Flechas para caminar (Shift corre).\nA, Espacio o Enter para hablar.\nEsc para salir de una sala o cerrar un panel.\nH para ver todos los comandos.' },
-    ]), 500);
-  }
+  const cargo = continuar && V4.continuar();
+  if (!cargo) V4.nuevaPartida();
   setTimeout(ajustarAlto, 50);
   $('#lienzo').focus();
+  // Partida nueva (o partida antigua del v4 sin historia): elegir protagonista y empezar la historia
+  if (!estadoHistoria().prota) {
+    historia.elegirProtagonista(inputNombre.value, genero);
+    await new Promise((r) => setTimeout(r, 600));
+    await juego.decir([
+      { quien: 'Controles', retrato: '🎮', texto: 'Flechas o arrastrar el dedo para caminar (Shift corre).\nA, Espacio o Enter para hablar.\nEsc para salir de una sala o cerrar un panel.\nH para ver todos los comandos.' },
+    ]);
+    await historia.intro();
+  } else historia.aplicarProtagonista();
 }
 $('#btn-nueva').onclick = () => empezar(false);
 $('#btn-continuar').onclick = () => empezar(true);

@@ -74,8 +74,13 @@
     <div class="tarjeta">
       <div class="logo">🏫</div>
       <h1>SAN AGUSTÍN RPG</h1>
-      <p>Colegio San Agustín · Villa Alemana</p>
-      <input id="inicio-nombre" type="text" maxlength="20" placeholder="Tu nombre..." autocomplete="off">
+      <p>El Plan Asfalto · Colegio San Agustín</p>
+      <p class="inicio-sub">Elige quién salvará el colegio del calor:</p>
+      <div class="inicio-genero" role="radiogroup">
+        <button type="button" class="gen sel" data-genero="nino" role="radio" aria-checked="true">👦<span>Niño</span></button>
+        <button type="button" class="gen" data-genero="nina" role="radio" aria-checked="false">👧<span>Niña</span></button>
+      </div>
+      <input id="inicio-nombre" type="text" maxlength="16" placeholder="Nombre de tu personaje" autocomplete="off">
       <button id="btn-continuar" hidden>Continuar</button>
       <button id="btn-nueva">Nueva partida →</button>
       <p class="pie">Motor v5 + contenido del v4 · <a href="../profe-rpg-v4.html">jugar el v4 original</a></p>

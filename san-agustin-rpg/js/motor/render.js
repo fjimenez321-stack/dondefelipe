@@ -16,6 +16,18 @@ const SPRITES = {
 };
 export function registrarSprite(nombre, fn) { SPRITES[nombre] = fn; }
 
+// Objetos que flotan y brillan (evidencias, pistas): un emoji con halo
+SPRITES.emoji = (g, e, px, py, t) => {
+  const cx = px + S / 2, cy = py + S / 2 - 2 + Math.sin(t * 3 + e.x) * 2;
+  const brillo = 0.35 + 0.25 * Math.sin(t * 4);
+  g.fillStyle = `rgba(253,224,71,${brillo})`;
+  g.beginPath(); g.arc(cx, cy, S * 0.42, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.25)';
+  g.beginPath(); g.ellipse(cx, py + S * 0.92, S * 0.22, S * 0.06, 0, 0, Math.PI * 2); g.fill();
+  g.font = `${Math.round(S * 0.62)}px serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(e.emoji || '❓', cx, cy + 1);
+};
+
 export class Render {
   constructor(canvas) {
     this.canvas = canvas;

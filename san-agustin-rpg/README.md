@@ -47,6 +47,7 @@ san-agustin-rpg/
     │   ├── juego.js      núcleo: bucle, colisiones, control del jugador, interacción, portales
     │   ├── mapa.js · entidades.js · ia.js · ruta.js · zonas.js · dialogo.js
     │   ├── entrada.js · render.js · sprites.js · reloj.js · guardado.js · eventos.js
+    ├── historia/         «El Plan Asfalto»: datos-historia.js (textos), historia.js (fases), debate.js
     └── datos/
         ├── npc-v4.js           NPC del v4 que ahora caminan (Inspector, José, profes, guardabosques…)
         ├── comunidad.js        personajes que aparecen y caminan solos
@@ -178,6 +179,38 @@ Formatos de diálogo: texto, lista de líneas, o árbol `{inicio, nodos}` con `o
 ```js
 juego.eventos.on('encuentro', ({ pool }) => combate.iniciar(pool));
 ```
+
+## Historia: «El Plan Asfalto»
+
+Noviembre, 38 °C. Termocorp (Dr. Cálido Vapor) quiere talar el Jardín Edén y pavimentar la cancha
+para vender aires acondicionados. La Directora firmará el viernes… salvo que la comunidad presente un
+plan mejor. Un **niño o una niña** (se elige al empezar) decide salvar el colegio con la guía del
+**Profe Felipe** (sala de 6°).
+
+| Fase | Qué pasa |
+|---|---|
+| Intro | Anuncio de la Directora en el Jardín Edén → ir donde el Profe Felipe |
+| Mentor | El Profe explica efecto invernadero, isla de calor y por qué el aire acondicionado no es solución; enseña los debates |
+| Aliados | Convencer en **debates** a 8 personas (José, Inspector, Tío Antonio, Jorge, Profe Gonzalo, Yael, Francisco, Tía Claudita). Cada una se compromete con una acción (reciclaje, apaga-luces, huerta, goteras, día sin auto, vivero, paneles solares, proyecto curricular) |
+| Brea | Con 3 aliados aparece la Ingeniera Brea marcando árboles en el jardín. Al convencerla entrega el plano del proyecto |
+| Asamblea | Con 6 aliados + Brea vencida aparece el Dr. Vapor: debate de 3 fases, con un argumento especial por cada aliado |
+| Fin | La Directora rechaza a Termocorp y el colegio adopta el Plan Verde. Todo lo demás del juego sigue disponible |
+
+**Debates** (`js/historia/debate.js`): argumentos en vez de golpes. La barra del rival es su *resistencia
+al cambio*; la tuya, tu *ánimo*. Hay 4 tipos de argumento — 🔬 datos científicos, 💚 cercanía,
+💰 ahorro, 🛠️ acción concreta — y a cada personaje le llega uno distinto (×2) y otro casi no le hace
+efecto (×½). **👂 Escuchar** recupera ánimo y revela qué le preocupa al rival (su tipo débil pega ×2,5).
+Repetir el mismo argumento seguido rinde menos. Si te quedas sin ánimo, no pasa nada: vuelves a intentarlo.
+
+**Evidencias** (brillan en el mapa) dan argumentos más fuertes: 🌡️ termómetro (Jardín Edén),
+📰 recorte del IPCC (Biblioteca), 🧾 boleta de la luz (Secretaría) y 🗺️ plano (al convencer a Brea).
+
+El HUD muestra `🌡️ temperatura del patio · 🌱 compromisos · 🎯 objetivo` (clic para detalles) y la misión
+aparece en el cuaderno 📓. El avance se guarda en `progress.historia`, junto con la partida del v4.
+
+Todos los textos, rivales, excusas y números están en **`js/historia/datos-historia.js`**; la lógica en
+`historia.js`. Una partida antigua del v4 sin historia, al continuar, empieza la historia con el
+personaje elegido.
 
 ## NPC del v4 que caminan
 

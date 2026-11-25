@@ -59,6 +59,9 @@ export class Juego {
     this._acum = 0;
     // Sistema externo (el v4): { frame(dt), bloquea() → bool, teclas(entrada), guardar() }
     this.externo = externo;
+    // Interceptores de conversación: (npc) => Promise | false. El primero que devuelve
+    // una promesa se queda con la conversación (así la historia toma el control).
+    this.interceptores = [];
 
     this.entrada.vincularCanvas(canvas, document.getElementById('joy'), document.getElementById('knob'));
   }
@@ -285,6 +288,10 @@ export class Juego {
     this.eventos.emit('npc:hablar', { npc });
     try {
       const def = npc.def;
+      for (const f of this.interceptores) {
+        const r = f(npc);
+        if (r) { await r; return; }
+      }
       if (def.alHablar) await def.alHablar(this, npc);
       let guion = typeof def.dialogo === 'function' ? await def.dialogo(this, npc) : def.dialogo;
       if (guion == null) guion = npc.siguienteFrase();
