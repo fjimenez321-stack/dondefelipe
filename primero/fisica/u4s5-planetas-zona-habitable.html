@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planetas, satélites y zona habitable · U4 S5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --panel:#ffffff; --panel2:#eef3fb; --line:#dbe3f0;
+  --ink:#14213d; --muted:#5b6782; --moon:#14213d; --sun:#b8860b; --gold:#e0a82e; --blue:#1f4e9c; --red:#1f3c88; --green:#1f4e9c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;padding:5vh 6vw 9vh;display:none;flex-direction:column;gap:2.4vh;overflow:auto}
+.slide.active{display:flex;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.3vw,15px);letter-spacing:.14em;color:var(--sun);text-transform:uppercase}
+h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(30px,5.2vw,72px);line-height:1.05;font-weight:700}
+h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(24px,3.4vw,46px);line-height:1.1;font-weight:700}
+h3{font-family:'Space Grotesk',sans-serif;font-size:clamp(16px,1.7vw,24px);font-weight:700;margin-bottom:.4em}
+p,li{font-size:clamp(15px,1.55vw,22px);line-height:1.45;color:var(--ink)}
+.muted{color:var(--muted)}
+.mono{font-family:'JetBrains Mono',monospace}
+.row{display:flex;gap:2vw;flex:1;min-height:0}
+.col{flex:1;display:flex;flex-direction:column;gap:1.6vh;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:2.2vh 1.6vw}
+.card.hl{background:var(--panel2)}
+.grid{display:grid;gap:1.4vw}
+.g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.1vw,14px);padding:.25em .7em;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-right:.4em}
+.big{font-family:'Space Grotesk',sans-serif;font-size:clamp(34px,4.6vw,64px);font-weight:700;line-height:1}
+.sun{color:var(--sun)} .red{color:var(--red)} .blue{color:var(--blue)} .moon{color:var(--moon)}
+ol.q{padding-left:1.3em;display:flex;flex-direction:column;gap:1.2vh}
+ul.b{padding-left:1.2em;display:flex;flex-direction:column;gap:.8vh}
+/* timeline pauta */
+.tl{display:grid;grid-template-columns:repeat(6,1fr);gap:1vw;margin-top:1vh}
+.tl .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.8vh 1vw;display:flex;flex-direction:column;gap:.6vh}
+.tl .min{font-family:'JetBrains Mono',monospace;color:var(--sun);font-size:clamp(13px,1.3vw,18px)}
+.tl .name{font-family:'Space Grotesk';font-weight:700;font-size:clamp(14px,1.45vw,21px)}
+.tl .what{font-size:clamp(12px,1.15vw,16px);color:var(--muted);line-height:1.35}
+.tl .step.now{border-color:var(--sun)}
+.bar{height:10px;border-radius:99px;display:flex;overflow:hidden;margin-top:1vh}
+.bar span{display:block;height:100%}
+/* phases grid */
+.phase{display:flex;flex-direction:column;align-items:center;gap:.8vh;text-align:center}
+.phase svg{width:min(9vw,13vh);height:min(9vw,13vh)}
+.phase .n{font-family:'Space Grotesk';font-weight:700;font-size:clamp(13px,1.35vw,19px)}
+.phase .d{font-family:'JetBrains Mono';font-size:clamp(11px,1vw,14px);color:var(--muted)}
+/* sim */
+.simwrap{display:grid;grid-template-columns:1.25fr 1fr;gap:2vw;flex:1;min-height:0}
+.simwrap svg{width:100%;height:100%;max-height:60vh}
+input[type=range]{width:100%;accent-color:var(--sun)}
+.btn{font:600 clamp(13px,1.2vw,16px) Inter;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:.55em 1em;cursor:pointer}
+.btn:hover{border-color:var(--sun)}
+.btn.on{background:var(--sun);color:#ffffff;border-color:var(--sun)}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw}
+.readout .card{padding:1.4vh 1vw}
+.readout .v{font-family:'Space Grotesk';font-weight:700;font-size:clamp(18px,2.1vw,30px)}
+.readout .l{font-size:clamp(11px,1vw,14px);color:var(--muted)}
+/* timer */
+.timer{font-family:'JetBrains Mono';font-size:clamp(48px,9vw,130px);font-weight:600;color:var(--moon);letter-spacing:.03em}
+/* chrome */
+.hud{position:fixed;left:0;right:0;bottom:0;height:6vh;display:flex;align-items:center;justify-content:space-between;padding:0 2vw;font-family:'JetBrains Mono';font-size:12px;color:var(--muted);pointer-events:none}
+.hud .keys span{border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin:0 2px}
+.prog{position:fixed;left:0;bottom:0;height:3px;background:var(--sun);transition:width .3s}
+.notes{position:fixed;left:2vw;right:2vw;bottom:7vh;max-height:42vh;overflow:auto;background:#fffffff5;border:1px solid var(--sun);border-radius:14px;padding:2vh 1.6vw;display:none;z-index:5}
+.notes.show{display:block}
+.notes h4{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.12em;color:var(--sun);margin-bottom:.8vh}
+.notes p,.notes li{font-size:clamp(13px,1.2vw,17px);color:var(--ink)}
+.notes ul{padding-left:1.2em}
+.cover-moon{position:absolute;right:6vw;top:12vh;width:min(30vw,48vh);height:min(30vw,48vh)}
+@media (max-width:820px){.row,.simwrap{flex-direction:column;display:flex}.tl{grid-template-columns:repeat(2,1fr)}.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.cover-moon{position:static;width:40vw;height:40vw}.readout{grid-template-columns:1fr 1fr 1fr}}
+.seg{display:flex;gap:.6vw;flex-wrap:wrap}
+table.t{width:100%;border-collapse:collapse;font-size:clamp(13px,1.35vw,19px)}
+table.t th{font-family:'JetBrains Mono';font-size:clamp(11px,1vw,14px);letter-spacing:.08em;color:var(--sun);text-align:left;padding:.7vh .8vw;border-bottom:1px solid var(--line)}
+table.t td{padding:.9vh .8vw;border-bottom:1px solid var(--line)}
+table.t tr.me td{background:var(--panel2);font-weight:600}
+
+h1,h2{color:#1f3c88}
+.kicker{color:var(--sun);font-weight:600}
+.card{box-shadow:0 2px 10px rgba(20,33,61,.06)}
+.card.hl{background:var(--panel2);border-left:4px solid var(--gold)}
+.btn{background:#fff;color:var(--ink);border:1px solid #c5d0e3}
+.btn:hover{border-color:var(--gold)}
+.btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tl .step{border-top:3px solid var(--blue);box-shadow:0 2px 10px rgba(20,33,61,.06)}
+.tl .min{color:var(--sun)}
+.prog{background:var(--gold)}
+.notes{background:#fffffff5;box-shadow:0 10px 30px rgba(20,33,61,.18);border-color:var(--gold)}
+input[type=range]{accent-color:var(--blue)}
+.slide.bookend h1,.slide.bookend p{color:#fff}
+.slide.bookend .kicker{color:#f2c75c}
+.slide.bookend .muted{color:#dbe6fb}
+table.t th{color:var(--sun)}
+.hud .keys span{background:#fff}
+.slide.quiz p,.slide.quiz li{font-size:clamp(17px,1.9vw,27px)}
+.slide.quiz .card{padding:2.6vh 2vw}
+.chips{display:flex;gap:.5vw;flex-wrap:wrap}
+.moon-card .big{font-size:clamp(22px,2.6vw,36px)}
+.hz{position:relative}
+.legend span{display:inline-flex;align-items:center;gap:6px;margin-right:1.4vw;font-size:clamp(12px,1.1vw,15px);color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.planet-pick{border:1px solid var(--line);border-radius:12px;padding:1.6vh 1vw;background:#fff}
+
+.navbtns{position:fixed;right:2vw;bottom:7vh;display:none;gap:8px;z-index:6}
+.navbtns button{width:46px;height:46px;border-radius:50%;border:1px solid #c5d0e3;background:#fff;color:#1f4e9c;font-size:20px;box-shadow:0 2px 10px rgba(20,33,61,.12)}
+@media (max-width:820px){
+  .slide{padding:3vh 5vw 84px;gap:1.6vh}
+  .hud{height:60px;background:#fff;border-top:1px solid #dbe3f0;z-index:5}
+  .navbtns{bottom:8px;right:12px}
+  .navbtns button{width:44px;height:44px}
+  .prog{z-index:7}
+  h1{font-size:clamp(28px,8vw,40px)} h2{font-size:clamp(22px,6.4vw,30px)}
+  p,li{font-size:15px}
+  .row,.simwrap{flex-direction:column;display:flex;flex:0 0 auto}
+  .grid.g3,.grid.g4{grid-template-columns:1fr}
+  .grid[style*="repeat(5"]{grid-template-columns:1fr 1fr!important}
+  .tl{grid-template-columns:1fr 1fr!important}
+  .readout{grid-template-columns:1fr!important}
+  .cover-art{position:static!important;width:46vw!important;height:46vw!important;align-self:center}
+  table.t{display:block;overflow-x:auto;white-space:nowrap;font-size:13px}
+  .big{font-size:30px}
+  .hud .keys{display:none}
+  .navbtns{display:flex}
+  .btn{padding:.6em .9em;font-size:13px}
+  .slide.quiz p,.slide.quiz li{font-size:16px}
+  .card{padding:1.6vh 4vw}
+}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide" data-notes="<p>Sesión 5 de 10 · 90 min. Materiales: cuaderno, lápices de colores y hoja de respuestas para la interrogación.</p><p>Pregunta de portada: déjala abierta. Se retoma en la zona de habitabilidad.</p>">
+  <div class="kicker">Unidad 4 · Estructuras cósmicas · Sesión 5</div>
+  <h1 style="max-width:62vw">¿Dónde más podría<br>existir vida?</h1>
+  <p class="muted" style="max-width:58vw">Planetas, satélites naturales y zona de habitabilidad</p>
+  <svg class="cover-art" viewBox="0 0 300 300" style="position:absolute;right:6vw;top:14vh;width:min(28vw,44vh);height:min(28vw,44vh)">
+    <circle cx="150" cy="150" r="140" fill="#eef3fb"/>
+    <circle cx="150" cy="150" r="112" fill="none" stroke="#7fc29b" stroke-width="26" opacity=".45"/>
+    <circle cx="150" cy="150" r="70" fill="none" stroke="#c5d0e3" stroke-width="1.5" stroke-dasharray="4 5"/>
+    <circle cx="150" cy="150" r="112" fill="none" stroke="#c5d0e3" stroke-width="1.5" stroke-dasharray="4 5"/>
+    <circle cx="150" cy="150" r="22" fill="#e0a82e"/>
+    <circle cx="220" cy="150" r="7" fill="#b5523f"/>
+    <circle cx="71" cy="71" r="10" fill="#2f6fd6"/>
+    <text x="150" y="282" font-size="13" fill="#2b7a4b" text-anchor="middle" font-family="JetBrains Mono">zona habitable</text>
+  </svg>
+  <div style="margin-top:auto;display:flex;flex-wrap:wrap;gap:1vw;max-width:75vw">
+    <div class="card"><div class="mono sun" style="font-size:13px">OA 15</div><p style="font-size:clamp(13px,1.2vw,17px)">Describir y comparar estructuras cósmicas: planetas y satélites.</p></div>
+    <div class="card"><div class="mono sun" style="font-size:13px">IE</div><p style="font-size:clamp(13px,1.2vw,17px)">Comparan planetas y satélites con la Tierra y la Luna. Explican la zona de habitabilidad desde la temperatura.</p></div>
+    <div class="card"><div class="mono sun" style="font-size:13px">BLOOM</div><p style="font-size:clamp(13px,1.2vw,17px)">Comprender · Aplicar</p></div>
+  </div>
+</section>
+
+<!-- 2 PAUTA -->
+<section class="slide" data-notes="<p>Proyectar 30 segundos. Producto de la clase: el análisis de un planeta ficticio en el cuaderno (AER + dibujo) y la interrogación final de 6 preguntas.</p>">
+  <div class="kicker">Pauta de la clase · 90 min</div>
+  <h2>Lo que haremos hoy</h2>
+  <div class="tl">
+    <div class="step"><div class="min">0–5'</div><div class="name">Gancho</div><div class="what">¿Qué necesita un planeta para tener vida?</div></div>
+    <div class="step"><div class="min">5–20'</div><div class="name">Planetas</div><div class="what">Comparamos los 8 planetas con la Tierra.</div></div>
+    <div class="step"><div class="min">20–30'</div><div class="name">Lunas</div><div class="what">Titán, Europa, Ganímedes y Encélado frente a nuestra Luna.</div></div>
+    <div class="step"><div class="min">30–55'</div><div class="name">Zona habitable</div><div class="what">Concepto, simulador y descubrimientos desde Chile.</div></div>
+    <div class="step"><div class="min">55–75'</div><div class="name">Cuaderno</div><div class="what">¿Es habitable este planeta? AER y dibujo.</div></div>
+    <div class="step"><div class="min">75–90'</div><div class="name">Interrogación</div><div class="what">6 preguntas de alternativas.</div></div>
+  </div>
+  <div class="bar"><span style="width:5.6%;background:#e0a82e"></span><span style="width:16.7%;background:#2f6fd6"></span><span style="width:11.1%;background:#14213d"></span><span style="width:27.8%;background:#7fc29b"></span><span style="width:22.2%;background:#b8860b"></span><span style="width:16.7%;background:#1f3c88"></span></div>
+  <div class="row" style="flex:0 0 auto;margin-top:1vh">
+    <div class="card col"><h3 class="sun">Producto de la clase</h3><p>Análisis de un planeta ficticio en el cuaderno e interrogación final.</p></div>
+    <div class="card col"><h3 class="sun">Materiales</h3><p>Cuaderno · lápices de colores · hoja de respuestas (o ZipGrade)</p></div>
+  </div>
+</section>
+
+<!-- 3 GANCHO -->
+<section class="slide" data-notes="<p>Lluvia de ideas en la pizarra (2–3 min). Suelen aparecer: agua, aire/oxígeno, temperatura adecuada, luz, comida.</p><p>Remarcar la que guía la clase: <b>agua líquida</b>. Toda la vida que conocemos la necesita, y el agua solo está líquida en un rango de temperaturas.</p>">
+  <div class="kicker">Gancho · 5 min</div>
+  <h2>¿Qué necesita un planeta para tener vida?</h2>
+  <div class="card hl"><p style="font-size:clamp(20px,2.4vw,34px);font-family:'Space Grotesk';font-weight:700">De los ocho planetas del Sistema Solar, solo uno tiene océanos de agua líquida en su superficie.</p>
+    <p style="margin-top:1vh">¿Qué tiene la Tierra que no tienen los demás?</p></div>
+  <div class="grid g3">
+    <div class="card" style="text-align:center"><div class="big blue">0 °C</div><p class="muted">bajo esta temperatura, el agua es hielo</p></div>
+    <div class="card" style="text-align:center;border-color:#7fc29b"><div class="big" style="color:#2b7a4b">Líquida</div><p class="muted">entre 0 y 100 °C</p></div>
+    <div class="card" style="text-align:center"><div class="big sun">100 °C</div><p class="muted">sobre esta temperatura, es vapor</p></div>
+  </div>
+  <p class="muted">Valores a la presión del aire de la Tierra.</p>
+</section>
+
+<!-- 4 PLANETAS -->
+<section class="slide" data-notes="<p>Toca cada fila para destacarla. Preguntas guía:</p><ul><li>¿Qué planeta es el más caliente? (Venus, aunque Mercurio está más cerca del Sol).</li><li>¿Por qué? Su atmósfera densa de dióxido de carbono atrapa el calor: efecto invernadero extremo.</li><li>Conclusión: la temperatura de un planeta depende de su distancia a la estrella <b>y</b> de su atmósfera.</li></ul><p>UA = unidad astronómica, la distancia media Tierra-Sol (≈ 150 millones de km). Temperaturas medias aproximadas; en los gigantes gaseosos, en la parte alta de las nubes.</p>">
+  <div class="kicker">Planetas · 15 min</div>
+  <h2>Los ocho planetas, comparados con la Tierra</h2>
+  <table class="t" id="ptable">
+    <tr><th>Planeta</th><th>Distancia al Sol</th><th>Tamaño (Tierra = 1)</th><th>Temperatura media</th><th>Atmósfera</th></tr>
+    <tr><td>Mercurio</td><td class="mono">0,39 UA</td><td class="mono">0,38</td><td class="mono">167 °C</td><td>Casi no tiene</td></tr>
+    <tr><td>Venus</td><td class="mono">0,72 UA</td><td class="mono">0,95</td><td class="mono" style="color:#b5523f;font-weight:700">464 °C</td><td>Muy densa, de CO₂</td></tr>
+    <tr class="me"><td>Tierra</td><td class="mono">1 UA</td><td class="mono">1</td><td class="mono">15 °C</td><td>Nitrógeno y oxígeno</td></tr>
+    <tr><td>Marte</td><td class="mono">1,52 UA</td><td class="mono">0,53</td><td class="mono">−65 °C</td><td>Muy delgada, de CO₂</td></tr>
+    <tr><td>Júpiter</td><td class="mono">5,2 UA</td><td class="mono">11,2</td><td class="mono">−110 °C</td><td>Hidrógeno y helio (gigante gaseoso)</td></tr>
+    <tr><td>Saturno</td><td class="mono">9,5 UA</td><td class="mono">9,4</td><td class="mono">−140 °C</td><td>Hidrógeno y helio (gigante gaseoso)</td></tr>
+    <tr><td>Urano</td><td class="mono">19,2 UA</td><td class="mono">4,0</td><td class="mono">−195 °C</td><td>Hidrógeno, helio y metano</td></tr>
+    <tr><td>Neptuno</td><td class="mono">30,1 UA</td><td class="mono">3,9</td><td class="mono">−200 °C</td><td>Hidrógeno, helio y metano</td></tr>
+  </table>
+  <p class="muted">Venus está casi al doble de distancia del Sol que Mercurio… y es más caliente. ¿Por qué?</p>
+</section>
+
+<!-- 5 LUNAS -->
+<section class="slide" data-notes="<p>Comparar siempre con nuestra Luna (3.474 km, sin atmósfera, sin agua líquida).</p><ul><li>Titán: más grande que Mercurio; atmósfera más densa que la de la Tierra; lagos de metano y etano. La misión Dragonfly de la NASA (un dron) tiene lanzamiento previsto para 2028.</li><li>Europa: océano salado bajo el hielo. La sonda Europa Clipper despegó en 2024 y llegará en 2030.</li><li>Ganímedes: la luna más grande del Sistema Solar, con campo magnético propio. La sonda JUICE (Agencia Espacial Europea) llegará en 2031.</li><li>Encélado: la sonda Cassini fotografió géiseres de vapor de agua saliendo de su polo sur.</li></ul><p>Idea clave: Europa y Encélado están lejos del Sol, fuera de la zona habitable, pero el calor interno podría mantener agua líquida bajo el hielo.</p>">
+  <div class="kicker">Satélites · 10 min</div>
+  <h2>Lunas que sorprenden, frente a nuestra Luna</h2>
+  <div class="grid g4" style="flex:1">
+    <div class="card moon-card"><div class="mono muted" style="font-size:12px">SATURNO</div><h3 class="blue" style="font-size:clamp(20px,2.2vw,30px)">Titán</h3><p>Más grande que Mercurio. Atmósfera densa de nitrógeno y <b>lagos de metano líquido</b>.</p><p class="mono sun" style="font-size:13px;margin-top:auto">−179 °C</p></div>
+    <div class="card moon-card hl"><div class="mono muted" style="font-size:12px">JÚPITER</div><h3 class="blue" style="font-size:clamp(20px,2.2vw,30px)">Europa</h3><p>Corteza de hielo con un <b>océano de agua salada</b> debajo. Candidata a albergar vida.</p><p class="mono sun" style="font-size:13px;margin-top:auto">Europa Clipper llega en 2030</p></div>
+    <div class="card moon-card"><div class="mono muted" style="font-size:12px">JÚPITER</div><h3 class="blue" style="font-size:clamp(20px,2.2vw,30px)">Ganímedes</h3><p>La <b>luna más grande</b> del Sistema Solar, más que Mercurio. Tiene campo magnético propio.</p><p class="mono sun" style="font-size:13px;margin-top:auto">JUICE llega en 2031</p></div>
+    <div class="card moon-card"><div class="mono muted" style="font-size:12px">SATURNO</div><h3 class="blue" style="font-size:clamp(20px,2.2vw,30px)">Encélado</h3><p>Pequeña, pero lanza <b>géiseres de vapor de agua</b> al espacio desde su polo sur.</p><p class="mono sun" style="font-size:13px;margin-top:auto">Descubierto por Cassini</p></div>
+  </div>
+  <div class="card" style="flex:0 0 auto"><p><b class="sun">Nuestra Luna:</b> 3.474 km de diámetro, sin atmósfera y sin agua líquida. De día supera los 100 °C y de noche baja de −150 °C.</p></div>
+</section>
+
+<!-- 6 ZONA HABITABLE -->
+<section class="slide" data-notes="<p>Definición: la zona de habitabilidad es la franja alrededor de una estrella donde un planeta con atmósfera podría tener agua líquida en su superficie. También se le llama «zona Ricitos de Oro»: ni muy caliente ni muy fría.</p><p>En el Sistema Solar va aproximadamente de 0,95 a 1,7 UA (los cálculos varían según el modelo). La Tierra está adentro; Marte, en el borde exterior.</p><p>Aclarar dos ideas: estar en la zona habitable NO garantiza vida (Marte), y estar fuera no la descarta del todo (océanos bajo el hielo de Europa).</p>">
+  <div class="kicker">Zona de habitabilidad · concepto</div>
+  <h2>Ni muy cerca ni muy lejos de la estrella</h2>
+  <div class="card" style="padding:2vh 1.4vw">
+    <svg viewBox="0 0 900 150" style="width:100%">
+      <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#f6c9b8"/><stop offset="1" stop-color="#fbe6dc"/></linearGradient>
+      <linearGradient id="g3" x1="0" x2="1"><stop offset="0" stop-color="#dce8fb"/><stop offset="1" stop-color="#c6d8f6"/></linearGradient></defs>
+      <rect x="80" y="40" width="250" height="60" fill="url(#g1)"/><rect x="330" y="40" width="210" height="60" fill="#cfe9d8"/><rect x="540" y="40" width="340" height="60" fill="url(#g3)"/>
+      <circle cx="40" cy="70" r="34" fill="#e0a82e"/>
+      <text x="205" y="128" font-size="15" fill="#b5523f" text-anchor="middle" font-family="Inter" font-weight="600">muy caliente: vapor</text>
+      <text x="435" y="128" font-size="15" fill="#2b7a4b" text-anchor="middle" font-family="Inter" font-weight="600">zona habitable: agua líquida</text>
+      <text x="710" y="128" font-size="15" fill="#1f4e9c" text-anchor="middle" font-family="Inter" font-weight="600">muy fría: hielo</text>
+      <circle cx="160" cy="70" r="6" fill="#9a8f84"/><text x="160" y="30" font-size="13" fill="#5b6782" text-anchor="middle" font-family="JetBrains Mono">Mercurio</text>
+      <circle cx="270" cy="70" r="9" fill="#d9a85b"/><text x="270" y="30" font-size="13" fill="#5b6782" text-anchor="middle" font-family="JetBrains Mono">Venus</text>
+      <circle cx="380" cy="70" r="10" fill="#2f6fd6"/><text x="380" y="30" font-size="13" fill="#14213d" text-anchor="middle" font-family="JetBrains Mono" font-weight="700">Tierra</text>
+      <circle cx="530" cy="70" r="7" fill="#b5523f"/><text x="530" y="30" font-size="13" fill="#5b6782" text-anchor="middle" font-family="JetBrains Mono">Marte</text>
+    </svg>
+  </div>
+  <div class="grid g3">
+    <div class="card"><h3 class="sun">Definición</h3><p>Franja alrededor de una estrella donde un planeta podría tener <b>agua líquida</b> en su superficie.</p></div>
+    <div class="card"><h3 class="sun">En el Sistema Solar</h3><p>Aproximadamente entre <b>0,95 y 1,7 UA</b> del Sol. La Tierra está adentro y Marte, en el borde.</p></div>
+    <div class="card hl"><h3>Ojo</h3><p>Estar en la zona no garantiza vida. Y fuera de ella podría haber océanos bajo el hielo, como en Europa.</p></div>
+  </div>
+</section>
+
+<!-- 7 SIMULADOR -->
+<section class="slide" data-notes="<p>1) Con el Sol, mueve el planeta desde 0,3 UA hacia afuera y pide que digan en voz alta «vapor, líquida, hielo» cuando cambie.</p><p>2) Cambia a la enana roja: la zona se acerca mucho a la estrella (Próxima b está a solo 0,05 UA). 3) Cambia a la estrella más caliente: la zona se aleja.</p><p>Conclusión: la posición de la zona habitable depende de cuánta energía emite la estrella. Límites calculados como 0,95–1,7 UA multiplicados por la raíz cuadrada de la luminosidad de la estrella (modelo simplificado).</p>">
+  <div class="kicker">Zona de habitabilidad · simulador</div>
+  <h2>Mueve el planeta y cambia la estrella</h2>
+  <div class="seg" id="stars"></div>
+  <div class="card" style="padding:1.4vh 1vw"><svg viewBox="0 0 900 190" id="hzSvg" style="width:100%"></svg></div>
+  <input type="range" id="hzRange" min="0" max="1000" step="1" value="500">
+  <div class="readout">
+    <div class="card"><div class="v" id="hzDist">1 UA</div><div class="l">distancia del planeta a su estrella</div></div>
+    <div class="card"><div class="v" id="hzZone">0,95–1,7 UA</div><div class="l">zona habitable de esta estrella</div></div>
+    <div class="card"><div class="v" id="hzWater">Agua líquida</div><div class="l">el agua en la superficie estaría…</div></div>
+  </div>
+  <div class="legend"><span><i style="background:#f6c9b8"></i>demasiado caliente</span><span><i style="background:#cfe9d8"></i>zona habitable</span><span><i style="background:#c6d8f6"></i>demasiado fría</span><span class="mono">escala logarítmica de distancia</span></div>
+</section>
+
+<!-- 8 CHILE -->
+<section class="slide" data-notes="<p>Próxima b: planeta descubierto en 2016 con el espectrógrafo HARPS del Observatorio La Silla (ESO), en la Región de Coquimbo. Orbita Próxima Centauri, la estrella más cercana al Sol (≈ 4,2 años luz), dentro de su zona habitable.</p><p>TRAPPIST-1: el telescopio TRAPPIST, también en La Silla, ayudó a descubrir este sistema. En 2017 se anunció que tiene 7 planetas del tamaño de la Tierra, 3 de ellos en la zona habitable.</p><p>Pregunta: ¿por qué estos planetas, estando tan cerca de su estrella, podrían tener agua líquida? (Porque sus estrellas son enanas rojas, frías y poco luminosas: la zona habitable queda muy cerca).</p>">
+  <div class="kicker">Descubrimientos desde Chile</div>
+  <h2>Planetas en zonas habitables, vistos desde La Silla</h2>
+  <div class="row">
+    <div class="card col"><div class="mono muted" style="font-size:13px">2016 · OBSERVATORIO LA SILLA</div><h3 class="blue" style="font-size:clamp(22px,2.6vw,36px)">Próxima b</h3>
+      <p>Orbita a <b>Próxima Centauri</b>, la estrella más cercana al Sol. Está a solo <b>0,05 UA</b> de su estrella, pero dentro de su zona habitable.</p>
+      <div class="big sun" style="margin-top:auto">4,2 años luz</div><p class="muted">de distancia de nosotros</p></div>
+    <div class="card col"><div class="mono muted" style="font-size:13px">2017 · TELESCOPIO TRAPPIST, LA SILLA</div><h3 class="blue" style="font-size:clamp(22px,2.6vw,36px)">TRAPPIST-1</h3>
+      <p>Una enana roja con <b>7 planetas</b> del tamaño de la Tierra.</p>
+      <div class="big sun" style="margin-top:auto">3 de 7</div><p class="muted">planetas en la zona habitable</p></div>
+    <div class="card col hl"><h3>Piensa</h3><p>Estos planetas están mucho más cerca de su estrella que Mercurio del Sol.</p><p style="margin-top:1vh;font-family:'Space Grotesk';font-weight:700;font-size:clamp(17px,1.9vw,26px)">¿Cómo pueden estar en la zona habitable?</p></div>
+  </div>
+</section>
+
+<!-- 9 CUADERNO -->
+<section class="slide" data-notes="<p>Individual o en parejas, cada uno en su cuaderno. 20 minutos. Que elijan UN planeta.</p><p>Respuestas esperadas: Andinia, probablemente habitable (zona habitable del Sol y atmósfera parecida a la Tierra). Atacamia, no: muy cerca del Sol y sin atmósfera. Patagonia-b, posiblemente: está en la zona habitable de su enana roja (como Próxima b). Gélida, fuera de la zona: superficie congelada, aunque podría tener un océano bajo el hielo por calor interno (como Europa).</p><p>En el dibujo deben aparecer la estrella, la zona habitable coloreada y el planeta en su posición.</p>">
+  <div class="kicker">Actividad en el cuaderno · 20 min</div>
+  <h2>¿Es habitable este planeta?</h2>
+  <div class="grid g4">
+    <div class="planet-pick"><h3 class="blue">Andinia</h3><p class="mono" style="font-size:clamp(12px,1.1vw,15px)">Estrella como el Sol<br>Distancia: 1,2 UA<br>Atmósfera: nitrógeno y oxígeno</p></div>
+    <div class="planet-pick"><h3 class="blue">Atacamia</h3><p class="mono" style="font-size:clamp(12px,1.1vw,15px)">Estrella como el Sol<br>Distancia: 0,4 UA<br>Atmósfera: no tiene</p></div>
+    <div class="planet-pick"><h3 class="blue">Patagonia-b</h3><p class="mono" style="font-size:clamp(12px,1.1vw,15px)">Enana roja<br>Distancia: 0,05 UA<br>Atmósfera: delgada</p></div>
+    <div class="planet-pick"><h3 class="blue">Gélida</h3><p class="mono" style="font-size:clamp(12px,1.1vw,15px)">Estrella como el Sol<br>Distancia: 5 UA<br>Corteza de hielo, interior caliente</p></div>
+  </div>
+  <div class="row" style="flex:0 0 auto">
+    <div class="card col hl"><h3>Elige un planeta y responde (AER)</h3>
+      <ul class="b"><li><b>Afirmación:</b> ¿podría tener agua líquida? ¿Es habitable?</li><li><b>Evidencia:</b> usa sus datos y el simulador.</li><li><b>Razonamiento:</b> explica qué tiene que ver con la temperatura.</li></ul></div>
+    <div class="card col"><h3 class="sun">Dibuja</h3><p>Su sistema: la estrella, la zona habitable coloreada en verde y el planeta en su lugar. Agrega un título y rótulos.</p></div>
+  </div>
+</section>
+
+<!-- 10 INTERROGACIÓN 1 -->
+<section class="slide quiz" data-notes="<p>Interrogación individual y en silencio: 6 preguntas en 3 diapositivas, unos 3 minutos por diapositiva. Respuestas en la hoja (o en ZipGrade).</p><p>Clave: <b>1 B · 2 D</b> · 3 E · 4 A · 5 C · 6 D.</p>">
+  <div class="kicker">Interrogación · 15 min · preguntas 1 y 2</div>
+  <div class="card"><p><b class="sun">1.</b> La zona de habitabilidad de una estrella es la región donde:</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5vh;margin-top:.8vh">
+      <li><b>A)</b> siempre existe vida.</li>
+      <li><b>B)</b> un planeta podría tener agua líquida en su superficie.</li>
+      <li><b>C)</b> no llega la radiación de la estrella.</li>
+      <li><b>D)</b> se concentran los asteroides.</li>
+      <li><b>E)</b> hace calor suficiente para fundir las rocas.</li></ul></div>
+  <div class="card"><p><b class="sun">2.</b> Venus está más lejos del Sol que Mercurio, pero es más caliente porque:</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5vh;margin-top:.8vh">
+      <li><b>A)</b> tiene más lunas que Mercurio.</li>
+      <li><b>B)</b> es más pequeño que Mercurio.</li>
+      <li><b>C)</b> gira más rápido sobre sí mismo.</li>
+      <li><b>D)</b> su atmósfera densa de dióxido de carbono atrapa el calor.</li>
+      <li><b>E)</b> está cubierto por océanos de lava.</li></ul></div>
+</section>
+
+<!-- 11 INTERROGACIÓN 2 -->
+<section class="slide quiz" data-notes="<p>Clave: 3 E · 4 A.</p>">
+  <div class="kicker">Interrogación · preguntas 3 y 4</div>
+  <div class="card"><p><b class="sun">3.</b> ¿Qué satélite tiene una atmósfera densa y lagos de metano líquido?</p>
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:.8vh"><p><b>A)</b> Europa</p><p><b>B)</b> Ganímedes</p><p><b>C)</b> la Luna</p><p><b>D)</b> Encélado</p><p><b>E)</b> Titán</p></div></div>
+  <div class="card"><p><b class="sun">4.</b> Europa, satélite de Júpiter, interesa en la búsqueda de vida porque:</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5vh;margin-top:.8vh">
+      <li><b>A)</b> bajo su corteza de hielo habría un océano de agua salada.</li>
+      <li><b>B)</b> es la luna más grande del Sistema Solar.</li>
+      <li><b>C)</b> tiene una atmósfera rica en oxígeno.</li>
+      <li><b>D)</b> está dentro de la zona habitable del Sol.</li>
+      <li><b>E)</b> tiene lagos de metano en su superficie.</li></ul></div>
+</section>
+
+<!-- 12 INTERROGACIÓN 3 -->
+<section class="slide quiz" data-notes="<p>Clave: 5 C · 6 D. Recoger las hojas al terminar.</p><p>Clave completa: 1 B · 2 D · 3 E · 4 A · 5 C · 6 D.</p>">
+  <div class="kicker">Interrogación · preguntas 5 y 6</div>
+  <div class="card"><p><b class="sun">5.</b> Si una estrella es más fría y menos luminosa que el Sol, su zona habitable está:</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5vh;margin-top:.8vh">
+      <li><b>A)</b> más lejos de la estrella que en el Sistema Solar.</li>
+      <li><b>B)</b> a la misma distancia que en el Sistema Solar.</li>
+      <li><b>C)</b> más cerca de la estrella que en el Sistema Solar.</li>
+      <li><b>D)</b> en ninguna parte: esas estrellas no tienen zona habitable.</li>
+      <li><b>E)</b> dentro de la propia estrella.</li></ul></div>
+  <div class="card"><p><b class="sun">6.</b> Próxima b, descubierto desde el Observatorio La Silla en Chile, orbita una enana roja a solo 0,05 UA. ¿Qué podemos concluir?</p>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5vh;margin-top:.8vh">
+      <li><b>A)</b> Es demasiado caliente, porque está más cerca de su estrella que Mercurio del Sol.</li>
+      <li><b>B)</b> Es un gigante gaseoso como Júpiter.</li>
+      <li><b>C)</b> Forma parte del Sistema Solar.</li>
+      <li><b>D)</b> Podría estar en la zona habitable de su estrella, aunque esté muy cerca de ella.</li>
+      <li><b>E)</b> No recibe luz de ninguna estrella.</li></ul></div>
+</section>
+
+<!-- 13 BOOKEND -->
+<section class="slide bookend" style="background:#1f4e9c" data-notes="<p>Anuncio de la próxima sesión.</p>">
+  <div class="kicker">Próxima sesión</div>
+  <h1>Estrellas: características y clasificación</h1>
+  <p class="muted" style="max-width:60vw">Hoy vimos que la zona habitable depende de la estrella. La próxima clase conoceremos las estrellas: su color, su temperatura y su tamaño.</p>
+</section>
+
+</div>
+<div class="notes" id="notes"><h4>PAUTA DOCENTE · tecla N para cerrar</h4><div id="notesBody"></div></div>
+<div class="hud"><div id="count">1 / 13</div><div class="keys"><span>←</span><span>→</span> navegar · <span>N</span> notas · <span>F</span> pantalla completa</div></div>
+<div class="prog" id="prog"></div>
+<div class="navbtns"><button aria-label="Anterior" onclick="show(cur-1)">‹</button><button aria-label="Siguiente" onclick="show(cur+1)">›</button></div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')]; let cur=0;
+function show(i){ cur=Math.max(0,Math.min(slides.length-1,i)); slides.forEach((s,k)=>s.classList.toggle('active',k===cur));
+  document.getElementById('count').textContent=(cur+1)+' / '+slides.length;
+  document.getElementById('prog').style.width=((cur+1)/slides.length*100)+'%';
+  document.getElementById('notesBody').innerHTML=slides[cur].dataset.notes||'';
+  try{history.replaceState(null,'','#'+(cur+1));}catch(e){} }
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(cur+1);}
+  else if(['ArrowLeft','PageUp'].includes(e.key)) show(cur-1);
+  else if(e.key==='n'||e.key==='N') document.getElementById('notes').classList.toggle('show');
+  else if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }
+});
+let tx=null; document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{ if(tx===null) return; const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>60 && e.target.tagName!=='INPUT') show(cur+(dx<0?1:-1)); tx=null; });
+
+// highlight planet rows
+document.querySelectorAll('#ptable tr').forEach((r,i)=>{ if(i===0) return; r.style.cursor='pointer'; r.onclick=()=>{ document.querySelectorAll('#ptable tr').forEach(x=>x.classList.remove('me')); r.classList.add('me'); }; });
+
+// Habitable zone simulator
+(function(){
+  const STARS={ roja:{lab:'Enana roja (como Próxima Centauri)',L:0.0017,col:'#d9534f',r:10},
+                sol:{lab:'Estrella como el Sol',L:1,col:'#e0a82e',r:16},
+                azul:{lab:'Estrella más caliente que el Sol',L:6,col:'#9fc3ff',r:22} };
+  const PLANETS=[['Mercurio',0.39],['Venus',0.72],['Tierra',1],['Marte',1.52],['Júpiter',5.2]];
+  let star='sol'; const rng=document.getElementById('hzRange'), svg=document.getElementById('hzSvg');
+  const DMIN=0.01, DMAX=20, X0=70, X1=880;
+  const xOf=d=>X0+(Math.log10(d)-Math.log10(DMIN))/(Math.log10(DMAX)-Math.log10(DMIN))*(X1-X0);
+  const dOf=v=>Math.pow(10,Math.log10(DMIN)+v/1000*(Math.log10(DMAX)-Math.log10(DMIN)));
+  const vOf=d=>Math.round((Math.log10(d)-Math.log10(DMIN))/(Math.log10(DMAX)-Math.log10(DMIN))*1000);
+  const fmt=d=> d<0.1? d.toFixed(3).replace('.',',') : d<10? d.toFixed(2).replace('.',',') : d.toFixed(1).replace('.',',');
+  function buttons(){ const el=document.getElementById('stars'); el.innerHTML=''; Object.entries(STARS).forEach(([k,s])=>{ const b=document.createElement('button'); b.className='btn'+(k===star?' on':''); b.textContent=s.lab;
+    b.onclick=()=>{ star=k; const z=Math.sqrt(STARS[k].L); rng.value=vOf(1.2*z); buttons(); draw(); }; el.appendChild(b); }); }
+  function draw(){ const s=STARS[star], z=Math.sqrt(s.L), inn=0.95*z, out=1.7*z, d=dOf(+rng.value);
+    const xi=Math.max(X0,xOf(inn)), xo=Math.min(X1,xOf(out)), xp=xOf(d);
+    let h=`<rect x="${X0}" y="45" width="${xi-X0}" height="70" fill="#f6c9b8"/>`;
+    h+=`<rect x="${xi}" y="45" width="${xo-xi}" height="70" fill="#cfe9d8"/>`;
+    h+=`<rect x="${xo}" y="45" width="${X1-xo}" height="70" fill="#c6d8f6"/>`;
+    h+=`<circle cx="32" cy="80" r="${s.r+8}" fill="${s.col}" opacity=".25"/><circle cx="32" cy="80" r="${s.r}" fill="${s.col}"/>`;
+    [0.01,0.1,1,10].forEach(t=>{ const x=xOf(t); h+=`<line x1="${x}" y1="115" x2="${x}" y2="123" stroke="#6b7893"/><text x="${x}" y="140" font-size="13" fill="#6b7893" text-anchor="middle" font-family="JetBrains Mono">${String(t).replace('.',',')} UA</text>`; });
+    if(star==='sol') PLANETS.forEach(([n,a])=>{ const x=xOf(a); h+=`<line x1="${x}" y1="45" x2="${x}" y2="115" stroke="#14213d" stroke-opacity=".25" stroke-dasharray="3 3"/><text x="${x}" y="38" font-size="12" fill="#5b6782" text-anchor="middle" font-family="JetBrains Mono">${n}</text>`; });
+    if(star==='roja'){ const x=xOf(0.0485); h+=`<line x1="${x}" y1="45" x2="${x}" y2="115" stroke="#14213d" stroke-opacity=".25" stroke-dasharray="3 3"/><text x="${x}" y="38" font-size="12" fill="#5b6782" text-anchor="middle" font-family="JetBrains Mono">Próxima b</text>`; }
+    h+=`<circle cx="${xp}" cy="80" r="13" fill="#2f6fd6" stroke="#fff" stroke-width="3"/><text x="${xp}" y="172" font-size="14" fill="#14213d" text-anchor="middle" font-family="JetBrains Mono" font-weight="700">tu planeta</text>`;
+    svg.innerHTML=h;
+    document.getElementById('hzDist').textContent=fmt(d)+' UA';
+    document.getElementById('hzZone').textContent=fmt(inn)+'–'+fmt(out)+' UA';
+    const w=document.getElementById('hzWater');
+    if(d<inn){ w.textContent='Se evapora'; w.style.color='#b5523f'; }
+    else if(d>out){ w.textContent='Se congela'; w.style.color='#1f4e9c'; }
+    else { w.textContent='Líquida'; w.style.color='#2b7a4b'; }
+  }
+  rng.addEventListener('input',draw); rng.value=vOf(1); buttons(); draw();
+})();
+const h=parseInt((location.hash||'').slice(1)); show(isNaN(h)?0:h-1);
+</script>
+</body>
+</html>
