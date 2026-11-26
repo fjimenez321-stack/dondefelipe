@@ -44,6 +44,18 @@
   /* Toque navideño del diseño Ciudad-Estado (solo CSS + un canvas liviano):
      gorro sobre «EMF», guirnalda verde-amarillo-rojo bajo el menú y unas pocas chispas doradas cayendo.
      Se apaga junto con los gatitos al tocarlos, y respeta «reducir movimiento». Devuelve una función para quitarlo. */
+  // Texto del saludo según la fecha (hora de Chile del dispositivo).
+  function saludoNavidad(h) {
+    var m = h.getMonth() + 1, d = h.getDate(), anio = h.getFullYear();
+    if (m === 1) return '🎆 ¡Feliz ' + anio + '!';
+    if (m === 12 && d === 24) return '🌟 ¡Hoy es Nochebuena!';
+    if (m === 12 && d === 25) return '🎄 ¡Feliz Navidad!';
+    if (m === 12 && d > 25) return '✨ Felices fiestas · Se viene el ' + (anio + 1);
+    var nav = new Date(anio, 11, 24), hoy = new Date(anio, m - 1, d);
+    var falta = Math.round((nav - hoy) / 864e5);
+    return '🎄 ' + (falta === 1 ? 'Mañana es Nochebuena' : 'Faltan ' + falta + ' días para Nochebuena');
+  }
+
   function ponerTema(t) {
     if (t.tema !== 'navidad' || document.getElementById('tema-temporada-css')) return function () {};
     var raiz = document.documentElement;
@@ -60,10 +72,22 @@
       '.tema-navidad nav:has(.nav-brand)::before{background-image:' + foco(14, '#1fdd6c') + ',' + foco(70, '#ff2b3d') + ',linear-gradient(rgba(242,240,233,.18),rgba(242,240,233,.18));background-size:84px 16px,84px 16px,100% 1px;background-position:0 0,0 0,0 3px;filter:drop-shadow(0 0 4px rgba(255,43,61,.55));animation:tn-titila 2.6s ease-in-out infinite}' +
       '.tema-navidad nav:has(.nav-brand)::after{background-image:' + foco(42, '#ffd60a') + ';filter:drop-shadow(0 0 5px rgba(255,214,10,.7));animation:tn-titila 2.6s ease-in-out -1.3s infinite}' +
       '@keyframes tn-titila{0%,100%{opacity:1}50%{opacity:.35}}' +
+      // Títulos de sección con borde de bastón de caramelo
+      '.tema-navidad h2.sh{border-left-color:transparent;border-image:repeating-linear-gradient(135deg,#e0222f 0 5px,#f2f0e9 5px 10px) 1}' +
+      // Saludo / cuenta regresiva junto al título «Cursos» (el texto lo pone saludoNavidad())
+      '.tema-navidad #cursos-section{flex-wrap:wrap}' +
+      '.tema-navidad #cursos-section::after{content:var(--tn-saludo,"");margin-left:auto;font:700 .68rem/1 var(--ff-body,system-ui);letter-spacing:1px;text-transform:none;color:#f2f0e9;' +
+        'padding:7px 12px;border-radius:999px;background:linear-gradient(90deg,rgba(224,34,47,.22),rgba(31,221,108,.18));border:1px solid rgba(255,214,10,.35);white-space:nowrap}' +
+      // Tarjetas: brillo festivo suave al pasar
+      '.tema-navidad .card:hover{box-shadow:0 0 0 1px rgba(224,34,47,.35),0 14px 34px rgba(31,221,108,.12)}' +
+      // Pie de página con su propia guirnalda
+      '.tema-navidad footer::before{content:"";position:absolute;left:0;right:0;top:-8px;height:16px;pointer-events:none;background-image:' + foco(14, '#1fdd6c') + ',' + foco(42, '#ffd60a') + ',' + foco(70, '#ff2b3d') + ';background-size:84px 16px;background-repeat:repeat-x;filter:drop-shadow(0 0 4px rgba(255,214,10,.45));animation:tn-titila 3.2s ease-in-out infinite}' +
+      '@media (max-width:520px){.tema-navidad #cursos-section::after{margin-left:0;margin-top:8px;white-space:normal}}' +
       '#tema-chispas{position:fixed;inset:0;width:100%;height:100%;z-index:39;pointer-events:none}' +
-      '@media (prefers-reduced-motion:reduce){.tema-navidad nav:has(.nav-brand)::before,.tema-navidad nav:has(.nav-brand)::after{animation:none}}' +
-      '@media print{.tema-navidad .nav-brand::after,.tema-navidad nav::before,.tema-navidad nav::after,#tema-chispas{display:none}}';
+      '@media (prefers-reduced-motion:reduce){.tema-navidad nav:has(.nav-brand)::before,.tema-navidad nav:has(.nav-brand)::after,.tema-navidad footer::before{animation:none}}' +
+      '@media print{.tema-navidad .nav-brand::after,.tema-navidad nav::before,.tema-navidad nav::after,.tema-navidad footer::before,.tema-navidad #cursos-section::after,#tema-chispas{display:none}}';
     document.head.appendChild(css);
+    raiz.style.setProperty('--tn-saludo', JSON.stringify(saludoNavidad(new Date())));
     raiz.classList.add('tema-navidad');
 
     var lienzo = null, vivo = true;
@@ -83,9 +107,11 @@
       var n = W < 640 ? 14 : 26;
       for (var i = 0; i < n; i++) motas.push(nueva(false));
       addEventListener('resize', medir);
+      var par = false;   // ~30 cuadros por segundo: igual de suave para chispas lentas y gasta la mitad de batería
       (function cuadro() {
         if (!vivo) return;
-        if (!document.hidden) {
+        par = !par;
+        if (par && !document.hidden) {
           g.clearRect(0, 0, W, H);
           for (var k = 0; k < motas.length; k++) {
             var m = motas[k];
@@ -101,6 +127,7 @@
     return function quitar() {
       vivo = false;
       raiz.classList.remove('tema-navidad');
+      raiz.style.removeProperty('--tn-saludo');
       css.remove();
       if (lienzo) lienzo.remove();
     };

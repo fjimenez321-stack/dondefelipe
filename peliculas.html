@@ -110,6 +110,22 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
   .cuerpo{padding:1.1rem 1rem}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+/* clásicas de ciencia (recomienda el profe) */
+.clasicas{margin:18px 0 6px}
+.clasicas h3{font:900 1.25rem/1 var(--ff-display);text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.clasicas h3 small{font:600 .78rem var(--ff-body);text-transform:none;letter-spacing:0;color:var(--mute)}
+.cl-fila{display:grid;grid-auto-flow:column;grid-auto-columns:min(300px,82%);gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:12px 2px 14px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.cl{scroll-snap-align:start;background:linear-gradient(160deg,color-mix(in srgb,var(--nc) 16%,var(--slab)),var(--slab) 65%);border:1px solid var(--line-2);border-top:3px solid var(--nc);border-radius:var(--r-md);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.cl h4{font:800 1.2rem/1.1 var(--ff-display);text-transform:uppercase;letter-spacing:.3px}
+.cl .meta{font-size:.74rem;color:var(--mute)}
+.cl .tema{align-self:flex-start;font-size:.72rem;font-weight:800;color:var(--nc);background:color-mix(in srgb,var(--nc) 14%,transparent);border-radius:999px;padding:2px 10px}
+.cl p{font-size:.88rem;line-height:1.5;flex:1}
+.cl .clase{font-size:.74rem;color:var(--mute);border-top:1px dashed var(--line-2);padding-top:7px}
+.cl .clase b{color:var(--bone)}
+.cl-flechas{margin-left:auto;display:none;gap:6px}
+.cl-flechas button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line-2);background:var(--slab);color:var(--bone);font-weight:900;cursor:pointer}
+.cl-flechas button:hover{border-color:var(--acid);color:var(--acid)}
+@media (hover:hover){.cl-flechas{display:flex}}
 /* recomendaciones */
 .recos{margin-top:46px;padding-top:26px;border-top:1px solid var(--line);scroll-margin-top:80px}
 .recos-t{font:900 clamp(1.8rem,5vw,2.6rem)/1 var(--ff-display);text-transform:uppercase;letter-spacing:-.3px}
@@ -200,6 +216,7 @@ h1{font:900 clamp(2.2rem,6vw,3.8rem)/.95 var(--ff-display);letter-spacing:-.5px;
     <div id="foroInicio">
       <h2 class="recos-t" id="recos-t">🍿 Foro de películas</h2>
       <p class="intro" style="margin-top:6px">Abre un tema con una película que valga la pena: título, una foto (el afiche o una escena) y <b>por qué hay que verla</b>, sin contar el final. Los demás comentan y la evalúan de 0 a 10 en <b>fotografía, guion, sonido y actores</b>. Cada persona puede abrir hasta 3 temas.</p>
+      <div class="clasicas" id="clasicas" aria-labelledby="cl-t"></div>
       <div id="recoForm"></div>
       <div class="recos-orden" id="recoOrden"></div>
       <div class="recos-grid" id="recoLista"></div>
@@ -230,6 +247,63 @@ var PELIS=[
    sin:'En un pueblo tranquilo, un asesino llama por teléfono a sus víctimas y las obliga a responder preguntas de películas de terror. Un grupo de adolescentes descubre que conocer las "reglas" del género no basta para sobrevivir.',
    preg:'¿Por qué da miedo una película cuando ya conocemos las reglas del género? ¿Qué da más susto: lo que se ve o lo que se imagina? Cuéntanos una escena y por qué funcionó (o no).'}
 ];
+
+/* ═════════ Clásicas de ciencia (las recomienda el profe; reseñas sin spoilers) ═════════ */
+var CLASICAS=[
+  {t:'Gattaca',a:1997,d:'Andrew Niccol',c:'#1fdd6c',tema:'Genética',
+   r:'En un futuro donde el ADN decide tu trabajo y tu destino, un joven concebido «al natural» se hace pasar por alguien genéticamente perfecto para cumplir su sueño de viajar al espacio. Elegante, inquietante y más vigente que nunca.',
+   cl:'Herencia y ADN · bioética'},
+  {t:'Interestelar',a:2014,d:'Christopher Nolan',c:'#a78bfa',tema:'Relatividad',
+   r:'Con la Tierra agonizando, un grupo de astronautas cruza un agujero de gusano buscando un nuevo hogar. El físico Kip Thorne asesoró la película: el tiempo que se estira cerca de un agujero negro está bien pensado.',
+   cl:'Gravedad, tiempo y espacio'},
+  {t:'Contacto',a:1997,d:'Robert Zemeckis',c:'#34d399',tema:'Método científico',
+   r:'Una radioastrónoma capta una señal que parece venir de otra civilización. Basada en la novela de Carl Sagan, es una gran película sobre evidencia, duda y qué significa «probar» algo.',
+   cl:'Ondas de radio · naturaleza de la ciencia'},
+  {t:'Apolo 13',a:1995,d:'Ron Howard',c:'#ffd60a',tema:'Ingeniería',
+   r:'Una explosión deja a tres astronautas lejos de casa con poco oxígeno y energía. Basada en hechos reales: la tensión viene de resolver problemas con lo que hay a mano, y de los números.',
+   cl:'Energía, presión y gases'},
+  {t:'Misión rescate',a:2015,d:'Ridley Scott',c:'#ff7a45',tema:'Química y botánica',
+   r:'Un astronauta queda solo en Marte y tiene que fabricar agua, cultivar papas y calcular cada caloría para sobrevivir. Divertida y llena de ciencia aplicada con humor.',
+   cl:'Fotosíntesis, reacciones químicas'},
+  {t:'Talentos ocultos',a:2016,d:'Theodore Melfi',c:'#e9b949',tema:'Matemática',
+   r:'La historia real de Katherine Johnson, Dorothy Vaughan y Mary Jackson, matemáticas afroamericanas clave en la carrera espacial de la NASA, que además tuvieron que enfrentar el racismo y el machismo.',
+   cl:'Movimiento y trayectorias · ciencia y sociedad'},
+  {t:'Cielo de octubre',a:1999,d:'Joe Johnston',c:'#ff2b3d',tema:'Cohetería',
+   r:'En un pueblo minero, un adolescente ve pasar el Sputnik y decide construir cohetes con sus amigos. Prueba, falla, corrige y vuelve a probar: el método científico con corazón.',
+   cl:'Fuerzas y movimiento'},
+  {t:'Parque Jurásico',a:1993,d:'Steven Spielberg',c:'#1fdd6c',tema:'ADN y clonación',
+   r:'Un millonario revive dinosaurios a partir de ADN fosilizado. Un clásico de aventura que plantea la gran pregunta: que la ciencia pueda hacer algo, ¿significa que deba hacerlo?',
+   cl:'Biotecnología · evolución'},
+  {t:'Contagio',a:2011,d:'Steven Soderbergh',c:'#34d399',tema:'Epidemiología',
+   r:'Un virus nuevo se expande por el mundo en días y los científicos corren contra el reloj. Vista después de 2020, sorprende lo realista que es: cómo se rastrea un brote y cómo se hace una vacuna.',
+   cl:'Microorganismos · salud pública'},
+  {t:'2001: Odisea del espacio',a:1968,d:'Stanley Kubrick',c:'#a78bfa',tema:'Evolución e IA',
+   r:'De los primeros homínidos a una nave con una computadora que piensa. Lenta, hipnótica y distinta a todo: pide paciencia, y a cambio deja preguntas sobre evolución, tecnología e inteligencia artificial.',
+   cl:'Evolución humana · el universo'},
+  {t:'El código Enigma',a:2014,d:'Morten Tyldum',c:'#ffd60a',tema:'Computación',
+   r:'Alan Turing y su equipo intentan descifrar la máquina Enigma durante la Segunda Guerra Mundial. El origen de los computadores, contado como un thriller.',
+   cl:'Pensamiento lógico · ciencia y sociedad'},
+  {t:'El niño que domó el viento',a:2019,d:'Chiwetel Ejiofor',c:'#ff7a45',tema:'Energía',
+   r:'Historia real de William Kamkwamba, un adolescente de Malawi que, con libros de biblioteca y chatarra, construye un aerogenerador para salvar las cosechas de su pueblo durante una sequía.',
+   cl:'Energía eólica y electricidad'},
+  {t:'Radioactive',a:2019,d:'Marjane Satrapi',c:'#ff2b3d',tema:'Radiactividad',
+   r:'La vida de Marie Curie, la primera persona en ganar dos premios Nobel, y cómo su descubrimiento cambió la medicina y también trajo consecuencias que ella no imaginó.',
+   cl:'El átomo · ciencias de la salud'}
+];
+function pintarClasicas(){
+  var el=document.getElementById('clasicas'); if(!el) return;
+  el.innerHTML='<h3 id="cl-t">🔬 Clásicas de ciencia <small>recomienda el profe · desliza para ver más</small>'+
+    '<span class="cl-flechas"><button type="button" data-d="-1" aria-label="Anteriores">‹</button><button type="button" data-d="1" aria-label="Siguientes">›</button></span></h3>'+
+    '<div class="cl-fila" role="list">'+CLASICAS.map(function(x){
+      return '<article class="cl" role="listitem" style="--nc:'+x.c+'"><h4>'+esc(x.t)+'</h4>'+
+        '<div class="meta">'+x.a+' · '+esc(x.d)+'</div><span class="tema">'+esc(x.tema)+'</span>'+
+        '<p>'+esc(x.r)+'</p><div class="clase">Para la clase: <b>'+esc(x.cl)+'</b></div></article>';
+    }).join('')+'</div>';
+  var fila=el.querySelector('.cl-fila');
+  el.querySelectorAll('.cl-flechas button').forEach(function(b){
+    b.addEventListener('click',function(){fila.scrollBy({left:+b.dataset.d*fila.clientWidth*.9,behavior:'smooth'})});
+  });
+}
 
 /* ═════════ utilidades ═════════ */
 function $(id){return document.getElementById(id)}
@@ -615,7 +689,7 @@ document.addEventListener('input',function(ev){
   if(p){cursoAct=p.curso;abiertos[p.id]=true;vista='curso'}
   else if(h==='curso')vista='curso';
   else if(h.indexOf('r-')===0){vista='foro';temaAct=h.slice(2)}})();
-pintaTabs();pintaLista();pintaYo();pintaRecos();pintaDetalle();
+pintarClasicas();pintaTabs();pintaLista();pintaYo();pintaRecos();pintaDetalle();
 if(window.DF){
   dfListo().then(function(){
     DFok=true;
@@ -635,6 +709,6 @@ if(window.DF){
 }
 })();
 </script>
-<script src="adornos/adornos.js?v=20261110" defer></script>
+<script src="adornos/adornos.js?v=20261126" defer></script>
 </body>
 </html>
