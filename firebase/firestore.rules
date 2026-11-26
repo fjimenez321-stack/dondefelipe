@@ -290,7 +290,9 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['uid', 'nombre', 'curso', 'titulo', 'porque', 'foto', 'fecha'])
         // foto opcional: imagen comprimida en el navegador (data URL de menos de 300 KB)
         && (!('foto' in request.resource.data) || (request.resource.data.foto is string
-            && request.resource.data.foto.size() < 300000 && request.resource.data.foto[0:11] == 'data:image/'))
+            && request.resource.data.foto.size() < 300000
+            // solo base64 limpio: impide colar HTML o código en la foto
+            && request.resource.data.foto.matches('^data:image/(webp|jpeg|png);base64,[A-Za-z0-9+/]+=*$')))
         && request.resource.data.uid == request.auth.uid
         && texto(request.resource.data.nombre, 80) && texto(request.resource.data.curso, 40)
         && texto(request.resource.data.titulo, 80) && request.resource.data.titulo.size() >= 1
