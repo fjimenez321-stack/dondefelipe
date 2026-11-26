@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<!-- Mapu v8: mar, estero y navegación -->
+<!-- Mapu v9: inicio más sólido (pruebas de los ngen, guía, temporal justo, HUD progresivo) -->
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -180,13 +180,25 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #sites{font-size:14px;color:var(--ink);text-shadow:0 1px 3px rgba(0,0,0,.8);line-height:1.35}
 #sites .w{color:#e9c98a}
 #cdx h3{margin:18px 0 0;font:700 20px 'Alegreya',Georgia,serif;color:var(--ink)}
+/* v9: HUD sin solapes, avisos lejos del HUD, elecciones en el diálogo, guía y pruebas */
+#hud{max-width:calc(100vw - 140px - env(safe-area-inset-right,0px))}
+#toast{top:auto;bottom:calc(234px + env(safe-area-inset-bottom,0px))}
+#mb{top:calc(30vh + env(safe-area-inset-top,0px))}
+#zone{top:calc(20vh + env(safe-area-inset-top,0px))}
+#counts,#resRow,#lof,#sites{display:none}
+#guide{font-size:14px;color:#cfe9ff;text-shadow:0 1px 3px rgba(0,0,0,.85);max-width:240px;line-height:1.3;display:none}
+#trial{display:none;align-self:flex-start;font:700 14px 'Alegreya',Georgia,serif;padding:4px 10px;border:1px solid #bdf0e1;color:#bdf0e1;background:var(--panel);border-radius:3px}
+#dlg .chs{display:none;flex-direction:column;gap:8px;margin:6px 0 4px}
+#dlg .chs button{font:700 17px/1.3 'Alegreya',Georgia,serif;color:var(--ink);background:#2a2118;border:1px solid rgba(233,201,138,.6);border-radius:4px;padding:10px 12px;text-align:left;cursor:pointer}
+#dlg .chs button:active{background:#3a2e20}
+#dlg.ask .more{display:none}
 #cdx dd em{display:block;margin-top:4px;color:#9fd3e0;font-style:normal}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 
-<div id="hud"><div id="pips"></div><div id="xp"><div class="row"><span id="xpLv"></span><span id="xpTxt"></span></div><div class="bar"><i id="xpFill"></i></div></div><div id="lof"><div class="row"><span id="lofName"></span><span id="lofVal"></span></div><div class="bar"><i id="lofFill"></i></div><small id="lofRate"></small></div><div id="nw"><span>Newen</span><div class="bar"><i id="nwFill"></i></div></div><div id="counts"></div><div id="resRow"></div><div id="sites"></div><div id="trk"></div><div id="evt"></div></div>
+<div id="hud"><div id="pips"></div><div id="xp"><div class="row"><span id="xpLv"></span><span id="xpTxt"></span></div><div class="bar"><i id="xpFill"></i></div></div><div id="lof"><div class="row"><span id="lofName"></span><span id="lofVal"></span></div><div class="bar"><i id="lofFill"></i></div><small id="lofRate"></small></div><div id="nw"><span>Newen</span><div class="bar"><i id="nwFill"></i></div></div><div id="counts"></div><div id="resRow"></div><div id="sites"></div><div id="trk"></div><div id="guide"></div><div id="trial"></div><div id="evt"></div></div>
 <button id="kimunBtn">Kimün</button>
 <div id="toast"></div>
 <div id="mb"></div>
@@ -201,7 +213,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 <p style="font-size:13px">Tu avance se guarda en tu cuenta de Google solo para ti. El juego sigue funcionando sin conexión y sin sesión.</p></div></div>
 <div id="mis"><div class="box"><h2>Misiones</h2><p>Toca para cerrar.</p><div id="misList"></div></div></div>
 
-<div id="dlg"><div class="who"></div><div class="txt"></div><div class="more">toca para seguir ▸</div></div>
+<div id="dlg"><div class="who"></div><div class="txt"></div><div class="chs"></div><div class="more">toca para seguir ▸</div></div>
 <button id="act" class="btn">Saludar</button>
 <button id="run" class="btn">Correr</button>
 <button id="build" class="btn">Construir ruka · 5 min</button>
@@ -324,9 +336,10 @@ const SEGS=[[VIL.x,VIL.y+1,35.5,60],[VIL.x,VIL.y-1,26,22],[VIL.x,VIL.y-1,62,28],
 
 /* ---------- estado guardado ---------- */
 const KEY='mapu-nawel-v1',FOGKEY='mapu-fog-v1';
-let saved={greeted:{},intro:0,ended:0,words:[],wood:0,straw:0,built:[],tip:0,tip2:0,saberes:[],xp:0,done:[],st:{help:0,shelter:0,zones:[]},pin:0,warm:0,rel:[],t0v:0,food:6,pe:0,ts:0,lafken:0,nav:0,kol:0,tren:0,boatdone:0,boat:null}, got=new Set(), startPos=null;
+let saved={greeted:{},intro:0,ended:0,words:[],wood:0,straw:0,built:[],tip:0,tip2:0,saberes:[],xp:0,done:[],st:{help:0,shelter:0,zones:[],storms:0,gw:0,pass:{},tr:{}},pin:0,warm:0,rel:[],t0v:0,food:6,pe:0,ts:0,lafken:0,nav:0,kol:0,tren:0,boatdone:0,boat:null}, got=new Set(), startPos=null;
 try{const j=JSON.parse(localStorage.getItem(KEY)||'null');
-  if(j){saved={greeted:j.g||{},intro:j.i||0,ended:j.e||0,words:j.w||[],wood:j.wd||0,straw:j.st||0,built:j.b||[],tip:j.t||0,tip2:j.t2||0,saberes:j.sb||[],xp:j.xp||0,done:j.dn||[],st:Object.assign({help:0,shelter:0,zones:[]},j.stt||{}),pin:j.pn||0,warm:j.wm||0,rel:j.rl||[],t0v:j.tv||0,food:j.fd==null?6:j.fd,pe:j.pw||0,ts:j.ts||0,lafken:j.lf||0,nav:j.nv||0,kol:j.kl||0,tren:j.tt||0,boatdone:j.bd||0,boat:j.bt||null};got=new Set(j.c||[]);if(j.x)startPos={x:j.x,y:j.y}}}catch(e){}
+  if(j){saved={greeted:j.g||{},intro:j.i||0,ended:j.e||0,words:j.w||[],wood:j.wd||0,straw:j.st||0,built:j.b||[],tip:j.t||0,tip2:j.t2||0,saberes:j.sb||[],xp:j.xp||0,done:j.dn||[],st:Object.assign({help:0,shelter:0,zones:[],storms:0,gw:0,pass:{},tr:{}},j.stt||{}),pin:j.pn||0,warm:j.wm||0,rel:j.rl||[],t0v:j.tv||0,food:j.fd==null?6:j.fd,pe:j.pw||0,ts:j.ts||0,lafken:j.lf||0,nav:j.nv||0,kol:j.kl||0,tren:j.tt||0,boatdone:j.bd||0,boat:j.bt||null};got=new Set(j.c||[]);if(j.x)startPos={x:j.x,y:j.y};
+    if(j.i&&!(j.stt&&j.stt.storms!=null))saved.st.storms=1}}catch(e){} // partidas anteriores a v9 ya conocen los temporales
 const COST=10,BUILD_MS=5*60*1000,MAX_SITES=2;
 const rukas=[{x:RUKA.x,y:RUKA.y,t0:saved.t0v||Date.now()}];(saved.built||[]).forEach(b=>rukas.push({x:b[0],y:b[1],end:b[2]||0,t0:b[3]||Date.now(),dur:b[4]||BUILD_MS}));
 const count=()=>Object.keys(saved.greeted).length;
@@ -761,22 +774,36 @@ $('cdx').addEventListener('click',()=>{$('cdx').style.display='none'});
 function payload(){return {g:saved.greeted,i:saved.intro,e:saved.ended,w:saved.words,c:[...got],x:player.x,y:player.y,wd:saved.wood,st:saved.straw,b:rukas.slice(1).map(r=>[+r.x.toFixed(2),+r.y.toFixed(2),r.end||0,r.t0||0,r.dur||0]),t:saved.tip,t2:saved.tip2,sb:saved.saberes,xp:saved.xp,dn:saved.done,stt:saved.st,pn:saved.pin,wm:saved.warm,rl:saved.rel,tv:rukas[0].t0,fd:saved.food,pw:saved.pe,ts:Date.now(),lf:saved.lafken,nv:saved.nav,kl:saved.kol,tt:saved.tren,bd:saved.boatdone,bt:boats[0]?[+boats[0].x.toFixed(2),+boats[0].y.toFixed(2),+boats[0].hd.toFixed(2)]:null}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(payload()))}catch(e){}cloud.dirty=true}
 
+const chsEl=dlgEl.querySelector('.chs');
 function openDialog(who,lines,onEnd,hex){
   dlg={who,lines,i:0,ch:0,onEnd,shown:-1};
   dlgEl.style.setProperty('--c',hex||'#e9c98a');dlgEl.querySelector('.who').textContent=who;dlgEl.style.display='block';
+  chsEl.style.display='none';chsEl.innerHTML='';dlgEl.classList.remove('ask');
   actEl.style.display='none';runEl.style.display='none';hideJoy();joy=null;
+}
+/* pregunta con alternativas: no castiga, solo invita a escuchar otra vez */
+function openQuiz(who,hex,q,opts,ok,onRight,onWrong){
+  openDialog(who,[q],null,hex);dlg.quiz={opts,ok,onRight,onWrong,shown:false};dlgEl.classList.add('ask');
+}
+function pickQuiz(i){
+  if(!dlg||!dlg.quiz||!dlg.quiz.shown||i<0||i>=dlg.quiz.opts.length)return;const z=dlg.quiz;
+  dlg=null;dlgEl.style.display='none';chsEl.style.display='none';dlgEl.classList.remove('ask');
+  if(i===z.ok)z.onRight();else z.onWrong();
 }
 function advance(){
   if(!dlg||dlg.inRuka)return;const L=dlg.lines[dlg.i];
   if(dlg.ch<L.length){dlg.ch=L.length;return}
+  if(dlg.quiz)return;
   dlg.i++;
   if(dlg.i>=dlg.lines.length){const f=dlg.onEnd;dlg=null;dlgEl.style.display='none';if(f)f()}else{dlg.ch=0;dlg.shown=-1}
 }
 function updDlg(dt){
-  if(!dlg)return;const L=dlg.lines[dlg.i];dlg.ch=Math.min(L.length,dlg.ch+dt*48);
+  if(!dlg||dlg.inRuka)return;const L=dlg.lines[dlg.i];dlg.ch=Math.min(L.length,dlg.ch+dt*48);
   const n=Math.floor(dlg.ch);if(n!==dlg.shown){dlg.shown=n;dlgEl.querySelector('.txt').textContent=L.slice(0,n)}
+  if(dlg.quiz&&!dlg.quiz.shown&&dlg.ch>=L.length){dlg.quiz.shown=true;
+    chsEl.innerHTML=dlg.quiz.opts.map((o,i)=>`<button data-i="${i}">${coarse?'':(i+1)+'. '}${o}</button>`).join('');chsEl.style.display='flex'}
 }
-dlgEl.addEventListener('click',advance);
+dlgEl.addEventListener('click',e=>{const b=e.target.closest('.chs button');if(b){e.stopPropagation();pickQuiz(+b.dataset.i);return}advance()});
 
 const listJoin=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' y '+a[a.length-1];
 function talkKuku(){
@@ -790,7 +817,7 @@ function talkKuku(){
       'Si el cielo se enoja y llega un temporal, ven al fuego o a una ruka: el techo de paja nos protege. Junta ramas caídas y paja, y levantaremos más rukas entre todos.',
       'Y recoge solo lo que necesites. Anda, que la tarde es larga.'],
       ()=>{saved.intro=1;saved.tip=1;learn(['mari mari','mapu','che','pichi che','kuku','kütral']);persist();
-        setTimeout(()=>toast('Los puntos de luz en el borde te muestran dónde están los ngen. Mira tus Misiones arriba a la derecha.'),4600)},'#e9c98a');return;
+        setTimeout(()=>toast('Sigue la flecha a los pies de Nawel: te lleva al próximo ngen. Las luces en el borde de la pantalla también los señalan.'),4600)},'#e9c98a');return;
   }
   if(!saved.tip){
     openDialog('Kuku · abuela',[
@@ -817,9 +844,113 @@ function talkKuku(){
   const miss=SPS.filter(s=>!saved.greeted[s.id]).map(s=>s.short);
   openDialog('Kuku · abuela',['Veo que el color vuelve poco a poco. Aún te esperan '+listJoin(miss)+'.','Camina con calma y saluda con respeto: mari mari.'],null,'#e9c98a');
 }
+/* ---------- pruebas de los ngen: cada uno pide algo antes de entregar su newen ---------- */
+const TRIALS={
+ ko:{type:'quiz',q:'Antes de entregarte mi newen, dime, pichi che: ¿por qué se apagó el mapu?',
+   opts:['Porque alguien se llevó toda el agua','Porque se toma sin saludar ni agradecer, y el agua se retira triste','Porque dejó de llover en todo el mapu'],ok:1,
+   right:'Así es. Saludar y agradecer también es cuidar.',wrong:'Escucha otra vez: el agua no se enoja. Se entristece cuando toman de ella sin saludar.'},
+ kuruf:{type:'wisps',n:5,time:50,
+   ask:'Pero primero, ¡juguemos! Solté cinco remolinos de viento por la colina. Atrápalos antes de que me canse de soplar.',
+   fail:'Uf, me cansé de soplar. Háblame otra vez y volvemos a jugar.',done:'¡Me atrapaste los cinco! Ya sabes cómo me muevo.'},
+ pillan:{type:'quiz',q:'Te pregunto algo antes, pichi che: ¿qué hacían los antiguos antes de subir a la montaña?',
+   opts:['Subían de noche para no molestar','Me hablaban y pedían permiso','Llevaban fuego para calentar la nieve'],ok:1,
+   right:'Bien escuchado. Lo alto se sube con respeto.',wrong:'Escucha otra vez: los antiguos me hablaban antes de subir, porque lo alto pertenece también al wenu.'},
+ mawida:{type:'gather',n:3,
+   ask:'Antes de darte mi mirada, muéstrame que sabes recoger. Junta tres ramas caídas aquí en el bosque, sin cortar ningún árbol vivo, y vuelve a mí.',
+   wait:'Todavía te faltan ramas. Mira bajo los árboles: las ramas caídas brillan un poco.',done:'Tres ramas caídas, y ningún árbol herido. Así se recoge en el mawida.'}
+};
+let wisps=[],wispT=0,wispFor=null;
+const trialOn=id=>saved.st.tr[id]!=null||(id==='kuruf'&&wispFor==='kuruf');
+function gatherLeft(){const b=saved.st.tr.mawida;return b==null?0:Math.max(0,TRIALS.mawida.n-(saved.st.gw-b))}
+function startWisps(s){
+  wisps=[];wispFor=s.id;wispT=TRIALS.kuruf.time;
+  for(let n=0;n<200&&wisps.length<TRIALS.kuruf.n;n++){const a=Math.random()*6.28,d=3+Math.random()*5.5,x=s.x+Math.cos(a)*d,y=s.y+Math.sin(a)*d*.8;
+    if(!hit(x,y)&&elevAt(x,y)>.32&&elevAt(x,y)<.85&&wisps.every(w=>Math.hypot(w.x-x,w.y-y)>2.2))wisps.push({x,y,cx:x,cy:y,ph:Math.random()*6,r:.6+Math.random()*.9})}
+  renderTrial();
+}
+function updWisps(dt){
+  if(!wispFor)return;
+  if(!dlg)wispT-=dt;
+  for(let i=wisps.length-1;i>=0;i--){const w=wisps[i];w.ph+=dt*1.6;
+    w.x=w.cx+Math.cos(w.ph)*w.r;w.y=w.cy+Math.sin(w.ph*1.3)*w.r*.6;
+    const d=Math.hypot(w.x-player.x,w.y-player.y);
+    if(d<2.2&&d>.01&&!dlg){const nx=w.cx+(w.cx-player.x)/d*dt*.9,ny=w.cy+(w.cy-player.y)/d*dt*.9;if(!solidAt(nx,ny)&&elevAt(nx,ny)>.32){w.cx=nx;w.cy=ny}}
+    if(Math.random()<dt*14)emit({k:'streak',x:w.x+(Math.random()-.5)*.5,y:w.y-.3+(Math.random()-.5)*.4,vx:Math.cos(w.ph*2)*3,vy:Math.sin(w.ph*2)*1.5,l:.5,m:.5,c:'rgba(210,255,240,.8)'});
+    if(d<.85){wisps.splice(i,1);
+      for(let q=0;q<16;q++){const a=Math.random()*6.28,v=1+Math.random()*2;emit({k:'dot',x:w.x,y:w.y-.3,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.6-.4,l:.8,m:.8,s:.07,c:'#bdf0e1'})}
+      floats.push({x:w.x,y:w.y-.8,t:0,text:'kürüf '+(TRIALS.kuruf.n-wisps.length)+'/'+TRIALS.kuruf.n,col:'#bdf0e1'})}}
+  if(!wisps.length){wispFor=null;saved.st.pass.kuruf=1;persist();toast('¡Atrapaste los cinco remolinos! Vuelve con Ngen-Kürüf.')}
+  else if(wispT<=0){wisps=[];wispFor=null;toast(TRIALS.kuruf.fail)}
+  renderTrial();
+}
+function renderTrial(){
+  const el=$('trial');let t='';
+  if(wispFor)t='Remolinos de viento · '+(TRIALS.kuruf.n-wisps.length)+'/'+TRIALS.kuruf.n+' · '+Math.ceil(Math.max(0,wispT))+' s';
+  else if(saved.st.tr.mawida!=null&&!saved.greeted.mawida)t='Ramas caídas para Ngen-Mawida · '+(TRIALS.mawida.n-gatherLeft())+'/'+TRIALS.mawida.n;
+  el.textContent=t;el.style.display=t&&started?'block':'none';
+}
+/* ---------- guía: hacia dónde ir ahora (flecha en el suelo + texto bajo la misión) ---------- */
+let guide=null,guideT=0,guideTxt='';
+const near=(arr,f)=>{let b=null,bd=1e9;for(const o of arr){const p=f?f(o):o;if(!p)continue;const d=Math.hypot(p.x-player.x,p.y-player.y);if(d<bd){bd=d;b=p}}return b};
+function guideTarget(){
+  if(!started||player.boat)return null;
+  if(!saved.intro)return{x:KUKU.x,y:KUKU.y,t:'Habla con la kuku junto al fuego',col:[233,201,138]};
+  if(ev.type==='storm'&&ev.k>.08&&shelterV<1){
+    const p=near([{x:FIRE.x,y:FIRE.y+1.6,n:'al fuego de la aldea'}].concat(rukas.filter(r=>!r.end).map(r=>({x:r.x+1.25,y:r.y+.95,n:'a una ruka'}))));
+    return{x:p.x,y:p.y,t:'¡Refugio! Corre '+p.n,col:[255,150,90],urgent:1}}
+  if(wispFor&&wisps.length){const w=near(wisps);return{x:w.x,y:w.y,t:'Atrapa los remolinos de viento',col:[190,240,225]}}
+  const sp=id=>SPS.find(s=>s.id===id);
+  if(saved.st.tr.mawida!=null&&!saved.greeted.mawida){const m=sp('mawida');
+    if(gatherLeft()===0)return{x:m.x,y:m.y,t:'Vuelve con Ngen-Mawida',col:m.col};
+    const w=near(res.filter(r=>r.k==='w'&&Math.hypot(r.x-player.x,r.y-player.y)<16));
+    if(w)return{x:w.x,y:w.y,t:'Junta ramas caídas para Ngen-Mawida',col:[255,179,92]};
+    return{x:m.x,y:m.y,t:'Busca ramas caídas en el bosque de Ngen-Mawida',col:m.col}}
+  if(saved.st.pass.kuruf&&!saved.greeted.kuruf){const k=sp('kuruf');return{x:k.x,y:k.y,t:'Vuelve con Ngen-Kürüf',col:k.col}}
+  const ng=near(SPS.filter(s=>!saved.greeted[s.id]));
+  if(ng)return{x:ng.x,y:ng.y,t:'Saluda a '+ng.title.split(' · ')[0]+' ('+ng.short+')',col:ng.col};
+  if(!saved.ended)return{x:KUKU.x,y:KUKU.y,t:'Vuelve con la kuku',col:[233,201,138]};
+  const st=near(sacred.filter(t=>!saved.saberes.includes(t.id)&&(!t.gate||saved.greeted[t.gate])),t=>({x:t.x,y:t.y+.4,t:'Escucha a '+t.name,col:t.col}));
+  return st||null;
+}
+function updGuide(dt){
+  guideT+=dt;if(guideT<.25)return;guideT=0;
+  guide=guideTarget();
+  const el=$('guide');let t='';
+  if(guide&&!dlg){const d=Math.hypot(guide.x-player.x,guide.y-player.y);t='➜ '+guide.t+(d>3?' · '+Math.round(d)+' m':'')}
+  if(t!==guideTxt){guideTxt=t;el.textContent=t;el.style.display=t?'block':'none';el.style.color=guide&&guide.urgent?'#ffb08a':'#cfe9ff'}
+}
+function drawGuide(c){
+  if(!guide||dlg)return;const dx=guide.x-player.x,dy=guide.y-player.y,d=Math.hypot(dx,dy);if(d<3)return;
+  const a=Math.atan2(dy,dx),pu=.55+.35*Math.sin(T*(guide.urgent?8:4)),off=.15*Math.sin(T*3);
+  c.save();c.translate(player.x,player.y+.05);c.scale(1,.62);c.rotate(a);
+  c.fillStyle=rgb(guide.col,.85*pu);c.strokeStyle='rgba(0,0,0,.55)';c.lineWidth=.04;
+  c.beginPath();c.moveTo(1.55+off,0);c.lineTo(1.05+off,-.32);c.lineTo(1.18+off,0);c.lineTo(1.05+off,.32);c.closePath();c.fill();c.stroke();
+  c.restore();
+}
+function drawWisps(c){
+  for(const w of wisps){const r=.32+.06*Math.sin(T*6+w.ph);
+    glow(c,w.x,w.y-.3,1.1,[190,240,225],.55);
+    c.strokeStyle='rgba(235,255,250,.9)';c.lineWidth=.05;
+    for(let i=0;i<3;i++){c.beginPath();c.arc(w.x,w.y-.3,r*(1-i*.28),T*5+i*2+w.ph,T*5+i*2+w.ph+3.6);c.stroke()}}
+}
+function trialPassed(s){return !!saved.st.pass[s.id]||(s.id==='mawida'&&saved.st.tr.mawida!=null&&gatherLeft()===0)}
 function talkSpirit(s){
   if(saved.greeted[s.id]){openDialog(s.title,s.after,null,s.hex);return}
-  openDialog(s.title,s.lines,()=>{
+  const tr=TRIALS[s.id],intro=s.lines.slice(0,-1);
+  if(trialPassed(s)){const pre=tr.done?[tr.done]:[];greetSpirit(s,pre);return}
+  if(tr.type==='quiz'){
+    const ask=()=>openQuiz(s.title,s.hex,tr.q,tr.opts,tr.ok,()=>{saved.st.pass[s.id]=1;greetSpirit(s,[tr.right])},
+      ()=>openDialog(s.title,[tr.wrong],ask,s.hex));
+    if(saved.st.tr[s.id])ask();else openDialog(s.title,intro,()=>{saved.st.tr[s.id]=1;ask()},s.hex);return}
+  if(tr.type==='wisps'){
+    if(wispFor){openDialog(s.title,['¡Corre! Todavía andan remolinos sueltos por la colina.'],null,s.hex);return}
+    openDialog(s.title,saved.st.tr.kuruf?[tr.ask]:intro.concat(tr.ask),()=>{saved.st.tr.kuruf=1;startWisps(s)},s.hex);return}
+  if(tr.type==='gather'){
+    if(saved.st.tr.mawida!=null){openDialog(s.title,[tr.wait+' ('+(tr.n-gatherLeft())+'/'+tr.n+')'],null,s.hex);return}
+    openDialog(s.title,intro.concat(tr.ask),()=>{saved.st.tr.mawida=saved.st.gw;spawnNear('w',5,s.x,s.y);renderTrial();persist()},s.hex);return}
+}
+function greetSpirit(s,pre){
+  openDialog(s.title,pre.concat(s.lines.slice(-1)),()=>{
     saved.greeted[s.id]=1;renderPips();learn(s.learn);addXP(40,s.x,s.y-.6);
     setTimeout(()=>toast(s.gift),300);
     for(let i=0;i<40;i++){const a=Math.random()*6.28,v=1+Math.random()*2.4;
@@ -845,7 +976,7 @@ function talkTree(t){
 function interactables(){
   if(player.boat)return[{id:'disb',x:player.x,y:player.y,r:99,label:'Desembarcar',dis:true}];
   return[{id:'kuku',x:KUKU.x,y:KUKU.y,r:2.2,label:'Hablar'},
-  ...SPS.map(s=>({id:s.id,x:s.x,y:s.y,r:2.2,label:saved.greeted[s.id]?'Escuchar':'Saludar',sp:s})),
+  ...SPS.map(s=>({id:s.id,x:s.x,y:s.y,r:2.2,label:saved.greeted[s.id]?'Escuchar':trialOn(s.id)?'Hablar':'Saludar',sp:s})),
   ...sacred.map(t=>({id:'t:'+t.id,x:t.x,y:t.y+.4,r:2.6,label:saved.saberes.includes(t.id)?'Escuchar':'Saludar árbol',tr:t})),
   ...rukas.filter(r=>!r.end).map((r,i)=>({id:'ru'+i,x:r.x+1.25,y:r.y+.95,r:1.9,label:'Entrar',ru:r})),
   ...boats.map(b=>({id:'bt:'+b.id,x:b.x,y:b.y,r:2.4,label:'Embarcar',bt:b})),
@@ -874,6 +1005,7 @@ addEventListener('keydown',e=>{
   if(e.target&&e.target.tagName==='TEXTAREA')return;
   if(e.repeat&&(e.key==='e'||e.key==='E'||e.key===' '||e.key==='Enter'))return;
   const k=e.key.toLowerCase();keys[k]=true;
+  if(started&&dlg&&dlg.quiz&&/^[1-9]$/.test(k)){pickQuiz(+k-1);return}
   if(started&&(k==='e'||k===' '||k==='enter')){e.preventDefault();interact()}
   if(started&&!dlg&&k==='b')tryBuild();
   if(k==='escape'&&dlg&&dlg.inRuka)closeRuka();
@@ -954,7 +1086,7 @@ function update(dt){
   // madera y paja
   for(let i=res.length-1;i>=0;i--){const r=res[i];
     if(Math.abs(r.x-p.x)<.7&&Math.abs(r.y-p.y)<.7&&Math.hypot(r.x-p.x,r.y-p.y)<.55){
-      res.splice(i,1);const q2=gifts.mawida?2:1;if(r.k==='w')saved.wood+=q2;else if(r.k==='k'){saved.food+=2*q2;saved.kol=(saved.kol||0)+1}else saved.straw+=q2;firstRes(r.k);renderCounts();persist();
+      res.splice(i,1);const q2=gifts.mawida?2:1;if(r.k==='w'){saved.wood+=q2;saved.st.gw=(saved.st.gw||0)+1;if(saved.st.tr.mawida!=null&&!saved.greeted.mawida){renderTrial();if(gatherLeft()===0)toast('Ya tienes las tres ramas. Vuelve con Ngen-Mawida.')}}else if(r.k==='k'){saved.food+=2*q2;saved.kol=(saved.kol||0)+1}else saved.straw+=q2;firstRes(r.k);renderCounts();persist();
       floats.push({x:r.x,y:r.y-.6,t:0,text:'+'+(r.k==='k'?2*q2:q2)+(r.k==='w'?' madera':r.k==='k'?' alimento':' paja'),col:r.k==='w'?'#ffb35c':r.k==='k'?'#9fd36a':'#f2d089'});
       for(let q=0;q<8;q++){const a=Math.random()*6.28,v=.6+Math.random()*1.1;emit({k:'dot',x:r.x,y:r.y-.15,vx:Math.cos(a)*v,vy:Math.sin(a)*v-.6,g:2,l:.6,m:.6,s:.06,c:r.k==='w'?'#b58a58':'#e6c46e'})}
     }}
@@ -987,7 +1119,7 @@ function update(dt){
   if(Math.abs(satCur-lastSatSet)>.004){lastSatSet=satCur;cv.style.filter=`saturate(${satCur.toFixed(3)}) brightness(${(.9+.1*Math.min(1,satCur)).toFixed(3)})`}
 
   updMusic(dt);updEvents(dt);updNewen(dt);updRes(dt);updZone(dt);updBuild();updSites(dt);updRukas(dt);updEcon(dt);updWaterHints(dt);updProg(dt);
-  updDlg(dt);updAct();
+  updWisps(dt);updGuide(dt);updDlg(dt);updAct();
   const showRun=started&&!dlg&&giftRun()&&coarse;runEl.style.display=showRun?'block':'none';
 }
 
@@ -1212,6 +1344,7 @@ function draw(){
 
   for(const d of docks)drawDock(c,d);
   for(const s of SPS)drawGroundRings(c,s);
+  drawGuide(c);
   for(const t of sacred){if(t.x<x0-3||t.x>x1+3||t.y<y0-3||t.y>y1+3)continue;const hd=saved.saberes.includes(t.id);
     for(let i=0;i<2;i++){const u=(T*.4+i/2+t.x*.1)%1,rr=.6+u*1.5*t.tr.s;c.strokeStyle=rgb(t.col,(1-u)*(hd?.22:.4));c.lineWidth=.05;
       c.beginPath();c.ellipse(t.x,t.y+.1,rr,rr*.5,0,0,7);c.stroke()}}
@@ -1265,7 +1398,7 @@ function draw(){
       case 9:drawIslet(c);break;
     }
   }
-  drawParts(c);
+  drawParts(c);drawWisps(c);
 
   // luz del día
   c.setTransform(1,0,0,1,0,0);
@@ -1331,7 +1464,7 @@ function draw(){
 }
 
 /* ---------- eventos del mapu: temporal, ventarrón, niebla ---------- */
-const ev={type:null,t:0,dur:0,k:0,next:70,flash:0,nf:4};
+const ev={type:null,t:0,dur:0,k:0,next:saved.st.storms?70:95,flash:0,nf:4};
 const sev=()=>Math.max(.2,1.2-.25*count());
 const evtEl=$('evt'),nwFill=$('nwFill');
 let newen=1,shelterV=0,nwShown=-1,resT=0,ghost=null,bigOpen=false;
@@ -1339,28 +1472,29 @@ const seenRes={};
 function firstRes(k){if(seenRes[k])return;seenRes[k]=1;
   if(k==='k'){toast('Kollof (cochayuyo): alga comestible del mar. Los pueblos de la costa la recolectan y la secan, tomando solo lo necesario.');setTimeout(()=>learn(['kollof']),4700);return}
   toast(k==='w'?'Madera caída: sirve para levantar rukas. Nunca cortes árboles vivos.':'Paja de coirón y totora: es el techo de la ruka.')}
-function spawnNear(kind,n){let c=0;
-  for(let i=0;i<60&&c<n;i++){const a=Math.random()*6.28,d=3+Math.random()*7,x=player.x+Math.cos(a)*d,y=player.y+Math.sin(a)*d*.8;
+function spawnNear(kind,n,cx,cy){let c=0;if(cx==null){cx=player.x;cy=player.y}
+  for(let i=0;i<90&&c<n;i++){const a=Math.random()*6.28,d=3+Math.random()*7,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d*.8;
     if(kind==='w'){if(spotOk(x,y,.42,.75)){res.push({k:'w',x,y,rot:Math.random()*3,ph:Math.random()*6});c++}}
     else if(spotOk(x,y,.5,.70)){res.push({k:'s',reed:false,x,y,ph:Math.random()*6});c++}}}
 function startEvent(){
   const r=Math.random();ev.t=0;ev.k=0;ev.nf=4;
-  if(r<.5){ev.type='storm';ev.dur=38+Math.random()*14;toast('Se acerca un temporal. Busca una ruka o el fuego antes de que llegue.');setTimeout(()=>learn(['mawün']),5200)}
+  const first=!saved.st.storms;
+  if(r<.5||first){ev.type='storm';ev.dur=first?34:38+Math.random()*14;toast(first?'El cielo se oscurece: se acerca tu primer temporal. Sigue la flecha hasta el fuego o una ruka. Bajo un grupo de árboles te mojas menos.':'Se acerca un temporal. Busca una ruka o el fuego antes de que llegue.');setTimeout(()=>learn(['mawün']),5200)}
   else if(r<.8){ev.type='wind';ev.dur=24;toast('Un ventarrón levanta polvo y hojas. Pasa pronto.')}
   else{ev.type='fog';ev.dur=42;toast('Baja la niebla sobre el mapu. Sigue los senderos y mira el mapa.')}
 }
 function endEvent(){
   const t=ev.type;ev.type=null;ev.k=0;ev.next=70+Math.random()*80;evtEl.style.display='none';
-  if(t==='storm'){toast('El temporal pasa. Quedaron ramas caídas por el bosque.');spawnNear('w',8)}
+  if(t==='storm'){saved.st.storms=(saved.st.storms||0)+1;toast('El temporal pasa. Quedaron ramas caídas por el bosque.');spawnNear('w',8);persist()}
   else if(t==='wind'){toast('El ventarrón dejó fardos de paja cerca.');spawnNear('s',5)}
 }
 function updEvents(dt){
   ev.flash=Math.max(0,ev.flash-dt*2.2);
   if(!ev.type){if(started&&saved.intro&&!dlg){ev.next-=dt;if(ev.next<=0)startEvent()}return}
-  ev.t+=dt;ev.k=sm(0,1,Math.min(ev.t/8,(ev.dur-ev.t)/6,1));
+  ev.t+=dt;ev.k=sm(0,1,Math.min(ev.t/(ev.type==='storm'?12:8),(ev.dur-ev.t)/6,1));
   if(ev.type==='storm'&&ev.k>.5){ev.nf-=dt;if(ev.nf<=0){ev.flash=1;ev.nf=3+Math.random()*6}}
   if(ev.t>=ev.dur){endEvent();return}
-  const lab=ev.type==='storm'?(shelterV>=1?'Temporal · estás a resguardo':'Temporal · busca refugio'):ev.type==='wind'?'Ventarrón':'Niebla';
+  const lab=ev.type==='storm'?(shelterV>=1?'Temporal · estás a resguardo':shelterV>0?'Temporal · bajo los árboles (medio resguardo)':'Temporal · busca refugio'):ev.type==='wind'?'Ventarrón':'Niebla';
   if(ev.k>.15){if(evtEl.textContent!==lab)evtEl.textContent=lab;evtEl.style.display='block'}else evtEl.style.display='none';
 }
 function shelterAt(x,y){
@@ -1372,7 +1506,7 @@ function shelterAt(x,y){
 }
 function faint(){
   if(player.boat){player.boat.aboard=false;player.boat=null}
-  newen=.5;const lw=Math.floor(saved.wood/2),ls=Math.floor(saved.straw/2);saved.wood-=lw;saved.straw-=ls;
+  newen=.5;const lw=Math.floor(saved.wood/3),ls=Math.floor(saved.straw/3);saved.wood-=lw;saved.straw-=ls;
   player.x=49.4;player.y=52.6;cam.x=player.x;cam.y=player.y;renderCounts();persist();
   openDialog('Kuku · abuela',['¡Nawel! Te traje de vuelta junto al fuego. El temporal fue fuerte.',
     lw+ls>0?`Se te cayeron ${lw} de madera y ${ls} de paja en el camino. Descansa, y la próxima vez busca refugio antes.`:'Descansa un momento. La próxima vez busca refugio antes de que llegue.'],null,'#e9c98a');
@@ -1385,6 +1519,7 @@ function updNewen(dt){
     if(shelterV>=1){newen=Math.min(1,newen+.03*dt);saved.st.shelter+=dt}
     else newen-=.03*sev()*(shelterV?.4:1)*(warm()?.4:1)*(rankInfo().r>=3?.75:1)*(player.boat?1.4:1)*sk*dt;
   }else newen=Math.min(1,newen+.12*dt);
+  if(sk>.25&&!saved.st.storms&&newen<.25)newen=.25; // el primer temporal enseña, no castiga
   if(newen<=0){faint();return}
   if(Math.abs(newen-nwShown)>.01){nwShown=newen;nwFill.style.width=(newen*100).toFixed(0)+'%';nwFill.style.background=newen<.3?'#e07a70':newen<.6?'#e9c98a':'#7fd6a0'}
 }
@@ -1554,7 +1689,7 @@ const ZONES5=['Aldea de Nawel','El lago de Ngen-Ko','La colina del viento','La f
 const doneRukas=()=>rukas.slice(1).filter(r=>!r.end).length;
 function collected(){let c=0,p=0;for(const it of items)if(got.has(it.id)){if(it.k==='c')c++;else p++}return{c,p}}
 const MISSIONS=[
- {id:'ngen',title:'Saluda a los cuatro ngen',desc:'Agua, viento, montaña y bosque esperan un mari mari.',xp:80,goal:()=>({cur:count(),max:4})},
+ {id:'ngen',title:'Saluda a los cuatro ngen',desc:'Agua, viento, montaña y bosque esperan un mari mari. Cada uno te pedirá algo antes de darte su newen.',xp:80,goal:()=>({cur:count(),max:4})},
  {id:'arboles',title:'Escucha a los árboles-ngen',desc:'Cinco árboles antiguos hablan por los espíritus. Busca su brillo.',xp:100,goal:()=>({cur:saved.saberes.length,max:SACRED.length})},
  {id:'ruka1',title:'Levanta tu primera ruka',desc:'Junta 10 de madera y 10 de paja, construye y espera a que termine la obra.',xp:60,goal:()=>({cur:Math.min(1,doneRukas()),max:1})},
  {id:'temporal',title:'Capea un temporal a resguardo',desc:'Pasa 15 segundos junto al fuego o en una ruka durante un temporal.',xp:60,goal:()=>({cur:Math.min(15,Math.floor(saved.st.shelter)),max:15,unit:'s'})},
@@ -1581,9 +1716,18 @@ function renderTracker(){
 function updProg(dt){
   for(let i=floats.length-1;i>=0;i--){floats[i].t+=dt;if(floats[i].t>1.8)floats.splice(i,1)}
   misT+=dt;if(misT<.5)return;misT=0;
+  hudVis();
   if(!started||!saved.intro)return;
   for(const m of activeMissions()){const g=m.goal();if(g.cur>=g.max)completeMission(m)}
   renderTracker();if(misOpen)renderMis();
+}
+/* HUD progresivo: cada indicador aparece cuando empieza a importar */
+function hudVis(){
+  const sh=(id,v,d)=>{const e=$(id);const want=v?(d||'block'):'none';if(e.style.display!==want)e.style.display=want};
+  sh('counts',got.size>0||saved.saberes.length>0);
+  sh('resRow',saved.wood+saved.straw+saved.pin>0||rukas.length>1,'flex');
+  sh('sites',rukas.length>1||warm());
+  renderTrial();
 }
 function renderMis(){
   if(!saved.intro){$('misList').innerHTML='<p>Habla con la kuku junto al fuego para comenzar.</p>';return}
@@ -1714,7 +1858,7 @@ function updEcon(dt){
   lofT+=dt;if(lofT>=.5){lofT=0;renderLof()}
 }
 function renderLof(){
-  const le=$('lof');if(saved.pe<1){le.style.display='none';return}
+  const le=$('lof');if(saved.pe<1||rukas.length<2){le.style.display='none';return}
   const k=rankInfo(),r=econRates();le.style.display='flex';
   $('lofName').textContent=k.name;$('lofVal').textContent=k.max==null?String(Math.floor(saved.pe)):Math.floor(k.cur)+'/'+k.max;
   $('lofFill').style.width=(k.max==null?100:k.cur/k.max*100)+'%';
