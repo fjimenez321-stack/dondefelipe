@@ -130,6 +130,7 @@ table.cmp th:first-child, table.cmp td:first-child{font-weight:700;background:va
 #bar{height:100%;background:linear-gradient(90deg,var(--green),var(--green-deep));width:0%;transition:width .35s}
 #navbar{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;pointer-events:auto}
 #dots{display:flex;gap:7px}
+@media(max-width:640px){#dots{display:none}#navbar{padding:10px 12px;gap:8px}}
 #dots span{width:8px;height:8px;border-radius:50%;background:var(--line);cursor:pointer;transition:.2s}
 #dots span.on{background:var(--green);width:22px;border-radius:5px}
 .navbtn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;

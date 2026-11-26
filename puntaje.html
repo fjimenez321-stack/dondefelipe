@@ -102,6 +102,7 @@
 
   .search-box input{
     flex:1;
+    min-width:0;
     border:none;
     background:transparent;
     padding: 12px 14px;
@@ -445,7 +446,8 @@ async function loadData(){
     document.getElementById('lastUpdated').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-CL');
     renderFullTable();
   } catch(err){
-    statusEl.textContent = 'No se pudo cargar el Sheet. Verifica que esté compartido como "Cualquier persona con el enlace" y que SHEET_ID / SHEET_NAME sean correctos.';
+    statusEl.textContent = 'No se pudieron cargar los saldos. Revisa tu conexión y toca «Actualizar».';
+    console.warn('puntaje.html: revisa que el Sheet esté compartido como «Cualquier persona con el enlace» y que SHEET_ID / SHEET_NAME sean correctos.');
     statusEl.classList.add('error');
     console.error(err);
   }
