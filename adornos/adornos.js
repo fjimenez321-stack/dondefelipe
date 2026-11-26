@@ -9,7 +9,8 @@
   function serie(nombre, n) { var l = []; for (var i = 1; i <= n; i++) l.push(nombre + String(i).padStart(2, '0')); return l; }
   var TEMPORADAS = [
     // mes: 1 = enero. Navidad: del 1 de noviembre al 6 de enero.
-    { carpeta: 'navidad', desde: [11, 1], hasta: [1, 6], adornos: [
+    // tema: 'navidad' suma el toque de diseño (gorro en el logo EMF, guirnalda bajo el menú y chispas doradas).
+    { carpeta: 'navidad', tema: 'navidad', desde: [11, 1], hasta: [1, 6], adornos: [
       's01', 's02', 's03', 's04', 's05', 's06',
       { cuadros: serie('arbol', 14), ms: 110 },                       // árbol que gira
       { cuadros: serie('gato', 12), ms: 150 },                        // gatito que da la vuelta
@@ -40,9 +41,75 @@
   function ocultos() { try { return sessionStorage.getItem(CLAVE) === '1'; } catch (e) { return false; } }
   function url(t, nombre) { return base + t.carpeta + '/' + nombre + '.webp'; }
 
+  /* Toque navideño del diseño Ciudad-Estado (solo CSS + un canvas liviano):
+     gorro sobre «EMF», guirnalda verde-amarillo-rojo bajo el menú y unas pocas chispas doradas cayendo.
+     Se apaga junto con los gatitos al tocarlos, y respeta «reducir movimiento». Devuelve una función para quitarlo. */
+  function ponerTema(t) {
+    if (t.tema !== 'navidad' || document.getElementById('tema-temporada-css')) return function () {};
+    var raiz = document.documentElement;
+    var gorro = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 34'%3E" +
+      "%3Cpath d='M6 26C10 12 20 4 32 6c-2 4-1 10 1 16Z' fill='%23e0222f'/%3E%3Cpath d='M20 9c4-2 8-3 12-3' stroke='%23ff5a66' stroke-width='2' fill='none' stroke-linecap='round'/%3E" +
+      "%3Ccircle cx='33' cy='7' r='4.5' fill='%23f2f0e9'/%3E%3Crect x='3' y='23' width='32' height='8' rx='4' fill='%23f2f0e9'/%3E%3C/svg%3E\")";
+    function foco(x, color) { return 'radial-gradient(circle at ' + x + 'px 8px,' + color + ' 0 3.2px,transparent 4.4px)'; }
+    var css = document.createElement('style');
+    css.id = 'tema-temporada-css';
+    css.textContent =
+      '.tema-navidad .nav-brand{position:relative}' +
+      '.tema-navidad .nav-brand::after{content:"";position:absolute;left:-11px;top:calc(50% - .45em - 13px);width:24px;height:20px;background:' + gorro + ' no-repeat center/contain;transform:rotate(-20deg);pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}' +
+      '.tema-navidad nav:has(.nav-brand)::before,.tema-navidad nav:has(.nav-brand)::after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:16px;pointer-events:none;background-size:84px 16px;background-repeat:repeat-x}' +
+      '.tema-navidad nav:has(.nav-brand)::before{background-image:' + foco(14, '#1fdd6c') + ',' + foco(70, '#ff2b3d') + ',linear-gradient(rgba(242,240,233,.18),rgba(242,240,233,.18));background-size:84px 16px,84px 16px,100% 1px;background-position:0 0,0 0,0 3px;filter:drop-shadow(0 0 4px rgba(255,43,61,.55));animation:tn-titila 2.6s ease-in-out infinite}' +
+      '.tema-navidad nav:has(.nav-brand)::after{background-image:' + foco(42, '#ffd60a') + ';filter:drop-shadow(0 0 5px rgba(255,214,10,.7));animation:tn-titila 2.6s ease-in-out -1.3s infinite}' +
+      '@keyframes tn-titila{0%,100%{opacity:1}50%{opacity:.35}}' +
+      '#tema-chispas{position:fixed;inset:0;width:100%;height:100%;z-index:39;pointer-events:none}' +
+      '@media (prefers-reduced-motion:reduce){.tema-navidad nav:has(.nav-brand)::before,.tema-navidad nav:has(.nav-brand)::after{animation:none}}' +
+      '@media print{.tema-navidad .nav-brand::after,.tema-navidad nav::before,.tema-navidad nav::after,#tema-chispas{display:none}}';
+    document.head.appendChild(css);
+    raiz.classList.add('tema-navidad');
+
+    var lienzo = null, vivo = true;
+    if (!quieto && window.requestAnimationFrame) {
+      lienzo = document.createElement('canvas');
+      lienzo.id = 'tema-chispas';
+      lienzo.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(lienzo);
+      var g = lienzo.getContext('2d'), dpr = Math.min(window.devicePixelRatio || 1, 2), W = 0, H = 0, motas = [];
+      var COLORES = ['255,214,10', '242,240,233', '233,185,73'];
+      function medir() { W = innerWidth; H = innerHeight; lienzo.width = W * dpr; lienzo.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+      function nueva(arriba) {
+        return { x: Math.random() * W, y: arriba ? -10 : Math.random() * H, r: .8 + Math.random() * 1.8, v: .25 + Math.random() * .45,
+          f: Math.random() * 6.28, c: COLORES[Math.floor(Math.random() * COLORES.length)], a: .25 + Math.random() * .4 };
+      }
+      medir();
+      var n = W < 640 ? 14 : 26;
+      for (var i = 0; i < n; i++) motas.push(nueva(false));
+      addEventListener('resize', medir);
+      (function cuadro() {
+        if (!vivo) return;
+        if (!document.hidden) {
+          g.clearRect(0, 0, W, H);
+          for (var k = 0; k < motas.length; k++) {
+            var m = motas[k];
+            m.y += m.v; m.f += .02; m.x += Math.sin(m.f) * .25;
+            if (m.y > H + 10) motas[k] = m = nueva(true);
+            g.fillStyle = 'rgba(' + m.c + ',' + (m.a * (.7 + .3 * Math.sin(m.f * 3))).toFixed(3) + ')';
+            g.beginPath(); g.arc(m.x, m.y, m.r, 0, 6.2832); g.fill();
+          }
+        }
+        requestAnimationFrame(cuadro);
+      })();
+    }
+    return function quitar() {
+      vivo = false;
+      raiz.classList.remove('tema-navidad');
+      css.remove();
+      if (lienzo) lienzo.remove();
+    };
+  }
+
   function poner() {
     var t = vigente();
     if (!t || ocultos() || document.getElementById('adornos-temporada')) return;
+    var quitarTema = ponerTema(t);
 
     var css = document.createElement('style');
     css.textContent =
@@ -91,6 +158,7 @@
     caja.addEventListener('click', function () {
       try { sessionStorage.setItem(CLAVE, '1'); } catch (e) {}
       relojes.forEach(clearInterval);
+      quitarTema();
       caja.classList.add('fuera');
       setTimeout(function () { caja.remove(); }, 450);
     });

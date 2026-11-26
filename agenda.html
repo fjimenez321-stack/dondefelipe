@@ -105,9 +105,9 @@
     .login-azul::after{content:"";position:absolute;width:520px;height:520px;left:-180px;top:-220px;border-radius:50%;border:40px solid var(--oro)}
     .login-azul h1{position:relative;color:var(--blanco);font-size:clamp(36px,5vw,60px);line-height:1;font-weight:800;max-width:11ch}
     .login-azul p{position:relative;color:#C9D6F5;max-width:36ch;margin-top:14px}
-    .login-form{display:flex;flex-direction:column;justify-content:center;padding:48px;max-width:460px}
+    .login-form{display:flex;flex-direction:column;justify-content:center;padding:48px;max-width:460px;min-width:0;overflow-wrap:anywhere}
     .login-form input{font:800 26px var(--f-disp);letter-spacing:.3em}
-    @media(max-width:760px){#login{grid-template-columns:1fr}.login-azul{min-height:42vh;padding:28px}.login-form{padding:28px}}
+    @media(max-width:760px){#login{grid-template-columns:minmax(0,1fr)}.login-azul{min-height:42vh;padding:28px}.login-form{padding:28px}}
 
     /* ---------- Estructura ---------- */
     #app{display:grid;grid-template-columns:250px 1fr;min-height:100vh;background:linear-gradient(to right,var(--azul) 250px,var(--blanco) 250px)}

@@ -25,6 +25,7 @@
     #game-container {
       position: relative;
       width: 400px;
+      max-width: calc(100vw - 6px);
       border: 3px solid #222;
       background: #000;
     }
@@ -39,7 +40,7 @@
     .label { font-size: 9px; color: #666; text-transform: uppercase; }
     .val { font-size: 16px; color: var(--neon); font-weight: bold; }
     
-    canvas { display: block; outline: none; }
+    canvas { display: block; outline: none; max-width: 100%; height: auto; }
 
     .overlay {
       position: absolute;
