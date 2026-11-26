@@ -3,28 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0F3443">
+<meta name="theme-color" content="#12306E">
 <title>Herramienta para debates · El Mundo de Felipe</title>
 <style>
 :root{
-  --ocean:#0F3443; --sea:#1F6E80; --sea-l:#e4f0f2; --sand:#E2BF84; --sand-l:#F7EEDC; --sand-d:#a9824a;
-  --coral:#C8553D; --coral-l:#f8e3de; --moss:#5E7F4F; --moss-l:#e6efe1;
-  --ink:#1B2A30; --muted:#56676c; --line:#e3d9c6; --bg:#fbf8f2;
-  --team:var(--sea); --team-l:var(--sea-l);
-  --r:14px; --shadow:0 3px 14px rgba(15,52,67,.08);
-  --top:58px; --tabs:64px;
+  /* Paleta: blanco · azul · dorado */
+  --navy:#12306E; --blue:#1F4FB3; --blue-l:#E8EFFC; --cer:#0B6BA3;
+  --gold:#C9961F; --gold-b:#E0B84A; --gold-l:#FBF3DD; --gold-d:#8A6410;
+  --danger:#B3261E; --danger-l:#FBE9E7;
+  --ink:#16223F; --muted:#4F5D75; --line:#DCE3F0; --bg:#F5F8FD; --white:#FFFFFF;
+  --team:var(--blue); --team-l:var(--blue-l);
+  --r:14px; --shadow:0 2px 12px rgba(18,48,110,.08);
+  --top:58px; --tabs:66px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%}
 body{font-family:"Segoe UI",Calibri,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;-webkit-tap-highlight-color:transparent}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer}
-h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;color:var(--ocean);line-height:1.15}
+h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;color:var(--navy);line-height:1.15}
 h1{font-size:clamp(1.9rem,6vw,2.8rem)}
 h2{font-size:1.42rem;margin-bottom:.4em}
 h3{font-size:1.06rem;margin-bottom:.3em}
 p{margin-bottom:.55em}
-a{color:var(--sea)}
+a{color:var(--blue)}
 .small{font-size:.86rem;color:var(--muted)}
 .wrap{max-width:780px;margin:0 auto;padding:18px 16px 96px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -33,6 +35,7 @@ a{color:var(--sea)}
 .top{position:sticky;top:0;z-index:30;height:var(--top);display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--team);color:#fff}
 .top .id{flex:1;min-width:0}
 .top .t1{font-weight:800;font-size:.98rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .prog{background:var(--gold);color:var(--navy);border-radius:999px;padding:4px 10px;font-size:.78rem;font-weight:800;white-space:nowrap;min-height:38px;display:inline-flex;align-items:center;gap:4px;border:none}
 .top .t2{font-size:.76rem;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top .sp{flex:1}
 .top button,.top a.tb{background:rgba(255,255,255,.16);border:none;color:#fff;border-radius:10px;padding:9px 12px;font-size:.82rem;font-weight:700;text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
@@ -43,17 +46,19 @@ a{color:var(--sea)}
 .tabs[hidden]{display:none}
 .tabs button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.72rem;font-weight:700;color:var(--muted);min-width:0}
 .tabs button .ic{font-size:1.25rem;line-height:1}
-.tabs button.on{color:var(--team)}
+.tabs button{position:relative}
+.tabs button.on{color:var(--navy)}
+.tabs button.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--gold)}
 .tabs button.on .ic{transform:scale(1.12)}
 .has-tabs .wrap{padding-bottom:calc(var(--tabs) + 90px)}
 
 /* tarjetas */
 .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;box-shadow:var(--shadow);margin-bottom:14px}
 .card.tint{background:var(--team-l);border-color:transparent}
-.card.sand{background:var(--sand-l);border-color:transparent}
-.card.dark{background:var(--ocean);color:#fff;border-color:transparent}
-.card.dark h2,.card.dark h3{color:var(--sand)}
-.card.warn{background:var(--coral-l);border-color:transparent}
+.card.sand{background:var(--gold-l);border-color:transparent}
+.card.dark{background:var(--navy);color:#fff;border-color:transparent}
+.card.dark h2,.card.dark h3{color:var(--gold-b)}
+.card.warn{background:var(--gold-l);border:1.5px solid var(--gold)}
 .tag{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--team);color:#fff;margin-bottom:6px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:560px){.grid2{grid-template-columns:1fr}}
@@ -62,33 +67,34 @@ ol.steps li{counter-increment:s;position:relative;padding:6px 0 6px 38px}
 ol.steps li::before{content:counter(s);position:absolute;left:0;top:5px;width:26px;height:26px;border-radius:50%;background:var(--team);color:#fff;font-weight:800;font-size:.85rem;display:grid;place-items:center}
 ul.dots{list-style:none}
 ul.dots li{position:relative;padding:4px 0 4px 18px}
-ul.dots li::before{content:"";position:absolute;left:3px;top:12px;width:7px;height:7px;border-radius:50%;background:var(--sand-d)}
+ul.dots li::before{content:"";position:absolute;left:3px;top:12px;width:7px;height:7px;border-radius:50%;background:var(--gold-d)}
 
 /* botones */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:11px;padding:11px 16px;font-weight:800;font-size:.95rem;background:var(--team);color:#fff;min-height:44px;text-decoration:none}
 .btn.ghost{background:transparent;color:var(--team);border:1.5px solid var(--team)}
 .btn.sm{padding:8px 12px;font-size:.84rem;border-radius:9px;min-height:38px}
 .btn.full{width:100%}
-.btn.danger{background:var(--coral)}
+.btn.danger{background:var(--danger)}
 .btn:disabled{opacity:.45;cursor:default}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.lnk{border:none;background:none;color:var(--coral);font-weight:800;font-size:.82rem;padding:8px 6px;min-height:36px}
+.lnk{border:none;background:none;color:var(--danger);font-weight:800;font-size:.82rem;padding:8px 6px;min-height:36px}
 
 /* campos */
-label.lb{display:block;font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ocean);margin:12px 0 4px}
+label.lb{display:block;font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--navy);margin:12px 0 4px}
 textarea,input[type=text],input[type=url],select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;background:#fff;resize:vertical}
 textarea{min-height:70px}
 textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);box-shadow:0 0 0 3px var(--team-l)}
 .hint{font-size:.8rem;color:var(--muted);margin-top:3px}
 
 /* portada del debate */
-.hero{background:var(--ocean);color:#fff;padding:30px 18px 70px;position:relative;overflow:hidden}
-.hero h1{color:#fff;margin:.15em 0 .35em}
-.hero .k{font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--sand)}
-.hero .mo{background:var(--sand);color:var(--ocean);border-radius:12px;padding:12px 14px;font-family:Cambria,Georgia,serif;font-weight:700;font-style:italic;font-size:1.08rem;margin-top:14px}
+.hero{background:#fff;color:var(--ink);padding:26px 18px 64px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero h1{color:var(--navy);margin:.15em 0 .3em}
+.hero p.lead{color:var(--muted);font-size:1.02rem}
+.hero .k{font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-d)}
+.hero .mo{background:var(--gold-l);border:1.5px solid var(--gold);color:var(--navy);border-radius:12px;padding:12px 14px;font-family:Cambria,Georgia,serif;font-weight:700;font-style:italic;font-size:1.08rem;margin-top:14px}
 .hero svg{position:absolute;left:0;right:0;bottom:-2px;width:100%;height:70px}
 .hero .in{max-width:780px;margin:0 auto;position:relative;z-index:1}
-.hero a.back{color:var(--sand);font-size:.84rem;font-weight:700;text-decoration:none}
+.hero a.back{color:var(--blue);font-size:.86rem;font-weight:800;text-decoration:none;display:inline-flex;min-height:36px;align-items:center}
 .teams{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:420px){.teams{grid-template-columns:1fr}}
 .tbtn{border:2px solid transparent;border-radius:16px;padding:16px 14px;text-align:left;color:#fff;display:flex;flex-direction:column;gap:4px;min-height:124px;box-shadow:var(--shadow)}
@@ -100,9 +106,21 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);bo
 .acc .av{width:42px;height:42px;border-radius:50%;background:var(--team);color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.1rem;flex:0 0 auto}
 .acc .tx{flex:1;min-width:180px}
 
+/* lista de verificación */
+.chk{list-style:none;margin:4px 0 0}
+.chk li{margin:0}
+.chk button{width:100%;display:flex;align-items:center;gap:10px;background:none;border:none;border-top:1px solid var(--line);padding:10px 2px;text-align:left;min-height:46px}
+.chk li:first-child button{border-top:none}
+.chk .bx{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;flex:0 0 auto;font-size:.8rem;font-weight:800;color:#fff}
+.chk .ok .bx{background:var(--blue);border-color:var(--blue)}
+.chk .half .bx{background:var(--gold-l);border-color:var(--gold);color:var(--gold-d)}
+.chk .tx{flex:1}
+.chk .go{color:var(--muted);font-size:.8rem;font-weight:700}
+.pbar{height:8px;border-radius:99px;background:var(--blue-l);overflow:hidden;margin:8px 0 2px}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--gold));transition:width .4s}
 /* evidencia */
 .ev{border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:10px;background:#fff}
-.ev h3{font-family:inherit;font-size:1rem;color:var(--ocean)}
+.ev h3{font-family:inherit;font-size:1rem;color:var(--navy)}
 .ev .src{font-size:.76rem;font-style:italic;color:var(--muted);margin-top:4px}
 .ev.used{border-color:var(--team);background:var(--team-l)}
 
@@ -115,22 +133,23 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);bo
 .meter i{display:block;height:100%;width:0;background:var(--team);transition:width .3s}
 
 /* reloj */
-.clock{background:var(--ocean);color:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:14px;position:sticky;top:calc(var(--top) + 6px);z-index:20}
-.clock .now{font-size:.78rem;color:var(--sand);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.clock{background:var(--navy);color:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:14px;position:sticky;top:calc(var(--top) + 6px);z-index:20}
+.clock .now{font-size:.78rem;color:var(--gold-b);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 .clock .ttl{font-size:1.06rem;font-weight:800;margin:2px 0 6px}
 .clock .big{font-size:2.8rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
-.clock.warn .big{color:var(--sand)}
-.clock.end .big{color:#ff9b86}
-.clock .btn{background:var(--sand);color:var(--ocean)}
+.clock .big{color:#fff}
+.clock.warn .big{color:var(--gold-b)}
+.clock.end .big{color:#ffb4a8}
+.clock .btn{background:var(--gold-b);color:var(--navy)}
 @media (max-width:700px) and (max-height:820px){.clock{position:static}}
 .clock .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
-.clock .sub{font-size:.8rem;color:#cfe0e3;margin-top:6px}
+.clock .sub{font-size:.8rem;color:#D6E0F5;margin-top:6px}
 .turns{list-style:none}
 .turns li{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:6px;cursor:pointer;min-height:48px}
-.turns li .tn{min-width:28px;height:28px;border-radius:50%;background:var(--sand-l);color:var(--ocean);font-weight:800;display:grid;place-items:center;font-size:.85rem;flex:0 0 auto;padding:0 6px}
+.turns li .tn{min-width:28px;height:28px;border-radius:50%;background:var(--gold-l);color:var(--navy);font-weight:800;display:grid;place-items:center;font-size:.85rem;flex:0 0 auto;padding:0 6px}
 .turns li .tx{flex:1;font-size:.92rem}
 .turns li .tx small{display:block;color:var(--muted);font-size:.76rem}
-.turns li .tm{font-weight:800;color:var(--ocean)}
+.turns li .tm{font-weight:800;color:var(--navy)}
 .turns li.cur{border-color:var(--team);background:var(--team-l)}
 .turns li.cur .tn{background:var(--team);color:#fff}
 .turns li.done{opacity:.55}
@@ -148,9 +167,9 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);bo
 .note .meta{font-size:.74rem;color:var(--muted);display:flex;gap:8px;align-items:center}
 .note .meta .lnk{margin-left:auto}
 .note p{margin:2px 0 0;white-space:pre-wrap}
-.note.t-debil,.note.t-falta{border-left-color:var(--coral)}
-.note.t-idea,.note.t-mejor{border-left-color:var(--moss)}
-.note.t-pregunta,.note.t-duda{border-left-color:var(--sand-d)}
+.note.t-debil,.note.t-falta{border-left-color:var(--gold-d)}
+.note.t-idea,.note.t-mejor{border-left-color:var(--cer)}
+.note.t-pregunta,.note.t-duda{border-left-color:var(--gold-d)}
 
 /* pauta */
 .crit{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff}
@@ -172,31 +191,33 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);bo
 .vf .top2{display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted);flex-wrap:wrap}
 .vf .top2 .lnk{margin-left:auto}
 .badge{display:inline-block;border-radius:6px;padding:1px 7px;font-size:.72rem;font-weight:800;color:#fff}
-.b-ok{background:var(--moss)} .b-dud{background:var(--sand-d)} .b-fal{background:var(--coral)}
+.b-ok{background:var(--blue)} .b-dud{background:var(--gold-d)} .b-fal{background:var(--danger)}
 .seg{display:flex;gap:6px;flex-wrap:wrap}
 .seg button{flex:1;min-width:84px;border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:10px 8px;font-weight:800;font-size:.88rem;min-height:44px}
 .seg button.on{background:var(--team);border-color:var(--team);color:#fff}
 
-/* chip de autoguardado (firebase/autoguardado.js): abajo, sin tapar la barra superior */
+/* chip de autoguardado (firebase/autoguardado.js): el estado ya se ve en la barra superior;
+   el chip flotante solo aparece si hay un error al guardar. */
+.ag-chip:not(.err){display:none!important}
 .ag-chip{top:auto!important;right:auto!important;left:12px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important;max-width:calc(100vw - 24px)!important}
 .ag-chip button,.ag-chip a{padding:6px 4px!important}
 .has-tabs .ag-chip{bottom:calc(var(--tabs) + 10px + env(safe-area-inset-bottom))!important}
 
 /* toast */
-#toast{position:fixed;left:50%;bottom:calc(var(--tabs) + 70px);transform:translateX(-50%) translateY(20px);background:var(--ocean);color:#fff;padding:10px 16px;border-radius:12px;font-size:.9rem;font-weight:700;opacity:0;pointer-events:none;transition:all .3s;z-index:50;max-width:90vw;text-align:center}
+#toast{position:fixed;left:50%;bottom:calc(var(--tabs) + 70px);transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 16px;border-radius:12px;font-size:.9rem;font-weight:700;opacity:0;pointer-events:none;transition:all .3s;z-index:50;max-width:90vw;text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%)}
 
 /* editor / herramienta */
 .lib{display:grid;gap:12px}
 .libitem{display:flex;gap:12px;align-items:center;border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:14px;text-decoration:none;color:inherit}
 .libitem .ic{font-size:1.8rem}
-.libitem b{display:block;color:var(--ocean)}
+.libitem b{display:block;color:var(--navy)}
 .libitem span{font-size:.86rem;color:var(--muted)}
 .fourteams{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 @media(max-width:560px){.fourteams{grid-template-columns:1fr 1fr}}
 .fourteams div{border-radius:12px;padding:10px;color:#fff;font-size:.82rem}
 .fourteams b{display:block;font-size:.95rem}
-.out{word-break:break-all;font-size:.8rem;color:var(--ink);background:var(--sand-l);border-radius:10px;padding:10px;max-height:120px;overflow:auto}
+.out{word-break:break-all;font-size:.8rem;color:var(--ink);background:var(--gold-l);border-radius:10px;padding:10px;max-height:120px;overflow:auto}
 
 /* impresión */
 #print{display:none}
@@ -257,8 +278,8 @@ const CRITERIOS = [
   ['Refutación', 'Responde directamente lo que dijo el rival', 'Responde a medias', 'Ignora al rival'],
   ['Respeto y tiempos', 'Respeta turnos y tiempos en todo momento', 'Una falta', 'Varias faltas']
 ];
-const JURADO = { nombre: 'Comité / Jurado', postura: 'Jurado', icono: '⚖️', color: '#0F3443', claro: '#e2e9ec', tipo: 'jurado', mision: 'Dirigir el debate, evaluar a ambos equipos con la pauta y dar el veredicto.' };
-const PRENSA = { nombre: 'Prensa verificadora', postura: 'Fact-checkers', icono: '📰', color: '#1F6E80', claro: '#e4f0f2', tipo: 'prensa', mision: 'Comprobar si los datos que se dicen son ciertos e informar al jurado. Al final, escribir el titular.' };
+const JURADO = { nombre: 'Comité / Jurado', postura: 'Jurado', icono: '⚖️', color: '#12306E', claro: '#E6EAF4', tipo: 'jurado', mision: 'Dirigir el debate, evaluar a ambos equipos con la pauta y dar el veredicto.' };
+const PRENSA = { nombre: 'Prensa verificadora', postura: 'Fact-checkers', icono: '📰', color: '#0B6BA3', claro: '#E3F1FA', tipo: 'prensa', mision: 'Comprobar si los datos que se dicen son ciertos e informar al jurado. Al final, escribir el titular.' };
 /* tipo de turno: apertura · pausa · refutacion · preguntas · prensa · cierre ; lado: A, B o '' */
 function turnosPara(A, B){
   return [
@@ -306,7 +327,7 @@ const DEBATES = {
     },
     equipos: {
       duna: {
-        nombre: 'Equipo Duna', postura: 'A favor de la moción', icono: '🌿', color: '#5E7F4F', claro: '#e6efe1', tipo: 'debate',
+        nombre: 'Equipo Duna', postura: 'A favor de la moción', icono: '🌿', color: '#1F4FB3', claro: '#E8EFFC', tipo: 'debate',
         mision: 'Defender que se prohíba toda nueva construcción en el campo dunar.',
         evidencia: [
           ['Patrimonio único', 'Sedimentos de hasta 2 millones de años: «dunas colgantes», casi únicas en la costa central.', 'Observatorio de la Costa UC, 2026'],
@@ -318,7 +339,7 @@ const DEBATES = {
         ]
       },
       ciudad: {
-        nombre: 'Equipo Ciudad', postura: 'En contra de la moción', icono: '🏙️', color: '#C8553D', claro: '#f8e3de', tipo: 'debate',
+        nombre: 'Equipo Ciudad', postura: 'En contra de la moción', icono: '🏙️', color: '#8A6410', claro: '#FBF3DD', tipo: 'debate',
         mision: 'Defender que se pueda construir en el campo dunar con condiciones.',
         evidencia: [
           ['Permisos válidos', 'Concón dio el permiso en 2017. En 2025 la Corte Suprema se lo devolvió a Reconsa, dueña del terreno.', 'El Desconcierto, ene 2025'],
@@ -337,7 +358,7 @@ const DEBATES = {
 };
 
 /* ---------- debates creados con el editor (viajan en el enlace) ---------- */
-const PALETA = [['#5E7F4F','#e6efe1'],['#C8553D','#f8e3de'],['#3D5A98','#e3e9f6'],['#A0522D','#f5e6dc'],['#6B4C9A','#ece5f5'],['#1F6E80','#e4f0f2']];
+const PALETA = [['#1F4FB3','#E8EFFC'],['#8A6410','#FBF3DD']];
 function b64e(str){ const by = new TextEncoder().encode(str); let bin = ''; for(let i = 0; i < by.length; i += 0x8000) bin += String.fromCharCode.apply(null, by.subarray(i, i + 0x8000)); return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function b64d(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length % 4) s += '='; const bin = atob(s); const by = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) by[i] = bin.charCodeAt(i); return new TextDecoder().decode(by); }
 function hash(str){ let h = 5381; for(let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8,'0'); }
@@ -466,7 +487,7 @@ function renderEquipo(){
   if(!tabs.some(x=>x[0]===S.tab) && S.tab!=='contexto') S.tab = 'guia';
   tabsEl.hidden = false;
   tabsEl.innerHTML = tabs.map(x=>`<button data-act="tab" data-v="${x[0]}" class="${S.tab===x[0]?'on':''}" ${S.tab===x[0]?'aria-current="page"':''}><span class="ic" aria-hidden="true">${x[1]}</span>${x[2]}</button>`).join('');
-  const top = `<header class="top"><div class="id"><div class="t1">${t.icono} ${esc(t.nombre)}</div><div class="t2">${esc(S.nombre||'Sin nombre')}${S.rol?' · '+esc(S.rol):''}${CUENTA.usuario?'<span class="cloud">☁️ en tu cuenta</span>':''}</div></div><button data-act="tab" data-v="contexto">Contexto</button></header>`;
+  const top = `<header class="top"><div class="id"><div class="t1">${t.icono} ${esc(t.nombre)}</div><div class="t2" title="${CUENTA.usuario?'Se guarda en tu cuenta':'Se guarda solo en este equipo'}"><span aria-label="${CUENTA.usuario?'Guardado en tu cuenta':'Guardado solo en este equipo'}">${CUENTA.usuario?'☁️':'📱'}</span> ${esc(S.nombre||'Sin nombre')}${S.rol?' · '+esc(S.rol):''}</div></div><button class="prog" data-act="tab" data-v="guia" aria-label="Mi avance: ${checklist().pct}%. Ver la lista de verificación">✓ ${checklist().pct}%</button><button data-act="tab" data-v="contexto">Contexto</button></header>`;
   const views = { guia: vGuia, evidencia: vEvidencia, argumentos: vArgumentos, debate: vDebate, cierre: vCierre, pauta: vPauta, veredicto: vVeredicto, verificar: vVerificar, titular: vTitular, contexto: vContexto };
   app.innerHTML = top + `<main class="wrap">${(views[S.tab]||vGuia)()}</main>`;
   afterRender();
@@ -474,7 +495,7 @@ function renderEquipo(){
 
 /* ---------- INICIO DEL DEBATE ---------- */
 function renderHome(){
-  sinPestanas(); setTeamColors('#1F6E80', '#e4f0f2');
+  sinPestanas(); setTeamColors('#1F4FB3', '#E8EFFC');
   if(S.tab === 'contexto-home'){
     app.innerHTML = `<header class="top"><div class="t1">📌 Contexto del debate</div><span class="sp"></span><button data-act="home">Volver</button></header><main class="wrap">${vContexto()}</main>`;
     return;
@@ -485,10 +506,10 @@ function renderHome(){
     <a class="back" href="${esc(CONFIG.volver.href)}">‹ ${esc(CONFIG.volver.texto)}</a>
     <div class="k" style="margin-top:10px">${esc(CONFIG.subtitulo)}</div>
     <h1>${esc(CONFIG.titulo)}</h1>
-    ${CONFIG.gancho?`<p style="color:#e9f1f2">${esc(CONFIG.gancho)}</p>`:''}
+    ${CONFIG.gancho?`<p class="lead">${esc(CONFIG.gancho)}</p>`:''}
     <div class="mo">«${esc(CONFIG.mocion)}»</div>
   </div>
-  <svg viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 C 180 5, 360 30, 520 22 S 840 8, 1000 30 L1000 70 L0 70Z" fill="#1F6E80" opacity=".6"/><path d="M0 55 C 200 25, 420 50, 640 38 S 900 34, 1000 46 L1000 70 L0 70Z" fill="#E2BF84"/></svg>
+  <svg viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 C 180 5, 360 30, 520 22 S 840 8, 1000 30 L1000 70 L0 70Z" fill="#1F4FB3" opacity=".18"/><path d="M0 52 C 200 28, 420 50, 640 40 S 900 34, 1000 46 L1000 70 L0 70Z" fill="#C9961F" opacity=".55"/><path d="M0 62 C 260 50, 520 66, 760 56 S 940 54, 1000 60 L1000 70 L0 70Z" fill="#F5F8FD"/></svg>
   </section>
   <main class="wrap">
     <div class="card sand">
@@ -517,11 +538,48 @@ function renderHome(){
 /* ---------- CONTEXTO ---------- */
 function vContexto(){
   const c = CONFIG.contexto || {};
-  return `<div class="card dark"><span class="tag" style="background:var(--sand);color:var(--ocean)">Moción</span><h2 style="font-style:italic">«${esc(CONFIG.mocion)}»</h2></div>
+  return `<div class="card dark"><span class="tag" style="background:var(--gold);color:var(--navy)">Moción</span><h2 style="font-style:italic">«${esc(CONFIG.mocion)}»</h2></div>
   ${(c.datos||[]).length?`<h2>Los datos clave</h2>${c.datos.map(d=>`<div class="ev"><h3>${esc(d[0])}</h3><p style="margin:0">${esc(d[1])}</p></div>`).join('')}`:''}
   ${(c.cronologia||[]).length?`<h2 style="margin-top:14px">Cronología</h2><ul class="turns static">${c.cronologia.map(x=>`<li><span class="tn" style="border-radius:8px">${esc(x[0])}</span><span class="tx">${esc(x[1])}</span></li>`).join('')}</ul>`:''}
   ${c.fuentes?`<p class="small" style="margin-top:8px">Fuentes: ${esc(c.fuentes)}</p>`:''}
   ${S.equipo&&S.tab==='contexto'?`<button class="btn full" data-act="tab" data-v="guia" style="margin-top:10px">Volver a mi equipo</button>`:`<button class="btn full" data-act="home" style="margin-top:10px">Volver al inicio</button>`}`;
+}
+
+/* ---------- LISTA DE VERIFICACIÓN (avance del estudiante) ---------- */
+function checklist(){
+  const t = team(), d = D(), g = p => (getP(p)||'').toString().trim(), it = [];
+  const add = (txt, n, de, tab) => it.push({ txt, n: Math.min(n, de), de, tab });
+  add('Elegir mi rol', S.rol?1:0, 1, 'guia');
+  add('Votar con mi opinión inicial', g('voto_inicial')?1:0, 1, 'guia');
+  if(t.tipo === 'debate'){
+    add('Marcar evidencia que usaremos', Object.values(d.usados||{}).filter(Boolean).length?1:0, 1, 'evidencia');
+    add('Completar 3 argumentos AER', [0,1,2].filter(i=>argLleno(i)===3).length, 3, 'argumentos');
+    add('Marcar el argumento más sólido', g('mejor')?1:0, 1, 'argumentos');
+    add('Preparar respuestas al rival', [0,1].filter(i=>g('rival.'+i+'.arg')&&g('rival.'+i+'.resp')).length, 2, 'argumentos');
+    add('Escribir 2 preguntas cruzadas', [0,1].filter(i=>g('preg.'+i)).length, 2, 'argumentos');
+    add('Anotar observaciones en el debate', (d.notas||[]).length, 3, 'debate');
+  }
+  if(t.tipo === 'jurado'){
+    add('Puntuar la pauta completa', CONFIG.lados.reduce((a,l)=>a+puntos(l).n,0), CONFIG.lados.length*CONFIG.criterios.length, 'pauta');
+    add('Anotar observaciones en el debate', (d.notas||[]).length, 3, 'debate');
+    add('Elegir al ganador', g('ganador')?1:0, 1, 'veredicto');
+    add('Escribir la justificación', g('justif')?1:0, 1, 'veredicto');
+  }
+  if(t.tipo === 'prensa'){
+    add('Registrar datos verificados', (d.verif||[]).length, 4, 'verificar');
+    add('Escribir el titular final', g('tit.f')?1:0, 1, 'titular');
+    add('Escribir la bajada', g('tit.b')?1:0, 1, 'titular');
+  }
+  add('Votar al final', g('voto_final')?1:0, 1, 'cierre');
+  add('Responder la reflexión', [g('refl.duda'),g('refl.falta'),g('refl.medida')].filter(Boolean).length, 3, 'cierre');
+  const hechos = it.filter(x=>x.n>=x.de).length;
+  return { it, hechos, total: it.length, pct: Math.round(it.reduce((a,x)=>a+x.n/x.de,0)/it.length*100) };
+}
+function checklistHTML(){
+  const c = checklist();
+  return `<div class="card"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Lista de verificación</h3><b style="color:var(--gold-d)">${c.pct}%</b></div>
+    <div class="pbar" aria-hidden="true"><i style="width:${c.pct}%"></i></div>
+    <ul class="chk">${c.it.map(x=>{ const ok = x.n>=x.de, half = !ok && x.n>0; return `<li class="${ok?'ok':half?'half':''}"><button data-act="tab" data-v="${x.tab}"><span class="bx" aria-hidden="true">${ok?'✓':half?x.n:''}</span><span class="tx">${esc(x.txt)}${x.de>1?` <span class="small">(${x.n}/${x.de})</span>`:''}</span><span class="go">${ok?'Listo':'Ir ›'}</span></button></li>`; }).join('')}</ul></div>`;
 }
 
 /* ---------- GUÍA ---------- */
@@ -533,6 +591,7 @@ function vGuia(){
     prensa: ['Elige tu rol en la prensa (abajo).', 'Estudia las fichas de ambos equipos en <b>Verificar</b>.', 'Cuando un equipo diga un dato, búscalo en las fichas y toca <b>Registrar este dato</b>, o escríbelo si no está.', 'En el turno de la prensa, el reportero/a informa al jurado los datos falsos.', 'En <b>Titular</b>, escriban el titular de prensa del debate.']
   }[t.tipo];
   return `<div class="card tint"><span class="tag">${esc(t.postura)}</span><h2>${esc(t.nombre)}</h2><p style="margin:0">${esc(t.mision)}</p></div>
+  ${checklistHTML()}
   <div class="card"><h3>Qué hacer, paso a paso</h3><ol class="steps">${pasos.map(p=>`<li>${p}</li>`).join('')}</ol></div>
   <div class="card"><h3>Mi rol</h3>
     <div class="chips">${roles.map(r=>`<button class="chip ${S.rol===r[0]?'on':''}" data-act="rol" data-v="${esc(r[0])}" aria-pressed="${S.rol===r[0]}">${esc(r[0])}</button>`).join('')}</div>
@@ -663,7 +722,7 @@ function vVeredicto(){
     : a.t === b.t ? 'Empate: el jurado debe desempatar con el mejor argumento.'
     : 'Según la pauta, gana ' + (a.t > b.t ? lado(L[0]).nombre : lado(L[1]).nombre) + '.';
   return `<div class="tot">${L.map((eq,i)=>`<div class="box" style="background:${lado(eq).color}">${esc(lado(eq).nombre)}<b>${(i?b:a).t}</b>puntos</div>`).join('')}</div>
-  <div class="card ${completa?'dark':'warn'}"><h3>${esc(lead)}</h3>${completa?'<p class="small" style="color:#cfe0e3;margin:0">El jurado no decide quién «tiene la razón», sino qué equipo argumentó mejor con evidencia.</p>':'<button class="btn sm" data-act="tab" data-v="pauta">Ir a la pauta</button>'}</div>
+  <div class="card ${completa?'dark':'warn'}"><h3>${esc(lead)}</h3>${completa?'<p class="small" style="color:#D6E0F5;margin:0">El jurado no decide quién «tiene la razón», sino qué equipo argumentó mejor con evidencia.</p>':'<button class="btn sm" data-act="tab" data-v="pauta">Ir a la pauta</button>'}</div>
   <div class="card"><label class="lb">Equipo ganador</label><div class="seg">${[lado(L[0]).nombre, lado(L[1]).nombre, 'Empate'].map(o=>`<button class="${getP('ganador')===o?'on':''}" data-act="set" data-p="ganador" data-v="${esc(o)}" aria-pressed="${getP('ganador')===o}">${esc(o)}</button>`).join('')}</div>
     <label class="lb" for="vma">El mejor argumento del debate (de cualquier equipo)</label><textarea id="vma" data-bind="mejor_arg">${val('mejor_arg')}</textarea>
     <label class="lb" for="vju">¿Qué decidió el resultado?</label><textarea id="vju" data-bind="justif" placeholder="El vocero/a leerá esto en voz alta.">${val('justif')}</textarea>
@@ -709,8 +768,8 @@ function vCierre(){
     <label class="lb" for="rf3">${esc(CONFIG.reflexion)}</label><textarea id="rf3" data-bind="refl.medida">${val('refl.medida')}</textarea>
   </div>
   ${cuentaHTML()}
-  <div class="card dark"><h3>Mi bitácora</h3><p class="small" style="color:#cfe0e3">Descárgala o guárdala en PDF si tu profe te la pide así.</p>
-    <div class="row"><button class="btn" style="background:var(--sand);color:var(--ocean)" data-act="print">🖨 Imprimir / PDF</button><button class="btn ghost" style="color:#fff;border-color:#fff" data-act="download">⬇ Descargar .txt</button><button class="btn ghost" style="color:#fff;border-color:#fff" data-act="copy">Copiar</button></div>
+  <div class="card dark"><h3>Mi bitácora</h3><p class="small" style="color:#D6E0F5">Descárgala o guárdala en PDF si tu profe te la pide así.</p>
+    <div class="row"><button class="btn" style="background:var(--gold);color:var(--navy)" data-act="print">🖨 Imprimir / PDF</button><button class="btn ghost" style="color:#fff;border-color:#fff" data-act="download">⬇ Descargar .txt</button><button class="btn ghost" style="color:#fff;border-color:#fff" data-act="copy">Copiar</button></div>
   </div>
   <div class="card"><h3>Terminar</h3><p class="small">Si otra persona va a usar este dispositivo: con cuenta, toca «No soy yo» (tu trabajo queda en tu cuenta); sin cuenta, descarga tu bitácora y luego borra tus datos.</p>
     <div class="row"><button class="btn ghost sm" data-act="leave">Cambiar de equipo</button><button class="btn danger sm" data-act="wipe">Borrar mis datos</button></div></div>`;
@@ -773,27 +832,27 @@ window.AUTOGUARDADO_RESUMEN = function(){
    HERRAMIENTA (portada general) y EDITOR DE DEBATES
    ===================================================================== */
 function renderHerramienta(){
-  sinPestanas(); setTeamColors('#1F6E80', '#e4f0f2');
+  sinPestanas(); setTeamColors('#1F4FB3', '#E8EFFC');
   app.innerHTML = `
   <section class="hero"><div class="in">
     <a class="back" href="../index.html">‹ El Mundo de Felipe</a>
     <div class="k" style="margin-top:10px">Misceláneos · Herramienta</div>
     <h1>Herramienta para debates</h1>
-    <p style="color:#e9f1f2">Un debate de curso completo en cuatro equipos, con bitácoras, reloj de turnos, pauta de evaluación y verificación de datos. Cada estudiante entra desde su celular al equipo que le tocó.</p>
+    <p class="lead">Un debate de curso completo en cuatro equipos, con bitácoras, reloj de turnos, pauta de evaluación y verificación de datos. Cada estudiante entra desde su celular al equipo que le tocó.</p>
   </div>
-  <svg viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 C 180 5, 360 30, 520 22 S 840 8, 1000 30 L1000 70 L0 70Z" fill="#1F6E80" opacity=".6"/><path d="M0 55 C 200 25, 420 50, 640 38 S 900 34, 1000 46 L1000 70 L0 70Z" fill="#E2BF84"/></svg>
+  <svg viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 C 180 5, 360 30, 520 22 S 840 8, 1000 30 L1000 70 L0 70Z" fill="#1F4FB3" opacity=".18"/><path d="M0 52 C 200 28, 420 50, 640 40 S 900 34, 1000 46 L1000 70 L0 70Z" fill="#C9961F" opacity=".55"/><path d="M0 62 C 260 50, 520 66, 760 56 S 940 54, 1000 60 L1000 70 L0 70Z" fill="#F5F8FD"/></svg>
   </section>
   <main class="wrap">
     ${ERROR_CFG?`<div class="card warn"><b>${esc(ERROR_CFG)}</b></div>`:''}
     <h2>Debates listos</h2>
     <div class="lib">${Object.entries(DEBATES).map(([k,d])=>`<a class="libitem" href="debate.html?d=${encodeURIComponent(k)}"><span class="ic" aria-hidden="true">${Object.values(d.equipos)[0].icono}</span><span><b>${esc(d.titulo)}</b><span>${esc(d.subtitulo)}</span><br><span>«${esc(d.mocion)}»</span></span></a>`).join('')}</div>
-    <div class="card dark" style="margin-top:16px"><h2>Crea tu propio debate</h2><p class="small" style="color:#cfe0e3">Escribe la moción, el contexto y la evidencia de cada lado. Obtienes un enlace para compartir con el curso: no hay que instalar nada.</p><a class="btn" style="background:var(--sand);color:var(--ocean)" href="debate.html?editor">✏️ Abrir el editor</a></div>
+    <div class="card dark" style="margin-top:16px"><h2>Crea tu propio debate</h2><p class="small" style="color:#D6E0F5">Escribe la moción, el contexto y la evidencia de cada lado. Obtienes un enlace para compartir con el curso: no hay que instalar nada.</p><a class="btn" style="background:var(--gold);color:var(--navy)" href="debate.html?editor">✏️ Abrir el editor</a></div>
     <h2>Cómo funciona</h2>
     <div class="fourteams">
-      <div style="background:#5E7F4F"><b>A favor</b>Prepara 3 argumentos con evidencia y defiende la moción.</div>
-      <div style="background:#C8553D"><b>En contra</b>Prepara 3 argumentos con evidencia y rebate la moción.</div>
-      <div style="background:#0F3443"><b>Jurado</b>Dirige los turnos, evalúa con pauta y da el veredicto.</div>
-      <div style="background:#1F6E80"><b>Prensa</b>Verifica los datos que se dicen y escribe el titular.</div>
+      <div style="background:#1F4FB3"><b>A favor</b>Prepara 3 argumentos con evidencia y defiende la moción.</div>
+      <div style="background:#8A6410"><b>En contra</b>Prepara 3 argumentos con evidencia y rebate la moción.</div>
+      <div style="background:#12306E"><b>Jurado</b>Dirige los turnos, evalúa con pauta y da el veredicto.</div>
+      <div style="background:#0B6BA3"><b>Prensa</b>Verifica los datos que se dicen y escribe el titular.</div>
     </div>
     <div class="card" style="margin-top:14px"><ul class="dots"><li>10 turnos cronometrados: aperturas, refutaciones, preguntas cruzadas, informe de la prensa y cierres (unos 25 minutos).</li><li>Cada dato falso detectado por la prensa resta 1 punto en la pauta del jurado.</li><li>Con la cuenta de El Mundo de Felipe, el trabajo de cada estudiante se guarda solo y aparece en el Panel del profe → Trabajos.</li></ul></div>
   </main>`;
@@ -810,7 +869,7 @@ function edCompacto(e){
 }
 function edEnlace(e){ const base = location.href.split('?')[0].split('#')[0]; return base + '#cfg=' + b64e(JSON.stringify(edCompacto(e))); }
 function renderEditor(){
-  sinPestanas(); setTeamColors('#1F6E80', '#e4f0f2');
+  sinPestanas(); setTeamColors('#1F4FB3', '#E8EFFC');
   const e = edLoad(), f = (k, ph, lab, big, hint) => `<label class="lb" for="ed-${k}">${lab}</label>${big?`<textarea id="ed-${k}" data-ed="${k}" placeholder="${esc(ph)}" style="min-height:${big}px">${esc(e[k]||'')}</textarea>`:`<input type="text" id="ed-${k}" data-ed="${k}" value="${esc(e[k]||'')}" placeholder="${esc(ph)}">`}${hint?`<p class="hint">${hint}</p>`:''}`;
   const ic = k => `<label class="lb">Ícono</label><div class="chips">${ICONOS.map(x=>`<button class="chip ${e[k]===x?'on':''}" data-act="edicon" data-k="${k}" data-v="${x}" aria-pressed="${e[k]===x}">${x}</button>`).join('')}</div>`;
   const listo = (e.m||'').trim() && (e.an||'').trim() && (e.bn||'').trim();
@@ -834,11 +893,11 @@ function renderEditor(){
     </div>`).join('')}
     <div class="card">${f('r','Ej.: ¿Qué medida podría acercar las dos posturas?','Pregunta de reflexión final (opcional)')}</div>
     <div class="card dark"><h2>Compartir</h2>
-      ${listo?`<p class="small" style="color:#cfe0e3">Este enlace abre el debate para los estudiantes. Si cambias algo, vuelve a copiarlo: el enlace nuevo es otro debate.</p>
+      ${listo?`<p class="small" style="color:#D6E0F5">Este enlace abre el debate para los estudiantes. Si cambias algo, vuelve a copiarlo: el enlace nuevo es otro debate.</p>
       <div class="out" id="edOut">${esc(edEnlace(e))}</div>
-      <div class="row" style="margin-top:10px"><button class="btn" style="background:var(--sand);color:var(--ocean)" data-act="edcopy">Copiar enlace</button><a class="btn ghost" style="color:#fff;border-color:#fff" href="${esc(edEnlace(e))}" target="_blank" rel="noopener">Probar como estudiante ↗</a></div>
-      <p class="small" style="color:#cfe0e3;margin-top:10px">Para ver los trabajos en el Panel del profe → Trabajos, elige «Otro debate» y escribe este código: <b style="color:var(--sand)">${esc(desdeCompacto(edCompacto(e)).clave)}</b></p>`
-      :'<p class="small" style="color:#cfe0e3;margin:0">Escribe al menos la moción y el nombre de los dos equipos para obtener el enlace.</p>'}
+      <div class="row" style="margin-top:10px"><button class="btn" style="background:var(--gold);color:var(--navy)" data-act="edcopy">Copiar enlace</button><a class="btn ghost" style="color:#fff;border-color:#fff" href="${esc(edEnlace(e))}" target="_blank" rel="noopener">Probar como estudiante ↗</a></div>
+      <p class="small" style="color:#D6E0F5;margin-top:10px">Para ver los trabajos en el Panel del profe → Trabajos, elige «Otro debate» y escribe este código: <b style="color:var(--gold-b)">${esc(desdeCompacto(edCompacto(e)).clave)}</b></p>`
+      :'<p class="small" style="color:#D6E0F5;margin:0">Escribe al menos la moción y el nombre de los dos equipos para obtener el enlace.</p>'}
     </div>
     <div class="row"><button class="btn ghost sm" data-act="edreset">Empezar de nuevo</button></div>
   </main>`;
