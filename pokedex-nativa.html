@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#08080c">
+<title>Nativadex · prototipo · El Mundo de Felipe</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--bg:#08080c;--slab:#111118;--slab2:#181822;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+--ink:#f2f1ec;--mute:#9b9aab;--acid:#ffd60a;--cyan:#1fdd6c;--pink:#ff2b3d;--brass:#e9b949;--neg:#ff7a70;--epi:#b66dff;
+--ff-d:'Big Shoulders Display',Impact,'Arial Narrow',sans-serif;--ff:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 var(--ff)}
+a{color:var(--cyan)}
+.wrap{max-width:980px;margin:0 auto;padding:14px 14px 80px}
+.crumb{color:var(--mute);text-decoration:none;font-size:14px}
+h1{font:900 clamp(40px,11vw,68px)/.9 var(--ff-d);text-transform:uppercase;margin:14px 0 4px;letter-spacing:.5px}
+h1 span{color:var(--cyan)}
+h2{font:900 26px/1 var(--ff-d);text-transform:uppercase;margin:0 0 8px}
+.sub{color:var(--mute);margin:0 0 6px;font-size:15px}
+.proto{display:inline-block;background:var(--acid);color:#141a00;font:800 11px var(--ff);letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:999px;vertical-align:middle}
+.card{background:var(--slab);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin-top:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:10px 16px;font:700 15px var(--ff);cursor:pointer;text-decoration:none}
+.btn.p{background:var(--cyan);color:#001a10;border-color:var(--cyan);font-weight:800}
+.btn.a{background:var(--acid);color:#141a00;border-color:var(--acid);font-weight:800}
+.btn.n{border-color:rgba(255,122,112,.5);color:var(--neg)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+/* estadísticas */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--slab2);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font:900 32px/1 var(--ff-d)}
+.stat small{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+.bar{height:10px;border-radius:999px;background:var(--slab2);overflow:hidden;margin-top:10px;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--acid));width:0;transition:width .5s}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px}
+.catp{font-size:13px;color:var(--mute);display:flex;justify-content:space-between;background:var(--slab2);border-radius:10px;padding:5px 9px}
+.catp.full{color:var(--acid);border:1px solid rgba(255,214,10,.4)}
+/* salida */
+.salida{border-radius:14px;padding:10px 14px;margin-top:14px;font-size:14px;display:flex;gap:10px;align-items:center}
+.salida.on{background:#0f3d24;border:1px solid rgba(31,221,108,.4)}
+.salida.off{background:var(--slab);border:1px dashed var(--line2);color:var(--mute)}
+.salida.fin{background:#3a1512;border:1px solid rgba(255,122,112,.4)}
+/* filtros */
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tools input,.tools select,.f input,.f select,.f textarea{background:var(--slab2);border:1px solid var(--line2);color:var(--ink);border-radius:12px;padding:10px 12px;font:15px var(--ff)}
+.tools input{flex:1 1 200px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.chip{flex:0 0 auto;border:1px solid var(--line2);background:var(--slab2);color:var(--ink);border-radius:999px;padding:6px 12px;font:700 13px var(--ff);cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--acid);color:#141a00;border-color:var(--acid)}
+/* grilla */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.sp{position:relative;background:var(--slab);border:2px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;color:var(--ink);padding:0;font:inherit}
+.sp .img{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#1c1c28,#0c0c12);font-size:58px;background-size:cover;background-position:center}
+.sp.no .img span{filter:grayscale(1) brightness(.35);}
+.sp.no .img::after{content:'?';position:absolute;font:900 54px var(--ff-d);color:rgba(255,255,255,.18)}
+.sp .num{position:absolute;top:6px;left:8px;font:800 12px var(--ff);color:var(--mute);background:rgba(0,0,0,.55);padding:1px 7px;border-radius:999px}
+.sp .rz{position:absolute;top:6px;right:6px;width:12px;height:12px;border-radius:50%}
+.sp .tx{padding:8px 10px 10px}
+.sp .tx b{display:block;font-size:15px;line-height:1.2}
+.sp .tx i{display:block;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp.si{border-color:rgba(31,221,108,.55)}
+.sp.rev{border-color:rgba(255,214,10,.55)}
+.sp .ok{position:absolute;bottom:58px;right:8px;background:var(--cyan);color:#001a10;border-radius:999px;font:800 11px var(--ff);padding:2px 8px}
+.sp.rev .ok{background:var(--acid);color:#141a00}
+.vacio{color:var(--mute);text-align:center;padding:30px}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.md{background:var(--slab);border:1px solid var(--line2);border-radius:22px 22px 0 0;width:100%;max-width:620px;max-height:92vh;overflow:auto;padding:16px 16px 26px}
+@media(min-width:700px){.ov{align-items:center}.md{border-radius:22px}}
+.md .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.x{background:none;border:0;color:var(--mute);font-size:26px;cursor:pointer;line-height:1}
+.hero{aspect-ratio:16/10;border-radius:16px;background:radial-gradient(circle at 50% 40%,#1c1c28,#0c0c12);display:flex;align-items:center;justify-content:center;font-size:90px;background-size:cover;background-position:center;margin:10px 0}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.bd{font:800 11px var(--ff);letter-spacing:.6px;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--slab2);border:1px solid var(--line2)}
+.bd.E{background:#0f3d24;color:#9ff5c4;border-color:transparent}
+.bd.N{background:#10293d;color:#9fd6f5;border-color:transparent}
+.bd.I{background:#3a1512;color:#ffb3ab;border-color:transparent}
+.bd.VU,.bd.NT{background:#3a3108;color:#ffe58a;border-color:transparent}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:10px 0;font-size:14px}
+dt{color:var(--mute)}dd{margin:0}
+.warn{background:#3a1512;border:1px solid rgba(255,122,112,.35);color:#ffd0cb;border-radius:12px;padding:8px 12px;font-size:14px;margin:8px 0}
+.note{background:var(--slab2);border-radius:12px;padding:8px 12px;font-size:14px;color:var(--mute);margin:8px 0}
+.caps{display:grid;gap:8px;margin-top:8px}
+.cap{display:grid;grid-template-columns:64px 1fr;gap:10px;background:var(--slab2);border-radius:12px;padding:8px;align-items:center}
+.cap img{width:64px;height:64px;object-fit:cover;border-radius:10px}
+.cap small{color:var(--mute)}
+.ver{font:800 11px var(--ff);text-transform:uppercase;letter-spacing:.6px;padding:2px 8px;border-radius:999px}
+.ver.confiable{background:var(--cyan);color:#001a10}.ver.revisar{background:var(--acid);color:#141a00}.ver.dudosa{background:var(--neg);color:#2a0400}
+.sig{list-style:none;padding:0;margin:8px 0;font-size:14px;display:grid;gap:4px}
+.sig li{display:flex;gap:8px;align-items:flex-start}
+.sig .s-ok{color:var(--cyan)}.sig .s-no{color:var(--neg)}.sig .s-mid{color:var(--mute)}
+.f{display:grid;gap:8px;margin-top:10px}
+.f label{font-size:13px;color:var(--mute)}
+.f textarea{min-height:80px;resize:vertical}
+.prev{width:100%;max-height:320px;object-fit:contain;border-radius:14px;background:#000}
+.meter{height:14px;border-radius:999px;background:var(--slab2);overflow:hidden;border:1px solid var(--line)}
+.meter i{display:block;height:100%}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#111;border-radius:999px;padding:10px 18px;font-weight:700;z-index:80;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+details summary{cursor:pointer;font-weight:800}
+.mono{font-family:ui-monospace,monospace;font-size:12px;word-break:break-all;background:var(--slab2);padding:8px;border-radius:10px}
+@media(max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="crumb" href="index.html"><i class="fa-solid fa-arrow-left"></i> El Mundo de Felipe · Misceláneos</a>
+  <h1>Nativa<span>dex</span></h1>
+  <p class="sub"><span class="proto">Prototipo</span> Sal a terreno, encuentra la flora y fauna nativa de la zona central y regístrala con <b>tu propia foto</b>.</p>
+  <p class="sub" id="cuenta" style="font-size:13px"></p>
+
+  <div id="salidaBox"></div>
+
+  <section class="card">
+    <div class="stats">
+      <div class="stat"><b id="sCap">0</b><small>Registradas</small></div>
+      <div class="stat"><b id="sTot">0</b><small>Especies</small></div>
+      <div class="stat"><b id="sPts">0</b><small>Puntos</small></div>
+      <div class="stat"><b id="sLeg">0</b><small>Legendarias</small></div>
+    </div>
+    <div class="bar"><i id="barra"></i></div>
+    <div class="cats" id="catsProg"></div>
+  </section>
+
+  <div class="tools">
+    <input id="q" type="search" placeholder="Buscar por nombre o especie…" autocomplete="off">
+    <select id="fEstado">
+      <option value="">Todas</option><option value="si">Registradas</option><option value="no">Por encontrar</option>
+    </select>
+    <select id="fRareza"><option value="">Toda rareza</option></select>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+
+  <section class="card">
+    <h2>Reglas del terreno</h2>
+    <ul style="margin:0;padding-left:20px;font-size:15px;color:var(--mute)">
+      <li><b style="color:var(--ink)">Solo tus fotos:</b> la cámara se abre desde aquí; las imágenes de galería, de internet o capturas de pantalla quedan marcadas como dudosas.</li>
+      <li><b style="color:var(--ink)">Observa sin dañar:</b> no arranques plantas, no atrapes animales y no toques hongos.</li>
+      <li><b style="color:var(--ink)">Nada de personas en las fotos:</b> solo la especie.</li>
+      <li><b style="color:var(--ink)">Nota de campo obligatoria:</b> dónde estaba y qué observaste.</li>
+      <li>Cada registro recibe un <b style="color:var(--ink)">índice de confianza</b> (hora de la foto, datos de la cámara, ubicación, zona de la salida, fotos repetidas). El profe revisa los registros dudosos.</li>
+    </ul>
+    <p class="sub" style="margin-top:10px;font-size:13px">Especies tomadas del folleto de <b>Restauración Ecológica Villa Alemana</b>. Origen: N nativa · E endémica · I introducida. Conservación: LC preocupación menor · NT casi amenazada · VU vulnerable · NE no evaluada.</p>
+  </section>
+
+  <section class="card" id="profeBox" hidden>
+    <h2><i class="fa-solid fa-person-hiking"></i> Salida de campo (profe)</h2>
+    <p class="sub">Crea la zona de la salida en el lugar, con tu ubicación como centro. Comparte el enlace con el curso: los registros fuera de la zona o del horario quedan marcados.</p>
+    <div class="f">
+      <label>Nombre de la salida<input id="pNombre" placeholder="Ej.: Quebrada · 1° Medio Biología"></label>
+      <div class="row">
+        <label style="flex:1">Radio (metros)<input id="pRadio" type="number" min="50" max="5000" value="400" style="width:100%"></label>
+        <label style="flex:1">Duración (horas)<input id="pHoras" type="number" min="1" max="12" value="3" style="width:100%"></label>
+      </div>
+      <div class="row">
+        <button class="btn a" id="pCrear"><i class="fa-solid fa-location-crosshairs"></i> Crear con mi ubicación actual</button>
+        <button class="btn n sm" id="pQuitar">Quitar salida de este equipo</button>
+      </div>
+      <div id="pLink"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>Datos de este equipo</summary>
+      <p class="sub" style="margin-top:8px">Las fotos quedan guardadas <b>solo en este teléfono</b> (sin la ubicación exacta dentro de la imagen). Si entras con tu cuenta, se respalda un resumen: qué especies registraste, la fecha y el índice de confianza.</p>
+      <button class="btn n sm" id="borrarTodo">Borrar todos mis registros</button>
+    </details>
+  </section>
+</div>
+
+<input type="file" id="camara" accept="image/*" capture="environment" hidden>
+<div id="modal"></div>
+
+<script src="pokedex-nativa/especies.js?v=20261126"></script>
+<script src="firebase/df.js?v=20261104e"></script>
+<script>
+(function () {
+'use strict';
+const ND = window.NATIVADEX, ESP = ND.ESPECIES, CAT = ND.CATEGORIAS, RZ = ND.RAREZAS;
+const PORID = Object.fromEntries(ESP.map(e => [e.id, e]));
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(3, '0');
+
+/* ══════════ Almacenamiento local (IndexedDB) ══════════ */
+const DB = (() => {
+  let mem = [], dbp = null;
+  function abrir() {
+    if (dbp) return dbp;
+    dbp = new Promise((ok, mal) => {
+      if (!window.indexedDB) return mal(new Error('sin IndexedDB'));
+      const r = indexedDB.open('nativadex', 1);
+      r.onupgradeneeded = () => { r.result.createObjectStore('capturas', { keyPath: 'uid' }); };
+      r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error);
+    });
+    return dbp;
+  }
+  const tx = (modo, fn) => abrir().then(db => new Promise((ok, mal) => {
+    const t = db.transaction('capturas', modo), st = t.objectStore('capturas'), r = fn(st);
+    t.oncomplete = () => ok(r && r.result); t.onerror = () => mal(t.error);
+  }));
+  return {
+    todas: () => tx('readonly', st => st.getAll()).catch(() => mem.slice()),
+    guardar: c => tx('readwrite', st => st.put(c)).catch(() => { mem = mem.filter(x => x.uid !== c.uid).concat(c); }),
+    borrar: uid => tx('readwrite', st => st.delete(uid)).catch(() => { mem = mem.filter(x => x.uid !== uid); }),
+    vaciar: () => tx('readwrite', st => st.clear()).catch(() => { mem = []; })
+  };
+})();
+
+let CAPS = [];               // todas las capturas guardadas
+let filtroCat = '';
+let geoUltima = null;        // { lat, lng, acc, t }
+
+/* ══════════ Salida de campo ══════════ */
+const K_SAL = 'nativadex-salida';
+function b64u(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function deb64u(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
+function salida() { try { return JSON.parse(localStorage.getItem(K_SAL) || 'null'); } catch (e) { return null; } }
+function fijarSalida(s) { try { s ? localStorage.setItem(K_SAL, JSON.stringify(s)) : localStorage.removeItem(K_SAL); } catch (e) {} }
+function salidaValida(s) {
+  return s && typeof s.n === 'string' && isFinite(s.lat) && isFinite(s.lng) && s.r > 0 && s.ini > 0 && s.fin > s.ini;
+}
+(function leerEnlace() {
+  const m = location.hash.match(/salida=([A-Za-z0-9_-]+)/);
+  if (!m) return;
+  try {
+    const s = JSON.parse(deb64u(m[1]));
+    if (salidaValida(s)) { fijarSalida(s); setTimeout(() => toast('Salida cargada: ' + s.n), 300); }
+  } catch (e) {}
+  history.replaceState(null, '', location.pathname + location.search);
+})();
+function estadoSalida() {
+  const s = salida(); if (!s) return null;
+  const t = Date.now();
+  return { s, activa: t >= s.ini && t <= s.fin, terminada: t > s.fin, porEmpezar: t < s.ini };
+}
+function hora(ms) { return new Date(ms).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }); }
+function fecha(ms) { return new Date(ms).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+function pintarSalida() {
+  const e = estadoSalida(), box = $('salidaBox');
+  if (!e) { box.innerHTML = '<div class="salida off"><i class="fa-solid fa-compass"></i><span>Modo libre: no hay una salida de campo activa en este equipo. Tus registros se revisan igual.</span></div>'; return; }
+  const cls = e.activa ? 'on' : e.terminada ? 'fin' : 'off';
+  const txt = e.activa ? `Salida activa hasta las ${hora(e.s.fin)} · radio ${e.s.r} m`
+    : e.terminada ? `La salida terminó (${fecha(e.s.fin)})` : `Empieza a las ${hora(e.s.ini)}`;
+  box.innerHTML = `<div class="salida ${cls}"><i class="fa-solid fa-person-hiking"></i><span><b>${esc(e.s.n)}</b> · ${txt}</span></div>`;
+}
+function distancia(a, b) {
+  const R = 6371000, r = x => x * Math.PI / 180;
+  const dLat = r(b.lat - a.lat), dLng = r(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/* ══════════ Ubicación ══════════ */
+function pedirUbicacion() {
+  return new Promise(ok => {
+    if (!navigator.geolocation) return ok(null);
+    navigator.geolocation.getCurrentPosition(
+      p => { geoUltima = { lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy), t: Date.now() }; ok(geoUltima); },
+      () => ok(null), { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+  });
+}
+
+/* ══════════ EXIF mínimo (JPEG) ══════════ */
+function leerExif(buf) {
+  const out = {};
+  try {
+    const v = new DataView(buf);
+    if (v.getUint16(0) !== 0xFFD8) return out;
+    let o = 2;
+    while (o + 4 < v.byteLength) {
+      const marca = v.getUint16(o), largo = v.getUint16(o + 2);
+      if (marca === 0xFFE1 && v.getUint32(o + 4) === 0x45786966) { // "Exif"
+        const t = o + 10, le = v.getUint16(t) === 0x4949;
+        const u16 = p => v.getUint16(p, le), u32 = p => v.getUint32(p, le);
+        const ascii = (ent) => {
+          const n = u32(ent + 4), p = n > 4 ? t + u32(ent + 8) : ent + 8; let s = '';
+          for (let i = 0; i < n && p + i < v.byteLength; i++) { const c = v.getUint8(p + i); if (!c) break; s += String.fromCharCode(c); }
+          return s.trim();
+        };
+        const ifd = (pos, fn) => { const n = u16(pos); for (let i = 0; i < n; i++) fn(pos + 2 + i * 12); };
+        let exifPtr = 0, gpsPtr = 0;
+        ifd(t + u32(t + 4), ent => {
+          const tag = u16(ent);
+          if (tag === 0x010F) out.marca = ascii(ent);
+          else if (tag === 0x0110) out.modelo = ascii(ent);
+          else if (tag === 0x0131) out.software = ascii(ent);
+          else if (tag === 0x0132) out.fechaTxt = out.fechaTxt || ascii(ent);
+          else if (tag === 0x8769) exifPtr = u32(ent + 8);
+          else if (tag === 0x8825) gpsPtr = u32(ent + 8);
+        });
+        if (exifPtr) ifd(t + exifPtr, ent => { if (u16(ent) === 0x9003) out.fechaTxt = ascii(ent); });
+        out.gps = !!gpsPtr;
+        const m = (out.fechaTxt || '').match(/(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/);
+        if (m) out.fecha = new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]).getTime();
+        return out;
+      }
+      if ((marca & 0xFF00) !== 0xFF00 || marca === 0xFFDA) break;
+      o += 2 + largo;
+    }
+  } catch (e) {}
+  return out;
+}
+
+/* ══════════ Imagen: reducir y huella (dHash) ══════════ */
+function cargarImagen(file) {
+  return new Promise((ok, mal) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => ok({ img, url }); img.onerror = () => { URL.revokeObjectURL(url); mal(new Error('No se pudo leer la imagen.')); };
+    img.src = url;
+  });
+}
+function reducir(img, lado, calidad) {
+  const k = Math.min(1, lado / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', calidad);   // el lienzo descarta los metadatos (incluida la ubicación)
+}
+function dhash(img) {
+  const c = document.createElement('canvas'); c.width = 9; c.height = 8;
+  const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, 9, 8);
+  const d = x.getImageData(0, 0, 9, 8).data, g = [];
+  for (let i = 0; i < 72; i++) g.push(d[i * 4] * .299 + d[i * 4 + 1] * .587 + d[i * 4 + 2] * .114);
+  let bits = '';
+  for (let y = 0; y < 8; y++) for (let xx = 0; xx < 8; xx++) bits += g[y * 9 + xx] > g[y * 9 + xx + 1] ? '1' : '0';
+  let hex = ''; for (let i = 0; i < 64; i += 4) hex += parseInt(bits.slice(i, i + 4), 2).toString(16);
+  return hex;
+}
+function hamming(a, b) {
+  let d = 0;
+  for (let i = 0; i < a.length; i++) { let x = parseInt(a[i], 16) ^ parseInt(b[i], 16); while (x) { d += x & 1; x >>= 1; } }
+  return d;
+}
+
+/* ══════════ Índice de confianza ══════════ */
+function evaluar({ file, exif, img, hash, geo, uidActual }) {
+  const s = [], ahora = Date.now(); let fuera = false;
+  const add = (estado, txt, pts) => s.push({ e: estado, t: txt, p: pts });
+  // 1. ¿Foto recién tomada?
+  const edad = (ahora - (file.lastModified || 0)) / 60000;
+  if (edad >= -2 && edad <= 5) add('ok', 'Foto recién tomada con la cámara', 25);
+  else if (edad > 5 && edad <= 60) add('mid', `La foto tiene ${Math.round(edad)} min de antigüedad`, 10);
+  else add('no', 'Foto antigua o elegida desde la galería', 0);
+  // 2. Datos de cámara
+  if (exif.marca || exif.modelo) add('ok', `Datos de cámara: ${[exif.marca, exif.modelo].filter(Boolean).join(' ')}`, 15);
+  else add('no', 'Sin datos de cámara (posible imagen descargada o captura de pantalla)', 0);
+  if (exif.fecha) {
+    const dif = Math.abs(ahora - exif.fecha) / 60000;
+    if (dif <= 10) add('ok', 'La hora interna de la foto coincide', 15);
+    else add('no', `La hora interna de la foto no coincide (${fecha(exif.fecha)})`, 0);
+  } else add('mid', 'La foto no trae hora interna', 0);
+  if (exif.software && /photoshop|gimp|lightroom|snapseed|picsart|canva|editor/i.test(exif.software)) add('no', `Imagen editada (${exif.software})`, -15);
+  // 3. Tamaño
+  const lado = Math.min(img.naturalWidth, img.naturalHeight);
+  if (lado >= 1000) add('ok', `Resolución de cámara (${img.naturalWidth}×${img.naturalHeight})`, 5);
+  else add('mid', `Imagen pequeña (${img.naturalWidth}×${img.naturalHeight})`, 0);
+  // 4. Ubicación y salida
+  const es = estadoSalida();
+  if (geo && (ahora - geo.t) < 5 * 60000) {
+    add('ok', `Ubicación registrada (±${geo.acc} m)`, geo.acc <= 100 ? 20 : 12);
+    if (es) {
+      const d = Math.round(distancia(geo, es.s));
+      if (!es.activa) fuera = true, add('no', es.terminada ? 'Fuera del horario: la salida ya terminó' : 'Fuera del horario: la salida aún no empieza', -20);
+      else if (d <= es.s.r + Math.min(geo.acc, 150)) add('ok', `Dentro de la zona de la salida (${d} m del centro)`, 15);
+      else { fuera = true; add('no', `Fuera de la zona de la salida (${d} m del centro)`, -20); }
+    }
+  } else add('no', 'Sin ubicación (activa el GPS y da permiso al navegador)', 0);
+  // 5. Repetida
+  const rep = CAPS.find(c => c.uid !== uidActual && c.hash && hamming(c.hash, hash) <= 5);
+  if (rep) add('no', `Muy parecida a una foto ya registrada (${PORID[rep.especie] ? PORID[rep.especie].nombre : rep.especie})`, -60);
+  else add('ok', 'Foto nueva: no se parece a otras ya registradas', 10);
+  const total = Math.max(0, Math.min(100, s.reduce((a, x) => a + x.p, 10)));   // +10 por la nota de campo, que es obligatoria
+  // Sin datos de cámara la foto no puede quedar «confiable»: la revisa el profe.
+  const tope = (exif.marca || exif.modelo) && !fuera ? 100 : 60;   // fuera de la zona u horario: también al profe
+  const final = Math.min(total, tope);
+  return { senales: s, confianza: final, veredicto: final >= 70 ? 'confiable' : final >= 45 ? 'revisar' : 'dudosa' };
+}
+const VER_TXT = { confiable: 'Confiable', revisar: 'Por revisar', dudosa: 'Dudosa' };
+
+/* ══════════ Progreso y puntos ══════════ */
+function mejorPorEspecie() {
+  const m = {};
+  CAPS.forEach(c => { if (!m[c.especie] || c.confianza > m[c.especie].confianza) m[c.especie] = c; });
+  return m;
+}
+function puntosDe(c) {
+  const e = PORID[c.especie]; if (!e) return 0;
+  const base = RZ[e.rareza].pts;
+  return c.veredicto === 'confiable' ? base : c.veredicto === 'revisar' ? Math.round(base / 2) : 0;
+}
+function pintarStats() {
+  const m = mejorPorEspecie(), ids = Object.keys(m);
+  const pts = ids.reduce((a, id) => a + puntosDe(m[id]), 0);
+  $('sCap').textContent = ids.length;
+  $('sTot').textContent = ESP.length;
+  $('sPts').textContent = pts;
+  $('sLeg').textContent = ids.filter(id => PORID[id] && PORID[id].rareza === 'legendaria').length;
+  $('barra').style.width = (100 * ids.length / ESP.length) + '%';
+  $('catsProg').innerHTML = Object.keys(CAT).map(k => {
+    const tot = ESP.filter(e => e.cat === k).length, si = ESP.filter(e => e.cat === k && m[e.id]).length;
+    return `<div class="catp ${si === tot ? 'full' : ''}"><span>${CAT[k].ico} ${esc(CAT[k].nombre)}</span><b>${si}/${tot}</b></div>`;
+  }).join('');
+  return { m, pts };
+}
+
+/* ══════════ Grilla ══════════ */
+function pintarChips() {
+  $('chips').innerHTML = [['', 'Todo']].concat(Object.keys(CAT).map(k => [k, CAT[k].ico + ' ' + CAT[k].nombre]))
+    .map(([k, t]) => `<button class="chip ${k === filtroCat ? 'on' : ''}" data-cat="${k}">${esc(t)}</button>`).join('');
+}
+function pintarGrilla() {
+  const { m } = pintarStats();
+  const q = $('q').value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const fe = $('fEstado').value, fr = $('fRareza').value;
+  const lista = ESP.filter(e => {
+    if (filtroCat && e.cat !== filtroCat) return false;
+    if (fr && e.rareza !== fr) return false;
+    if (fe === 'si' && !m[e.id]) return false;
+    if (fe === 'no' && m[e.id]) return false;
+    if (q) { const t = (e.nombre + ' ' + e.cientifico).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); if (!t.includes(q)) return false; }
+    return true;
+  });
+  $('grid').innerHTML = lista.length ? lista.map(e => {
+    const c = m[e.id], cls = !c ? 'no' : c.veredicto === 'confiable' ? 'si' : 'rev';
+    const bg = c ? ` style="background-image:url('${c.mini}')"` : '';
+    return `<button class="sp ${cls}" data-id="${e.id}">
+      <div class="img"${bg}>${c ? '' : `<span>${CAT[e.cat].ico}</span>`}</div>
+      <span class="num">#${pad(e.num)}</span>
+      <span class="rz" style="background:${RZ[e.rareza].color}" title="${RZ[e.rareza].nombre}"></span>
+      ${c ? `<span class="ok">${c.veredicto === 'confiable' ? '✓' : '?'} ${VER_TXT[c.veredicto]}</span>` : ''}
+      <div class="tx"><b>${esc(e.nombre)}</b><i>${esc(e.cientifico)}</i></div></button>`;
+  }).join('') : '<div class="vacio">No hay especies con ese filtro.</div>';
+}
+
+/* ══════════ Ficha de la especie ══════════ */
+function cerrar() { $('modal').innerHTML = ''; document.body.style.overflow = ''; }
+function abrirModal(html) {
+  $('modal').innerHTML = `<div class="ov" id="ov"><div class="md">${html}</div></div>`;
+  document.body.style.overflow = 'hidden';
+}
+function ficha(id) {
+  const e = PORID[id]; if (!e) return;
+  const mias = CAPS.filter(c => c.especie === id).sort((a, b) => b.fecha - a.fecha);
+  const mejor = mias.slice().sort((a, b) => b.confianza - a.confianza)[0];
+  const rz = RZ[e.rareza];
+  abrirModal(`
+    <div class="top"><div><small style="color:var(--mute)">#${pad(e.num)} · ${CAT[e.cat].ico} ${esc(CAT[e.cat].nombre)}</small>
+      <h2 style="margin:4px 0 0">${esc(e.nombre)}</h2><i style="color:var(--mute)">${esc(e.cientifico)}</i></div>
+      <button class="x" data-cerrar>&times;</button></div>
+    <div class="hero" ${mejor ? `style="background-image:url('${mejor.foto}')"` : ''}>${mejor ? '' : `<span style="filter:grayscale(1) brightness(.4)">${CAT[e.cat].ico}</span>`}</div>
+    <div class="badges">
+      <span class="bd" style="background:${rz.color};color:#111;border-color:transparent">${rz.nombre} · ${rz.pts} pts</span>
+      ${e.origen ? `<span class="bd ${e.origen}">${esc(ND.ORIGEN[e.origen])}</span>` : ''}
+      ${e.cons ? `<span class="bd ${e.cons}">${e.cons} · ${esc(ND.CONS[e.cons])}</span>` : ''}
+    </div>
+    <dl><dt>Dónde buscar</dt><dd>${esc(e.habitat)}</dd><dt>Pista</dt><dd>${esc(e.pista)}</dd></dl>
+    ${e.cuidado ? `<div class="warn"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(e.cuidado)}</div>` : ''}
+    <div class="row" style="margin-top:10px"><button class="btn p" data-capturar="${e.id}"><i class="fa-solid fa-camera"></i> ${mias.length ? 'Registrar otro avistamiento' : 'Registrar avistamiento'}</button></div>
+    ${mias.length ? `<h2 style="margin-top:18px;font-size:20px">Mis registros</h2><div class="caps">${mias.map(c => `
+      <div class="cap"><img src="${c.mini}" alt="">
+        <div><span class="ver ${c.veredicto}">${VER_TXT[c.veredicto]} · ${c.confianza}%</span>
+        <div><small>${fecha(c.fecha)}${c.salida ? ' · ' + esc(c.salida) : ''}</small></div>
+        <div style="font-size:14px">${esc(c.nota.obs)}</div>
+        <details><summary style="font-size:13px;font-weight:600;color:var(--mute)">Ficha de evidencia</summary>${listaSenales(c.senales)}
+          <div class="note">Hábitat anotado: ${esc(c.nota.habitat)}${c.geo ? ` · ubicación ±${c.geo.acc} m` : ''}</div>
+          <button class="btn n sm" data-borrar="${c.uid}">Borrar este registro</button></details></div></div>`).join('')}</div>` : ''}
+  `);
+}
+function listaSenales(s) {
+  const ico = { ok: '<i class="fa-solid fa-circle-check s-ok"></i>', no: '<i class="fa-solid fa-circle-xmark s-no"></i>', mid: '<i class="fa-solid fa-circle-minus s-mid"></i>' };
+  return `<ul class="sig">${s.map(x => `<li>${ico[x.e]}<span>${esc(x.t)}</span></li>`).join('')}</ul>`;
+}
+
+/* ══════════ Captura ══════════ */
+let capEspecie = null, capGeo = null;
+function iniciarCaptura(id) {
+  capEspecie = id; capGeo = null;
+  const e = PORID[id];
+  abrirModal(`
+    <div class="top"><h2>Registrar: ${esc(e.nombre)}</h2><button class="x" data-cerrar>&times;</button></div>
+    <p class="sub">Encuadra solo la especie (sin personas). La cámara se abre desde aquí y se registra tu ubicación en ese momento.</p>
+    <div class="note" id="geoEstado"><i class="fa-solid fa-spinner fa-spin"></i> Buscando tu ubicación…</div>
+    ${e.cuidado ? `<div class="warn"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(e.cuidado)}</div>` : ''}
+    <button class="btn p" id="abrirCam" style="width:100%;margin-top:8px;padding:14px"><i class="fa-solid fa-camera"></i> Abrir cámara</button>
+    <div id="capPaso2"></div>`);
+  pedirUbicacion().then(g => {
+    capGeo = g; const el = $('geoEstado'); if (!el) return;
+    el.innerHTML = g ? `<i class="fa-solid fa-location-dot" style="color:var(--cyan)"></i> Ubicación lista (±${g.acc} m)`
+      : '<i class="fa-solid fa-location-dot" style="color:var(--neg)"></i> Sin ubicación: activa el GPS y permite la ubicación al navegador. Puedes seguir, pero el registro quedará con menos confianza.';
+  });
+}
+async function procesarFoto(file) {
+  const box = $('capPaso2'); if (!box) return;
+  box.innerHTML = '<p class="note"><i class="fa-solid fa-spinner fa-spin"></i> Revisando la foto…</p>';
+  try {
+    if (!capGeo) capGeo = await pedirUbicacion();      // reintenta justo después de la foto
+    const buf = await file.arrayBuffer();
+    const exif = /jpe?g/i.test(file.type) || !file.type ? leerExif(buf) : {};
+    const { img, url } = await cargarImagen(file);
+    const hash = dhash(img);
+    const ev = evaluar({ file, exif, img, hash, geo: capGeo });
+    const foto = reducir(img, 1024, .78), mini = reducir(img, 260, .7);
+    URL.revokeObjectURL(url);
+    const color = ev.veredicto === 'confiable' ? 'var(--cyan)' : ev.veredicto === 'revisar' ? 'var(--acid)' : 'var(--neg)';
+    const hab = ['Ladera soleada', 'Ladera sombría', 'Fondo de quebrada', 'Cerca de agua', 'Pastizal o claro', 'Sobre un árbol o arbusto', 'Bajo una roca o tronco', 'Zona urbana', 'Otro'];
+    box.innerHTML = `
+      <img class="prev" src="${foto}" alt="Tu foto" style="margin-top:12px">
+      <div class="row" style="margin-top:10px;justify-content:space-between"><b>Índice de confianza</b><span class="ver ${ev.veredicto}">${VER_TXT[ev.veredicto]} · ${ev.confianza}%</span></div>
+      <div class="meter" style="margin-top:6px"><i style="width:${ev.confianza}%;background:${color}"></i></div>
+      ${listaSenales(ev.senales)}
+      <div class="f">
+        <label>¿Dónde estaba?<select id="nHab">${hab.map(h => `<option>${h}</option>`).join('')}</select></label>
+        <label>Nota de campo: ¿qué observaste? (forma, color, qué hacía, qué había alrededor)
+          <textarea id="nObs" maxlength="400" placeholder="Mínimo 20 caracteres"></textarea></label>
+        <div class="row"><button class="btn p" id="guardarCap"><i class="fa-solid fa-floppy-disk"></i> Guardar registro</button>
+        <button class="btn sm" id="otraFoto">Tomar otra foto</button></div>
+      </div>`;
+    box._datos = { exif, hash, ev, foto, mini };
+  } catch (err) {
+    box.innerHTML = `<div class="warn">${esc(err.message || 'No se pudo procesar la foto.')}</div>`;
+  }
+}
+async function guardarCaptura() {
+  const box = $('capPaso2'), d = box && box._datos; if (!d) return;
+  const obs = $('nObs').value.trim();
+  if (obs.length < 20) { toast('Escribe una nota de campo de al menos 20 caracteres.'); $('nObs').focus(); return; }
+  const es = estadoSalida();
+  const c = {
+    uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+    especie: capEspecie, fecha: Date.now(), foto: d.foto, mini: d.mini, hash: d.hash,
+    geo: capGeo ? { lat: +capGeo.lat.toFixed(4), lng: +capGeo.lng.toFixed(4), acc: capGeo.acc } : null,   // ~10 m de precisión guardada
+    exif: { marca: d.exif.marca || '', modelo: d.exif.modelo || '', fecha: d.exif.fecha || 0, software: d.exif.software || '' },
+    senales: d.ev.senales, confianza: d.ev.confianza, veredicto: d.ev.veredicto,
+    nota: { habitat: $('nHab').value, obs }, salida: es && es.activa ? es.s.n : '', estado: 'pendiente'
+  };
+  await DB.guardar(c);
+  CAPS.push(c);
+  const e = PORID[capEspecie], pts = puntosDe(c);
+  pintarGrilla(); respaldar();
+  ficha(capEspecie);
+  toast(c.veredicto === 'dudosa' ? 'Guardado como dudoso: el profe lo revisará.' : `¡${e.nombre} registrado! +${pts} pts`);
+}
+
+/* ══════════ Respaldo en la cuenta (resumen, sin fotos) ══════════ */
+let _resp = null;
+function respaldar() {
+  if (!window.DF || !DF.usuario || !DF.usuario()) return;
+  clearTimeout(_resp);
+  _resp = setTimeout(() => {
+    const { m, pts } = pintarStats(), especies = {};
+    Object.keys(m).forEach(id => { especies[id] = { c: m[id].confianza, v: m[id].veredicto, f: new Date(m[id].fecha).toISOString() }; });
+    DF.guardarProgreso('nativadex', { version: 1, puntos: pts, registradas: Object.keys(m).length, especies })
+      .catch(err => console.info('[Nativadex] respaldo: ' + err.message));
+  }, 800);
+}
+function pintarCuenta(u) {
+  const el = $('cuenta');
+  if (!window.DF) { el.textContent = ''; return; }
+  el.innerHTML = u ? `<i class="fa-solid fa-user-check"></i> Conectado: ${esc(u.displayName || u.email)} · tu avance se respalda en tu cuenta.`
+    : '<i class="fa-solid fa-user"></i> <a href="#" id="entrar">Entra con tu cuenta</a> para respaldar tu avance.';
+  $('profeBox').hidden = !(u && DF.esProfe(u));
+}
+
+/* ══════════ Profe: crear salida ══════════ */
+async function crearSalida() {
+  const n = $('pNombre').value.trim() || 'Salida de campo';
+  const r = Math.max(50, Math.min(5000, +$('pRadio').value || 400));
+  const h = Math.max(1, Math.min(12, +$('pHoras').value || 3));
+  $('pLink').innerHTML = '<p class="note"><i class="fa-solid fa-spinner fa-spin"></i> Buscando tu ubicación…</p>';
+  const g = await pedirUbicacion();
+  if (!g) { $('pLink').innerHTML = '<div class="warn">No se pudo obtener la ubicación. Activa el GPS y vuelve a intentar.</div>'; return; }
+  const s = { n, lat: +g.lat.toFixed(5), lng: +g.lng.toFixed(5), r, ini: Date.now() - 5 * 60000, fin: Date.now() + h * 3600000 };
+  fijarSalida(s); pintarSalida();
+  const url = location.origin + location.pathname + '#salida=' + b64u(JSON.stringify(s));
+  $('pLink').innerHTML = `<p class="note">Salida creada (centro ±${g.acc} m). Comparte este enlace con el curso:</p>
+    <div class="mono" id="pUrl">${esc(url)}</div>
+    <div class="row" style="margin-top:8px"><button class="btn sm" id="pCopiar"><i class="fa-regular fa-copy"></i> Copiar</button>
+    ${navigator.share ? '<button class="btn sm" id="pCompartir"><i class="fa-solid fa-share-nodes"></i> Compartir</button>' : ''}</div>`;
+  $('pLink')._url = url;
+}
+
+/* ══════════ Varios ══════════ */
+let _t = null;
+function toast(m) {
+  let el = document.querySelector('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); }
+  el.textContent = m; clearTimeout(_t); _t = setTimeout(() => el.remove(), 2800);
+}
+
+/* ══════════ Eventos ══════════ */
+document.addEventListener('click', async ev => {
+  const t = ev.target;
+  if (t.id === 'ov' || t.closest('[data-cerrar]')) return cerrar();
+  const chip = t.closest('.chip'); if (chip) { filtroCat = chip.dataset.cat; pintarChips(); pintarGrilla(); return; }
+  const sp = t.closest('.sp'); if (sp) return ficha(sp.dataset.id);
+  const cap = t.closest('[data-capturar]'); if (cap) return iniciarCaptura(cap.dataset.capturar);
+  if (t.closest('#abrirCam') || t.closest('#otraFoto')) { $('camara').value = ''; $('camara').click(); return; }
+  if (t.closest('#guardarCap')) return guardarCaptura();
+  const bo = t.closest('[data-borrar]');
+  if (bo) {
+    if (bo.dataset.ok !== '1') { bo.dataset.ok = '1'; bo.textContent = 'Toca otra vez para confirmar'; return; }
+    const c = CAPS.find(x => x.uid === bo.dataset.borrar);
+    await DB.borrar(bo.dataset.borrar); CAPS = CAPS.filter(x => x.uid !== bo.dataset.borrar);
+    pintarGrilla(); respaldar(); if (c) ficha(c.especie); return;
+  }
+  if (t.id === 'borrarTodo') {
+    if (t.dataset.ok !== '1') { t.dataset.ok = '1'; t.textContent = 'Toca otra vez: se borrarán todas las fotos'; return; }
+    await DB.vaciar(); CAPS = []; t.dataset.ok = ''; t.textContent = 'Borrar todos mis registros'; pintarGrilla(); respaldar(); toast('Registros borrados.'); return;
+  }
+  if (t.id === 'entrar') { ev.preventDefault(); DF.entrar().catch(() => {}); return; }
+  if (t.closest('#pCrear')) return crearSalida();
+  if (t.closest('#pQuitar')) { fijarSalida(null); pintarSalida(); $('pLink').innerHTML = ''; toast('Salida quitada de este equipo.'); return; }
+  if (t.closest('#pCopiar')) { navigator.clipboard.writeText($('pLink')._url).then(() => toast('Enlace copiado.'), () => toast('Copia el enlace a mano.')); return; }
+  if (t.closest('#pCompartir')) { navigator.share({ title: 'Nativadex · salida de campo', url: $('pLink')._url }).catch(() => {}); return; }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
+$('camara').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) procesarFoto(f); });
+$('q').addEventListener('input', pintarGrilla);
+$('fEstado').addEventListener('change', pintarGrilla);
+$('fRareza').addEventListener('change', pintarGrilla);
+$('fRareza').innerHTML += Object.keys(RZ).map(k => `<option value="${k}">${RZ[k].nombre} (${RZ[k].pts} pts)</option>`).join('');
+setInterval(pintarSalida, 60000);
+
+/* ══════════ Inicio ══════════ */
+pintarChips(); pintarSalida();
+DB.todas().then(l => { CAPS = l || []; pintarGrilla(); });
+pintarGrilla();
+if (window.DF) {
+  DF.listo().then(() => DF.alCambiarUsuario(u => { pintarCuenta(u); if (u) respaldar(); }), () => pintarCuenta(null));
+  pintarCuenta(null);
+}
+})();
+</script>
+</body>
+</html>
