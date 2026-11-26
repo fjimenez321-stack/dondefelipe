@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F3443">
+<title>Herramienta para debates · El Mundo de Felipe</title>
+<style>
+:root{
+  --ocean:#0F3443; --sea:#1F6E80; --sea-l:#e4f0f2; --sand:#E2BF84; --sand-l:#F7EEDC; --sand-d:#a9824a;
+  --coral:#C8553D; --coral-l:#f8e3de; --moss:#5E7F4F; --moss-l:#e6efe1;
+  --ink:#1B2A30; --muted:#56676c; --line:#e3d9c6; --bg:#fbf8f2;
+  --team:var(--sea); --team-l:var(--sea-l);
+  --r:14px; --shadow:0 3px 14px rgba(15,52,67,.08);
+  --top:58px; --tabs:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{font-family:"Segoe UI",Calibri,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;-webkit-tap-highlight-color:transparent}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;color:var(--ocean);line-height:1.15}
+h1{font-size:clamp(1.9rem,6vw,2.8rem)}
+h2{font-size:1.42rem;margin-bottom:.4em}
+h3{font-size:1.06rem;margin-bottom:.3em}
+p{margin-bottom:.55em}
+a{color:var(--sea)}
+.small{font-size:.86rem;color:var(--muted)}
+.wrap{max-width:780px;margin:0 auto;padding:18px 16px 96px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* barra superior */
+.top{position:sticky;top:0;z-index:30;height:var(--top);display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--team);color:#fff}
+.top .id{flex:1;min-width:0}
+.top .t1{font-weight:800;font-size:.98rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .t2{font-size:.76rem;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sp{flex:1}
+.top button,.top a.tb{background:rgba(255,255,255,.16);border:none;color:#fff;border-radius:10px;padding:9px 12px;font-size:.82rem;font-weight:700;text-decoration:none;min-height:40px;display:inline-flex;align-items:center}
+.cloud{display:inline-block;font-size:.7rem;font-weight:800;padding:1px 7px;border-radius:99px;background:rgba(255,255,255,.2);margin-left:6px}
+
+/* pestañas */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--tabs) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);display:flex;background:#fff;border-top:1px solid var(--line)}
+.tabs[hidden]{display:none}
+.tabs button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.72rem;font-weight:700;color:var(--muted);min-width:0}
+.tabs button .ic{font-size:1.25rem;line-height:1}
+.tabs button.on{color:var(--team)}
+.tabs button.on .ic{transform:scale(1.12)}
+.has-tabs .wrap{padding-bottom:calc(var(--tabs) + 90px)}
+
+/* tarjetas */
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;box-shadow:var(--shadow);margin-bottom:14px}
+.card.tint{background:var(--team-l);border-color:transparent}
+.card.sand{background:var(--sand-l);border-color:transparent}
+.card.dark{background:var(--ocean);color:#fff;border-color:transparent}
+.card.dark h2,.card.dark h3{color:var(--sand)}
+.card.warn{background:var(--coral-l);border-color:transparent}
+.tag{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--team);color:#fff;margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+ol.steps{list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;position:relative;padding:6px 0 6px 38px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:5px;width:26px;height:26px;border-radius:50%;background:var(--team);color:#fff;font-weight:800;font-size:.85rem;display:grid;place-items:center}
+ul.dots{list-style:none}
+ul.dots li{position:relative;padding:4px 0 4px 18px}
+ul.dots li::before{content:"";position:absolute;left:3px;top:12px;width:7px;height:7px;border-radius:50%;background:var(--sand-d)}
+
+/* botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:11px;padding:11px 16px;font-weight:800;font-size:.95rem;background:var(--team);color:#fff;min-height:44px;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--team);border:1.5px solid var(--team)}
+.btn.sm{padding:8px 12px;font-size:.84rem;border-radius:9px;min-height:38px}
+.btn.full{width:100%}
+.btn.danger{background:var(--coral)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.lnk{border:none;background:none;color:var(--coral);font-weight:800;font-size:.82rem;padding:8px 6px;min-height:36px}
+
+/* campos */
+label.lb{display:block;font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ocean);margin:12px 0 4px}
+textarea,input[type=text],input[type=url],select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;background:#fff;resize:vertical}
+textarea{min-height:70px}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);box-shadow:0 0 0 3px var(--team-l)}
+.hint{font-size:.8rem;color:var(--muted);margin-top:3px}
+
+/* portada del debate */
+.hero{background:var(--ocean);color:#fff;padding:30px 18px 70px;position:relative;overflow:hidden}
+.hero h1{color:#fff;margin:.15em 0 .35em}
+.hero .k{font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--sand)}
+.hero .mo{background:var(--sand);color:var(--ocean);border-radius:12px;padding:12px 14px;font-family:Cambria,Georgia,serif;font-weight:700;font-style:italic;font-size:1.08rem;margin-top:14px}
+.hero svg{position:absolute;left:0;right:0;bottom:-2px;width:100%;height:70px}
+.hero .in{max-width:780px;margin:0 auto;position:relative;z-index:1}
+.hero a.back{color:var(--sand);font-size:.84rem;font-weight:700;text-decoration:none}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:420px){.teams{grid-template-columns:1fr}}
+.tbtn{border:2px solid transparent;border-radius:16px;padding:16px 14px;text-align:left;color:#fff;display:flex;flex-direction:column;gap:4px;min-height:124px;box-shadow:var(--shadow)}
+.tbtn .ic{font-size:1.7rem}
+.tbtn b{font-size:1.08rem}
+.tbtn span{font-size:.85rem;opacity:.95}
+.tbtn:disabled{opacity:.4;cursor:default}
+.acc{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.acc .av{width:42px;height:42px;border-radius:50%;background:var(--team);color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.1rem;flex:0 0 auto}
+.acc .tx{flex:1;min-width:180px}
+
+/* evidencia */
+.ev{border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:10px;background:#fff}
+.ev h3{font-family:inherit;font-size:1rem;color:var(--ocean)}
+.ev .src{font-size:.76rem;font-style:italic;color:var(--muted);margin-top:4px}
+.ev.used{border-color:var(--team);background:var(--team-l)}
+
+/* argumentos */
+.arg{border-radius:var(--r);border:1.5px solid var(--line);background:#fff;padding:14px 15px;margin-bottom:14px}
+.arg.best{border-color:var(--team);box-shadow:0 0 0 3px var(--team-l)}
+.arg .hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.arg .n{width:30px;height:30px;border-radius:50%;background:var(--team);color:#fff;display:grid;place-items:center;font-weight:800;flex:0 0 auto}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:10px}
+.meter i{display:block;height:100%;width:0;background:var(--team);transition:width .3s}
+
+/* reloj */
+.clock{background:var(--ocean);color:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:14px;position:sticky;top:calc(var(--top) + 6px);z-index:20}
+.clock .now{font-size:.78rem;color:var(--sand);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.clock .ttl{font-size:1.06rem;font-weight:800;margin:2px 0 6px}
+.clock .big{font-size:2.8rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.clock.warn .big{color:var(--sand)}
+.clock.end .big{color:#ff9b86}
+.clock .btn{background:var(--sand);color:var(--ocean)}
+@media (max-width:700px) and (max-height:820px){.clock{position:static}}
+.clock .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.clock .sub{font-size:.8rem;color:#cfe0e3;margin-top:6px}
+.turns{list-style:none}
+.turns li{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:6px;cursor:pointer;min-height:48px}
+.turns li .tn{min-width:28px;height:28px;border-radius:50%;background:var(--sand-l);color:var(--ocean);font-weight:800;display:grid;place-items:center;font-size:.85rem;flex:0 0 auto;padding:0 6px}
+.turns li .tx{flex:1;font-size:.92rem}
+.turns li .tx small{display:block;color:var(--muted);font-size:.76rem}
+.turns li .tm{font-weight:800;color:var(--ocean)}
+.turns li.cur{border-color:var(--team);background:var(--team-l)}
+.turns li.cur .tn{background:var(--team);color:#fff}
+.turns li.done{opacity:.55}
+.turns.static li{cursor:default}
+.miturno{border:2px solid var(--team);background:#fff}
+.miturno .who{font-size:.74rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--team)}
+.miturno ul{margin:6px 0 0 18px}
+.miturno li{margin:4px 0}
+
+/* notas */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-size:.84rem;font-weight:700;color:var(--muted);min-height:38px}
+.chip.on{background:var(--team);border-color:var(--team);color:#fff}
+.note{border-left:4px solid var(--team);background:#fff;border-radius:0 10px 10px 0;padding:8px 12px;margin-bottom:8px;box-shadow:var(--shadow)}
+.note .meta{font-size:.74rem;color:var(--muted);display:flex;gap:8px;align-items:center}
+.note .meta .lnk{margin-left:auto}
+.note p{margin:2px 0 0;white-space:pre-wrap}
+.note.t-debil,.note.t-falta{border-left-color:var(--coral)}
+.note.t-idea,.note.t-mejor{border-left-color:var(--moss)}
+.note.t-pregunta,.note.t-duda{border-left-color:var(--sand-d)}
+
+/* pauta */
+.crit{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff}
+.crit h3{font-family:inherit;font-size:1rem}
+.crit .lv{font-size:.78rem;color:var(--muted);margin-bottom:6px}
+.score{display:flex;align-items:center;gap:8px;margin-top:6px}
+.score .who{width:84px;font-weight:800;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score button{width:48px;height:42px;border-radius:9px;border:1.5px solid var(--line);background:#fff;font-weight:800}
+.score button.on{background:var(--team);border-color:var(--team);color:#fff}
+.tot{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.tot .box{border-radius:12px;padding:14px;text-align:center;color:#fff}
+.tot .box b{display:block;font-size:2.2rem;line-height:1.1}
+.counter{display:flex;align-items:center;gap:10px}
+.counter button{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-weight:800;font-size:1.1rem}
+.counter b{min-width:2ch;text-align:center;font-size:1.3rem}
+
+/* verificación */
+.vf{border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px 12px;margin-bottom:8px}
+.vf .top2{display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.vf .top2 .lnk{margin-left:auto}
+.badge{display:inline-block;border-radius:6px;padding:1px 7px;font-size:.72rem;font-weight:800;color:#fff}
+.b-ok{background:var(--moss)} .b-dud{background:var(--sand-d)} .b-fal{background:var(--coral)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:84px;border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:10px 8px;font-weight:800;font-size:.88rem;min-height:44px}
+.seg button.on{background:var(--team);border-color:var(--team);color:#fff}
+
+/* chip de autoguardado (firebase/autoguardado.js): abajo, sin tapar la barra superior */
+.ag-chip{top:auto!important;right:auto!important;left:12px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important;max-width:calc(100vw - 24px)!important}
+.ag-chip button,.ag-chip a{padding:6px 4px!important}
+.has-tabs .ag-chip{bottom:calc(var(--tabs) + 10px + env(safe-area-inset-bottom))!important}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:calc(var(--tabs) + 70px);transform:translateX(-50%) translateY(20px);background:var(--ocean);color:#fff;padding:10px 16px;border-radius:12px;font-size:.9rem;font-weight:700;opacity:0;pointer-events:none;transition:all .3s;z-index:50;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
+
+/* editor / herramienta */
+.lib{display:grid;gap:12px}
+.libitem{display:flex;gap:12px;align-items:center;border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:14px;text-decoration:none;color:inherit}
+.libitem .ic{font-size:1.8rem}
+.libitem b{display:block;color:var(--ocean)}
+.libitem span{font-size:.86rem;color:var(--muted)}
+.fourteams{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:560px){.fourteams{grid-template-columns:1fr 1fr}}
+.fourteams div{border-radius:12px;padding:10px;color:#fff;font-size:.82rem}
+.fourteams b{display:block;font-size:.95rem}
+.out{word-break:break-all;font-size:.8rem;color:var(--ink);background:var(--sand-l);border-radius:10px;padding:10px;max-height:120px;overflow:auto}
+
+/* impresión */
+#print{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff}
+  #app,.tabs,#toast,.ag-chip{display:none!important}
+  #print{display:block;font-family:Calibri,Arial,sans-serif;color:#000;font-size:11pt}
+  #print h1{font-size:18pt;color:#000}
+  #print pre{white-space:pre-wrap;font-family:inherit}
+}
+</style>
+<script src="../firebase/df.js?v=20261116" data-sin-aviso></script>
+</head>
+<body>
+<div id="app"></div>
+<nav class="tabs" id="tabs" hidden aria-label="Secciones del equipo"></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="print"></div>
+
+<script>
+/* =====================================================================
+   HERRAMIENTA PARA DEBATES · El Mundo de Felipe
+   Un debate = una configuración. Las de la biblioteca están abajo
+   (DEBATES). Cualquier docente puede crear otra con el editor:
+   se comparte como enlace (la configuración va dentro del enlace).
+   ===================================================================== */
+
+/* ---------- valores comunes a todos los debates ---------- */
+const ROLES = {
+  debate: [
+    ['Capitán/a', 'Coordina la preparación y presenta la apertura (3 min).'],
+    ['Orador/a de cierre', 'Resume la postura y responde lo que quedó abierto (2 min).'],
+    ['Refutador/a', 'Escucha al rival, anota sus puntos débiles y responde (2 min).'],
+    ['Investigador/a', 'Busca datos en la ficha de evidencia y se los pasa a los oradores.'],
+    ['Estratega de preguntas', 'Prepara y hace las preguntas cruzadas al otro equipo.'],
+    ['Cronometrista y secretario/a', 'Controla los tiempos del equipo y anota los argumentos del rival.']
+  ],
+  jurado: [
+    ['Presidente/a', 'Dirige el debate: da la palabra, controla el reloj y hace respetar los turnos.'],
+    ['Evaluador/a de argumentos', 'Evalúa si los argumentos tienen afirmación, evidencia y razonamiento.'],
+    ['Evaluador/a de evidencia', 'Evalúa si los datos son concretos y tienen fuente.'],
+    ['Evaluador/a de refutación', 'Evalúa si cada equipo responde lo que dijo el rival.'],
+    ['Evaluador/a de respeto y tiempos', 'Evalúa el respeto a los turnos y a las personas.'],
+    ['Relator/a', 'Suma los puntajes y registra los descuentos de la prensa.'],
+    ['Vocero/a', 'Lee el veredicto y explica por qué ganó un equipo.']
+  ],
+  prensa: [
+    ['Verificador/a', 'Comprueba cada dato dicho contra las fichas de evidencia.'],
+    ['Editor/a', 'Decide qué datos fueron correctos, dudosos o falsos.'],
+    ['Reportero/a', 'Informa al jurado los datos falsos en el turno de la prensa.'],
+    ['Redactor/a', 'Escribe el titular de prensa del debate.']
+  ]
+};
+const CRITERIOS = [
+  ['Argumentos', 'Claros, con afirmación, evidencia y razonamiento', 'Claros, pero sin razonamiento', 'Opiniones sin estructura'],
+  ['Evidencia', 'Datos concretos con su fuente', 'Datos sin fuente', 'Sin datos'],
+  ['Refutación', 'Responde directamente lo que dijo el rival', 'Responde a medias', 'Ignora al rival'],
+  ['Respeto y tiempos', 'Respeta turnos y tiempos en todo momento', 'Una falta', 'Varias faltas']
+];
+const JURADO = { nombre: 'Comité / Jurado', postura: 'Jurado', icono: '⚖️', color: '#0F3443', claro: '#e2e9ec', tipo: 'jurado', mision: 'Dirigir el debate, evaluar a ambos equipos con la pauta y dar el veredicto.' };
+const PRENSA = { nombre: 'Prensa verificadora', postura: 'Fact-checkers', icono: '📰', color: '#1F6E80', claro: '#e4f0f2', tipo: 'prensa', mision: 'Comprobar si los datos que se dicen son ciertos e informar al jurado. Al final, escribir el titular.' };
+/* tipo de turno: apertura · pausa · refutacion · preguntas · prensa · cierre ; lado: A, B o '' */
+function turnosPara(A, B){
+  return [
+    ['Apertura · ' + A, 'Capitán/a', 3, 'apertura', 'A'],
+    ['Apertura · ' + B, 'Capitán/a', 3, 'apertura', 'B'],
+    ['Pausa para preparar refutación', 'Ambos equipos', 2, 'pausa', ''],
+    ['Refutación · ' + B, 'Refutadores/as', 2, 'refutacion', 'B'],
+    ['Refutación · ' + A, 'Refutadores/as', 2, 'refutacion', 'A'],
+    ['Preguntas cruzadas (2 por equipo)', 'Estrategas de preguntas', 4, 'preguntas', ''],
+    ['Informe de la prensa', 'Reportero/a', 3, 'prensa', ''],
+    ['Pausa estratégica', 'Ambos equipos', 2, 'pausa', ''],
+    ['Cierre · ' + B, 'Orador/a de cierre', 2, 'cierre', 'B'],
+    ['Cierre · ' + A, 'Orador/a de cierre', 2, 'cierre', 'A']
+  ];
+}
+
+/* ---------- biblioteca de debates ---------- */
+const DEBATES = {
+  'dunas-concon': {
+    id: 'dunas-concon-2026',          // no cambiar: es la clave con que se guardó el trabajo de los estudiantes
+    clave: 'debate-dunas-concon',     // nombre del trabajo en la cuenta (Panel del profe → Trabajos)
+    titulo: 'Las Dunas de Concón',
+    subtitulo: 'Debate · Biología 1° Medio · Unidad 4',
+    gancho: '¿Quién se queda con la duna? Un ecosistema de millones de años frente a nuevos edificios aprobados en 2026.',
+    mocion: 'Se debe prohibir toda nueva construcción en el campo dunar de Concón, incluso en terrenos privados.',
+    volver: { href: '../index.html', texto: 'El Mundo de Felipe' },
+    contexto: {
+      datos: [
+        ['2 millones de años', 'Edad de los sedimentos más antiguos de las dunas (Pleistoceno). Son «dunas colgantes» sobre acantilados, casi únicas en la costa central.'],
+        ['12 de 45 hectáreas', 'Superficie del campo dunar que quedó protegida como Santuario de la Naturaleza en 1994.'],
+        ['1993', 'Año en que las dunas fueron declaradas Santuario de la Naturaleza.'],
+        ['2023 y 2024', 'Las lluvias abrieron socavones; edificios como el Kandinsky quedaron al borde.'],
+        ['2026', 'El Comité de Ministros revirtió dos rechazos ambientales y aprobó proyectos junto al santuario; en julio se aprobó un tercero.']
+      ],
+      cronologia: [
+        ['2017', 'La Dirección de Obras de Concón otorga permiso de edificación a la inmobiliaria Reconsa.'],
+        ['2019', 'La Corte Suprema exige evaluación ambiental; las obras se paralizan con cerca del 90% construido.'],
+        ['2020', 'La Superintendencia del Medio Ambiente sanciona a Reconsa.'],
+        ['2023-24', 'Las lluvias abren socavones en el campo dunar.'],
+        ['2024', 'La comisión ambiental de Valparaíso rechaza Makrocéano y Costa de Montemar.'],
+        ['2025', 'La Corte Suprema devuelve el permiso a Reconsa. Viña del Mar posterga permisos cerca de las dunas.'],
+        ['2026', 'El Comité de Ministros aprueba Makrocéano y Costa de Montemar; en julio se aprueba Alto Santorini II.']
+      ],
+      fuentes: 'El Desconcierto (2025 y 2026); La Tercera (2026); Observatorio de la Costa UC.'
+    },
+    equipos: {
+      duna: {
+        nombre: 'Equipo Duna', postura: 'A favor de la moción', icono: '🌿', color: '#5E7F4F', claro: '#e6efe1', tipo: 'debate',
+        mision: 'Defender que se prohíba toda nueva construcción en el campo dunar.',
+        evidencia: [
+          ['Patrimonio único', 'Sedimentos de hasta 2 millones de años: «dunas colgantes», casi únicas en la costa central.', 'Observatorio de la Costa UC, 2026'],
+          ['Protección insuficiente', 'En 1994 el santuario se redujo a 12 de 45 hectáreas.', 'La Tercera, 2026'],
+          ['Riesgo para personas', 'Las lluvias de 2023 y 2024 abrieron socavones. El Kandinsky quedó al borde y sigue casi deshabitado.', 'El Desconcierto, jul 2026'],
+          ['La evaluación técnica dijo no', 'En 2024 la comisión ambiental rechazó dos proyectos y advirtió riesgo de nuevos socavones.', 'La Tercera, 2026; El Desconcierto, 2025'],
+          ['Obras sin permiso', 'Reconsa avanzó cerca del 90% de sus obras sin permiso ambiental. Fue sancionada en 2020.', 'El Desconcierto, 2025'],
+          ['Servicios del ecosistema', 'Frenan la erosión y las marejadas. Más de 300 especies nativas, según la agrupación Duna Viva.', 'Observatorio de la Costa UC; Duna Viva']
+        ]
+      },
+      ciudad: {
+        nombre: 'Equipo Ciudad', postura: 'En contra de la moción', icono: '🏙️', color: '#C8553D', claro: '#f8e3de', tipo: 'debate',
+        mision: 'Defender que se pueda construir en el campo dunar con condiciones.',
+        evidencia: [
+          ['Permisos válidos', 'Concón dio el permiso en 2017. En 2025 la Corte Suprema se lo devolvió a Reconsa, dueña del terreno.', 'El Desconcierto, ene 2025'],
+          ['La ley ya decidió', 'El Comité de Ministros, última instancia del sistema ambiental, aprobó dos proyectos en 2026.', 'La Tercera, 2026'],
+          ['No todo es santuario', 'Del conjunto de 45 hectáreas, 33 no forman parte del Santuario de la Naturaleza.', 'Cálculo con datos de La Tercera'],
+          ['Se puede mitigar', 'Alto Santorini II pasó de dos torres (28 y 10 pisos) a un edificio de 15 pisos.', 'El Desconcierto, jul 2026'],
+          ['Vivienda e inversión', 'Makrocéano suma 149 departamentos y una inversión cercana a US$48 millones.', 'La Tercera, 2026'],
+          ['¿Y las obras a medias?', 'Hay edificios a medio construir. Y las reparaciones del Kandinsky ya terminaron.', 'El Desconcierto, jul 2026']
+        ]
+      },
+      comite: Object.assign({}, JURADO, { nombre: 'Comité de Ministros' }),
+      prensa: PRENSA
+    },
+    reflexion: '¿Qué medida haría compatible vivir en la costa con conservar la duna?'
+  }
+};
+
+/* ---------- debates creados con el editor (viajan en el enlace) ---------- */
+const PALETA = [['#5E7F4F','#e6efe1'],['#C8553D','#f8e3de'],['#3D5A98','#e3e9f6'],['#A0522D','#f5e6dc'],['#6B4C9A','#ece5f5'],['#1F6E80','#e4f0f2']];
+function b64e(str){ const by = new TextEncoder().encode(str); let bin = ''; for(let i = 0; i < by.length; i += 0x8000) bin += String.fromCharCode.apply(null, by.subarray(i, i + 0x8000)); return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64d(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length % 4) s += '='; const bin = atob(s); const by = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) by[i] = bin.charCodeAt(i); return new TextDecoder().decode(by); }
+function hash(str){ let h = 5381; for(let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8,'0'); }
+const cut = (v, n) => String(v == null ? '' : v).slice(0, n);
+function lineas(txt, partes){ return String(txt||'').split('\n').map(l=>l.trim()).filter(Boolean).slice(0, 12).map(l=>{ const p = l.split('|').map(x=>x.trim()); while(p.length < partes) p.push(''); return p.slice(0, partes).map(x=>cut(x, 400)); }); }
+/* compacto → configuración completa */
+function desdeCompacto(c){
+  if(!c || typeof c !== 'object' || !c.m || !c.a || !c.b) throw new Error('El enlace no trae un debate válido.');
+  const lado = (x, i, fallback) => {
+    const pal = PALETA[(+x.c || i) % PALETA.length];
+    return { nombre: cut(x.n, 40) || fallback, postura: cut(x.p, 60) || (i ? 'En contra de la moción' : 'A favor de la moción'), icono: cut(x.i, 4) || (i ? '🔴' : '🟢'),
+      color: pal[0], claro: pal[1], tipo: 'debate', mision: cut(x.mi, 200) || (i ? 'Defender que la moción no se apruebe.' : 'Defender que la moción se apruebe.'),
+      evidencia: (Array.isArray(x.ev) ? x.ev : []).slice(0, 12).map(e => [cut(e[0], 80), cut(e[1], 400), cut(e[2], 160)]).filter(e => e[0] || e[1]) };
+  };
+  const json = JSON.stringify(c), h = hash(json);
+  return {
+    id: 'c-' + h, clave: 'debate-c-' + h, propio: true,
+    titulo: cut(c.t, 80) || 'Debate', subtitulo: cut(c.s, 80) || 'Debate', gancho: cut(c.g, 300),
+    mocion: cut(c.m, 300), volver: { href: 'debate.html', texto: 'Herramienta para debates' },
+    contexto: { datos: (Array.isArray(c.c) ? c.c : []).slice(0, 12).map(d => [cut(d[0], 80), cut(d[1], 400)]), cronologia: [], fuentes: cut(c.f, 300) },
+    equipos: { a: lado(c.a, 0, 'Equipo A'), b: lado(c.b, 1, 'Equipo B'), jurado: JURADO, prensa: PRENSA },
+    reflexion: cut(c.r, 200) || '¿Qué medida podría acercar las dos posturas?'
+  };
+}
+function completar(cfg){
+  const lados = Object.keys(cfg.equipos).filter(k => cfg.equipos[k].tipo === 'debate');
+  cfg.lados = lados;
+  cfg.turnos = cfg.turnos || turnosPara(cfg.equipos[lados[0]].nombre, cfg.equipos[lados[1]].nombre);
+  cfg.criterios = cfg.criterios || CRITERIOS;
+  return cfg;
+}
+
+/* ---------- qué mostrar ---------- */
+let CONFIG = null, MODO = 'herramienta', ERROR_CFG = '';
+(function elegir(){
+  const q = new URLSearchParams(location.search), h = location.hash;
+  try{
+    if(h.indexOf('#cfg=') === 0){ CONFIG = completar(desdeCompacto(JSON.parse(b64d(h.slice(5))))); MODO = 'debate'; return; }
+  }catch(e){ ERROR_CFG = 'No se pudo abrir el debate del enlace: ' + (e.message || e) + ' Pide el enlace completo a tu profe.'; }
+  if(q.get('d') && DEBATES[q.get('d')]){ CONFIG = completar(DEBATES[q.get('d')]); MODO = 'debate'; return; }
+  if(q.get('editor') !== null) MODO = 'editor';
+})();
+
+/* =====================================================================
+   ESTADO (se guarda en este dispositivo y, con cuenta, en Firestore)
+   ===================================================================== */
+const KEY = CONFIG ? 'debate_' + CONFIG.id : 'debate_herramienta';
+const DEF = () => ({ nombre: '', equipo: null, tab: 'guia', rol: '', datos: {} });
+function load(){ try{ const v = JSON.parse(localStorage.getItem(KEY)); return v && typeof v === 'object' ? Object.assign(DEF(), v) : DEF(); }catch(e){ return DEF(); } }
+let S = load();
+if(S.data && !Object.keys(S.datos||{}).length){ /* versión anterior: datos sueltos */ S.datos = {}; if(S.equipo) S.datos[S.equipo] = S.data; delete S.data; }
+if(CONFIG && S.equipo && !CONFIG.equipos[S.equipo]) S.equipo = null;
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+const D = () => { if(!S.datos || typeof S.datos !== 'object') S.datos = {}; const k = S.equipo || '_'; return S.datos[k] || (S.datos[k] = {}); };
+function getP(path, obj){ return path.split('.').reduce((o,k)=> (o==null?undefined:o[k]), obj || D()); }
+function setP(path, val){ const ks = path.split('.'); let o = D(); ks.slice(0,-1).forEach(k=>{ if(o[k]==null||typeof o[k]!=='object') o[k] = {}; o = o[k]; }); o[ks[ks.length-1]] = val; }
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const val = p => esc(getP(p) || '');
+function toast(t){ const el = document.getElementById('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('on'), 2200); }
+const team = () => CONFIG.equipos[S.equipo];
+const hhmm = () => { const d = new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const lado = k => CONFIG.equipos[k];
+const corto = n => String(n).replace(/^Equipo\s+/i, '');
+
+/* ---------- cuenta del sitio (firebase/df.js) ---------- */
+let CUENTA = { lista: false, usuario: null };
+function cuentaNombre(){ const u = CUENTA.usuario; return u ? (u.displayName || String(u.email||'').split('@')[0]) : ''; }
+function conectarCuenta(){
+  if(!window.DF){ CUENTA = { lista: true, usuario: null, sinFirebase: true }; return; }
+  DF.listo().then(()=>{
+    DF.alCambiarUsuario(u=>{
+      const antes = CUENTA.usuario && CUENTA.usuario.uid;
+      CUENTA = { lista: true, usuario: u || null };
+      if(u && !(S.nombre||'').trim()){ S.nombre = cuentaNombre(); save(); }
+      if((u && u.uid) !== antes) render(true);
+    });
+  }, ()=>{ CUENTA = { lista: true, usuario: null, sinFirebase: true }; render(true); });
+}
+function cuentaHTML(){
+  if(CUENTA.sinFirebase) return `<div class="card sand"><p class="small" style="margin:0">Sin conexión con la cuenta del sitio: lo que escribas se guarda solo en este dispositivo.</p></div>`;
+  if(!CUENTA.lista) return `<div class="card"><p class="small" style="margin:0">Conectando con tu cuenta…</p></div>`;
+  const u = CUENTA.usuario;
+  if(u) return `<div class="card tint"><div class="acc"><span class="av">${esc(cuentaNombre().charAt(0).toUpperCase())}</span><div class="tx"><b>${esc(cuentaNombre())}</b><div class="small">☁️ Tu trabajo se guarda en tu cuenta de El Mundo de Felipe: puedes seguir en otro celular o computador.</div></div><button class="btn ghost sm" data-act="salircuenta">No soy yo</button></div></div>`;
+  return `<div class="card"><div class="acc"><span class="av">?</span><div class="tx"><b>Entra con tu cuenta del sitio</b><div class="small">Así tu bitácora queda guardada en tu cuenta y el profe la puede revisar. Sin cuenta, solo queda en este dispositivo.</div></div><button class="btn sm" data-act="entrarcuenta">Entrar</button></div></div>`;
+}
+
+/* =====================================================================
+   PESTAÑAS POR TIPO DE EQUIPO
+   ===================================================================== */
+const TABS = {
+  debate: [['guia','🧭','Guía'],['evidencia','📑','Evidencia'],['argumentos','🧱','Argumentos'],['debate','🎙️','Debate'],['cierre','✅','Cierre']],
+  jurado: [['guia','🧭','Guía'],['pauta','📋','Pauta'],['debate','🎙️','Debate'],['veredicto','⚖️','Veredicto'],['cierre','✅','Cierre']],
+  prensa: [['guia','🧭','Guía'],['verificar','🔍','Verificar'],['debate','🎙️','Debate'],['titular','📰','Titular'],['cierre','✅','Cierre']]
+};
+const TAGS = {
+  debate: [['rival','El rival dijo'],['debil','Punto débil'],['idea','Idea para responder'],['pregunta','Pregunta']],
+  jurado: [['A','Lado A'],['B','Lado B'],['falta','Falta'],['mejor','Mejor momento']],
+  prensa: [['dato','Dato dicho'],['duda','Hay que revisar'],['cita','Frase para el titular']]
+};
+function tagsDe(tipo){
+  if(tipo !== 'jurado') return TAGS[tipo];
+  return [[CONFIG.lados[0], lado(CONFIG.lados[0]).nombre], [CONFIG.lados[1], lado(CONFIG.lados[1]).nombre], ['falta','Falta'], ['mejor','Mejor momento']];
+}
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+const app = document.getElementById('app'), tabsEl = document.getElementById('tabs');
+function render(mantenerScroll){
+  const y = window.scrollY;
+  if(MODO === 'herramienta') renderHerramienta();
+  else if(MODO === 'editor') renderEditor();
+  else if(!S.equipo || S.tab === 'contexto-home') renderHome();
+  else renderEquipo();
+  if(mantenerScroll) window.scrollTo(0, y);
+}
+function setTeamColors(c, l){ document.documentElement.style.setProperty('--team', c); document.documentElement.style.setProperty('--team-l', l); }
+function sinPestanas(){ document.body.classList.remove('has-tabs'); tabsEl.hidden = true; tabsEl.innerHTML = ''; }
+
+function renderEquipo(){
+  const t = team();
+  setTeamColors(t.color, t.claro);
+  document.body.classList.add('has-tabs');
+  const tabs = TABS[t.tipo];
+  if(!tabs.some(x=>x[0]===S.tab) && S.tab!=='contexto') S.tab = 'guia';
+  tabsEl.hidden = false;
+  tabsEl.innerHTML = tabs.map(x=>`<button data-act="tab" data-v="${x[0]}" class="${S.tab===x[0]?'on':''}" ${S.tab===x[0]?'aria-current="page"':''}><span class="ic" aria-hidden="true">${x[1]}</span>${x[2]}</button>`).join('');
+  const top = `<header class="top"><div class="id"><div class="t1">${t.icono} ${esc(t.nombre)}</div><div class="t2">${esc(S.nombre||'Sin nombre')}${S.rol?' · '+esc(S.rol):''}${CUENTA.usuario?'<span class="cloud">☁️ en tu cuenta</span>':''}</div></div><button data-act="tab" data-v="contexto">Contexto</button></header>`;
+  const views = { guia: vGuia, evidencia: vEvidencia, argumentos: vArgumentos, debate: vDebate, cierre: vCierre, pauta: vPauta, veredicto: vVeredicto, verificar: vVerificar, titular: vTitular, contexto: vContexto };
+  app.innerHTML = top + `<main class="wrap">${(views[S.tab]||vGuia)()}</main>`;
+  afterRender();
+}
+
+/* ---------- INICIO DEL DEBATE ---------- */
+function renderHome(){
+  sinPestanas(); setTeamColors('#1F6E80', '#e4f0f2');
+  if(S.tab === 'contexto-home'){
+    app.innerHTML = `<header class="top"><div class="t1">📌 Contexto del debate</div><span class="sp"></span><button data-act="home">Volver</button></header><main class="wrap">${vContexto()}</main>`;
+    return;
+  }
+  const ok = (S.nombre||'').trim().length >= 2;
+  app.innerHTML = `
+  <section class="hero"><div class="in">
+    <a class="back" href="${esc(CONFIG.volver.href)}">‹ ${esc(CONFIG.volver.texto)}</a>
+    <div class="k" style="margin-top:10px">${esc(CONFIG.subtitulo)}</div>
+    <h1>${esc(CONFIG.titulo)}</h1>
+    ${CONFIG.gancho?`<p style="color:#e9f1f2">${esc(CONFIG.gancho)}</p>`:''}
+    <div class="mo">«${esc(CONFIG.mocion)}»</div>
+  </div>
+  <svg viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 C 180 5, 360 30, 520 22 S 840 8, 1000 30 L1000 70 L0 70Z" fill="#1F6E80" opacity=".6"/><path d="M0 55 C 200 25, 420 50, 640 38 S 900 34, 1000 46 L1000 70 L0 70Z" fill="#E2BF84"/></svg>
+  </section>
+  <main class="wrap">
+    <div class="card sand">
+      <h2>Antes de entrar</h2>
+      <ol class="steps">
+        <li>En la clase te asignaron <b>uno de los cuatro equipos</b>. Entra <b>solo</b> al tuyo.</li>
+        <li>Dentro de tu equipo, elige <b>tu rol</b> y lee lo que te toca hacer.</li>
+        <li>Usa las pestañas de abajo: guía, bitácoras y reloj del debate.</li>
+        <li>Con tu cuenta, todo se guarda solo. Al final, también puedes descargar tu bitácora en <b>Cierre</b>.</li>
+      </ol>
+    </div>
+    ${cuentaHTML()}
+    <div class="card">
+      <label class="lb" for="nombre">Tu nombre</label>
+      <input type="text" id="nombre" data-home="nombre" value="${esc(S.nombre)}" placeholder="Nombre y apellido" autocomplete="name" maxlength="60">
+      <p class="hint" id="nombreHint">${ok?'Listo: ahora elige tu equipo.':'Escríbelo para poder entrar a tu equipo.'}</p>
+    </div>
+    <h2 style="margin-top:6px">Elige el equipo que te tocó</h2>
+    <div class="teams">
+      ${Object.entries(CONFIG.equipos).map(([k,t])=>`<button class="tbtn" style="background:${t.color}" data-act="enter" data-v="${k}" ${ok?'':'disabled'}><span class="ic" aria-hidden="true">${t.icono}</span><b>${esc(t.nombre)}</b><span>${esc(t.postura)}</span></button>`).join('')}
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn ghost" data-act="tab" data-v="contexto-home">📌 Ver el contexto del debate</button></div>
+  </main>`;
+}
+
+/* ---------- CONTEXTO ---------- */
+function vContexto(){
+  const c = CONFIG.contexto || {};
+  return `<div class="card dark"><span class="tag" style="background:var(--sand);color:var(--ocean)">Moción</span><h2 style="font-style:italic">«${esc(CONFIG.mocion)}»</h2></div>
+  ${(c.datos||[]).length?`<h2>Los datos clave</h2>${c.datos.map(d=>`<div class="ev"><h3>${esc(d[0])}</h3><p style="margin:0">${esc(d[1])}</p></div>`).join('')}`:''}
+  ${(c.cronologia||[]).length?`<h2 style="margin-top:14px">Cronología</h2><ul class="turns static">${c.cronologia.map(x=>`<li><span class="tn" style="border-radius:8px">${esc(x[0])}</span><span class="tx">${esc(x[1])}</span></li>`).join('')}</ul>`:''}
+  ${c.fuentes?`<p class="small" style="margin-top:8px">Fuentes: ${esc(c.fuentes)}</p>`:''}
+  ${S.equipo&&S.tab==='contexto'?`<button class="btn full" data-act="tab" data-v="guia" style="margin-top:10px">Volver a mi equipo</button>`:`<button class="btn full" data-act="home" style="margin-top:10px">Volver al inicio</button>`}`;
+}
+
+/* ---------- GUÍA ---------- */
+function vGuia(){
+  const t = team(), roles = ROLES[t.tipo];
+  const pasos = {
+    debate: ['Elige tu rol en el equipo (abajo).', 'Lee la ficha de <b>Evidencia</b> de tu bando y marca los datos que usarán.', 'En <b>Argumentos</b>, construyan 3 argumentos AER, anticipen al rival y preparen 2 preguntas.', 'En el <b>Debate</b>, la tarjeta «Ahora» te muestra qué preparó tu equipo para el turno que corre. Anota lo que dice el rival.', 'En <b>Cierre</b>, vota de nuevo y reflexiona.'],
+    jurado: ['Elige tu rol en el jurado (abajo).', 'Lee la <b>Pauta</b> antes de que empiece el debate.', 'El presidente/a usa el reloj de la pestaña <b>Debate</b> para dar la palabra.', 'Mientras escuchas, puntúa a ambos equipos y anota observaciones.', 'En <b>Veredicto</b>, revisen los totales (ya descuentan los datos falsos) y escriban la justificación.'],
+    prensa: ['Elige tu rol en la prensa (abajo).', 'Estudia las fichas de ambos equipos en <b>Verificar</b>.', 'Cuando un equipo diga un dato, búscalo en las fichas y toca <b>Registrar este dato</b>, o escríbelo si no está.', 'En el turno de la prensa, el reportero/a informa al jurado los datos falsos.', 'En <b>Titular</b>, escriban el titular de prensa del debate.']
+  }[t.tipo];
+  return `<div class="card tint"><span class="tag">${esc(t.postura)}</span><h2>${esc(t.nombre)}</h2><p style="margin:0">${esc(t.mision)}</p></div>
+  <div class="card"><h3>Qué hacer, paso a paso</h3><ol class="steps">${pasos.map(p=>`<li>${p}</li>`).join('')}</ol></div>
+  <div class="card"><h3>Mi rol</h3>
+    <div class="chips">${roles.map(r=>`<button class="chip ${S.rol===r[0]?'on':''}" data-act="rol" data-v="${esc(r[0])}" aria-pressed="${S.rol===r[0]}">${esc(r[0])}</button>`).join('')}</div>
+    ${S.rol?`<div class="card sand" style="margin:6px 0 0"><b>${esc(S.rol)}:</b> ${esc((roles.find(r=>r[0]===S.rol)||['',''])[1])}</div>`:'<p class="hint">Toca el rol que te asignó tu equipo.</p>'}
+  </div>
+  <div class="card"><h3>Tu voto inicial (opinión personal)</h3><p class="small">Vota lo que tú piensas, no lo que defiende tu equipo. Al final votarás de nuevo.</p>${voteSeg('voto_inicial')}</div>
+  <div class="card"><h3>Reglas del debate</h3><ul class="dots"><li>Se discuten argumentos, no personas.</li><li>Todo dato lleva su fuente. Un dato falso cuesta 1 punto.</li><li>El tiempo se respeta: al terminar, se cierra la frase y se cede la palabra.</li><li>Solo habla quien tiene el turno; las ideas se pasan por escrito al orador.</li></ul></div>
+  <div class="row"><button class="btn ghost sm" data-act="leave">Me equivoqué de equipo</button></div>`;
+}
+function voteSeg(path){
+  const v = getP(path) || '';
+  return `<div class="seg">${['A favor','En contra','No estoy seguro/a'].map(o=>`<button class="${v===o?'on':''}" data-act="set" data-p="${path}" data-v="${o}" aria-pressed="${v===o}">${o}</button>`).join('')}</div>`;
+}
+
+/* ---------- EVIDENCIA ---------- */
+function vEvidencia(){
+  const t = team(), used = D().usados || {}, n = Object.values(used).filter(Boolean).length;
+  return `<div class="card tint"><h2>Ficha de evidencia</h2><p style="margin:0">Toca <b>Usar</b> en los datos que su equipo va a citar (${n} elegido${n===1?'':'s'}). Siempre digan la fuente en voz alta.</p></div>
+  ${t.evidencia.length?t.evidencia.map((e,i)=>`<div class="ev ${used[i]?'used':''}"><div class="row" style="justify-content:space-between;gap:6px;align-items:flex-start"><h3 style="flex:1;margin-top:6px">${esc(e[0])}</h3><button class="btn sm ${used[i]?'':'ghost'}" data-act="use" data-v="${i}" aria-pressed="${!!used[i]}">${used[i]?'✓ Usado':'Usar'}</button></div><p style="margin:4px 0 0">${esc(e[1])}</p>${e[2]?`<div class="src">Fuente: ${esc(e[2])}</div>`:''}</div>`).join(''):'<p class="small">Tu profe no cargó evidencia para este equipo: búsquenla en las fuentes que les indique.</p>'}
+  <div class="card sand"><h3>¿Y la evidencia del otro equipo?</h3><p class="small" style="margin:0">No la tienes, pero puedes adivinarla: piensa qué datos usará el rival y prepárate en la pestaña <b>Argumentos</b>.</p></div>`;
+}
+
+/* ---------- ARGUMENTOS ---------- */
+function argLleno(i, d){ return ['af','evtxt','ra'].filter(k=>(getP('args.'+i+'.'+k, d)||'').trim()).length; }
+function vArgumentos(){
+  const t = team(), mejor = getP('mejor') || '';
+  const evOpts = i => `<option value="">— Elegir de la ficha —</option>` + t.evidencia.map((e,j)=>`<option value="${j}" ${String(getP('args.'+i+'.ev'))===String(j)?'selected':''}>${esc(e[0])}</option>`).join('');
+  const arg = i => `<div class="arg ${mejor===String(i+1)?'best':''}"><div class="hd"><span class="n">${i+1}</span><h3 style="margin:0;flex:1">Argumento ${i+1}</h3>${mejor===String(i+1)?'<span class="tag" style="margin:0">El más sólido</span>':''}</div>
+      <label class="lb" for="a${i}af">Afirmación · lo que sostenemos</label><textarea id="a${i}af" data-bind="args.${i}.af" placeholder="Una frase clara que se pueda defender.">${val('args.'+i+'.af')}</textarea>
+      <label class="lb" for="a${i}ev">Evidencia · el dato y su fuente</label>${t.evidencia.length?`<select id="a${i}ev" data-bind="args.${i}.ev">${evOpts(i)}</select>`:''}
+      <textarea data-bind="args.${i}.evtxt" style="margin-top:6px;min-height:56px" aria-label="Dato y fuente del argumento ${i+1}" placeholder="El dato tal como lo dirán, con la fuente.">${val('args.'+i+'.evtxt')}</textarea>
+      <label class="lb" for="a${i}ra">Razonamiento · por qué el dato prueba la afirmación</label><textarea id="a${i}ra" data-bind="args.${i}.ra" placeholder="Explica el mecanismo; no repitas el dato.">${val('args.'+i+'.ra')}</textarea>
+      <div class="meter" aria-hidden="true"><i style="width:${argLleno(i)/3*100}%"></i></div></div>`;
+  return `<div class="card tint"><h2>Bitácora de argumentos</h2><p style="margin:0">Construyan tres argumentos con Afirmación, Evidencia y Razonamiento. Marquen el más sólido: será el que use el orador de cierre.</p></div>
+  ${[0,1,2].map(arg).join('')}
+  <div class="card"><h3>Nuestro argumento más sólido</h3><div class="seg">${['1','2','3'].map(o=>`<button class="${mejor===o?'on':''}" data-act="set" data-p="mejor" data-v="${o}" aria-pressed="${mejor===o}">Argumento ${o}</button>`).join('')}</div></div>
+  <div class="card"><h3>Lo que dirá el rival (y cómo responder)</h3>
+    ${[0,1].map(i=>`<label class="lb" for="r${i}a">Argumento esperado del rival ${i+1}</label><textarea id="r${i}a" data-bind="rival.${i}.arg" style="min-height:56px">${val('rival.'+i+'.arg')}</textarea><label class="lb" for="r${i}r">Nuestra respuesta</label><textarea id="r${i}r" data-bind="rival.${i}.resp" style="min-height:56px">${val('rival.'+i+'.resp')}</textarea>`).join('<hr style="border:none;border-top:1px dashed var(--line);margin:14px 0 2px">')}
+  </div>
+  <div class="card"><h3>Preguntas cruzadas para el otro equipo</h3>
+    ${[0,1].map(i=>`<label class="lb" for="p${i}">Pregunta ${i+1}</label><textarea id="p${i}" data-bind="preg.${i}" style="min-height:56px" placeholder="Una pregunta corta, difícil de esquivar.">${val('preg.'+i)}</textarea>`).join('')}
+  </div>`;
+}
+
+/* ---------- DEBATE: reloj, «ahora» y observaciones ---------- */
+const clock = { i: 0, left: null, run: false, iv: null, last: 0 };
+clock.i = Math.min(+(S.turno||0) || 0, (CONFIG ? CONFIG.turnos.length : 1) - 1);
+const fmt = s => { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
+function clockHTML(){
+  const x = CONFIG.turnos[clock.i], left = clock.left===null ? x[2]*60 : clock.left;
+  const cls = left<=0 ? 'end' : left<=30 ? 'warn' : '';
+  return `<div class="clock ${cls}" id="clock"><div class="now">Turno ${clock.i+1} de ${CONFIG.turnos.length}</div><div class="ttl">${esc(x[0])}</div>
+  <div class="row" style="justify-content:space-between"><div class="big" id="clkVal" aria-live="off">${fmt(left)}</div>
+  <div class="row" style="gap:8px"><button class="btn" data-act="clk">${clock.run?'Pausa':(left<=0?'Repetir':'Iniciar')}</button><button class="btn ghost sm" data-act="clkreset" aria-label="Reiniciar el turno">↺</button><button class="btn ghost sm" data-act="clknext">Siguiente ›</button></div></div>
+  <div class="sub">${esc(x[1])} · ${x[2]} min</div></div>`;
+}
+function tick(){
+  const n = Date.now(); clock.left -= (n-clock.last)/1000; clock.last = n;
+  const el = document.getElementById('clkVal'), box = document.getElementById('clock');
+  if(clock.left <= 0){ clock.left = 0; stopClock(); try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){} toast('¡Tiempo! Termina tu frase y cede la palabra.'); if(S.tab==='debate') render(true); return; }
+  if(el) el.textContent = fmt(clock.left);
+  if(box) box.classList.toggle('warn', clock.left<=30);
+}
+function startClock(){ const full = CONFIG.turnos[clock.i][2]*60; if(clock.left===null || clock.left<=0) clock.left = full; clock.run = true; clock.last = Date.now(); clearInterval(clock.iv); clock.iv = setInterval(tick, 250); }
+function stopClock(){ clock.run = false; clearInterval(clock.iv); }
+function loadTurn(i){ stopClock(); clock.i = Math.max(0, Math.min(CONFIG.turnos.length-1, i)); clock.left = null; S.turno = clock.i; save(); }
+/* lo que el equipo preparó para el turno que corre */
+function ahoraHTML(){
+  const t = team(), x = CONFIG.turnos[clock.i], tipo = x[3], ladoTurno = x[4] ? CONFIG.lados[x[4]==='A'?0:1] : '';
+  const li = arr => arr.filter(s=>String(s||'').trim()).map(s=>`<li>${esc(s)}</li>`).join('');
+  let who = '', body = '';
+  if(t.tipo === 'debate'){
+    const mio = ladoTurno === S.equipo, d = D(), notas = d.notas || [];
+    const deTag = tg => notas.filter(n=>n.tag===tg).map(n=>n.txt);
+    if(tipo === 'apertura' || tipo === 'cierre' || tipo === 'refutacion'){
+      if(!mio){ who = 'Habla ' + esc(lado(ladoTurno).nombre); body = `<p style="margin:4px 0 0">Escucha y anota abajo con <b>El rival dijo</b> y <b>Punto débil</b>: tus refutadores lo necesitan.</p>`; }
+      else if(tipo === 'apertura'){ who = 'Le toca a tu equipo · apertura'; const a = [0,1,2].map(i=>getP('args.'+i+'.af')); body = li(a) ? `<ul>${li(a)}</ul><p class="small" style="margin:6px 0 0">El capitán/a presenta las tres afirmaciones, con su dato y su fuente.</p>` : `<p class="small" style="margin:4px 0 0">Todavía no escriben sus argumentos. Vayan a la pestaña <b>Argumentos</b>.</p>`; }
+      else if(tipo === 'refutacion'){ who = 'Le toca a tu equipo · refutación'; const r = [0,1].map(i=>getP('rival.'+i+'.resp') ? (getP('rival.'+i+'.arg')||'Rival')+' → '+getP('rival.'+i+'.resp') : ''); const db = deTag('debil'), id = deTag('idea'); body = (li(r)||li(db)||li(id)) ? `${li(db)?`<b class="small">Puntos débiles que anotaste</b><ul>${li(db)}</ul>`:''}${li(id)?`<b class="small">Ideas para responder</b><ul>${li(id)}</ul>`:''}${li(r)?`<b class="small">Respuestas preparadas</b><ul>${li(r)}</ul>`:''}` : `<p class="small" style="margin:4px 0 0">No hay notas de puntos débiles todavía. Respondan lo más importante que dijo el rival.</p>`; }
+      else { who = 'Le toca a tu equipo · cierre'; const m = getP('mejor'); const i = m ? (+m-1) : -1; body = i>=0 ? `<p style="margin:4px 0 0"><b>Argumento más sólido:</b> ${esc(getP('args.'+i+'.af')||'—')}</p><p class="small" style="margin:2px 0 0"><b>Dato:</b> ${esc(getP('args.'+i+'.evtxt')||'—')}</p><p class="small" style="margin:2px 0 0"><b>Razonamiento:</b> ${esc(getP('args.'+i+'.ra')||'—')}</p>` : `<p class="small" style="margin:4px 0 0">Marquen su argumento más sólido en <b>Argumentos</b> para tenerlo aquí.</p>`; }
+    } else if(tipo === 'preguntas'){ who = 'Preguntas cruzadas'; const q = [getP('preg.0'), getP('preg.1')]; body = li(q) ? `<ul>${li(q)}</ul>` : `<p class="small" style="margin:4px 0 0">Escriban sus preguntas en <b>Argumentos</b>.</p>`; }
+    else if(tipo === 'prensa'){ who = 'Habla la prensa'; body = `<p style="margin:4px 0 0">Anota qué datos de tu equipo marcaron como dudosos o falsos: cada falso resta 1 punto.</p>`; }
+    else { who = 'Pausa'; const db = deTag('debil'); body = li(db) ? `<b class="small">Puntos débiles del rival que anotaste</b><ul>${li(db)}</ul>` : `<p style="margin:4px 0 0">Junten sus notas y decidan qué responder.</p>`; }
+  } else if(t.tipo === 'jurado'){
+    who = 'Qué mirar en este turno';
+    body = {apertura:'¿Los argumentos tienen afirmación, evidencia y razonamiento?', refutacion:'¿Responden directamente lo que dijo el otro equipo?', cierre:'¿El cierre resume y responde lo que quedó abierto?', preguntas:'¿Las respuestas son directas o esquivan la pregunta?', prensa:'Anota en la Pauta los datos falsos que informe la prensa (−1 cada uno).', pausa:'Revisa tus puntajes y completa lo que falte.'}[tipo];
+    body = `<p style="margin:4px 0 0">${esc(body)}</p>`;
+  } else {
+    who = tipo === 'prensa' ? 'Les toca informar' : 'Qué hacer en este turno';
+    const v = D().verif || [], f = v.filter(z=>z.ver==='Falso');
+    body = tipo === 'prensa' ? (f.length ? `<ul>${li(f.map(z=>z.quien+': '+z.dato))}</ul>` : `<p style="margin:4px 0 0">No registraron datos falsos. Informen cuántos datos fueron correctos y cuáles quedaron dudosos.</p>`) : `<p style="margin:4px 0 0">Cada vez que alguien diga un dato, regístralo en <b>Verificar</b>.</p>`;
+  }
+  return `<div class="card miturno"><div class="who">Ahora · ${who}</div>${body}</div>`;
+}
+function vDebate(){
+  const t = team(), tags = tagsDe(t.tipo), cur = clock.i, tag = D().noteTag || tags[0][0];
+  const notas = (D().notas || []).slice().reverse();
+  return `${clockHTML()}${ahoraHTML()}
+  <div class="card"><h3>${t.tipo==='jurado'?'Observaciones del jurado':t.tipo==='prensa'?'Apuntes de la prensa':'Bitácora de observación e ideas'}</h3>
+    <p class="small">Anota rápido. Cada nota queda marcada con el turno y la hora.</p>
+    <div class="chips" role="group" aria-label="Tipo de nota">${tags.map(g=>`<button class="chip ${tag===g[0]?'on':''}" data-act="ntag" data-v="${esc(g[0])}" aria-pressed="${tag===g[0]}">${esc(g[1])}</button>`).join('')}</div>
+    <textarea id="noteTxt" data-draft="noteDraft" placeholder="Escribe tu observación…" style="min-height:64px" aria-label="Observación">${esc(D().noteDraft||'')}</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" data-act="addnote">Agregar nota</button><span class="small">Se anotará en el turno ${cur+1}</span></div>
+  </div>
+  ${notas.length?notas.map(n=>`<div class="note t-${esc(n.tag)}"><div class="meta"><b>${esc((tags.find(g=>g[0]===n.tag)||['',n.tag])[1])}</b><span>Turno ${n.turno} · ${n.hora}</span><button class="lnk" data-act="delnote" data-v="${esc(n.id)}">borrar</button></div><p>${esc(n.txt)}</p></div>`).join(''):'<p class="small" style="text-align:center">Aún no hay notas.</p>'}
+  <div class="card sand" style="margin-top:14px"><h3>Los turnos del debate</h3><p class="small">Toca un turno para cargarlo en tu reloj. El reloj oficial lo lleva el presidente/a del jurado; el tuyo sirve para seguir el debate y marcar tus notas con el turno correcto.</p>
+    <ul class="turns">${CONFIG.turnos.map((x,i)=>`<li class="${i===cur?'cur':''} ${i<cur?'done':''}" data-act="turn" data-v="${i}" role="button" tabindex="0"><span class="tn">${i+1}</span><span class="tx">${esc(x[0])}<small>${esc(x[1])}</small></span><span class="tm">${x[2]}’</span></li>`).join('')}</ul>
+  </div>`;
+}
+
+/* ---------- PAUTA y VEREDICTO (jurado) ---------- */
+function puntos(eq, d){ d = d || D(); const p = d.pauta || {}; let t = 0, n = 0; CONFIG.criterios.forEach((c,i)=>{ if(p[eq+'_'+i]){ t += +p[eq+'_'+i]; n++; } }); return { t: t - (+(d['falsos_'+eq]||0)), n }; }
+function vPauta(){
+  const p = D().pauta || {}, L = CONFIG.lados, max = CONFIG.criterios.length * 3;
+  const hechos = L.reduce((a,eq)=>a+puntos(eq).n, 0), total = L.length * CONFIG.criterios.length;
+  return `<div class="card tint"><h2>Pauta de evaluación</h2><p style="margin:0">Puntúa a ambos equipos en cada criterio: 3 logrado, 2 en desarrollo, 1 inicial. Máximo ${max} puntos. Llevas <b>${hechos} de ${total}</b> puntajes.</p></div>
+  ${CONFIG.criterios.map((c,i)=>`<div class="crit"><h3>${esc(c[0])}</h3><div class="lv"><b>3:</b> ${esc(c[1])} · <b>2:</b> ${esc(c[2])} · <b>1:</b> ${esc(c[3])}</div>
+    ${L.map(eq=>`<div class="score"><span class="who" style="color:${lado(eq).color}" title="${esc(lado(eq).nombre)}">${esc(corto(lado(eq).nombre))}</span>${[1,2,3].map(n=>`<button class="${+p[eq+'_'+i]===n?'on':''}" data-act="score" data-v="${eq}|${i}|${n}" aria-pressed="${+p[eq+'_'+i]===n}" aria-label="${esc(c[0])}, ${esc(lado(eq).nombre)}: ${n}">${n}</button>`).join('')}</div>`).join('')}
+  </div>`).join('')}
+  <div class="card"><h3>Descuentos de la prensa (−1 por dato falso)</h3>
+    ${L.map(eq=>`<div class="row" style="justify-content:space-between;margin:6px 0"><b style="color:${lado(eq).color}">${esc(lado(eq).nombre)}</b><div class="counter"><button data-act="fals" data-v="${eq}|-1" aria-label="Quitar un descuento">−</button><b>${+(D()['falsos_'+eq]||0)}</b><button data-act="fals" data-v="${eq}|1" aria-label="Sumar un descuento">+</button></div></div>`).join('')}
+  </div>
+  <div class="tot">${L.map(eq=>{ const r = puntos(eq); return `<div class="box" style="background:${lado(eq).color}">${esc(lado(eq).nombre)}<b>${r.t}</b>de ${max}${r.n<CONFIG.criterios.length?` · faltan ${CONFIG.criterios.length-r.n}`:''}</div>`; }).join('')}</div>`;
+}
+function vVeredicto(){
+  const L = CONFIG.lados, a = puntos(L[0]), b = puntos(L[1]), C = CONFIG.criterios.length;
+  const completa = a.n === C && b.n === C;
+  const lead = !completa ? `Falta completar la pauta (${a.n + b.n} de ${C*2} puntajes).`
+    : a.t === b.t ? 'Empate: el jurado debe desempatar con el mejor argumento.'
+    : 'Según la pauta, gana ' + (a.t > b.t ? lado(L[0]).nombre : lado(L[1]).nombre) + '.';
+  return `<div class="tot">${L.map((eq,i)=>`<div class="box" style="background:${lado(eq).color}">${esc(lado(eq).nombre)}<b>${(i?b:a).t}</b>puntos</div>`).join('')}</div>
+  <div class="card ${completa?'dark':'warn'}"><h3>${esc(lead)}</h3>${completa?'<p class="small" style="color:#cfe0e3;margin:0">El jurado no decide quién «tiene la razón», sino qué equipo argumentó mejor con evidencia.</p>':'<button class="btn sm" data-act="tab" data-v="pauta">Ir a la pauta</button>'}</div>
+  <div class="card"><label class="lb">Equipo ganador</label><div class="seg">${[lado(L[0]).nombre, lado(L[1]).nombre, 'Empate'].map(o=>`<button class="${getP('ganador')===o?'on':''}" data-act="set" data-p="ganador" data-v="${esc(o)}" aria-pressed="${getP('ganador')===o}">${esc(o)}</button>`).join('')}</div>
+    <label class="lb" for="vma">El mejor argumento del debate (de cualquier equipo)</label><textarea id="vma" data-bind="mejor_arg">${val('mejor_arg')}</textarea>
+    <label class="lb" for="vju">¿Qué decidió el resultado?</label><textarea id="vju" data-bind="justif" placeholder="El vocero/a leerá esto en voz alta.">${val('justif')}</textarea>
+  </div>`;
+}
+
+/* ---------- VERIFICAR y TITULAR (prensa) ---------- */
+function vVerificar(){
+  const d = D(), list = (d.verif || []).slice().reverse(), L = CONFIG.lados;
+  const f = d.vForm || { quien: lado(L[0]).nombre, ver: 'Correcto' };
+  const cnt = nom => (d.verif||[]).filter(x=>x.quien===nom&&x.ver==='Falso').length;
+  return `<div class="card tint"><h2>Verificador de datos</h2><p style="margin:0">Cuando un equipo diga un dato, búscalo en las fichas de abajo y toca <b>Registrar este dato</b>. Si no está en las fichas, escríbelo aquí.</p></div>
+  <div class="card" id="vCard"><label class="lb" for="vDato">Dato que se dijo</label><textarea id="vDato" data-draft="vDato" style="min-height:56px" placeholder="Ej.: «Solo 12 de 45 hectáreas son santuario»">${esc(d.vDato||'')}</textarea>
+    <label class="lb">¿Quién lo dijo?</label><div class="seg">${L.map(eq=>lado(eq).nombre).map(o=>`<button class="${f.quien===o?'on':''}" data-act="vq" data-v="${esc(o)}" aria-pressed="${f.quien===o}">${esc(o)}</button>`).join('')}</div>
+    <label class="lb">Veredicto</label><div class="seg">${['Correcto','Dudoso','Falso'].map(o=>`<button class="${f.ver===o?'on':''}" data-act="vv" data-v="${o}" aria-pressed="${f.ver===o}">${o}</button>`).join('')}</div>
+    <label class="lb" for="vFuente">Fuente o comentario</label><input type="text" id="vFuente" data-draft="vFuente" value="${esc(d.vFuente||'')}" placeholder="Ej.: Ficha del otro equipo · La Tercera 2026">
+    <button class="btn full" style="margin-top:12px" data-act="addv">Registrar dato</button>
+  </div>
+  <div class="tot">${L.map(eq=>`<div class="box" style="background:${lado(eq).color}">Datos falsos · ${esc(corto(lado(eq).nombre))}<b>${cnt(lado(eq).nombre)}</b>informar al jurado</div>`).join('')}</div>
+  ${list.length?list.map(v=>`<div class="vf"><div class="top2"><span class="badge ${v.ver==='Correcto'?'b-ok':v.ver==='Dudoso'?'b-dud':'b-fal'}">${esc(v.ver)}</span><b>${esc(v.quien)}</b><span>Turno ${v.turno} · ${v.hora}</span><button class="lnk" data-act="delv" data-v="${esc(v.id)}">borrar</button></div><p style="margin:4px 0 0">${esc(v.dato)}</p>${v.fuente?`<div class="small">${esc(v.fuente)}</div>`:''}</div>`).join(''):'<p class="small" style="text-align:center">Aún no hay datos registrados.</p>'}
+  <h2 style="margin-top:16px">Fichas de referencia</h2>
+  ${L.map(eq=>`<div class="card"><span class="tag" style="background:${lado(eq).color}">${esc(lado(eq).nombre)}</span>${lado(eq).evidencia.map((e,j)=>`<div class="ev"><h3>${esc(e[0])}</h3><p style="margin:2px 0 6px">${esc(e[1])}</p>${e[2]?`<div class="src">${esc(e[2])}</div>`:''}<button class="btn sm ghost" style="margin-top:8px" data-act="pickev" data-v="${eq}|${j}">Registrar este dato</button></div>`).join('') || '<p class="small">Sin fichas para este equipo.</p>'}</div>`).join('')}
+  ${(CONFIG.contexto.datos||[]).length?`<div class="card sand"><h3>Datos del contexto</h3>${CONFIG.contexto.datos.map(x=>`<p style="margin:4px 0"><b>${esc(x[0])}:</b> ${esc(x[1])}</p>`).join('')}</div>`:''}`;
+}
+function vTitular(){
+  const v = D().verif||[], c = k => v.filter(x=>x.ver===k).length;
+  return `<div class="card tint"><h2>El titular de la prensa</h2><p style="margin:0">Un buen titular es corto, preciso y no exagera. Escriban dos borradores y elijan uno.</p></div>
+  <div class="card"><label class="lb" for="t0">Borrador 1</label><input type="text" id="t0" data-bind="tit.0" value="${val('tit.0')}" maxlength="140">
+    <label class="lb" for="t1">Borrador 2</label><input type="text" id="t1" data-bind="tit.1" value="${val('tit.1')}" maxlength="140">
+    <label class="lb" for="tf">Titular final</label><input type="text" id="tf" data-bind="tit.f" value="${val('tit.f')}" maxlength="140" placeholder="Corto, preciso y sin exagerar">
+    <label class="lb" for="tb">Bajada (una frase que explique el titular)</label><textarea id="tb" data-bind="tit.b" style="min-height:56px">${val('tit.b')}</textarea>
+  </div>
+  <div class="card"><h3>Balance de la verificación</h3><p style="margin:0">Correctos: <b>${c('Correcto')}</b> · Dudosos: <b>${c('Dudoso')}</b> · Falsos: <b>${c('Falso')}</b></p></div>`;
+}
+
+/* ---------- CIERRE ---------- */
+function vCierre(){
+  return `<div class="card tint"><h2>Salir del rol</h2><p style="margin:0">Ahora habla por ti, no por tu equipo.</p></div>
+  <div class="card"><h3>Voto final (opinión personal)</h3>${voteSeg('voto_final')}
+    ${getP('voto_inicial')?`<p class="small" style="margin-top:6px">Tu voto inicial fue: <b>${esc(getP('voto_inicial'))}</b>.${getP('voto_final')&&getP('voto_final')!==getP('voto_inicial')?' Cambiaste de opinión: cuenta qué te hizo cambiar.':''}</p>`:''}
+    <label class="lb" for="rf1">¿Qué argumento del otro lado te hizo dudar?</label><textarea id="rf1" data-bind="refl.duda">${val('refl.duda')}</textarea>
+    <label class="lb" for="rf2">¿Qué dato te faltó para estar seguro/a?</label><textarea id="rf2" data-bind="refl.falta">${val('refl.falta')}</textarea>
+    <label class="lb" for="rf3">${esc(CONFIG.reflexion)}</label><textarea id="rf3" data-bind="refl.medida">${val('refl.medida')}</textarea>
+  </div>
+  ${cuentaHTML()}
+  <div class="card dark"><h3>Mi bitácora</h3><p class="small" style="color:#cfe0e3">Descárgala o guárdala en PDF si tu profe te la pide así.</p>
+    <div class="row"><button class="btn" style="background:var(--sand);color:var(--ocean)" data-act="print">🖨 Imprimir / PDF</button><button class="btn ghost" style="color:#fff;border-color:#fff" data-act="download">⬇ Descargar .txt</button><button class="btn ghost" style="color:#fff;border-color:#fff" data-act="copy">Copiar</button></div>
+  </div>
+  <div class="card"><h3>Terminar</h3><p class="small">Si otra persona va a usar este dispositivo: con cuenta, toca «No soy yo» (tu trabajo queda en tu cuenta); sin cuenta, descarga tu bitácora y luego borra tus datos.</p>
+    <div class="row"><button class="btn ghost sm" data-act="leave">Cambiar de equipo</button><button class="btn danger sm" data-act="wipe">Borrar mis datos</button></div></div>`;
+}
+
+/* =====================================================================
+   BITÁCORA EXPORTABLE y RESUMEN PARA EL PANEL DEL PROFE
+   ===================================================================== */
+function bloques(eq, d){
+  const t = CONFIG.equipos[eq], g = p => (getP(p, d)||'').toString().trim(), out = [];
+  const push = (k, v) => { v = (v==null?'':String(v)).trim(); if(v) out.push([k, v]); };
+  push('Rol', d.rol); push('Voto inicial', d.voto_inicial);
+  if(t.tipo === 'debate'){
+    push('Evidencia marcada', t.evidencia.filter((e,i)=>(d.usados||{})[i]).map(e=>e[0]).join(' · '));
+    [0,1,2].forEach(i=>{ if(!argLleno(i, d)) return; const ev = getP('args.'+i+'.ev', d); push('Argumento '+(i+1)+(d.mejor===String(i+1)?' (el más sólido)':''), ['A: '+(g('args.'+i+'.af')||'—'), 'E: '+(ev!==undefined&&ev!==''&&t.evidencia[+ev]?t.evidencia[+ev][0]+' — ':'')+(g('args.'+i+'.evtxt')||'—'), 'R: '+(g('args.'+i+'.ra')||'—')].join('\n')); });
+    [0,1].forEach(i=>{ if(g('rival.'+i+'.arg')) push('Rival '+(i+1), g('rival.'+i+'.arg')+'\nRespuesta: '+(g('rival.'+i+'.resp')||'—')); });
+    push('Preguntas cruzadas', [g('preg.0'), g('preg.1')].filter(Boolean).join('\n'));
+  }
+  if(t.tipo === 'jurado'){
+    const p = d.pauta || {};
+    push('Pauta', CONFIG.criterios.map((c,i)=>c[0]+': '+CONFIG.lados.map(l=>corto(lado(l).nombre)+' '+(p[l+'_'+i]||'—')).join(' · ')).join('\n')+'\nDescuentos: '+CONFIG.lados.map(l=>corto(lado(l).nombre)+' '+(d['falsos_'+l]||0)).join(' · '));
+    push('Total', CONFIG.lados.map(l=>lado(l).nombre+' '+puntos(l, d).t).join(' · '));
+    push('Ganador', d.ganador); push('Mejor argumento', d.mejor_arg); push('Justificación', d.justif);
+  }
+  if(t.tipo === 'prensa'){
+    push('Datos verificados', (d.verif||[]).map(x=>'['+x.ver+'] '+x.quien+' (turno '+x.turno+'): '+x.dato+(x.fuente?' · '+x.fuente:'')).join('\n'));
+    push('Titular', [g('tit.f'), g('tit.b')].filter(Boolean).join('\n'));
+  }
+  const tags = tagsDe(t.tipo);
+  push('Observaciones del debate', (d.notas||[]).map(n=>'[Turno '+n.turno+' · '+n.hora+'] '+((tags.find(x=>x[0]===n.tag)||['',n.tag])[1])+': '+n.txt).join('\n'));
+  push('Voto final', d.voto_final);
+  push('Reflexión', [g('refl.duda')&&'Me hizo dudar: '+g('refl.duda'), g('refl.falta')&&'Me faltó: '+g('refl.falta'), g('refl.medida')&&'Propuesta: '+g('refl.medida')].filter(Boolean).join('\n'));
+  return out;
+}
+function exportText(){
+  const t = team(), L = [];
+  L.push('BITÁCORA DEL DEBATE · ' + CONFIG.titulo.toUpperCase(), 'Moción: «' + CONFIG.mocion + '»', 'Nombre: ' + (S.nombre||'—'), 'Equipo: ' + t.nombre + ' (' + t.postura + ')', 'Fecha: ' + new Date().toLocaleDateString('es-CL'), '');
+  const b = bloques(S.equipo, D());
+  if(!b.length) L.push('(Todavía no hay nada escrito.)');
+  b.forEach(([k,v])=>L.push('== ' + k.toUpperCase() + ' ==', v, ''));
+  return L.join('\n');
+}
+window.AUTOGUARDADO_RESUMEN = function(){
+  if(!CONFIG) return {};
+  const det = [], av = [];
+  det.push({ k: 'Nombre', v: S.nombre || '—' });
+  if(S.equipo) det.push({ k: 'Equipo actual', v: lado(S.equipo).nombre });
+  Object.keys(CONFIG.equipos).forEach(eq=>{
+    const d = (S.datos||{})[eq]; if(!d || !Object.keys(d).length) return;
+    const t = CONFIG.equipos[eq];
+    bloques(eq, d).forEach(([k,v])=>det.push({ k: t.nombre + ' · ' + k, v }));
+    if(t.tipo === 'debate') av.push(corto(t.nombre) + ': ' + [0,1,2].filter(i=>argLleno(i, d) === 3).length + '/3 arg.');
+    if(t.tipo === 'jurado') av.push('Jurado: ' + (d.ganador ? 'veredicto' : 'pauta'));
+    if(t.tipo === 'prensa') av.push('Prensa: ' + (d.verif||[]).length + ' datos');
+  });
+  return { avance: av.join(' · ').slice(0, 60) || 'Sin avance', detalle: det.slice(0, 80) };
+};
+
+/* =====================================================================
+   HERRAMIENTA (portada general) y EDITOR DE DEBATES
+   ===================================================================== */
+function renderHerramienta(){
+  sinPestanas(); setTeamColors('#1F6E80', '#e4f0f2');
+  app.innerHTML = `
+  <section class="hero"><div class="in">
+    <a class="back" href="../index.html">‹ El Mundo de Felipe</a>
+    <div class="k" style="margin-top:10px">Misceláneos · Herramienta</div>
+    <h1>Herramienta para debates</h1>
+    <p style="color:#e9f1f2">Un debate de curso completo en cuatro equipos, con bitácoras, reloj de turnos, pauta de evaluación y verificación de datos. Cada estudiante entra desde su celular al equipo que le tocó.</p>
+  </div>
+  <svg viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 C 180 5, 360 30, 520 22 S 840 8, 1000 30 L1000 70 L0 70Z" fill="#1F6E80" opacity=".6"/><path d="M0 55 C 200 25, 420 50, 640 38 S 900 34, 1000 46 L1000 70 L0 70Z" fill="#E2BF84"/></svg>
+  </section>
+  <main class="wrap">
+    ${ERROR_CFG?`<div class="card warn"><b>${esc(ERROR_CFG)}</b></div>`:''}
+    <h2>Debates listos</h2>
+    <div class="lib">${Object.entries(DEBATES).map(([k,d])=>`<a class="libitem" href="debate.html?d=${encodeURIComponent(k)}"><span class="ic" aria-hidden="true">${Object.values(d.equipos)[0].icono}</span><span><b>${esc(d.titulo)}</b><span>${esc(d.subtitulo)}</span><br><span>«${esc(d.mocion)}»</span></span></a>`).join('')}</div>
+    <div class="card dark" style="margin-top:16px"><h2>Crea tu propio debate</h2><p class="small" style="color:#cfe0e3">Escribe la moción, el contexto y la evidencia de cada lado. Obtienes un enlace para compartir con el curso: no hay que instalar nada.</p><a class="btn" style="background:var(--sand);color:var(--ocean)" href="debate.html?editor">✏️ Abrir el editor</a></div>
+    <h2>Cómo funciona</h2>
+    <div class="fourteams">
+      <div style="background:#5E7F4F"><b>A favor</b>Prepara 3 argumentos con evidencia y defiende la moción.</div>
+      <div style="background:#C8553D"><b>En contra</b>Prepara 3 argumentos con evidencia y rebate la moción.</div>
+      <div style="background:#0F3443"><b>Jurado</b>Dirige los turnos, evalúa con pauta y da el veredicto.</div>
+      <div style="background:#1F6E80"><b>Prensa</b>Verifica los datos que se dicen y escribe el titular.</div>
+    </div>
+    <div class="card" style="margin-top:14px"><ul class="dots"><li>10 turnos cronometrados: aperturas, refutaciones, preguntas cruzadas, informe de la prensa y cierres (unos 25 minutos).</li><li>Cada dato falso detectado por la prensa resta 1 punto en la pauta del jurado.</li><li>Con la cuenta de El Mundo de Felipe, el trabajo de cada estudiante se guarda solo y aparece en el Panel del profe → Trabajos.</li></ul></div>
+  </main>`;
+}
+const ED_KEY = 'debate_editor_borrador';
+function edLoad(){ try{ return JSON.parse(localStorage.getItem(ED_KEY)) || {}; }catch(e){ return {}; } }
+function edSave(o){ try{ localStorage.setItem(ED_KEY, JSON.stringify(o)); }catch(e){} }
+const ICONOS = ['🟢','🔴','🌿','🏙️','💧','⚡','🌊','🏭','🐟','🌲','🏔️','🚜','🔥','🏥','📱','🤖','⚖️','🧪'];
+function edCompacto(e){
+  const ev = t => lineas(t, 3);
+  return { t: e.t, s: e.s, g: e.g, m: e.m, c: lineas(e.c, 2), f: e.f, r: e.r,
+    a: { n: e.an, p: e.ap, i: e.ai, mi: e.ami, c: 0, ev: ev(e.aev) },
+    b: { n: e.bn, p: e.bp, i: e.bi, mi: e.bmi, c: 1, ev: ev(e.bev) } };
+}
+function edEnlace(e){ const base = location.href.split('?')[0].split('#')[0]; return base + '#cfg=' + b64e(JSON.stringify(edCompacto(e))); }
+function renderEditor(){
+  sinPestanas(); setTeamColors('#1F6E80', '#e4f0f2');
+  const e = edLoad(), f = (k, ph, lab, big, hint) => `<label class="lb" for="ed-${k}">${lab}</label>${big?`<textarea id="ed-${k}" data-ed="${k}" placeholder="${esc(ph)}" style="min-height:${big}px">${esc(e[k]||'')}</textarea>`:`<input type="text" id="ed-${k}" data-ed="${k}" value="${esc(e[k]||'')}" placeholder="${esc(ph)}">`}${hint?`<p class="hint">${hint}</p>`:''}`;
+  const ic = k => `<label class="lb">Ícono</label><div class="chips">${ICONOS.map(x=>`<button class="chip ${e[k]===x?'on':''}" data-act="edicon" data-k="${k}" data-v="${x}" aria-pressed="${e[k]===x}">${x}</button>`).join('')}</div>`;
+  const listo = (e.m||'').trim() && (e.an||'').trim() && (e.bn||'').trim();
+  app.innerHTML = `<header class="top"><div class="t1">✏️ Crear un debate</div><span class="sp"></span><a class="tb" href="debate.html">Volver</a></header>
+  <main class="wrap">
+    <div class="card sand"><p style="margin:0">Completa los campos. Todo se guarda en este navegador mientras escribes. Al final, copia el enlace y compártelo con el curso (por ejemplo, en Classroom o WhatsApp).</p></div>
+    <div class="card"><h2>El debate</h2>
+      ${f('t','Ej.: Las Dunas de Concón','Título')}
+      ${f('s','Ej.: Debate · Biología 1° Medio','Curso o asignatura')}
+      ${f('m','Ej.: Se debe prohibir toda nueva construcción en el campo dunar.','Moción (lo que se debate)',70,'Escríbela como una afirmación que se pueda apoyar o rechazar.')}
+      ${f('g','Una o dos frases para despertar el interés.','Gancho (opcional)',60)}
+      ${f('c','2 millones de años | Edad de los sedimentos de las dunas','Datos de contexto (opcional)',110,'Un dato por línea: <b>título | explicación</b>.')}
+      ${f('f','Ej.: La Tercera (2026); El Desconcierto (2025)','Fuentes del contexto (opcional)')}
+    </div>
+    ${['a','b'].map((s,i)=>`<div class="card"><h2>${i?'Equipo en contra':'Equipo a favor'}</h2>
+      ${f(s+'n', i?'Ej.: Equipo Ciudad':'Ej.: Equipo Duna','Nombre del equipo')}
+      ${f(s+'p', i?'En contra de la moción':'A favor de la moción','Postura')}
+      ${ic(s+'i')}
+      ${f(s+'mi', i?'Ej.: Defender que se pueda construir con condiciones.':'Ej.: Defender que se prohíba construir.','Misión del equipo')}
+      ${f(s+'ev','Riesgo para personas | Las lluvias abrieron socavones en 2023 y 2024. | El Desconcierto, 2026','Ficha de evidencia',150,'Un dato por línea: <b>título | dato | fuente</b>. Hasta 12 datos.')}
+    </div>`).join('')}
+    <div class="card">${f('r','Ej.: ¿Qué medida podría acercar las dos posturas?','Pregunta de reflexión final (opcional)')}</div>
+    <div class="card dark"><h2>Compartir</h2>
+      ${listo?`<p class="small" style="color:#cfe0e3">Este enlace abre el debate para los estudiantes. Si cambias algo, vuelve a copiarlo: el enlace nuevo es otro debate.</p>
+      <div class="out" id="edOut">${esc(edEnlace(e))}</div>
+      <div class="row" style="margin-top:10px"><button class="btn" style="background:var(--sand);color:var(--ocean)" data-act="edcopy">Copiar enlace</button><a class="btn ghost" style="color:#fff;border-color:#fff" href="${esc(edEnlace(e))}" target="_blank" rel="noopener">Probar como estudiante ↗</a></div>
+      <p class="small" style="color:#cfe0e3;margin-top:10px">Para ver los trabajos en el Panel del profe → Trabajos, elige «Otro debate» y escribe este código: <b style="color:var(--sand)">${esc(desdeCompacto(edCompacto(e)).clave)}</b></p>`
+      :'<p class="small" style="color:#cfe0e3;margin:0">Escribe al menos la moción y el nombre de los dos equipos para obtener el enlace.</p>'}
+    </div>
+    <div class="row"><button class="btn ghost sm" data-act="edreset">Empezar de nuevo</button></div>
+  </main>`;
+}
+
+/* =====================================================================
+   EVENTOS
+   ===================================================================== */
+function armar(b, txt){ if(b.dataset.arm==='1') return true; b.dataset.arm = '1'; const o = b.textContent; b.textContent = txt; setTimeout(()=>{ if(b.isConnected){ b.dataset.arm = ''; b.textContent = o; } }, 2800); return false; }
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const a = b.dataset.act, v = b.dataset.v;
+  switch(a){
+    case 'enter': if((S.nombre||'').trim().length<2){ toast('Escribe tu nombre primero'); return; } S.equipo = v; S.tab = 'guia'; S.rol = getP('rol') || ''; save(); render(); window.scrollTo(0,0); break;
+    case 'tab': S.tab = v; save(); render(); window.scrollTo(0,0); break;
+    case 'home': S.tab = 'guia'; S.equipo = null; save(); render(); window.scrollTo(0,0); break;
+    case 'rol': S.rol = v; setP('rol', v); save(); render(true); break;
+    case 'set': setP(b.dataset.p, v); save(); render(true); break;
+    case 'use': { const u = D().usados || (D().usados = {}); u[v] = !u[v]; save(); render(true); break; }
+    case 'ntag': D().noteTag = v; save(); render(true); break;
+    case 'addnote': { const txt = (D().noteDraft||'').trim(); if(!txt){ toast('Escribe algo primero'); return; }
+      (D().notas || (D().notas = [])).push({ id: uid(), tag: D().noteTag || tagsDe(team().tipo)[0][0], txt: txt.slice(0, 1000), turno: clock.i+1, hora: hhmm() });
+      D().noteDraft = ''; save(); render(true); toast('Nota guardada'); break; }
+    case 'delnote': if(!armar(b, '¿seguro?')) return; D().notas = (D().notas||[]).filter(n=>n.id!==v); save(); render(true); break;
+    case 'turn': loadTurn(+v); render(true); break;
+    case 'clk': clock.run ? stopClock() : startClock(); render(true); break;
+    case 'clkreset': stopClock(); clock.left = null; render(true); break;
+    case 'clknext': if(clock.i >= CONFIG.turnos.length-1){ toast('Ese fue el último turno'); return; } loadTurn(clock.i+1); render(true); break;
+    case 'score': { const [eq,i,n] = v.split('|'); const p = D().pauta || (D().pauta = {}); p[eq+'_'+i] = (+p[eq+'_'+i] === +n) ? 0 : +n; save(); render(true); break; }
+    case 'fals': { const [eq,dl] = v.split('|'); const k = 'falsos_'+eq; D()[k] = Math.max(0, (+(D()[k]||0)) + (+dl)); save(); render(true); break; }
+    case 'vq': D().vForm = Object.assign(D().vForm||{quien:lado(CONFIG.lados[0]).nombre,ver:'Correcto'}, {quien:v}); save(); render(true); break;
+    case 'vv': D().vForm = Object.assign(D().vForm||{quien:lado(CONFIG.lados[0]).nombre,ver:'Correcto'}, {ver:v}); save(); render(true); break;
+    case 'pickev': { const [eq,j] = v.split('|'), ev = lado(eq).evidencia[+j];
+      D().vDato = ev[0] + ': ' + ev[1]; D().vFuente = 'Ficha ' + lado(eq).nombre + (ev[2] ? ' · ' + ev[2] : '');
+      D().vForm = Object.assign(D().vForm||{}, { ver: 'Correcto' }); if(!D().vForm.quien) D().vForm.quien = lado(CONFIG.lados[0]).nombre;
+      save(); render(); const c = document.getElementById('vCard'); if(c){ const hTop = (document.querySelector('.top')||{offsetHeight:0}).offsetHeight; window.scrollTo(0, c.getBoundingClientRect().top + window.scrollY - hTop - 10); }
+      toast('Elige quién lo dijo y toca «Registrar dato»'); break; }
+    case 'addv': { const d = D(), dato = (d.vDato||'').trim(); if(!dato){ toast('Escribe el dato que se dijo'); return; }
+      const f = d.vForm || {quien:lado(CONFIG.lados[0]).nombre,ver:'Correcto'};
+      (d.verif || (d.verif = [])).push({ id: uid(), dato: dato.slice(0, 600), quien: f.quien || lado(CONFIG.lados[0]).nombre, ver: f.ver || 'Correcto', fuente: (d.vFuente||'').trim().slice(0, 200), turno: clock.i+1, hora: hhmm() });
+      d.vDato = ''; d.vFuente = ''; save(); render(true); toast('Dato registrado'); break; }
+    case 'delv': if(!armar(b, '¿seguro?')) return; D().verif = (D().verif||[]).filter(x=>x.id!==v); save(); render(true); break;
+    case 'print': { const p = document.getElementById('print'); p.innerHTML = `<h1>${esc(CONFIG.titulo)}</h1><pre>${esc(exportText())}</pre>`; window.print(); break; }
+    case 'download': { const blob = new Blob([exportText()], {type:'text/plain;charset=utf-8'}); const a2 = document.createElement('a'); a2.href = URL.createObjectURL(blob); a2.download = 'bitacora-debate-' + ((S.nombre||'estudiante').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'estudiante') + '.txt'; document.body.appendChild(a2); a2.click(); setTimeout(()=>{ URL.revokeObjectURL(a2.href); a2.remove(); }, 800); break; }
+    case 'copy': copiar(exportText(), 'Bitácora copiada'); break;
+    case 'leave': stopClock(); S.equipo = null; S.tab = 'guia'; save(); render(); window.scrollTo(0,0); break;
+    case 'wipe': if(!armar(b, 'Toca otra vez para borrar')) return; stopClock(); S = DEF(); save(); render(); window.scrollTo(0,0); toast('Datos borrados de este dispositivo'); break;
+    case 'entrarcuenta': if(window.DF) DF.entrar().catch(err=>{ if(!err||!err.cancelado) toast('No se pudo entrar: '+((err&&err.message)||err)); }); break;
+    case 'salircuenta': { const chipBtn = document.querySelector('.ag-chip [data-ag="salir"]'); if(chipBtn){ chipBtn.click(); } else if(window.DF){ DF.salir().then(()=>location.reload()); } break; }
+    case 'edicon': { const o = edLoad(); o[b.dataset.k] = v; edSave(o); render(true); break; }
+    case 'edcopy': copiar(edEnlace(edLoad()), 'Enlace copiado'); break;
+    case 'edreset': if(!armar(b, 'Toca otra vez para borrar el borrador')) return; edSave({}); render(); window.scrollTo(0,0); break;
+  }
+});
+document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.matches && e.target.matches('li[data-act]')){ e.preventDefault(); e.target.click(); } });
+function copiar(txt, ok){ (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(()=>toast(ok), ()=>{ const ta = document.createElement('textarea'); ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast(ok); }catch(err){ toast('No se pudo copiar: selecciona el texto y cópialo'); } ta.remove(); }); }
+
+let edT = null;
+document.addEventListener('input', e=>{
+  const el = e.target;
+  if(el.dataset.home === 'nombre'){ S.nombre = el.value; save(); const ok = el.value.trim().length >= 2; document.querySelectorAll('[data-act="enter"]').forEach(b=>b.disabled = !ok); const h = document.getElementById('nombreHint'); if(h) h.textContent = ok ? 'Listo: ahora elige tu equipo.' : 'Escríbelo para poder entrar a tu equipo.'; return; }
+  if(el.dataset.draft){ D()[el.dataset.draft] = el.value; save(); return; }
+  if(el.dataset.ed){ const o = edLoad(); o[el.dataset.ed] = el.value; edSave(o); clearTimeout(edT); edT = setTimeout(()=>{ const out = document.getElementById('edOut'); const need = !!out !== !!(((o.m||'').trim()) && ((o.an||'').trim()) && ((o.bn||'').trim())); if(need) render(true); else if(out){ out.textContent = edEnlace(o); const a = out.parentNode.querySelector('a.btn'); if(a) a.href = edEnlace(o); } }, 500); return; }
+  if(el.dataset.bind){ setP(el.dataset.bind, el.value); save();
+    const m = el.closest('.arg'); if(m){ const i = el.dataset.bind.split('.')[1]; m.querySelector('.meter i').style.width = (argLleno(i)/3*100)+'%'; } }
+});
+document.addEventListener('change', e=>{ const el = e.target; if(el.tagName==='SELECT' && el.dataset.bind){ setP(el.dataset.bind, el.value); save();
+  const m = /^args\.(\d)\.ev$/.exec(el.dataset.bind);
+  if(m && el.value!==''){ const k = 'args.'+m[1]+'.evtxt', ev = team().evidencia[+el.value]; if(ev && !(getP(k)||'').trim()){ setP(k, ev[1]+(ev[2]?' (Fuente: '+ev[2]+')':'')); save(); const ta = document.querySelector('[data-bind="'+k+'"]'); if(ta){ ta.value = getP(k); ta.dispatchEvent(new Event('input',{bubbles:true})); } } } } });
+function afterRender(){ if(clock.run){ const el = document.getElementById('clkVal'); if(el) el.textContent = fmt(clock.left); } }
+
+/* =====================================================================
+   ARRANQUE
+   ===================================================================== */
+if(CONFIG){
+  document.title = CONFIG.titulo + ' · Debate';
+  /* guardado en la cuenta: firebase/autoguardado.js con la clave de este debate */
+  if(window.DF){
+    const sc = document.createElement('script');
+    sc.src = '../firebase/autoguardado.js';
+    sc.setAttribute('data-clave', CONFIG.clave);
+    sc.setAttribute('data-titulo', 'Debate · ' + CONFIG.titulo);
+    sc.setAttribute('data-claves', KEY);
+    document.body.appendChild(sc);
+  }
+}
+conectarCuenta();
+render();
+</script>
+</body>
+</html>

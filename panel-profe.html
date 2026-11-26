@@ -323,6 +323,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
     <section id="t-trabajos" class="oculto">
       <div class="barra">
         <select id="wRec"></select>
+        <input id="wOtro" type="text" placeholder="Código del debate (debate-c-…)" style="min-width:200px" hidden>
         <input id="wBuscar" type="search" placeholder="Buscar nombre o correo…" style="flex:1;min-width:160px">
         <button class="btn sm" id="wCargar">Actualizar</button>
         <button class="btn sm" id="wExportar">Descargar CSV</button>
@@ -1937,12 +1938,17 @@ const TRABAJOS = [
   { clave: 'taller-trabajo-potencia', nombre: 'Taller: trabajo y potencia (4° Medio Física)' },
   { clave: 'maquina-newton', nombre: 'La Máquina de Newton (simulador)' },
   { clave: 'energia-pista', nombre: 'Pista de Energía (2° Medio Física, Unidad 3)' },
-  { clave: 'debate-dunas-concon', nombre: 'Debate · Dunas de Concón (1° Medio Biología, Unidad 4)' }
+  { clave: 'debate-dunas-concon', nombre: 'Debate · Dunas de Concón (1° Medio Biología, Unidad 4)' },
+  { clave: '__otro', nombre: 'Otro debate (creado con la Herramienta para debates)…' }
 ];
 let trabajos = [];
 $('wRec').innerHTML = TRABAJOS.map(t => `<option value="${esc(t.clave)}">${esc(t.nombre)}</option>`).join('');
 async function cargarTrabajos() {
-  const { F, db } = FB, clave = $('wRec').value;
+  const { F, db } = FB;
+  const otro = $('wRec').value === '__otro';
+  $('wOtro').hidden = !otro;
+  const clave = otro ? $('wOtro').value.trim().toLowerCase() : $('wRec').value;
+  if (otro && !/^debate-c-[0-9a-f]{8}$/.test(clave)) { $('wTabla').innerHTML = '<tr><td colspan="6" class="muted">Escribe el código que muestra el editor del debate (por ejemplo, debate-c-1a2b3c4d) y presiona Actualizar.</td></tr>'; $('wCuenta').textContent = ''; return; }
   $('wTabla').innerHTML = '<tr><td colspan="6" class="muted">Cargando…</td></tr>';
   try {
     if (!alumnos.length) {
@@ -1970,6 +1976,7 @@ function pintarTrabajos() {
     : '<tr><td colspan="6" class="muted">Nadie ha guardado este trabajo todavía con su cuenta.</td></tr>';
 }
 $('wRec').onchange = cargarTrabajos;
+$('wOtro').onkeydown = ev => { if (ev.key === 'Enter') cargarTrabajos(); };
 $('wCargar').onclick = cargarTrabajos;
 $('wBuscar').oninput = pintarTrabajos;
 $('wTabla').onclick = ev => {
