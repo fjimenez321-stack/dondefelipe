@@ -40,7 +40,10 @@ h2{font:900 26px/1 var(--ff-d);text-transform:uppercase;margin:0 0 8px}
 .bar{height:10px;border-radius:999px;background:var(--slab2);overflow:hidden;margin-top:10px;border:1px solid var(--line)}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--acid));width:0;transition:width .5s}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px}
-.catp{font-size:13px;color:var(--mute);display:flex;justify-content:space-between;background:var(--slab2);border-radius:10px;padding:5px 9px}
+.catp{font-size:13px;color:var(--mute);display:flex;justify-content:space-between;gap:8px;background:var(--slab2);border-radius:10px;padding:5px 9px}
+.catp span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leyenda{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:10px}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .catp.full{color:var(--acid);border:1px solid rgba(255,214,10,.4)}
 /* salida */
 .salida{border-radius:14px;padding:10px 14px;margin-top:14px;font-size:14px;display:flex;gap:10px;align-items:center}
@@ -126,6 +129,7 @@ details summary{cursor:pointer;font-weight:800}
     </div>
     <div class="bar"><i id="barra"></i></div>
     <div class="cats" id="catsProg"></div>
+    <div class="leyenda" id="leyenda"></div>
   </section>
 
   <div class="tools">
@@ -228,15 +232,20 @@ function fijarSalida(s) { try { s ? localStorage.setItem(K_SAL, JSON.stringify(s
 function salidaValida(s) {
   return s && typeof s.n === 'string' && isFinite(s.lat) && isFinite(s.lng) && s.r > 0 && s.ini > 0 && s.fin > s.ini;
 }
-(function leerEnlace() {
+// El enlace de la salida se lee al abrir la página y también si ya estaba abierta (solo cambia el #).
+function leerEnlace() {
   const m = location.hash.match(/salida=([A-Za-z0-9_-]+)/);
   if (!m) return;
   try {
     const s = JSON.parse(deb64u(m[1]));
     if (salidaValida(s)) { fijarSalida(s); setTimeout(() => toast('Salida cargada: ' + s.n), 300); }
-  } catch (e) {}
+    else setTimeout(() => toast('El enlace de la salida no es válido.'), 300);
+  } catch (e) { setTimeout(() => toast('El enlace de la salida no es válido.'), 300); }
   history.replaceState(null, '', location.pathname + location.search);
-})();
+  if (typeof pintarSalida === 'function' && document.getElementById('salidaBox')) pintarSalida();
+}
+leerEnlace();
+window.addEventListener('hashchange', leerEnlace);
 function estadoSalida() {
   const s = salida(); if (!s) return null;
   const t = Date.now();
@@ -373,14 +382,14 @@ function evaluar({ file, exif, img, hash, geo, uidActual }) {
       else if (d <= es.s.r + Math.min(geo.acc, 150)) add('ok', `Dentro de la zona de la salida (${d} m del centro)`, 15);
       else { fuera = true; add('no', `Fuera de la zona de la salida (${d} m del centro)`, -20); }
     }
-  } else add('no', 'Sin ubicación (activa el GPS y da permiso al navegador)', 0);
+  } else { fuera = true; add('no', 'Sin ubicación (activa el GPS y da permiso al navegador)', 0); }
   // 5. Repetida
-  const rep = CAPS.find(c => c.uid !== uidActual && c.hash && hamming(c.hash, hash) <= 5);
+  const rep = CAPS.find(c => c.uid !== uidActual && c.hash && hamming(c.hash, hash) <= 4);
   if (rep) add('no', `Muy parecida a una foto ya registrada (${PORID[rep.especie] ? PORID[rep.especie].nombre : rep.especie})`, -60);
   else add('ok', 'Foto nueva: no se parece a otras ya registradas', 10);
   const total = Math.max(0, Math.min(100, s.reduce((a, x) => a + x.p, 10)));   // +10 por la nota de campo, que es obligatoria
   // Sin datos de cámara la foto no puede quedar «confiable»: la revisa el profe.
-  const tope = (exif.marca || exif.modelo) && !fuera ? 100 : 60;   // fuera de la zona u horario: también al profe
+  const tope = (exif.marca || exif.modelo) && !fuera ? 100 : 60;   // sin cámara, sin ubicación o fuera de zona/horario: al profe
   const final = Math.min(total, tope);
   return { senales: s, confianza: final, veredicto: final >= 70 ? 'confiable' : final >= 45 ? 'revisar' : 'dudosa' };
 }
@@ -502,7 +511,8 @@ async function procesarFoto(file) {
   const box = $('capPaso2'); if (!box) return;
   box.innerHTML = '<p class="note"><i class="fa-solid fa-spinner fa-spin"></i> Revisando la foto…</p>';
   try {
-    if (!capGeo) capGeo = await pedirUbicacion();      // reintenta justo después de la foto
+    // Ubicación del momento de la foto: si la que había tiene más de 2 min (o no hay), se vuelve a pedir.
+    if (!capGeo || Date.now() - capGeo.t > 2 * 60000) capGeo = (await pedirUbicacion()) || capGeo;
     const buf = await file.arrayBuffer();
     const exif = /jpe?g/i.test(file.type) || !file.type ? leerExif(buf) : {};
     const { img, url } = await cargarImagen(file);
@@ -628,6 +638,7 @@ $('fEstado').addEventListener('change', pintarGrilla);
 $('fRareza').addEventListener('change', pintarGrilla);
 $('fRareza').innerHTML += Object.keys(RZ).map(k => `<option value="${k}">${RZ[k].nombre} (${RZ[k].pts} pts)</option>`).join('');
 setInterval(pintarSalida, 60000);
+$('leyenda').innerHTML = Object.keys(RZ).map(k => `<span><i style="background:${RZ[k].color}"></i>${RZ[k].nombre} · ${RZ[k].pts} pts</span>`).join('');
 
 /* ══════════ Inicio ══════════ */
 pintarChips(); pintarSalida();
