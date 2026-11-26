@@ -219,6 +219,36 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);bo
 .fourteams b{display:block;font-size:.95rem}
 .out{word-break:break-all;font-size:.8rem;color:var(--ink);background:var(--gold-l);border-radius:10px;padding:10px;max-height:120px;overflow:auto}
 
+/* modo docente */
+.doc-proj{text-align:center}
+.doc-proj .mo{font-family:Cambria,Georgia,serif;font-style:italic;font-weight:700;color:var(--navy);font-size:clamp(1.3rem,3.6vw,2.4rem);line-height:1.25;background:var(--gold-l);border:2px solid var(--gold);border-radius:16px;padding:18px 20px;margin:10px auto 18px;max-width:900px}
+.qrbox{display:inline-grid;place-items:center;background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px;min-width:200px;min-height:200px}
+.qrbox img,.qrbox canvas{width:min(62vw,300px)!important;height:auto!important}
+.bigclock{background:var(--navy);color:#fff;border-radius:18px;padding:18px 20px;text-align:center}
+.bigclock .now{color:var(--gold-b);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:.95rem}
+.bigclock .ttl{font-size:clamp(1.2rem,3.4vw,2.2rem);font-weight:800;margin:4px 0}
+.bigclock .who{color:#D6E0F5;font-size:1rem}
+.bigclock .big{font-size:clamp(4.5rem,20vw,12rem);font-weight:800;font-variant-numeric:tabular-nums;line-height:1;margin:8px 0;color:#fff}
+.bigclock.warn .big{color:var(--gold-b)}
+.bigclock.end .big{color:#ffb4a8}
+.bigclock .btn{background:var(--gold-b);color:var(--navy)}
+.bigclock .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:.78rem;background:#fff;color:var(--ink)}
+.eqgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.eqcard{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.eqcard .hd{color:#fff;padding:10px 12px;font-weight:800}
+.eqcard ol{margin:0;padding:8px 12px 10px 32px}
+.eqcard li{padding:3px 0}
+.eqcard li span{color:var(--muted);font-size:.82rem}
+.vote{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.vote{grid-template-columns:1fr}}
+.vrow{display:flex;align-items:center;gap:8px;margin:6px 0}
+.vrow .lb2{width:118px;font-weight:700;font-size:.9rem}
+.vrow .bar{flex:1;height:22px;border-radius:6px;background:var(--blue-l);overflow:hidden}
+.vrow .bar i{display:block;height:100%}
+.vrow .n{width:34px;text-align:right;font-weight:800}
+.vrow button{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-weight:800;font-size:1.05rem}
+.warnline{background:var(--gold-l);border:1.5px solid var(--gold);border-radius:10px;padding:8px 10px;font-size:.86rem;color:var(--gold-d);margin-top:8px}
 /* impresión */
 #print{display:none}
 @media print{
@@ -226,6 +256,9 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);bo
   body{background:#fff}
   #app,.tabs,#toast,.ag-chip{display:none!important}
   #print{display:block;font-family:Calibri,Arial,sans-serif;color:#000;font-size:11pt}
+  #print .eqgrid{display:grid;grid-template-columns:1fr 1fr;gap:8mm}
+  #print .eqcard{border:1px solid #000;border-radius:0;page-break-inside:avoid}
+  #print .eqcard .hd{color:#000;background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #print h1{font-size:18pt;color:#000}
   #print pre{white-space:pre-wrap;font-family:inherit}
 }
@@ -239,6 +272,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--team);bo
 <div id="print"></div>
 
 <script>
+(async () => {
 /* =====================================================================
    HERRAMIENTA PARA DEBATES · El Mundo de Felipe
    Un debate = una configuración. Las de la biblioteca están abajo
@@ -281,18 +315,21 @@ const CRITERIOS = [
 const JURADO = { nombre: 'Comité / Jurado', postura: 'Jurado', icono: '⚖️', color: '#12306E', claro: '#E6EAF4', tipo: 'jurado', mision: 'Dirigir el debate, evaluar a ambos equipos con la pauta y dar el veredicto.' };
 const PRENSA = { nombre: 'Prensa verificadora', postura: 'Fact-checkers', icono: '📰', color: '#0B6BA3', claro: '#E3F1FA', tipo: 'prensa', mision: 'Comprobar si los datos que se dicen son ciertos e informar al jurado. Al final, escribir el titular.' };
 /* tipo de turno: apertura · pausa · refutacion · preguntas · prensa · cierre ; lado: A, B o '' */
-function turnosPara(A, B){
+/* duración: corta ≈ 15 min · normal ≈ 25 min · larga ≈ 32 min */
+const DURACIONES = { c: { nombre: 'Corta (≈15 min)', m: [2,2,1,1,1,3,2,1,1,1] }, n: { nombre: 'Normal (≈25 min)', m: [3,3,2,2,2,4,3,2,2,2] }, l: { nombre: 'Larga (≈32 min)', m: [4,4,2,3,3,5,3,2,3,3] } };
+function turnosPara(A, B, du){
+  const m = (DURACIONES[du] || DURACIONES.n).m;
   return [
-    ['Apertura · ' + A, 'Capitán/a', 3, 'apertura', 'A'],
-    ['Apertura · ' + B, 'Capitán/a', 3, 'apertura', 'B'],
-    ['Pausa para preparar refutación', 'Ambos equipos', 2, 'pausa', ''],
-    ['Refutación · ' + B, 'Refutadores/as', 2, 'refutacion', 'B'],
-    ['Refutación · ' + A, 'Refutadores/as', 2, 'refutacion', 'A'],
-    ['Preguntas cruzadas (2 por equipo)', 'Estrategas de preguntas', 4, 'preguntas', ''],
-    ['Informe de la prensa', 'Reportero/a', 3, 'prensa', ''],
-    ['Pausa estratégica', 'Ambos equipos', 2, 'pausa', ''],
-    ['Cierre · ' + B, 'Orador/a de cierre', 2, 'cierre', 'B'],
-    ['Cierre · ' + A, 'Orador/a de cierre', 2, 'cierre', 'A']
+    ['Apertura · ' + A, 'Capitán/a', m[0], 'apertura', 'A'],
+    ['Apertura · ' + B, 'Capitán/a', m[1], 'apertura', 'B'],
+    ['Pausa para preparar refutación', 'Ambos equipos', m[2], 'pausa', ''],
+    ['Refutación · ' + B, 'Refutadores/as', m[3], 'refutacion', 'B'],
+    ['Refutación · ' + A, 'Refutadores/as', m[4], 'refutacion', 'A'],
+    ['Preguntas cruzadas (2 por equipo)', 'Estrategas de preguntas', m[5], 'preguntas', ''],
+    ['Informe de la prensa', 'Reportero/a', m[6], 'prensa', ''],
+    ['Pausa estratégica', 'Ambos equipos', m[7], 'pausa', ''],
+    ['Cierre · ' + B, 'Orador/a de cierre', m[8], 'cierre', 'B'],
+    ['Cierre · ' + A, 'Orador/a de cierre', m[9], 'cierre', 'A']
   ];
 }
 
@@ -364,6 +401,21 @@ function b64d(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length % 4)
 function hash(str){ let h = 5381; for(let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; return h.toString(16).padStart(8,'0'); }
 const cut = (v, n) => String(v == null ? '' : v).slice(0, n);
 function lineas(txt, partes){ return String(txt||'').split('\n').map(l=>l.trim()).filter(Boolean).slice(0, 12).map(l=>{ const p = l.split('|').map(x=>x.trim()); while(p.length < partes) p.push(''); return p.slice(0, partes).map(x=>cut(x, 400)); }); }
+/* enlaces comprimidos: #cfz= (deflate) para que quepan en un QR; #cfg= sin comprimir */
+async function comprimir(str){
+  if(typeof CompressionStream === 'undefined') return null;
+  const cs = new Blob([new TextEncoder().encode(str)]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  const by = new Uint8Array(await new Response(cs).arrayBuffer());
+  let bin = ''; for(let i = 0; i < by.length; i += 0x8000) bin += String.fromCharCode.apply(null, by.subarray(i, i + 0x8000));
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function descomprimir(b64){
+  if(typeof DecompressionStream === 'undefined') throw new Error('Este navegador es antiguo: actualízalo para abrir el debate.');
+  let s2 = b64.replace(/-/g,'+').replace(/_/g,'/'); while(s2.length % 4) s2 += '=';
+  const bin = atob(s2), by = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) by[i] = bin.charCodeAt(i);
+  const ds = new Blob([by]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new TextDecoder().decode(await new Response(ds).arrayBuffer());
+}
 /* compacto → configuración completa */
 function desdeCompacto(c){
   if(!c || typeof c !== 'object' || !c.m || !c.a || !c.b) throw new Error('El enlace no trae un debate válido.');
@@ -380,27 +432,33 @@ function desdeCompacto(c){
     mocion: cut(c.m, 300), volver: { href: 'debate.html', texto: 'Herramienta para debates' },
     contexto: { datos: (Array.isArray(c.c) ? c.c : []).slice(0, 12).map(d => [cut(d[0], 80), cut(d[1], 400)]), cronologia: [], fuentes: cut(c.f, 300) },
     equipos: { a: lado(c.a, 0, 'Equipo A'), b: lado(c.b, 1, 'Equipo B'), jurado: JURADO, prensa: PRENSA },
-    reflexion: cut(c.r, 200) || '¿Qué medida podría acercar las dos posturas?'
+    reflexion: cut(c.r, 200) || '¿Qué medida podría acercar las dos posturas?',
+    du: DURACIONES[c.du] ? c.du : 'n'
   };
 }
 function completar(cfg){
   const lados = Object.keys(cfg.equipos).filter(k => cfg.equipos[k].tipo === 'debate');
   cfg.lados = lados;
-  cfg.turnos = cfg.turnos || turnosPara(cfg.equipos[lados[0]].nombre, cfg.equipos[lados[1]].nombre);
+  cfg.turnos = cfg.turnos || turnosPara(cfg.equipos[lados[0]].nombre, cfg.equipos[lados[1]].nombre, cfg.du);
   cfg.criterios = cfg.criterios || CRITERIOS;
   return cfg;
 }
 
 /* ---------- qué mostrar ---------- */
-let CONFIG = null, MODO = 'herramienta', ERROR_CFG = '';
-(function elegir(){
-  const q = new URLSearchParams(location.search), h = location.hash;
-  try{
-    if(h.indexOf('#cfg=') === 0){ CONFIG = completar(desdeCompacto(JSON.parse(b64d(h.slice(5))))); MODO = 'debate'; return; }
-  }catch(e){ ERROR_CFG = 'No se pudo abrir el debate del enlace: ' + (e.message || e) + ' Pide el enlace completo a tu profe.'; }
-  if(q.get('d') && DEBATES[q.get('d')]){ CONFIG = completar(DEBATES[q.get('d')]); MODO = 'debate'; return; }
-  if(q.get('editor') !== null) MODO = 'editor';
-})();
+let CONFIG = null, MODO = 'herramienta', ERROR_CFG = '', COMPACTO = null, LIB_KEY = '';
+const Q = new URLSearchParams(location.search), DOCENTE = Q.get('docente') !== null;
+try{
+  const h = location.hash;
+  if(h.indexOf('#cfz=') === 0) COMPACTO = JSON.parse(await descomprimir(h.slice(5)));
+  else if(h.indexOf('#cfg=') === 0) COMPACTO = JSON.parse(b64d(h.slice(5)));
+  if(COMPACTO){ CONFIG = completar(desdeCompacto(COMPACTO)); MODO = DOCENTE ? 'docente' : 'debate'; }
+}catch(e){ CONFIG = null; COMPACTO = null; ERROR_CFG = 'No se pudo abrir el debate del enlace: ' + (e.message || e) + ' Pide el enlace completo a tu profe.'; }
+if(!CONFIG && Q.get('d') && DEBATES[Q.get('d')]){ LIB_KEY = Q.get('d'); CONFIG = completar(DEBATES[LIB_KEY]); MODO = DOCENTE ? 'docente' : 'debate'; }
+if(!CONFIG && Q.get('editor') !== null) MODO = 'editor';
+const BASE_URL = location.href.split('?')[0].split('#')[0];
+/* enlaces del debate abierto */
+function enlaceEst(){ return LIB_KEY ? BASE_URL + '?d=' + encodeURIComponent(LIB_KEY) : BASE_URL + location.hash; }
+function enlaceDoc(){ return LIB_KEY ? BASE_URL + '?d=' + encodeURIComponent(LIB_KEY) + '&docente' : BASE_URL + '?docente' + location.hash; }
 
 /* =====================================================================
    ESTADO (se guarda en este dispositivo y, con cuenta, en Firestore)
@@ -472,6 +530,7 @@ function render(mantenerScroll){
   const y = window.scrollY;
   if(MODO === 'herramienta') renderHerramienta();
   else if(MODO === 'editor') renderEditor();
+  else if(MODO === 'docente') renderDocente();
   else if(!S.equipo || S.tab === 'contexto-home') renderHome();
   else renderEquipo();
   if(mantenerScroll) window.scrollTo(0, y);
@@ -532,6 +591,7 @@ function renderHome(){
       ${Object.entries(CONFIG.equipos).map(([k,t])=>`<button class="tbtn" style="background:${t.color}" data-act="enter" data-v="${k}" ${ok?'':'disabled'}><span class="ic" aria-hidden="true">${t.icono}</span><b>${esc(t.nombre)}</b><span>${esc(t.postura)}</span></button>`).join('')}
     </div>
     <div class="row" style="margin-top:16px"><button class="btn ghost" data-act="tab" data-v="contexto-home">📌 Ver el contexto del debate</button></div>
+    <p class="small" style="margin-top:22px;text-align:center">¿Eres docente? <a href="${esc(enlaceDoc())}">Abrir el modo docente</a>: proyectar, sortear equipos, reloj oficial y votación.</p>
   </main>`;
 }
 
@@ -651,7 +711,7 @@ function clockHTML(){
 function tick(){
   const n = Date.now(); clock.left -= (n-clock.last)/1000; clock.last = n;
   const el = document.getElementById('clkVal'), box = document.getElementById('clock');
-  if(clock.left <= 0){ clock.left = 0; stopClock(); try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){} toast('¡Tiempo! Termina tu frase y cede la palabra.'); if(S.tab==='debate') render(true); return; }
+  if(clock.left <= 0){ clock.left = 0; stopClock(); try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){} toast('¡Tiempo! Termina tu frase y cede la palabra.'); if(S.tab==='debate' || MODO==='docente') render(true); return; }
   if(el) el.textContent = fmt(clock.left);
   if(box) box.classList.toggle('warn', clock.left<=30);
 }
@@ -845,7 +905,7 @@ function renderHerramienta(){
   <main class="wrap">
     ${ERROR_CFG?`<div class="card warn"><b>${esc(ERROR_CFG)}</b></div>`:''}
     <h2>Debates listos</h2>
-    <div class="lib">${Object.entries(DEBATES).map(([k,d])=>`<a class="libitem" href="debate.html?d=${encodeURIComponent(k)}"><span class="ic" aria-hidden="true">${Object.values(d.equipos)[0].icono}</span><span><b>${esc(d.titulo)}</b><span>${esc(d.subtitulo)}</span><br><span>«${esc(d.mocion)}»</span></span></a>`).join('')}</div>
+    <div class="lib">${Object.entries(DEBATES).map(([k,d])=>`<div class="libitem" style="flex-wrap:wrap"><span class="ic" aria-hidden="true">${Object.values(d.equipos)[0].icono}</span><span style="flex:1;min-width:200px"><b>${esc(d.titulo)}</b><span>${esc(d.subtitulo)}</span><br><span>«${esc(d.mocion)}»</span></span><span class="row" style="width:100%;gap:8px"><a class="btn sm" href="debate.html?d=${encodeURIComponent(k)}&docente">👩‍🏫 Modo docente</a><a class="btn sm ghost" href="debate.html?d=${encodeURIComponent(k)}">Vista estudiante</a><a class="btn sm ghost" href="debate.html?editor&base=${encodeURIComponent(k)}">Usar como plantilla</a></span></div>`).join('')}</div>
     <div class="card dark" style="margin-top:16px"><h2>Crea tu propio debate</h2><p class="small" style="color:#D6E0F5">Escribe la moción, el contexto y la evidencia de cada lado. Obtienes un enlace para compartir con el curso: no hay que instalar nada.</p><a class="btn" style="background:var(--gold);color:var(--navy)" href="debate.html?editor">✏️ Abrir el editor</a></div>
     <h2>Cómo funciona</h2>
     <div class="fourteams">
@@ -863,19 +923,81 @@ function edSave(o){ try{ localStorage.setItem(ED_KEY, JSON.stringify(o)); }catch
 const ICONOS = ['🟢','🔴','🌿','🏙️','💧','⚡','🌊','🏭','🐟','🌲','🏔️','🚜','🔥','🏥','📱','🤖','⚖️','🧪'];
 function edCompacto(e){
   const ev = t => lineas(t, 3);
-  return { t: e.t, s: e.s, g: e.g, m: e.m, c: lineas(e.c, 2), f: e.f, r: e.r,
+  return { t: e.t, s: e.s, g: e.g, m: e.m, c: lineas(e.c, 2), f: e.f, r: e.r, du: e.du || 'n',
     a: { n: e.an, p: e.ap, i: e.ai, mi: e.ami, c: 0, ev: ev(e.aev) },
     b: { n: e.bn, p: e.bp, i: e.bi, mi: e.bmi, c: 1, ev: ev(e.bev) } };
 }
-function edEnlace(e){ const base = location.href.split('?')[0].split('#')[0]; return base + '#cfg=' + b64e(JSON.stringify(edCompacto(e))); }
+/* debate de la biblioteca → formato compacto (para usarlo como plantilla) */
+function libCompacto(k){
+  const d = DEBATES[k]; if(!d) return null;
+  const ls = Object.keys(d.equipos).filter(x=>d.equipos[x].tipo==='debate').map(x=>d.equipos[x]);
+  const lado2 = t => ({ n: t.nombre, p: t.postura, i: t.icono, mi: t.mision, ev: t.evidencia.map(e=>e.slice()) });
+  return { t: d.titulo, s: d.subtitulo, g: d.gancho, m: d.mocion, c: (d.contexto.datos||[]).map(x=>x.slice()), f: d.contexto.fuentes, r: d.reflexion, du: 'n', a: lado2(ls[0]), b: lado2(ls[1]) };
+}
+/* formato compacto → campos del editor */
+function camposDe(c){
+  const j = arr => (arr||[]).map(x=>x.filter(Boolean).join(' | ')).join('\n');
+  const o = { t: c.t||'', s: c.s||'', g: c.g||'', m: c.m||'', c: j(c.c), f: c.f||'', r: c.r||'', du: c.du||'n' };
+  ['a','b'].forEach(k=>{ const x = c[k]||{}; o[k+'n'] = x.n||''; o[k+'p'] = x.p||''; o[k+'i'] = x.i||''; o[k+'mi'] = x.mi||''; o[k+'ev'] = j(x.ev); });
+  return o;
+}
+async function compactoDeEnlace(url){
+  const i = url.indexOf('#'), h = i >= 0 ? url.slice(i) : '';
+  if(h.indexOf('#cfz=') === 0) return JSON.parse(await descomprimir(h.slice(5)));
+  if(h.indexOf('#cfg=') === 0) return JSON.parse(b64d(h.slice(5)));
+  const m = /[?&]d=([^&#]+)/.exec(url); if(m && DEBATES[decodeURIComponent(m[1])]) return libCompacto(decodeURIComponent(m[1]));
+  throw new Error('Ese enlace no trae un debate.');
+}
+function edTieneContenido(){ const e = edLoad(); return Object.keys(e).some(k=>k!=='du' && String(e[k]||'').trim()); }
+let EDL = null;   // últimos enlaces generados {est, doc, clave}
+async function edEnlaces(e){
+  const c = edCompacto(e), json = JSON.stringify(c), z = await comprimir(json).catch(()=>null);
+  const frag = z && z.length < b64e(json).length ? '#cfz=' + z : '#cfg=' + b64e(json);
+  return { est: BASE_URL + frag, doc: BASE_URL + '?docente' + frag, clave: desdeCompacto(c).clave };
+}
+function edBalance(e){
+  const a = lineas(e.aev, 3).length, b = lineas(e.bev, 3).length, sinSep = ['aev','bev'].some(k=>String(e[k]||'').split('\n').some(l=>l.trim() && l.indexOf('|') < 0));
+  const out = [];
+  if(a + b && Math.abs(a - b) >= 2) out.push(`Evidencia desequilibrada: ${esc(e.an||'Equipo a favor')} tiene ${a} dato${a===1?'':'s'} y ${esc(e.bn||'Equipo en contra')} tiene ${b}. Un debate justo da a ambos lados una cantidad parecida.`);
+  if(sinSep) out.push('Hay líneas de evidencia sin «|». Usa el formato <b>título | dato | fuente</b> para que el título y la fuente se vean separados.');
+  if((e.m||'').trim().endsWith('?')) out.push('La moción está escrita como pregunta. Escríbela como afirmación («Se debe…»), así cada equipo sabe qué defender.');
+  return out.map(x=>`<div class="warnline">${x}</div>`).join('');
+}
+function actualizarShare(){
+  const box = document.getElementById('edShare'); if(!box) return;
+  const e = edLoad(), listo = (e.m||'').trim() && (e.an||'').trim() && (e.bn||'').trim();
+  const bal = document.getElementById('edBal'); if(bal) bal.innerHTML = edBalance(e);
+  if(!listo){ EDL = null; box.innerHTML = '<p class="small" style="color:#D6E0F5;margin:0">Escribe al menos la moción y el nombre de los dos equipos para obtener el enlace.</p>'; return; }
+  edEnlaces(e).then(L=>{
+    if(!box.isConnected) return; EDL = L;
+    box.innerHTML = `<p class="small" style="color:#D6E0F5">Comparte este enlace o proyecta el QR. Si cambias algo, el enlace cambia: vuelve a copiarlo.</p>
+      <div class="grid2" style="align-items:center"><div><div class="qrbox" id="qrEd"></div></div>
+      <div><div class="out" id="edOut">${esc(L.est)}</div>
+      <div class="row" style="margin-top:10px"><button class="btn" style="background:var(--gold-b);color:var(--navy)" data-act="edcopy">Copiar enlace</button><a class="btn ghost" style="color:#fff;border-color:#fff" href="${esc(L.doc)}" target="_blank" rel="noopener">👩‍🏫 Modo docente ↗</a><a class="btn ghost" style="color:#fff;border-color:#fff" href="${esc(L.est)}" target="_blank" rel="noopener">Vista estudiante ↗</a></div>
+      <p class="small" style="color:#D6E0F5;margin-top:10px">Código para el Panel del profe → Trabajos → «Otro debate»: <b style="color:var(--gold-b)">${esc(L.clave)}</b></p></div></div>`;
+    pintarQR('qrEd', L.est);
+  });
+}
+let BASE_PEND = Q.get('base');
 function renderEditor(){
   sinPestanas(); setTeamColors('#1F4FB3', '#E8EFFC');
+  const base = BASE_PEND;
+  if(base){ BASE_PEND = null;   // la plantilla se aplica una sola vez: así «Borrar» y «Cargar enlace» funcionan después
+    try{ const u = new URL(location.href); u.searchParams.delete('base'); history.replaceState(null, '', u.pathname + u.search.replace(/=(&|$)/g, '$1') + u.hash); }catch(err){}
+    if(DEBATES[base]){ if(!edTieneContenido()) edSave(camposDe(libCompacto(base))); else setTimeout(()=>toast('Tienes un borrador guardado. Para usar la plantilla, elígela abajo y toca Cargar.'), 300); } }
   const e = edLoad(), f = (k, ph, lab, big, hint) => `<label class="lb" for="ed-${k}">${lab}</label>${big?`<textarea id="ed-${k}" data-ed="${k}" placeholder="${esc(ph)}" style="min-height:${big}px">${esc(e[k]||'')}</textarea>`:`<input type="text" id="ed-${k}" data-ed="${k}" value="${esc(e[k]||'')}" placeholder="${esc(ph)}">`}${hint?`<p class="hint">${hint}</p>`:''}`;
   const ic = k => `<label class="lb">Ícono</label><div class="chips">${ICONOS.map(x=>`<button class="chip ${e[k]===x?'on':''}" data-act="edicon" data-k="${k}" data-v="${x}" aria-pressed="${e[k]===x}">${x}</button>`).join('')}</div>`;
-  const listo = (e.m||'').trim() && (e.an||'').trim() && (e.bn||'').trim();
-  app.innerHTML = `<header class="top"><div class="t1">✏️ Crear un debate</div><span class="sp"></span><a class="tb" href="debate.html">Volver</a></header>
+  const conBorrador = Object.values(e).some(v=>String(v||'').trim());
+  app.innerHTML = `<header class="top"><div class="id"><div class="t1">✏️ Crear un debate</div></div><a class="tb" href="debate.html">Volver</a></header>
   <main class="wrap">
-    <div class="card sand"><p style="margin:0">Completa los campos. Todo se guarda en este navegador mientras escribes. Al final, copia el enlace y compártelo con el curso (por ejemplo, en Classroom o WhatsApp).</p></div>
+    <div class="card sand"><p style="margin:0">Completa los campos: todo se guarda en este navegador mientras escribes. Abajo obtienes el enlace y el QR para el curso, y el acceso al modo docente.</p></div>
+    <div class="card"><h2>Partir de un debate existente</h2>
+      <label class="lb" for="edTpl">Plantilla de la biblioteca</label>
+      <div class="row"><select id="edTpl" style="flex:1;min-width:200px"><option value="">— Elegir —</option>${Object.entries(DEBATES).map(([k,d])=>`<option value="${esc(k)}" ${(base||Q.get('base'))===k?'selected':''}>${esc(d.titulo)}</option>`).join('')}</select><button class="btn sm" data-act="edtpl">Cargar</button></div>
+      <label class="lb" for="edLink">O pega el enlace de un debate que ya creaste (para editarlo)</label>
+      <div class="row"><input type="url" id="edLink" placeholder="https://…/herramientas/debate.html#cfz=…" style="flex:1;min-width:200px"><button class="btn sm" data-act="edlink">Cargar</button></div>
+      ${conBorrador?'<p class="hint">Cargar reemplaza lo que tienes escrito. Toca «Cargar» dos veces para confirmar.</p>':''}
+    </div>
     <div class="card"><h2>El debate</h2>
       ${f('t','Ej.: Las Dunas de Concón','Título')}
       ${f('s','Ej.: Debate · Biología 1° Medio','Curso o asignatura')}
@@ -883,24 +1005,122 @@ function renderEditor(){
       ${f('g','Una o dos frases para despertar el interés.','Gancho (opcional)',60)}
       ${f('c','2 millones de años | Edad de los sedimentos de las dunas','Datos de contexto (opcional)',110,'Un dato por línea: <b>título | explicación</b>.')}
       ${f('f','Ej.: La Tercera (2026); El Desconcierto (2025)','Fuentes del contexto (opcional)')}
+      <label class="lb" for="ed-du">Duración de los turnos</label>
+      <select id="ed-du" data-ed="du">${Object.entries(DURACIONES).map(([k,d])=>`<option value="${k}" ${(e.du||'n')===k?'selected':''}>${d.nombre}</option>`).join('')}</select>
+      <p class="hint">Los 10 turnos se ajustan solos: aperturas, refutaciones, preguntas cruzadas, prensa y cierres.</p>
     </div>
-    ${['a','b'].map((s,i)=>`<div class="card"><h2>${i?'Equipo en contra':'Equipo a favor'}</h2>
-      ${f(s+'n', i?'Ej.: Equipo Ciudad':'Ej.: Equipo Duna','Nombre del equipo')}
-      ${f(s+'p', i?'En contra de la moción':'A favor de la moción','Postura')}
-      ${ic(s+'i')}
-      ${f(s+'mi', i?'Ej.: Defender que se pueda construir con condiciones.':'Ej.: Defender que se prohíba construir.','Misión del equipo')}
-      ${f(s+'ev','Riesgo para personas | Las lluvias abrieron socavones en 2023 y 2024. | El Desconcierto, 2026','Ficha de evidencia',150,'Un dato por línea: <b>título | dato | fuente</b>. Hasta 12 datos.')}
+    ${['a','b'].map((s2,i)=>`<div class="card"><h2>${i?'Equipo en contra':'Equipo a favor'}</h2>
+      ${f(s2+'n', i?'Ej.: Equipo Ciudad':'Ej.: Equipo Duna','Nombre del equipo')}
+      ${f(s2+'p', i?'En contra de la moción':'A favor de la moción','Postura')}
+      ${ic(s2+'i')}
+      ${f(s2+'mi', i?'Ej.: Defender que se pueda construir con condiciones.':'Ej.: Defender que se prohíba construir.','Misión del equipo')}
+      ${f(s2+'ev','Riesgo para personas | Las lluvias abrieron socavones en 2023 y 2024. | El Desconcierto, 2026','Ficha de evidencia',150,'Un dato por línea: <b>título | dato | fuente</b>. Hasta 12 datos.')}
     </div>`).join('')}
     <div class="card">${f('r','Ej.: ¿Qué medida podría acercar las dos posturas?','Pregunta de reflexión final (opcional)')}</div>
-    <div class="card dark"><h2>Compartir</h2>
-      ${listo?`<p class="small" style="color:#D6E0F5">Este enlace abre el debate para los estudiantes. Si cambias algo, vuelve a copiarlo: el enlace nuevo es otro debate.</p>
-      <div class="out" id="edOut">${esc(edEnlace(e))}</div>
-      <div class="row" style="margin-top:10px"><button class="btn" style="background:var(--gold);color:var(--navy)" data-act="edcopy">Copiar enlace</button><a class="btn ghost" style="color:#fff;border-color:#fff" href="${esc(edEnlace(e))}" target="_blank" rel="noopener">Probar como estudiante ↗</a></div>
-      <p class="small" style="color:#D6E0F5;margin-top:10px">Para ver los trabajos en el Panel del profe → Trabajos, elige «Otro debate» y escribe este código: <b style="color:var(--gold-b)">${esc(desdeCompacto(edCompacto(e)).clave)}</b></p>`
-      :'<p class="small" style="color:#D6E0F5;margin:0">Escribe al menos la moción y el nombre de los dos equipos para obtener el enlace.</p>'}
-    </div>
+    <div id="edBal">${edBalance(e)}</div>
+    <div class="card dark" style="margin-top:14px"><h2>Compartir</h2><div id="edShare"><p class="small" style="color:#D6E0F5;margin:0">Preparando el enlace…</p></div></div>
     <div class="row"><button class="btn ghost sm" data-act="edreset">Empezar de nuevo</button></div>
   </main>`;
+  actualizarShare();
+}
+
+/* =====================================================================
+   MODO DOCENTE: proyectar · equipos · reloj · votación · resultados
+   ===================================================================== */
+const DKEY = CONFIG ? 'debate_docente_' + CONFIG.id : 'debate_docente';
+function dload(){ try{ return JSON.parse(localStorage.getItem(DKEY)) || {}; }catch(e){ return {}; } }
+let DOC = Object.assign({ tab: 'proyectar', nombres: '', reparto: null, votos: { ini: {f:0,c:0,n:0}, fin: {f:0,c:0,n:0} } }, dload());
+function dsave(){ try{ localStorage.setItem(DKEY, JSON.stringify(DOC)); }catch(e){} }
+const DTABS = [['proyectar','📽️','Proyectar'],['equipos','👥','Equipos'],['reloj','⏱️','Reloj'],['votacion','🗳️','Votación'],['resultados','📊','Resultados']];
+/* orden de prioridad de los roles al repartir (los primeros se asignan primero) */
+const PRIORIDAD = {
+  debate: { base: ['Capitán/a','Orador/a de cierre','Refutador/a','Estratega de preguntas','Investigador/a','Cronometrista y secretario/a'], extra: ['Refutador/a','Investigador/a'] },
+  jurado: { base: ['Presidente/a','Vocero/a','Evaluador/a de argumentos','Evaluador/a de evidencia','Evaluador/a de refutación','Evaluador/a de respeto y tiempos','Relator/a'], extra: ['Evaluador/a de argumentos','Evaluador/a de evidencia'] },
+  prensa: { base: ['Reportero/a','Verificador/a','Editor/a','Redactor/a'], extra: ['Verificador/a'] }
+};
+function azar(n){ try{ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }catch(e){ return Math.floor(Math.random()*n); } }
+function nombresLista(){ const vistos = new Set(); return String(DOC.nombres||'').split('\n').map(x=>x.replace(/^\s*\d+[.)-]?\s*/,'').trim()).filter(x=>x && x.length < 80 && !vistos.has(x.toLowerCase()) && vistos.add(x.toLowerCase())); }
+function sortear(){
+  const nombres = nombresLista().slice();
+  for(let i = nombres.length - 1; i > 0; i--){ const j = azar(i + 1); [nombres[i], nombres[j]] = [nombres[j], nombres[i]]; }
+  const eqs = Object.keys(CONFIG.equipos), rep = {}; eqs.forEach(k=>rep[k] = []);
+  nombres.forEach((n,i)=>rep[eqs[i % eqs.length]].push(n));
+  const out = {};
+  eqs.forEach(k=>{ const pr = PRIORIDAD[CONFIG.equipos[k].tipo]; out[k] = rep[k].map((n,i)=>[n, i < pr.base.length ? pr.base[i] : pr.extra[(i - pr.base.length) % pr.extra.length]]); });
+  DOC.reparto = out; dsave();
+}
+function repartoTexto(){
+  if(!DOC.reparto) return '';
+  return Object.keys(CONFIG.equipos).map(k=>{ const t = CONFIG.equipos[k]; return t.icono + ' ' + t.nombre.toUpperCase() + ' (' + t.postura + ')\n' + (DOC.reparto[k]||[]).map((x,i)=>(i+1)+'. '+x[0]+' — '+x[1]).join('\n'); }).join('\n\n');
+}
+let QR_LIB = null;
+function cargarQR(){ if(QR_LIB) return QR_LIB; QR_LIB = new Promise((ok, mal)=>{ if(window.QRCode) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'; sc.onload = ok; sc.onerror = ()=>{ QR_LIB = null; mal(new Error('sin conexión')); }; document.head.appendChild(sc); }); return QR_LIB; }
+function pintarQR(id, texto){
+  const el = document.getElementById(id); if(!el) return;
+  cargarQR().then(()=>{
+    if(!el.isConnected) return; el.innerHTML = '';
+    try{ new QRCode(el, { text: texto, width: 300, height: 300, colorDark: '#12306E', colorLight: '#ffffff', correctLevel: texto.length > 600 ? QRCode.CorrectLevel.L : QRCode.CorrectLevel.M }); el.setAttribute('aria-label', 'Código QR del enlace del debate'); }
+    catch(e){ el.innerHTML = '<p class="small" style="max-width:240px">El enlace es demasiado largo para un QR. Compártelo por Classroom o WhatsApp.</p>'; }
+  }, ()=>{ el.innerHTML = '<p class="small" style="max-width:240px">No se pudo generar el QR (sin conexión). Usa el enlace de abajo.</p>'; });
+}
+function bigClockHTML(){
+  const x = CONFIG.turnos[clock.i], left = clock.left===null ? x[2]*60 : clock.left;
+  return `<div class="bigclock ${left<=0?'end':left<=30?'warn':''}" id="clock"><div class="now">Turno ${clock.i+1} de ${CONFIG.turnos.length}</div><div class="ttl">${esc(x[0])}</div><div class="who">Habla: ${esc(x[1])} · ${x[2]} min</div>
+    <div class="big" id="clkVal">${fmt(left)}</div>
+    <div class="row" style="justify-content:center;gap:8px"><button class="btn ghost sm" data-act="clkprev" aria-label="Turno anterior">‹ Anterior</button><button class="btn" data-act="clk">${clock.run?'Pausa':(left<=0?'Repetir':'Iniciar')}</button><button class="btn ghost sm" data-act="clkreset" aria-label="Reiniciar el turno">↺</button><button class="btn ghost sm" data-act="clknext">Siguiente ›</button><button class="btn ghost sm" data-act="full">⛶ Pantalla completa</button></div></div>`;
+}
+function totalMin(){ return CONFIG.turnos.reduce((a,x)=>a+x[2],0); }
+function renderDocente(){
+  setTeamColors('#12306E', '#E6EAF4');
+  document.body.classList.add('has-tabs'); tabsEl.hidden = false;
+  if(!DTABS.some(x=>x[0]===DOC.tab)) DOC.tab = 'proyectar';
+  tabsEl.innerHTML = DTABS.map(x=>`<button data-act="dtab" data-v="${x[0]}" class="${DOC.tab===x[0]?'on':''}" ${DOC.tab===x[0]?'aria-current="page"':''}><span class="ic" aria-hidden="true">${x[1]}</span>${x[2]}</button>`).join('');
+  const top = `<header class="top"><div class="id"><div class="t1">👩‍🏫 Modo docente</div><div class="t2">${esc(CONFIG.titulo)}</div></div><a class="tb" href="${esc(enlaceEst())}" target="_blank" rel="noopener">Vista estudiante ↗</a></header>`;
+  let body = '';
+  if(DOC.tab === 'proyectar'){
+    body = `<div class="doc-proj"><div class="small" style="font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-d)">${esc(CONFIG.subtitulo)}</div><h1 style="margin:.2em 0">${esc(CONFIG.titulo)}</h1>
+      <div class="mo">«${esc(CONFIG.mocion)}»</div>
+      <div class="grid2" style="align-items:center;max-width:900px;margin:0 auto">
+        <div><div class="qrbox" id="qrEst"><p class="small">Generando QR…</p></div></div>
+        <div style="text-align:left"><ol class="steps"><li>Escanea el código con la cámara del celular.</li><li>Escribe tu nombre (o entra con tu cuenta).</li><li>Entra <b>solo</b> al equipo que te tocó.</li><li>Elige tu rol y sigue la lista de verificación.</li></ol>
+          <div class="out" style="margin-top:10px">${esc(enlaceEst())}</div>
+          <div class="row" style="margin-top:10px"><button class="btn" data-act="copyest">Copiar enlace</button><button class="btn ghost" data-act="full">⛶ Pantalla completa</button></div></div>
+      </div></div>`;
+  }
+  if(DOC.tab === 'equipos'){
+    const n = nombresLista().length, eqs = Object.keys(CONFIG.equipos), por = n ? Math.floor(n/eqs.length) : 0;
+    body = `<div class="card tint"><h2>Sorteo de equipos y roles</h2><p style="margin:0">Pega la lista del curso (un nombre por línea). La herramienta reparte a todos en los ${eqs.length} equipos al azar y asigna un rol a cada integrante. El bando lo decide el sorteo, no la opinión.</p></div>
+    <div class="card"><label class="lb" for="dNombres">Lista del curso</label><textarea id="dNombres" data-doc="nombres" style="min-height:160px" placeholder="Ana Pérez\nBruno Soto\nCamila Díaz\n…">${esc(DOC.nombres||'')}</textarea>
+      <p class="hint" id="dCuenta">${n} estudiante${n===1?'':'s'}${n?` · unos ${por}${n%eqs.length?'-'+(por+1):''} por equipo`:''}. Se ignoran los nombres repetidos y la numeración.</p>
+      ${n && n < 8 ? '<div class="warnline">Con menos de 8 estudiantes algunos equipos quedan con 1 persona: considera debatir solo con los dos bandos.</div>' : ''}
+      <div class="row" style="margin-top:10px"><button class="btn" data-act="sortear" ${n?'':'disabled'}>🎲 ${DOC.reparto?'Volver a sortear':'Sortear equipos'}</button>${DOC.reparto?'<button class="btn ghost" data-act="copyrep">Copiar</button><button class="btn ghost" data-act="printrep">🖨 Imprimir</button>':''}</div>
+    </div>
+    ${DOC.reparto?`<div class="eqgrid">${eqs.map(k=>{ const t = CONFIG.equipos[k]; return `<div class="eqcard"><div class="hd" style="background:${t.color}">${t.icono} ${esc(t.nombre)} <span style="font-weight:600;opacity:.9">· ${(DOC.reparto[k]||[]).length}</span></div><ol>${(DOC.reparto[k]||[]).map(x=>`<li>${esc(x[0])} <span>· ${esc(x[1])}</span></li>`).join('')||'<li><span>Sin integrantes</span></li>'}</ol></div>`; }).join('')}</div>`:''}`;
+  }
+  if(DOC.tab === 'reloj'){
+    body = `${bigClockHTML()}<p class="small" style="text-align:center;margin:10px 0">Atajos: <span class="kbd">Espacio</span> iniciar o pausar · <span class="kbd">→</span> siguiente · <span class="kbd">←</span> anterior · <span class="kbd">F</span> pantalla completa. Total del debate: ${totalMin()} min.</p>
+    <ul class="turns">${CONFIG.turnos.map((x,i)=>`<li class="${i===clock.i?'cur':''} ${i<clock.i?'done':''}" data-act="turn" data-v="${i}" role="button" tabindex="0"><span class="tn">${i+1}</span><span class="tx">${esc(x[0])}<small>${esc(x[1])}</small></span><span class="tm">${x[2]}’</span></li>`).join('')}</ul>`;
+  }
+  if(DOC.tab === 'votacion'){
+    const V = DOC.votos, ops = [['f','A favor','#1F4FB3'],['c','En contra','#8A6410'],['n','No está seguro/a','#4F5D75']];
+    const blk = (k, tit) => { const tot = ops.reduce((a,o)=>a+(+V[k][o[0]]||0),0); return `<div class="card"><h3>${tit}</h3><p class="small">Cuenten las manos levantadas y ajusten con + y −. Total: <b>${tot}</b></p>${ops.map(o=>{ const n = +V[k][o[0]]||0, pc = tot ? Math.round(n/tot*100) : 0; return `<div class="vrow"><span class="lb2">${o[1]}</span><button data-act="voto" data-v="${k}|${o[0]}|-1" aria-label="Restar un voto ${o[1]}">−</button><span class="bar"><i style="width:${pc}%;background:${o[2]}"></i></span><button data-act="voto" data-v="${k}|${o[0]}|1" aria-label="Sumar un voto ${o[1]}">+</button><span class="n">${n}</span></div>`; }).join('')}</div>`; };
+    const ti = ops.reduce((a,o)=>a+(+V.ini[o[0]]||0),0), tf = ops.reduce((a,o)=>a+(+V.fin[o[0]]||0),0);
+    const cambio = ti && tf ? ops.map(o=>{ const d = Math.round((V.fin[o[0]]/tf - V.ini[o[0]]/ti)*100); return o[1] + ': ' + (d>0?'+':'') + d + ' pts'; }).join(' · ') : '';
+    body = `<div class="card tint"><h2>Votación a mano alzada</h2><p style="margin:0">«${esc(CONFIG.mocion)}». Vota cada estudiante con su opinión personal, antes y después del debate.</p></div>
+    <div class="vote">${blk('ini','Voto inicial')}${blk('fin','Voto final')}</div>
+    ${cambio?`<div class="card dark"><h3>¿Cambió la opinión del curso?</h3><p style="margin:0">${esc(cambio)}</p></div>`:''}
+    <button class="btn ghost sm" data-act="votoreset">Reiniciar votación</button>`;
+  }
+  if(DOC.tab === 'resultados'){
+    const panel = '../panel-profe.html?trabajo=' + encodeURIComponent(CONFIG.clave);
+    body = `<div class="card tint"><h2>Resultados del curso</h2><p style="margin:0">Cada estudiante que entró con su cuenta guarda su bitácora automáticamente. En el Panel del profe ves el resumen del debate (votos, veredictos y datos falsos) y el trabajo de cada estudiante, con opción de descargar CSV.</p></div>
+    <div class="card"><a class="btn" href="${esc(panel)}" target="_blank" rel="noopener">📊 Abrir resultados en el Panel del profe ↗</a>
+      <p class="small" style="margin-top:10px">Código de este debate: <b>${esc(CONFIG.clave)}</b>${CONFIG.propio?' (en el Panel, elige «Otro debate» y escríbelo si no aparece solo).':'.'}</p></div>
+    <div class="card sand"><h3>Si alguien no tiene cuenta</h3><p class="small" style="margin:0">Su trabajo queda solo en su celular. Pídele que, en la pestaña Cierre, descargue la bitácora en PDF o .txt y te la envíe.</p></div>
+    <div class="card"><h3>Para la próxima vez</h3><ul class="dots"><li>Duración de este debate: ${totalMin()} min de turnos. En el editor puedes elegir una versión corta (≈15 min) o larga (≈32 min).</li><li>Puedes <a href="debate.html?editor${LIB_KEY?'&base='+encodeURIComponent(LIB_KEY):''}">usar este debate como plantilla</a> y cambiar la moción o la evidencia.</li></ul></div>`;
+  }
+  app.innerHTML = top + `<main class="wrap">${body}</main>`;
+  if(DOC.tab === 'proyectar') pintarQR('qrEst', enlaceEst());
 }
 
 /* =====================================================================
@@ -948,11 +1168,37 @@ document.addEventListener('click', e=>{
     case 'entrarcuenta': if(window.DF) DF.entrar().catch(err=>{ if(!err||!err.cancelado) toast('No se pudo entrar: '+((err&&err.message)||err)); }); break;
     case 'salircuenta': { const chipBtn = document.querySelector('.ag-chip [data-ag="salir"]'); if(chipBtn){ chipBtn.click(); } else if(window.DF){ DF.salir().then(()=>location.reload()); } break; }
     case 'edicon': { const o = edLoad(); o[b.dataset.k] = v; edSave(o); render(true); break; }
-    case 'edcopy': copiar(edEnlace(edLoad()), 'Enlace copiado'); break;
+    case 'edcopy': if(EDL) copiar(EDL.est, 'Enlace copiado'); break;
+    case 'edtpl': { const k = document.getElementById('edTpl').value; if(!k){ toast('Elige un debate de la lista'); return; }
+      if(edTieneContenido() && !armar(b, '¿Reemplazar? Toca otra vez')) return;
+      edSave(camposDe(libCompacto(k))); render(); window.scrollTo(0,0); toast('Plantilla cargada: cámbiala a tu gusto'); break; }
+    case 'edlink': { const u = (document.getElementById('edLink').value||'').trim(); if(!u){ toast('Pega el enlace del debate'); return; }
+      if(edTieneContenido() && !armar(b, '¿Reemplazar? Toca otra vez')) return;
+      compactoDeEnlace(u).then(c=>{ edSave(camposDe(c)); render(); window.scrollTo(0,0); toast('Debate cargado para editar'); }, err=>toast('No se pudo leer el enlace: ' + (err.message||err))); break; }
+    case 'dtab': DOC.tab = v; dsave(); render(); window.scrollTo(0,0); break;
+    case 'sortear': sortear(); render(true); toast('Equipos sorteados'); break;
+    case 'copyrep': copiar(repartoTexto(), 'Equipos copiados'); break;
+    case 'printrep': { const pr = document.getElementById('print'); pr.innerHTML = `<h1>${esc(CONFIG.titulo)} · Equipos</h1><p>«${esc(CONFIG.mocion)}»</p><div class="eqgrid">${Object.keys(CONFIG.equipos).map(k=>{ const t = CONFIG.equipos[k]; return `<div class="eqcard"><div class="hd">${esc(t.nombre)} · ${esc(t.postura)}</div><ol>${(DOC.reparto[k]||[]).map(x=>`<li>${esc(x[0])} — ${esc(x[1])}</li>`).join('')}</ol></div>`; }).join('')}</div>`; window.print(); break; }
+    case 'copyest': copiar(enlaceEst(), 'Enlace copiado'); break;
+    case 'full': try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }catch(err){ toast('Tu navegador no permite pantalla completa'); } break;
+    case 'clkprev': if(clock.i <= 0){ toast('Es el primer turno'); return; } loadTurn(clock.i-1); render(true); break;
+    case 'voto': { const [k,o,dl] = v.split('|'); DOC.votos[k][o] = Math.max(0, (+DOC.votos[k][o]||0) + (+dl)); dsave(); render(true); break; }
+    case 'votoreset': if(!armar(b, 'Toca otra vez para reiniciar')) return; DOC.votos = { ini: {f:0,c:0,n:0}, fin: {f:0,c:0,n:0} }; dsave(); render(true); break;
+
     case 'edreset': if(!armar(b, 'Toca otra vez para borrar el borrador')) return; edSave({}); render(); window.scrollTo(0,0); break;
   }
 });
-document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.matches && e.target.matches('li[data-act]')){ e.preventDefault(); e.target.click(); } });
+document.addEventListener('keydown', e=>{
+  if((e.key==='Enter'||e.key===' ') && e.target.matches && e.target.matches('li[data-act]')){ e.preventDefault(); e.target.click(); return; }
+  /* atajos del reloj del modo docente */
+  if(MODO !== 'docente' || DOC.tab !== 'reloj') return;
+  const tg = e.target.tagName; if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT'||tg==='BUTTON') return;
+  if(e.key===' '){ e.preventDefault(); clock.run ? stopClock() : startClock(); render(true); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); if(clock.i < CONFIG.turnos.length-1){ loadTurn(clock.i+1); render(true); } }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); if(clock.i > 0){ loadTurn(clock.i-1); render(true); } }
+  else if(e.key==='f' || e.key==='F'){ try{ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }catch(err){} }
+});
+
 function copiar(txt, ok){ (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(()=>toast(ok), ()=>{ const ta = document.createElement('textarea'); ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast(ok); }catch(err){ toast('No se pudo copiar: selecciona el texto y cópialo'); } ta.remove(); }); }
 
 let edT = null;
@@ -960,7 +1206,8 @@ document.addEventListener('input', e=>{
   const el = e.target;
   if(el.dataset.home === 'nombre'){ S.nombre = el.value; save(); const ok = el.value.trim().length >= 2; document.querySelectorAll('[data-act="enter"]').forEach(b=>b.disabled = !ok); const h = document.getElementById('nombreHint'); if(h) h.textContent = ok ? 'Listo: ahora elige tu equipo.' : 'Escríbelo para poder entrar a tu equipo.'; return; }
   if(el.dataset.draft){ D()[el.dataset.draft] = el.value; save(); return; }
-  if(el.dataset.ed){ const o = edLoad(); o[el.dataset.ed] = el.value; edSave(o); clearTimeout(edT); edT = setTimeout(()=>{ const out = document.getElementById('edOut'); const need = !!out !== !!(((o.m||'').trim()) && ((o.an||'').trim()) && ((o.bn||'').trim())); if(need) render(true); else if(out){ out.textContent = edEnlace(o); const a = out.parentNode.querySelector('a.btn'); if(a) a.href = edEnlace(o); } }, 500); return; }
+  if(el.dataset.ed){ const o = edLoad(); o[el.dataset.ed] = el.value; edSave(o); clearTimeout(edT); edT = setTimeout(actualizarShare, 500); return; }
+  if(el.dataset.doc === 'nombres'){ DOC.nombres = el.value; dsave(); const n = nombresLista().length, k = Object.keys(CONFIG.equipos).length, por = Math.floor(n/k); const h = document.getElementById('dCuenta'); if(h) h.textContent = n + ' estudiante' + (n===1?'':'s') + (n ? ' · unos ' + por + (n%k ? '-' + (por+1) : '') + ' por equipo' : '') + '. Se ignoran los nombres repetidos y la numeración.'; const bt = document.querySelector('[data-act="sortear"]'); if(bt) bt.disabled = !n; return; }
   if(el.dataset.bind){ setP(el.dataset.bind, el.value); save();
     const m = el.closest('.arg'); if(m){ const i = el.dataset.bind.split('.')[1]; m.querySelector('.meter i').style.width = (argLleno(i)/3*100)+'%'; } }
 });
@@ -986,6 +1233,7 @@ if(CONFIG){
 }
 conectarCuenta();
 render();
+})();
 </script>
 </body>
 </html>

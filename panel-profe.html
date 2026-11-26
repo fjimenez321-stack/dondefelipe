@@ -330,6 +330,7 @@ dialog.ancho{max-width:min(860px,calc(100vw - 32px))}
         <span class="muted" id="wCuenta"></span>
       </div>
       <p class="muted" style="margin:0 0 10px">Solo aparece el trabajo de quienes entraron con Google en esa página. Los Felipesos son los que marca la página (provisorios): revísalos antes de abonarlos en el Banco.</p>
+      <div id="wResumen" class="oculto" style="margin:0 0 12px"></div>
       <div class="tabla-wrap"><table><thead><tr><th>Estudiante</th><th>Correo</th><th>Avance</th><th class="num">Felipesos</th><th>Último guardado</th><th></th></tr></thead><tbody id="wTabla"></tbody></table></div>
     </section>
 
@@ -523,6 +524,16 @@ document.addEventListener('click', async ev => {
     leerEstadoBanco();
   } catch (e) { toast('No se pudo cambiar: ' + (/permission/i.test(e.message) ? 'publica primero las reglas nuevas' : e.message)); }
 });
+/* ---------- abrir directo un trabajo: panel-profe.html?trabajo=<clave> (lo usa la Herramienta para debates) ---------- */
+let trabajoPedidoAbierto = false;
+function abrirTrabajoPedido() {
+  const c = new URLSearchParams(location.search).get('trabajo');
+  if (!c || trabajoPedidoAbierto) return; trabajoPedidoAbierto = true;
+  const clave = String(c).toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40);
+  if (TRABAJOS.some(t => t.clave === clave)) $('wRec').value = clave;
+  else { $('wRec').value = '__otro'; $('wOtro').value = clave; }
+  const b = document.querySelector('#tabs [data-t="trabajos"]'); if (b) b.click();
+}
 /* ---------- sesión ---------- */
 $('btnEntrar').onclick = () => DF.entrar().catch(e => { if (!e.cancelado) aviso(esc(e.message), true); });
 $('btnSalir').onclick = () => DF.salir();
@@ -539,6 +550,7 @@ DF.listo().then(fb => {
     if (!DF.esProfe(u)) { $('app').classList.add('oculto'); aviso('La cuenta <b>' + esc(u.email) + '</b> no tiene permiso de profe. Agrégala en <code>firebase/config.js</code> y en las reglas de Firestore.', true); return; }
     aviso(''); $('app').classList.remove('oculto');
     iniciarBanco();
+    abrirTrabajoPedido();
   });
 }).catch(e => {
   aviso('Firebase todavía no está conectado: ' + esc(e.message) + '<br>Completa <code>firebase/config.js</code> con los datos de tu proyecto.', true);
@@ -1969,7 +1981,27 @@ function trabajosFiltrados() {
   const q = $('wBuscar').value.trim().toLowerCase();
   return trabajos.filter(w => !q || `${w.a.nombre} ${w.a.email}`.toLowerCase().includes(q));
 }
+/* Resumen de un debate (Herramienta para debates): votos, equipos, veredictos y datos falsos */
+function resumenDebate() {
+  const box = $('wResumen'), clave = $('wRec').value === '__otro' ? $('wOtro').value.trim().toLowerCase() : $('wRec').value;
+  if (!/^debate-/.test(clave) || !trabajos.length) { box.classList.add('oculto'); box.innerHTML = ''; return; }
+  const cuenta = {}, sum = (g, k) => { cuenta[g] = cuenta[g] || {}; cuenta[g][k] = (cuenta[g][k] || 0) + 1; };
+  let falsos = 0, datos = 0;
+  trabajos.forEach(w => {
+    const det = w.datos.detalle || [], uno = suf => (det.find(x => x.k.endsWith(suf)) || {}).v;
+    if (uno('Equipo actual') || det.find(x => x.k === 'Equipo actual')) sum('Equipo', (det.find(x => x.k === 'Equipo actual') || {}).v || '—');
+    const vi = uno('· Voto inicial'), vf = uno('· Voto final');
+    if (vi) sum('Voto inicial', vi); if (vf) sum('Voto final', vf);
+    if (vi && vf && vi !== vf) sum('Cambiaron de opinión', 'sí');
+    det.filter(x => x.k.endsWith('· Ganador')).forEach(x => sum('Veredicto del jurado', x.v));
+    det.filter(x => x.k.endsWith('· Datos verificados')).forEach(x => { const l = String(x.v).split('\n'); datos += l.length; falsos += l.filter(y => y.startsWith('[Falso]')).length; });
+  });
+  const fila = g => cuenta[g] ? `<tr><td style="width:30%"><b>${esc(g)}</b></td><td>${Object.entries(cuenta[g]).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${esc(k)}: <b>${n}</b>`).join(' · ')}</td></tr>` : '';
+  box.innerHTML = `<div class="tabla-wrap"><table><tbody>${['Equipo', 'Voto inicial', 'Voto final', 'Cambiaron de opinión', 'Veredicto del jurado'].map(fila).join('')}${datos ? `<tr><td><b>Verificación de la prensa</b></td><td>${datos} datos revisados · <b>${falsos}</b> falsos</td></tr>` : ''}</tbody></table></div>`;
+  box.classList.remove('oculto');
+}
 function pintarTrabajos() {
+  resumenDebate();
   const l = trabajosFiltrados();
   $('wCuenta').textContent = `${l.length} estudiante${l.length !== 1 ? 's' : ''} con trabajo guardado`;
   $('wTabla').innerHTML = l.length ? l.map((w, i) => `<tr><td>${esc(w.a.nombre)}</td><td class="muted">${esc(w.a.email)}</td><td>${esc(w.datos.avance || '—')}</td><td class="num">${esc(w.datos.felipesos != null ? w.datos.felipesos : '—')}</td><td class="muted">${fecha(w.fecha)}</td><td><button class="btn sm" data-w="${trabajos.indexOf(w)}">Ver trabajo</button></td></tr>`).join('')
