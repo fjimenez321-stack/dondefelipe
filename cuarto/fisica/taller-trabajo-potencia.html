@@ -135,7 +135,7 @@ body{padding:0}
 .ovlabel:focus-visible{outline:calc(var(--vw)*.006) solid var(--accent)}
 .cam.ov .ovlabel{opacity:1;visibility:visible}
 .cam.ov .fscroll{opacity:.22}
-.cover{min-height:100%;display:grid;align-content:center;max-width:980px;margin-inline:auto;padding-bottom:40px}
+.cover{min-height:100%;display:grid;grid-template-columns:minmax(0,1fr);align-content:center;max-width:980px;margin-inline:auto;padding-bottom:40px}
 .cover .top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;margin-bottom:28px}
 .cover h1{font-size:clamp(38px,min(8vw,11.5vh),100px);font-weight:900;letter-spacing:-.01em;line-height:.98}
 .cover h1 span{background:var(--accent);color:var(--accent-ink);padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
@@ -185,6 +185,7 @@ body{padding:0}
 .pop{animation:pop .6s ease}
 @keyframes pop{30%{transform:scale(1.18)}100%{transform:scale(1)}}
 @media(max-width:560px){.dock .bankbtn{padding:4px 8px 4px 6px}}
+@media(max-width:430px){.dock{gap:2px}.dock button{padding:8px 6px}.dock .dots button{padding:8px 6px}.dock .sep{display:none}.dock .bankbtn{padding:4px 8px 4px 4px}}
 .bankbk{position:fixed;inset:0;z-index:35;background:rgba(24,33,46,.5);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
 .bankd{position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);z-index:40;background:var(--bg);overflow-y:auto;transform:translateX(105%);visibility:hidden;transition:transform .4s cubic-bezier(.6,0,.25,1),visibility .4s;box-shadow:-20px 0 60px rgba(24,33,46,.35)}
 .bank-open .bankbk{opacity:1;visibility:visible}

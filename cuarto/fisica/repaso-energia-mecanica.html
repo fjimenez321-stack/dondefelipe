@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Energía en juego</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,600..900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -180,7 +181,7 @@ body{padding:0}
 .ovlabel:focus-visible{outline:calc(var(--vw)*.006) solid var(--accent)}
 .cam.ov .ovlabel{opacity:1;visibility:visible}
 .cam.ov .fscroll{opacity:.22}
-.cover{min-height:100%;display:grid;align-content:center;max-width:980px;margin-inline:auto;padding-bottom:40px}
+.cover{min-height:100%;display:grid;grid-template-columns:minmax(0,1fr);align-content:center;max-width:980px;margin-inline:auto;padding-bottom:40px}
 .cover .top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;margin-bottom:28px}
 .cover h1{font-size:clamp(38px,min(8vw,11.5vh),100px);font-weight:900;letter-spacing:-.01em;line-height:.98}
 .cover h1 span{background:var(--accent);color:var(--accent-ink);padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}

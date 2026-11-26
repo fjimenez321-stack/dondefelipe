@@ -136,9 +136,9 @@ header .esp{flex:1}
 .bitacora{max-height:230px;overflow:auto;display:grid;gap:6px;font-size:.85rem;padding-right:4px}
 .bitacora p{background:#fff;border-radius:10px;padding:7px 10px;line-height:1.35;border-left:4px solid var(--c,var(--musgo))}
 
-.velo{position:fixed;inset:0;z-index:50;background:rgba(9,25,16,.72);backdrop-filter:blur(3px);display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:16px;overflow:auto;overscroll-behavior:contain}
+.velo{position:fixed;inset:0;z-index:50;background:rgba(9,25,16,.72);backdrop-filter:blur(3px);display:grid;grid-template-columns:minmax(0,1fr);place-items:start center;padding:16px;overflow:auto;overscroll-behavior:contain}
 .velo[hidden]{display:none}
-.ventana{width:min(680px,100%);background:var(--papel);border-radius:20px;box-shadow:0 30px 70px rgba(0,0,0,.5);overflow:hidden;animation:entra .28s cubic-bezier(.3,1.4,.5,1)}
+.ventana{width:min(680px,100%);margin-block:auto;background:var(--papel);border-radius:20px;box-shadow:0 30px 70px rgba(0,0,0,.5);overflow:hidden;animation:entra .28s cubic-bezier(.3,1.4,.5,1)}
 @keyframes entra{from{transform:translateY(18px) scale(.96);opacity:0}}
 .v-cab{padding:16px 20px;color:#fff;background:linear-gradient(120deg,var(--bosque-2),var(--musgo));display:flex;gap:12px;align-items:center}
 .v-cab .ic{font-family:var(--emoji);font-size:2.2rem}
@@ -453,7 +453,7 @@ function log(t,eq){const p=document.createElement('p');if(eq!=null)p.style.setPr
 /* ═════════════ ventanas ═════════════ */
 function ventana(html,{cerrable=false}={}){
   const v=$('velo'),w=$('ventana');w.innerHTML=html;v.hidden=false;
-  const f=w.querySelector('button,input,select');if(f)setTimeout(()=>f.focus(),60);
+  const f=w.querySelector('button,input,select');if(f&&matchMedia('(hover:hover)').matches)setTimeout(()=>f.focus(),60);// en celular no abre el teclado solo
   return new Promise(res=>{w.onclick=e=>{const b=e.target.closest('[data-r]');if(b)res(b.dataset.r);};v.onclick=e=>{if(cerrable&&e.target===v){cerrar();res('cerrar');}};});
 }
 function cerrar(){$('velo').hidden=true;$('ventana').innerHTML='';}
